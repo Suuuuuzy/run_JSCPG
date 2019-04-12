@@ -1,0 +1,148 @@
+id:int	labels:label	type	flags:string_array	lineno:int	code	childnum:int	funcid:int	classname	namespace	endlineno:int	name	doccomment
+0	Filesystem	File									../../JSCypherQuery/demo/server.js	
+1	AST	AST_TOPLEVEL	TOPLEVEL_FILE	1						22	../../JSCypherQuery/demo/server.js	
+2	Artificial	CFG_FUNC_ENTRY					1				../../JSCypherQuery/demo/server.js	
+3	Artificial	CFG_FUNC_EXIT					1				../../JSCypherQuery/demo/server.js	
+4	AST	AST_STMT_LIST		1		0	1			22		
+5	AST	AST_ASSIGN		1	"url = require(""url"")"	0	1			1		
+6	AST	AST_VAR		1	any	0	1			1		
+7	AST	string		1	url	0	1			1		
+8	AST	AST_CALL		1		1	1			1		
+9	AST	AST_NAME	NAME_NOT_FQ	1		0	1			1		
+10	AST	string		1	require	0	1					
+11	AST	AST_ARG_LIST		1	require("url")	1	1			1		
+12	AST	string		1	"url"	0	1			1		
+13	AST	AST_ASSIGN		2	"http = require(""http"")"	1	1			2		
+14	AST	AST_VAR		2	any	0	1			2		
+15	AST	string		2	http	0	1			2		
+16	AST	AST_CALL		2		1	1			2		
+17	AST	AST_NAME	NAME_NOT_FQ	2		0	1			2		
+18	AST	string		2	require	0	1					
+19	AST	AST_ARG_LIST		2	require("http")	1	1			2		
+20	AST	string		2	"http"	0	1			2		
+21	AST	AST_ASSIGN		3	"child_process = require('child_process')"	2	1			3		
+22	AST	AST_VAR		3	any	0	1			3		
+23	AST	string		3	child_process	0	1			3		
+24	AST	AST_CALL		3		1	1			3		
+25	AST	AST_NAME	NAME_NOT_FQ	3		0	1			3		
+26	AST	string		3	require	0	1					
+27	AST	AST_ARG_LIST		3	require('child_process')	1	1			3		
+28	AST	string		3	'child_process'	0	1			3		
+29	AST	AST_FUNC_DECL		5	serverFunction	3	1			19		
+30	Artificial	CFG_FUNC_ENTRY					29					
+31	Artificial	CFG_FUNC_EXIT					29					
+32	AST	string		5	serverFunction	0	29			5		
+33	AST	NULL		5		1	29					
+34	AST	AST_PARAM_LIST		5	"request, response"	2	29			19		
+35	AST	AST_PARAM		5	request	0	29					
+36	AST	NULL		5	any	0	29					
+37	AST	string		5	request	1	29			5		
+38	AST	NULL		5	any	2	29					
+39	AST	AST_PARAM		5	response	1	29					
+40	AST	NULL		5	any	0	29					
+41	AST	string		5	response	1	29			5		
+42	AST	NULL		5	any	2	29					
+43	AST	AST_STMT_LIST		5		3	29			19		
+44	AST	AST_ASSIGN		6	"cur_url = request.url"	0	29			6		
+45	AST	AST_VAR		6	any	0	29			6		
+46	AST	string		6	cur_url	0	29			6		
+47	AST	AST_PROP		6	request.url	1	29			6		
+48	AST	AST_VAR		6		0	29			6		
+49	AST	string		6	request	0	29			6	request	
+50	AST	string		6	url	1	29			6		
+51	AST	AST_ASSIGN		7	"year = url.parse(cur_url, true).query['year']"	1	29			7		
+52	AST	AST_VAR		7	any	0	29			7		
+53	AST	string		7	year	0	29			7		
+54	AST	AST_DIM		7	"url.parse(cur_url, true).query['year']"	1	29			7		
+55	AST	AST_PROP		7	"url.parse(cur_url, true).query"	0	29			7		
+56	AST	AST_CALL		7		0	29			7		
+57	AST	AST_NAME	NAME_NOT_FQ	7		0	29			7		
+58	AST	string		7	url.parse	0	29					
+59	AST	AST_ARG_LIST		7	"url.parse(cur_url, true)"	1	29			7		
+60	AST	AST_VAR		7		0	29			7		
+61	AST	string		7	cur_url	0	29			7	cur_url	
+62	AST	AST_CONST		7	true	1	29					
+63	AST	AST_NAME	NAME_NOT_FQ	7	true	0	29					
+64	AST	string		7	true	0	29					
+65	AST	string		7	query	1	29			7		
+66	AST	string		7	'year'	1	29			7		
+67	AST	AST_ASSIGN		8	"parsedYear = parseInt(year, 10)"	2	29			8		
+68	AST	AST_VAR		8	any	0	29			8		
+69	AST	string		8	parsedYear	0	29			8		
+70	AST	AST_CALL		8		1	29			8		
+71	AST	AST_NAME	NAME_NOT_FQ	8		0	29			8		
+72	AST	string		8	parseInt	0	29					
+73	AST	AST_ARG_LIST		8	"parseInt(year, 10)"	1	29			8		
+74	AST	AST_VAR		8		0	29			8		
+75	AST	string		8	year	0	29			8	year	
+76	AST	integer		8	10	1	29			8		
+77	AST	AST_IF		9		3	29			12		
+78	AST	AST_IF_ELEM		9		0	29			12		
+79	AST	AST_CALL		9		0	29			9		
+80	AST	AST_NAME	NAME_NOT_FQ	9		0	29			9		
+81	AST	string		9	isNaN	0	29					
+82	AST	AST_ARG_LIST		9	isNaN(parsedYear)	1	29			9		
+83	AST	AST_VAR		9		0	29			9		
+84	AST	string		9	parsedYear	0	29			9	parsedYear	
+85	AST	AST_STMT_LIST		9		1	29			12		
+86	AST	AST_CALL		10		0	29			10		
+87	AST	AST_NAME	NAME_NOT_FQ	10		0	29			10		
+88	AST	string		10	response.end	0	29					
+89	AST	AST_ARG_LIST		10	response.end()	1	29			10		
+90	AST	AST_RETURN		11	"return 0;"	1	29			11		
+91	AST	integer		11	0	0	29			11		
+92	AST	AST_ASSIGN		13	"child = child_process.execSync('cal ' + parsedYear)"	4	29			13		
+93	AST	AST_VAR		13	any	0	29			13		
+94	AST	string		13	child	0	29			13		
+95	AST	AST_CALL		13		1	29			13		
+96	AST	AST_NAME	NAME_NOT_FQ	13		0	29			13		
+97	AST	string		13	child_process.execSync	0	29					
+98	AST	AST_ARG_LIST		13	"child_process.execSync('cal ' + parsedYear)"	1	29			13		
+99	AST	AST_BINARY_OP	BINARY_ADD	13	+	0	29			13		
+100	AST	string		13	"'cal '"	0	29			13		
+101	AST	AST_VAR		13		1	29			13		
+102	AST	string		13	parsedYear	0	29			13	parsedYear	
+103	AST	AST_ASSIGN		14	"calRes = child.toString()"	5	29			14		
+104	AST	AST_VAR		14	any	0	29			14		
+105	AST	string		14	calRes	0	29			14		
+106	AST	AST_CALL		14		1	29			14		
+107	AST	AST_NAME	NAME_NOT_FQ	14		0	29			14		
+108	AST	string		14	child.toString	0	29					
+109	AST	AST_ARG_LIST		14	child.toString()	1	29			14		
+110	AST	AST_CALL		15		6	29			15		
+111	AST	AST_NAME	NAME_NOT_FQ	15		0	29			15		
+112	AST	string		15	console.log	0	29					
+113	AST	AST_ARG_LIST		15	console.log(calRes)	1	29			15		
+114	AST	AST_VAR		15		0	29			15		
+115	AST	string		15	calRes	0	29			15	calRes	
+116	AST	AST_CALL		16		7	29			16		
+117	AST	AST_NAME	NAME_NOT_FQ	16		0	29			16		
+118	AST	string		16	response.writeHead	0	29					
+119	AST	AST_ARG_LIST		16	response.writeHead(200)	1	29			16		
+120	AST	integer		16	200	0	29			16		
+121	AST	AST_CALL		17		8	29			17		
+122	AST	AST_NAME	NAME_NOT_FQ	17		0	29			17		
+123	AST	string		17	response.write	0	29					
+124	AST	AST_ARG_LIST		17	response.write(calRes)	1	29			17		
+125	AST	AST_VAR		17		0	29			17		
+126	AST	string		17	calRes	0	29			17	calRes	
+127	AST	AST_CALL		18		9	29			18		
+128	AST	AST_NAME	NAME_NOT_FQ	18		0	29			18		
+129	AST	string		18	response.end	0	29					
+130	AST	AST_ARG_LIST		18	response.end()	1	29			18		
+131	AST	NULL		5		4	29					
+132	AST	NULL		5		5	29					
+133	AST	AST_ASSIGN		21	"app = http.createServer(serverFunction)"	4	1			21		
+134	AST	AST_VAR		21	any	0	1			21		
+135	AST	string		21	app	0	1			21		
+136	AST	AST_CALL		21		1	1			21		
+137	AST	AST_NAME	NAME_NOT_FQ	21		0	1			21		
+138	AST	string		21	http.createServer	0	1					
+139	AST	AST_ARG_LIST		21	http.createServer(serverFunction)	1	1			21		
+140	AST	AST_VAR		21		0	1			21		
+141	AST	string		21	serverFunction	0	1			21	serverFunction	
+142	AST	AST_CALL		22		5	1			22		
+143	AST	AST_NAME	NAME_NOT_FQ	22		0	1			22		
+144	AST	string		22	app.listen	0	1					
+145	AST	AST_ARG_LIST		22	app.listen(12345)	1	1			22		
+146	AST	integer		22	12345	0	1			22		

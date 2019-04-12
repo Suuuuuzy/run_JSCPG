@@ -1,0 +1,15 @@
+{
+  "name": "esprima-joern",
+  "version": "0.6.5",
+  "description": "",
+  "main": "main.js",
+  "dependencies": {
+    "esprima": "^4.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node ./main.js test1.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
