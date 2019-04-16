@@ -79,8 +79,10 @@ start:START_ID	end:END_ID	type:TYPE	var	taint_src	taint_dst
 69	81	PARENT_OF			
 69	85	PARENT_OF			
 2	3	ENTRY			
+2	26	DEFINES			
 2	5	PARENT_OF			
 2	4	EXIT			
+2	6	DEFINES			
 6	11	PARENT_OF			
 6	10	PARENT_OF			
 6	16	PARENT_OF			
