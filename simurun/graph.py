@@ -189,3 +189,9 @@ class Graph:
         """
         subG = self.get_sub_graph_by_edge_type(edge_type)
         
+    def get_nodes_by_type(self, node_type):
+        """
+        return a list of nodes with a specific node type
+        """
+        return [node for node in self.graph.nodes(data = True) if node[1]['type'] == node_type]
+
