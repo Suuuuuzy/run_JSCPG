@@ -1,4 +1,5 @@
 from graph import Graph
+from scopeController import ScopeController
 
 def get_argids_from_funcallee(node_id):
     """
@@ -65,9 +66,11 @@ def add_edges_between_funcs(G):
 
     G.add_edges_from_list(added_edge_list)
 
+
+
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
 add_edges_between_funcs(G)
-
+scopeContorller = ScopeController(G)
 G.export_to_CSV("./testnodes.csv", "./testrels.csv")
 
