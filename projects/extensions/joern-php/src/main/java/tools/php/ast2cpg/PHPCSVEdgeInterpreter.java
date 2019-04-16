@@ -629,6 +629,7 @@ public class PHPCSVEdgeInterpreter implements CSVRowInterpreter
 				break;
 			case 6: // __declId node: no support at present
 				startNode.addChild(endNode);
+				break;
 
 			default:
 				errno = 1;
