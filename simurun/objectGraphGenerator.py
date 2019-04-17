@@ -88,7 +88,7 @@ def generate_obj_graph(G, entry_nodeid):
         else:
             visited.add(cur_node)
 
-        handle_node(G, node_id)
+        handle_node(G, cur_node)
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
         out_nodes = [edge[1] for edge in out_edges]
         bfs_queue += out_nodes
