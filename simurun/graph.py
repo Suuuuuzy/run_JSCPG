@@ -136,9 +136,11 @@ class Graph:
         if edge_type == None:
             return self.graph.out_edges(node_id, data = data, keys = keys)
         edges = self.graph.out_edges(node_id, data = data, keys = keys)
-        idx = 2
+        idx = 1
         if keys == True:
-            idx = 3
+            idx += 1
+        if data == True:
+            idx += 1
         return [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
 
     def get_in_edges(self, node_id, data = False, keys = False, edge_type = None):

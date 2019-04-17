@@ -70,11 +70,36 @@ def handle_node(G, node_id):
     """
     for different node type, do different actions to handle this node
     """
+    cur_node = G.get_node_attr(node_id)
+    cur_type = cur_node['type']
+    if cur_type == "AST_ASSIGN":
+        # for assign operation, the right part is childnum 1, the left part is childnum 0
+        ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
+        if G.get_node_attr(ast_edges[0][1])['childnum:int'] == '1':
+            right = ast_edges[0][1]
+            left = ast_edges[1][1]
+        else:
+            right = ast_edges[1][1]
+            left = ast_edges[0][1]
+
+        # TODO: trace back to find the var type
+        right_vartype = G.get_node_attr(right)['VAR_TYPE']
+        G.set_node_attr(left, ("VAR_TYPE", right_vartype))
+        print G.get_node_attr(left)
 
 def generate_obj_graph(G, entry_nodeid):
     """
     generate the obj graph of a specific object
     """
+    # set every function and closure to vartype object
+
+    obj_nodes = G.get_nodes_by_type("AST_CLOSURE")
+    obj_nodes += G.get_nodes_by_type("AST_FUNC_DECL")
+    obj_nodes += G.get_nodes_by_type("AST_NEW")
+
+    for node in obj_nodes:
+        G.set_node_attr(node[0], ("VAR_TYPE", "OBJECT"))
+
     bfs_queue = []
     visited = set()
     bfs_queue.append(entry_nodeid)
@@ -92,7 +117,6 @@ def generate_obj_graph(G, entry_nodeid):
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
         out_nodes = [edge[1] for edge in out_edges]
         bfs_queue += out_nodes
-
 
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
