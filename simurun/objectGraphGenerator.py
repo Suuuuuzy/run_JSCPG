@@ -66,8 +66,6 @@ def add_edges_between_funcs(G):
 
     G.add_edges_from_list(added_edge_list)
 
-
-
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
 add_edges_between_funcs(G)
