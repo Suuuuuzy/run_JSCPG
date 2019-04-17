@@ -9,8 +9,8 @@ class ScopeController:
         """
         build the object tree based on the funcid
         """
-        root_id = '0'
         func_decl_list = Graph.get_nodes_by_type("AST_FUNC_DECL")
+        func_decl_list += Graph.get_nodes_by_type("AST_CLOSURE")
         scopeEdges = []
         for func in func_decl_list:
             scopeEdges.append((func[1]['funcid:int'], func[0], {'type:TYPE': 'DEFINES'}))

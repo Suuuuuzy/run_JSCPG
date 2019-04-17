@@ -66,9 +66,38 @@ def add_edges_between_funcs(G):
 
     G.add_edges_from_list(added_edge_list)
 
+def handle_node(G, node_id):
+    """
+    for different node type, do different actions to handle this node
+    """
+
+def generate_obj_graph(G, entry_nodeid):
+    """
+    generate the obj graph of a specific object
+    """
+    bfs_queue = []
+    visited = set()
+    bfs_queue.append(entry_nodeid)
+    while(len(bfs_queue)):
+        print (bfs_queue)
+        cur_node = bfs_queue.pop(0)
+
+        # if visited before, stop here
+        if cur_node in visited:
+            continue
+        else:
+            visited.add(cur_node)
+
+        handle_node(G, node_id)
+        out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
+        out_nodes = [edge[1] for edge in out_edges]
+        bfs_queue += out_nodes
+
+
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
 add_edges_between_funcs(G)
 scopeContorller = ScopeController(G)
+generate_obj_graph(G, '2')
 G.export_to_CSV("./testnodes.csv", "./testrels.csv")
 
