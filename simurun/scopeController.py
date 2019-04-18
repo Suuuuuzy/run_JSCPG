@@ -16,3 +16,4 @@ class ScopeController:
             scopeEdges.append((func[1]['funcid:int'], func[0], {'type:TYPE': 'DEFINES'}))
         Graph.add_edges_from_list(scopeEdges)
 
+    

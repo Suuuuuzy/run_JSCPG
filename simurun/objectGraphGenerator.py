@@ -82,10 +82,16 @@ def handle_node(G, node_id):
             right = ast_edges[1][1]
             left = ast_edges[0][1]
 
-        # TODO: trace back to find the var type
+        # check if left part already exist in current scope
+
+        # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
+        right_attr = G.get_node_attr(right);
+        if right_attr['type'] == 'AST_CLOSURE':
+            G.add_scope("FUNCTION", right)
+
+
         right_vartype = G.get_node_attr(right)['VAR_TYPE']
         G.set_node_attr(left, ("VAR_TYPE", right_vartype))
-        print G.get_node_attr(left)
 
 def generate_obj_graph(G, entry_nodeid):
     """
@@ -103,8 +109,9 @@ def generate_obj_graph(G, entry_nodeid):
     bfs_queue = []
     visited = set()
     bfs_queue.append(entry_nodeid)
+    G.add_scope('BASE_SCOPE', entry_nodeid)
     while(len(bfs_queue)):
-        print (bfs_queue)
+        print bfs_queue 
         cur_node = bfs_queue.pop(0)
 
         # if visited before, stop here

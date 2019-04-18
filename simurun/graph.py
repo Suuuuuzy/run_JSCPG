@@ -4,6 +4,24 @@ class Graph:
 
     def __init__(self):
         self.graph = nx.MultiDiGraph()
+        self.cur_obj = None 
+        self.cur_scope = None
+
+    def add_scope(self, scope_name, define_id):
+        """
+        add a new scope under current scope
+        """
+        cur_scope = self.cur_scope
+        cur_nodeid = str(self.graph.number_of_nodes())
+        self.add_node(cur_nodeid)
+        self.set_node_attr(cur_nodeid, ('type', 'SCOPE'))
+        self.set_node_attr(cur_nodeid, ('label:label', 'SCOPE'))
+        self.set_node_attr(cur_nodeid, ('name', scope_name))
+        self.add_edge(cur_nodeid, define_id, {'type:TYPE': 'SCOPE_AST'})
+        if cur_scope != None:
+            self.add_edge(cur_scope, cur_nodeid, {'type:TYPE': 'SCOPE_PARENT'})
+        else:
+            self.cur_scope = cur_nodeid
 
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
@@ -109,8 +127,9 @@ class Graph:
     def add_edge(self, from_ID, to_ID, attr):
         """
         insert an edge to graph
+        attr is like {key: value, key: value}
         """
-        self.graph.add_edges_from([from_ID, to_ID, attr])
+        self.graph.add_edges_from([(from_ID, to_ID, attr)])
 
     def set_edge_attr(self, from_ID, to_ID, edge_id, attr):
         self.graph[from_ID][to_ID][attr[0]][edge_id] = attr[1]
@@ -197,3 +216,5 @@ class Graph:
         """
         return [node for node in self.graph.nodes(data = True) if node[1]['type'] == node_type]
 
+    def get_cur_scope(self):
+        return self.cur_scope
