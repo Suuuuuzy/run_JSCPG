@@ -4,6 +4,24 @@ class Graph:
 
     def __init__(self):
         self.graph = nx.MultiDiGraph()
+        self.cur_obj = None 
+        self.cur_scope = None
+
+    def add_scope(self, scope_name, define_id):
+        """
+        add a new scope under current scope
+        """
+        cur_scope = self.cur_scope
+        cur_nodeid = str(self.graph.number_of_nodes())
+        self.add_node(cur_nodeid)
+        self.set_node_attr(cur_nodeid, ('type', 'SCOPE'))
+        self.set_node_attr(cur_nodeid, ('label:label', 'SCOPE'))
+        self.set_node_attr(cur_nodeid, ('name', scope_name))
+        self.add_edge(cur_nodeid, define_id, {'type:TYPE': 'SCOPE_AST'})
+        if cur_scope != None:
+            self.add_edge(cur_scope, cur_nodeid, {'type:TYPE': 'SCOPE_PARENT'})
+        else:
+            self.cur_scope = cur_nodeid
 
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
@@ -109,8 +127,9 @@ class Graph:
     def add_edge(self, from_ID, to_ID, attr):
         """
         insert an edge to graph
+        attr is like {key: value, key: value}
         """
-        self.graph.add_edges_from([from_ID, to_ID, attr])
+        self.graph.add_edges_from([(from_ID, to_ID, attr)])
 
     def set_edge_attr(self, from_ID, to_ID, edge_id, attr):
         self.graph[from_ID][to_ID][attr[0]][edge_id] = attr[1]
@@ -136,9 +155,11 @@ class Graph:
         if edge_type == None:
             return self.graph.out_edges(node_id, data = data, keys = keys)
         edges = self.graph.out_edges(node_id, data = data, keys = keys)
-        idx = 2
+        idx = 1
         if keys == True:
-            idx = 3
+            idx += 1
+        if data == True:
+            idx += 1
         return [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
 
     def get_in_edges(self, node_id, data = False, keys = False, edge_type = None):
@@ -189,3 +210,11 @@ class Graph:
         """
         subG = self.get_sub_graph_by_edge_type(edge_type)
         
+    def get_nodes_by_type(self, node_type):
+        """
+        return a list of nodes with a specific node type
+        """
+        return [node for node in self.graph.nodes(data = True) if node[1]['type'] == node_type]
+
+    def get_cur_scope(self):
+        return self.cur_scope
