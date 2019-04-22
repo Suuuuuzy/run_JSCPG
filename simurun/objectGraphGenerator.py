@@ -70,8 +70,8 @@ def handle_node(G, node_id):
     """
     for different node type, do different actions to handle this node
     """
-    cur_node = G.get_node_attr(node_id)
-    cur_type = cur_node['type']
+    cur_node_attr = G.get_node_attr(node_id)
+    cur_type = cur_node_attr['type']
     if cur_type == "AST_ASSIGN":
         # for assign operation, the right part is childnum 1, the left part is childnum 0
         ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
@@ -81,8 +81,6 @@ def handle_node(G, node_id):
         else:
             right = ast_edges[1][1]
             left = ast_edges[0][1]
-
-        # check if left part already exist in current scope
 
         # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
         right_attr = G.get_node_attr(right);
@@ -95,17 +93,24 @@ def handle_node(G, node_id):
             G.add_obj_to_scope(right_name, "OBJ")
         elif right_attr['type'] == 'integer':
             G.add_obj_to_scope(right_name, "INTEGER")
-        if left_attr['type'] == 'AST_VAR':
-            left_name = G.get_name_from_child(left)
 
         right_obj = G.get_obj_by_name(right_name)
-
         if right_obj == None:
             print "Right OBJ not found"
-        print G.cur_scope
+            return 
 
-        right_vartype = G.get_node_attr(right)['VAR_TYPE']
-        G.set_node_attr(left, ("VAR_TYPE", right_vartype))
+        if left_attr['type'] == 'AST_VAR':
+            left_name = G.get_name_from_child(left)
+            G.set_obj_by_name(left_name, right_obj)
+
+
+        if 'VAR_TYPE' not in right_attr:
+            print 'right var type not set'
+        else:
+            right_vartype = right_attr['VAR_TYPE']
+            G.set_node_attr(left, ("VAR_TYPE", right_vartype))
+
+        left_obj = G.get_obj_by_name(left_name)
 
 def generate_obj_graph(G, entry_nodeid):
     """

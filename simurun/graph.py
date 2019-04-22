@@ -231,11 +231,9 @@ class Graph:
                 return sub_name
         return None
 
-    def get_obj_by_name(self, var_name, scope = None):
+    def get_scope_namenode_by_name(self, var_name, scope = None):
         """
-        get the obj of a name based on the scope
-        if the scope is not specified, starts from the current scope
-        we assume that one node only has one parent
+        helper function, get the namenode of a name based on scope
         """
         cur_scope = self.cur_scope
         if scope != None:
@@ -248,9 +246,35 @@ class Graph:
             for cur_edge in var_edges:
                 cur_var_attr = self.get_node_attr(cur_edge[1])
                 if cur_var_attr['name'] == var_name:
-                    return list(self.get_out_edges(cur_edge[1]))[0][1]
+                    return cur_edge[1]
+            scope_edges = self.get_in_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_PARENT")
+            if len(scope_edges) == 0:
+                break
+            cur_scope = list(scope_edges)[0][1]
         return None
+
+    def get_obj_by_name(self, var_name, scope = None):
+        """
+        get the obj of a name based on the scope
+        if the scope is not specified, starts from the current scope
+        we assume that one node only has one parent
+        """
+        namenode = self.get_scope_namenode_by_name(var_name, scope)
+        return list(self.get_out_edges(namenode))[0][1]
     
+    def add_namenode_to_scope(self, name, scope = None):
+        """
+        helper function
+        add a namenode to scope
+        """
+        cur_scope = self.cur_scope
+        if scope != None:
+            cur_scope = scope 
+
+        new_node_id = str(self.graph.number_of_nodes())
+        self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_VAR_EDGE"})
+        self.set_node_attr(new_node_id, ('name', name))
+
     def add_obj_to_scope(self, name, var_type, scope = None):
         """
         add a obj to a scope, if scope is None, add to current scope
@@ -263,8 +287,16 @@ class Graph:
         self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_VAR_EDGE"})
         self.set_node_attr(new_node_id, ('name', name))
 
-        
         obj_node_id = str(self.graph.number_of_nodes())
         self.add_edge(new_node_id, obj_node_id, {"type:TYPE": "NAME_OBJ"})
         self.set_node_attr(obj_node_id, ('type', var_type))
 
+    def set_obj_by_name(self, var_name, obj_id, scope = None):
+        """
+        set a var name point to a obj id in a scope
+        """
+        cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
+        if cur_namenode == None:
+            self.add_namenode_to_scope(var_name, scope = scope)
+        cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
+        self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_OBJ"})

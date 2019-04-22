@@ -10,5 +10,6 @@ var funca = function() {
   a = 2;
 }
 f = new funca();
-f.funcb();
+var n = f;
+n.funcb();
 
