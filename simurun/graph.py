@@ -203,13 +203,6 @@ class Graph:
     def get_successors(self, node_id):
         return self.graph.successors(node_id)
     
-    def dfs_with_callbacks(self, edge_type, node_callback, edge_callback):
-        """
-        dfs the graph by of a specific edge type. 
-        Once find a edge or node, call the callback functions 
-        """
-        subG = self.get_sub_graph_by_edge_type(edge_type)
-        
     def get_nodes_by_type(self, node_type):
         """
         return a list of nodes with a specific node type
@@ -218,3 +211,44 @@ class Graph:
 
     def get_cur_scope(self):
         return self.cur_scope
+
+    def get_name_from_child(self, nodeid):
+        """
+        try to find the name of a nodeid
+        check the id first, then check all of the childern 
+        recursively 
+        """
+        cur_attr = self.get_node_attr(nodeid)
+        if cur_attr['type'] == 'string':
+            if 'name' in cur_attr:
+                return cur_attr['name']
+            if 'code' in cur_attr:
+                return cur_attr['code']
+        childern = self.get_out_edges(nodeid, data = True, keys = True, edge_type = 'PARENT_OF')
+        for edge in childern:
+            sub_name = self.get_name_from_child(edge[1])
+            if sub_name != None:
+                return sub_name
+        return None
+
+
+    def get_obj_by_name(self, var_name, scope = None):
+        """
+        get the obj of a name based on the scope
+        if the scope is not specified, starts from the current scope
+        we assume that one node only has one parent
+        """
+        cur_scope = self.cur_scope
+        if scope != None:
+            cur_scope = scope
+
+        while(1):
+            var_edges = G.get_out_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_VAR_EDGE")
+            if len(var_edge) == 0:
+                break
+            for cur_edge in var_edges:
+                cur_var_attr = G.get_node_attr(cur_edge[1])
+                if cur_var_attr['name'] == var_name:
+                    return G.get_out_edges(cur_edge[1])[0][1]
+
+        return None
