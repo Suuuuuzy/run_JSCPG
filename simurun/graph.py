@@ -231,7 +231,6 @@ class Graph:
                 return sub_name
         return None
 
-
     def get_obj_by_name(self, var_name, scope = None):
         """
         get the obj of a name based on the scope
@@ -243,12 +242,29 @@ class Graph:
             cur_scope = scope
 
         while(1):
-            var_edges = G.get_out_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_VAR_EDGE")
-            if len(var_edge) == 0:
+            var_edges = self.get_out_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_VAR_EDGE")
+            if len(var_edges) == 0:
                 break
             for cur_edge in var_edges:
-                cur_var_attr = G.get_node_attr(cur_edge[1])
+                cur_var_attr = self.get_node_attr(cur_edge[1])
                 if cur_var_attr['name'] == var_name:
-                    return G.get_out_edges(cur_edge[1])[0][1]
-
+                    return list(self.get_out_edges(cur_edge[1]))[0][1]
         return None
+    
+    def add_obj_to_scope(self, name, var_type, scope = None):
+        """
+        add a obj to a scope, if scope is None, add to current scope
+        """
+        cur_scope = self.cur_scope
+        if scope != None:
+            cur_scope = scope 
+
+        new_node_id = str(self.graph.number_of_nodes())
+        self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_VAR_EDGE"})
+        self.set_node_attr(new_node_id, ('name', name))
+
+        
+        obj_node_id = str(self.graph.number_of_nodes())
+        self.add_edge(new_node_id, obj_node_id, {"type:TYPE": "NAME_OBJ"})
+        self.set_node_attr(obj_node_id, ('type', var_type))
+

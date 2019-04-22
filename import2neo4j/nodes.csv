@@ -88,3 +88,5 @@ id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	c
 86	AST	AST_ARG_LIST		13	()	2	1			13		
 87		SCOPE									BASE_SCOPE	
 88		SCOPE									FUNCTION	
+89											funca	
+90		OBJ										

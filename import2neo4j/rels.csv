@@ -39,6 +39,7 @@ start:START_ID	end:END_ID	type:TYPE	var	taint_src	taint_dst
 53	54	PARENT_OF			
 53	61	PARENT_OF			
 88	8	SCOPE_AST			
+89	90	NAME_OBJ			
 82	83	PARENT_OF			
 82	3	FLOWS_TO			
 82	86	PARENT_OF			
@@ -46,6 +47,7 @@ start:START_ID	end:END_ID	type:TYPE	var	taint_src	taint_dst
 83	84	PARENT_OF			
 87	88	SCOPE_PARENT			
 87	2	SCOPE_AST			
+87	89	SCOPE_VAR_EDGE			
 33	27	FLOWS_TO			
 33	37	PARENT_OF			
 33	36	PARENT_OF			

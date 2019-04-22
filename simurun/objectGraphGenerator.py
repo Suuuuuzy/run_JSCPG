@@ -87,13 +87,22 @@ def handle_node(G, node_id):
         # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
         right_attr = G.get_node_attr(right);
         left_attr = G.get_node_attr(left)
+        right_name = G.get_name_from_child(right)
 
         if right_attr['type'] == 'AST_CLOSURE':
             G.add_scope("FUNCTION", right)
+        elif right_attr['type'] == 'AST_NEW':
+            G.add_obj_to_scope(right_name, "OBJ")
+        elif right_attr['type'] == 'integer':
+            G.add_obj_to_scope(right_name, "INTEGER")
         if left_attr['type'] == 'AST_VAR':
             left_name = G.get_name_from_child(left)
 
-        print G.get_obj_by_name(left_name)
+        right_obj = G.get_obj_by_name(right_name)
+
+        if right_obj == None:
+            print "Right OBJ not found"
+        print G.cur_scope
 
         right_vartype = G.get_node_attr(right)['VAR_TYPE']
         G.set_node_attr(left, ("VAR_TYPE", right_vartype))
