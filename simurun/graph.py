@@ -6,13 +6,21 @@ class Graph:
         self.graph = nx.MultiDiGraph()
         self.cur_obj = None 
         self.cur_scope = None
+        self.cur_id = 0
+
+    def _get_new_nodeid(self):
+        """
+        return a nodeid
+        """
+        self.cur_id += 1
+        return str(self.cur_id - 1)
 
     def add_scope(self, scope_name, define_id):
         """
         add a new scope under current scope
         """
         cur_scope = self.cur_scope
-        cur_nodeid = str(self.graph.number_of_nodes())
+        cur_nodeid = str(self._get_new_nodeid())
         self.add_node(cur_nodeid)
         self.set_node_attr(cur_nodeid, ('type', 'SCOPE'))
         self.set_node_attr(cur_nodeid, ('label:label', 'SCOPE'))
@@ -250,7 +258,7 @@ class Graph:
             scope_edges = self.get_in_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_PARENT")
             if len(scope_edges) == 0:
                 break
-            cur_scope = list(scope_edges)[0][1]
+            cur_scope = list(scope_edges)[0][0]
         return None
 
     def get_obj_by_name(self, var_name, scope = None):
@@ -260,7 +268,12 @@ class Graph:
         we assume that one node only has one parent
         """
         namenode = self.get_scope_namenode_by_name(var_name, scope)
-        return list(self.get_out_edges(namenode))[0][1]
+        if namenode == None:
+            return None
+        out_edges = list(self.get_out_edges(namenode))
+        if len(out_edges) == 0:
+            return None
+        return out_edges[0][1]
     
     def add_namenode_to_scope(self, name, scope = None):
         """
@@ -271,25 +284,52 @@ class Graph:
         if scope != None:
             cur_scope = scope 
 
-        new_node_id = str(self.graph.number_of_nodes())
+        new_node_id = str(self._get_new_nodeid())
         self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_VAR_EDGE"})
         self.set_node_attr(new_node_id, ('name', name))
 
-    def add_obj_to_scope(self, name, var_type, scope = None):
+    def add_obj_to_obj(self, ast_node, var_type):
+        """
+        add obj to current obj as a sub obj
+        add edge from ast node to obj generation node
+        """
+        obj_node_id = str(self._get_new_nodeid())
+        self.add_node(obj_node_id)
+        self.set_node_attr(obj_node_id, ('type', var_type))
+        self.add_edge(self.cur_obj, obj_node_id, {"type:TYPE": "OBJ_PARENT"})
+        self.add_edge(ast_node, obj_node_id, {"type:TYPE": "AST_TO_OBJ"})
+        return obj_node_id
+
+    def setup_run(self, entry_nodeid):
+        """
+        the init function of setup a run
+        """
+        # init cur_id here!!
+        self.cur_id = self.graph.number_of_nodes()
+
+        self.add_scope("BASE_SCOPE", entry_nodeid)
+        cur_nodeid = str(self._get_new_nodeid())
+        self.add_node(cur_nodeid)
+        self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
+        self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
+        self.cur_obj = cur_nodeid
+
+    def add_obj_to_scope(self, ast_node, name, var_type, scope = None):
         """
         add a obj to a scope, if scope is None, add to current scope
+        return the added node id
         """
         cur_scope = self.cur_scope
         if scope != None:
             cur_scope = scope 
 
-        new_node_id = str(self.graph.number_of_nodes())
+        new_node_id = str(self._get_new_nodeid())
         self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_VAR_EDGE"})
         self.set_node_attr(new_node_id, ('name', name))
 
-        obj_node_id = str(self.graph.number_of_nodes())
+        obj_node_id = self.add_obj_to_obj(ast_node, "OBJ")
         self.add_edge(new_node_id, obj_node_id, {"type:TYPE": "NAME_OBJ"})
-        self.set_node_attr(obj_node_id, ('type', var_type))
+        return obj_node_id
 
     def set_obj_by_name(self, var_name, obj_id, scope = None):
         """
@@ -299,4 +339,51 @@ class Graph:
         if cur_namenode == None:
             self.add_namenode_to_scope(var_name, scope = scope)
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
+        pre_obj_id = self.get_obj_by_name(var_name, scope = scope)
         self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_OBJ"})
+        if pre_obj_id != None:
+            print "remove pre", var_name
+            self.graph.remove_edge(cur_namenode, pre_obj_id)
+
+    def get_node_by_attr(self, key, value):
+        """
+        get a list of node by key and value
+        """
+        return [node[0] for node in self.graph.nodes(data = True) if key in node[1] and node[1][key] == value]
+
+    def remove_nodes_from(self, remove_list):
+        """
+        remove a list of nodes from the graph
+        """
+        self.graph.remove_nodes_from(remove_list)
+
+    def get_func_declid_by_function_name(self, function_name, scope = None):
+        """
+        return the function decl nodeid of a funcion
+        """
+        if scope == None:
+            scope = self.cur_scope
+
+        func_obj = self.get_obj_by_name(function_name)
+        if func_obj == None:
+            print 'FUNCTION {} not find'.format(function_name)
+            return func_obj 
+
+        tmp_edge = self.get_in_edges(func_obj, data = True, keys = True, edge_type = "AST_TO_OBJ")[0]
+        func_decl_ast = tmp_edge[0]
+        return func_decl_ast
+
+    def get_entryid_by_function_name(self, function_name, scope = None):
+        """
+        return the entryid nodeid of a funcion
+        """
+        func_decl_ast = self.get_func_declid_by_function_name(function_name, scope)
+        tmp_edge = self.get_out_edges(func_decl_ast, data = True, keys = True, edge_type = "ENTRY")[0]
+        return tmp_edge[1]
+
+    def get_scope_by_ast_decl(self, func_id):
+        """
+        return the scope id by the ast node
+        """
+        print func_id
+        return self.get_in_edges(func_id, data = True, keys = True, edge_type = "SCOPE_AST")[0][0]
