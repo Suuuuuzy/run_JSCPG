@@ -83,6 +83,7 @@ def handle_node(G, node_id):
             left = ast_edges[0][1]
 
         added_right = handle_node(G, right)
+        added_left = handle_node(G, left)
         right_obj = added_right[0]
         right_scope = added_right[1]
         left_attr = G.get_node_attr(left)
@@ -99,6 +100,14 @@ def handle_node(G, node_id):
         if left_attr['type'] == 'AST_VAR':
             left_name = G.get_name_from_child(left)
             G.set_obj_by_name(left_name, right_obj)
+        elif left_attr['type'] == 'AST_PROP':
+            # for property, find the scope, point the name
+            [parent, child] = added_left
+            parent_name = G.get_name_from_child(parent)
+            child_name = G.get_name_from_child(child)
+            if parent_name == 'this':
+                G.set_obj_by_name(child_name, right_obj)
+
 
         if 'VAR_TYPE' not in right_attr:
             print 'right var type not set'
@@ -109,7 +118,7 @@ def handle_node(G, node_id):
         try:
             left_obj = G.get_obj_by_name(left_name)
         except:
-            print left
+            print "left obj {} not found".format(left)
 
     added_obj = None
     added_scope = None
@@ -139,6 +148,11 @@ def handle_node(G, node_id):
 
     elif cur_node_attr['type'] == 'integer':
         added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "INTEGER")
+
+    elif cur_node_attr['type'] == 'AST_PROP':
+        # for now, we only support one level property
+        return G.handle_property(node_id)
+
 
 
     # delete if right node is temperate

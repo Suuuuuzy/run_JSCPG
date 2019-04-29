@@ -101,8 +101,10 @@ id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	c
 101											a	
 102		SCOPE									CLOSURE_SCOPE	
 103		OBJ_DECL										
-104		SCOPE									CLOSURE_SCOPE	
-105		OBJ_DECL										
-107		OBJ										
-108											f	
-109											n	
+104											funcb	
+105		SCOPE									CLOSURE_SCOPE	
+106		OBJ_DECL										
+107											funcc	
+109		OBJ										
+110											f	
+111											n	

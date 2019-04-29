@@ -161,7 +161,7 @@ class Graph:
         """
         return nx.dfs_edges(self.graph, source)
 
-    def get_out_edges(self, node_id, data = False, keys = False, edge_type = None):
+    def get_out_edges(self, node_id, data = True, keys = True, edge_type = None):
         if edge_type == None:
             return self.graph.out_edges(node_id, data = data, keys = keys)
         edges = self.graph.out_edges(node_id, data = data, keys = keys)
@@ -172,7 +172,7 @@ class Graph:
             idx += 1
         return [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
 
-    def get_in_edges(self, node_id, data = False, keys = False, edge_type = None):
+    def get_in_edges(self, node_id, data = True, keys = True, edge_type = None):
         if edge_type == None:
             return self.graph.in_edges(node_id, data = data, keys = keys)
         edges = self.graph.in_edges(node_id, data = data, keys = keys)
@@ -336,6 +336,7 @@ class Graph:
     def set_obj_by_name(self, var_name, obj_id, scope = None):
         """
         set a var name point to a obj id in a scope
+        if the var name never appeared, add to the current scope
         """
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
         if cur_namenode == None:
@@ -389,3 +390,25 @@ class Graph:
         """
         print func_id
         return self.get_in_edges(func_id, data = True, keys = True, edge_type = "SCOPE_AST")[0][0]
+
+    def _get_childern_by_childnum(self, node_id):
+        """
+        helper function, get the childern nodeid of the node_id
+        return a dict, with {childnum: node_id}
+        """
+        edges = self.get_out_edges(node_id, edge_type = "PARENT_OF")
+        res = {}
+        for edge in edges:
+            node_attr = self.get_node_attr(edge[1])
+            res[node_attr['childnum:int']] = edge[1]
+        return res
+
+    def handle_property(self, node_id):
+        """
+        input the node_id, return the parent and child
+        return [parent, child]
+        currently we only support one level property
+        """
+        childnum_dict = self._get_childern_by_childnum(node_id)
+        return [childnum_dict['0'], childnum_dict['1']]
+
