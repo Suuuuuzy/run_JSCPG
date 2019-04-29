@@ -31,6 +31,8 @@ class Graph:
         else:
             self.cur_scope = cur_nodeid
 
+        return cur_nodeid
+
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
             headers = fp.readline()

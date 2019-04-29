@@ -82,35 +82,16 @@ def handle_node(G, node_id):
             right = ast_edges[1][1]
             left = ast_edges[0][1]
 
-        # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
-        right_attr = G.get_node_attr(right);
+        added_right = handle_node(G, right)
+        right_obj = added_right[0]
+        right_scope = added_right[1]
         left_attr = G.get_node_attr(left)
+        right_attr = G.get_node_attr(right)
         right_name = G.get_name_from_child(right)
-        # if we added new right_obj, we do not need to find it
-        right_obj = None
-
-        if right_attr['type'] == 'AST_CLOSURE':
-            # for now, we assume the left is the name of ast
-            left_name = G.get_name_from_child(left)
-            G.add_scope(left_name, right)
-            obj_node_id = G.add_obj_to_obj(right, "OBJ_DECL")
-            G.set_obj_by_name(right_name, obj_node_id)
-        elif right_attr['type'] == 'AST_NEW':
-            right_obj = G.add_obj_to_scope(right, "TMPRIGHT", "OBJ")
-            new_func_decl_id = G.get_func_declid_by_function_name(right_name)
-            new_entry_id = G.get_entryid_by_function_name(right_name)
-            backup_scope = G.cur_scope
-            backup_obj = G.cur_obj
-            G.cur_scope = G.get_scope_by_ast_decl(new_func_decl_id)
-            G.cur_obj = right_obj
-            simurun_function(G, new_entry_id)
-            G.cur_scope = backup_scope
-            G.cur_obj = backup_obj
-        elif right_attr['type'] == 'integer':
-            right_obj = G.add_obj_to_scope(right, "TMPRIGHT", "INTEGER")
 
         if right_obj == None:
             right_obj = G.get_obj_by_name(right_name)
+        # if we added new right_obj, we do not need to find it
         if right_obj == None:
             print "Right OBJ not found"
             return 
@@ -129,9 +110,41 @@ def handle_node(G, node_id):
             left_obj = G.get_obj_by_name(left_name)
         except:
             print left
-        # delete if right node is temperate
-        remove_list = G.get_node_by_attr("name", "TMPRIGHT")
-        G.remove_nodes_from(remove_list)
+
+    added_obj = None
+    added_scope = None
+    if cur_node_attr['type'] == 'AST_CLOSURE':
+        # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
+        # for now, we do not assign the name of the scope node 
+        node_name = G.get_name_from_child(node_id)
+        added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
+        added_obj = G.add_obj_to_obj(node_id, "OBJ_DECL")
+
+    elif cur_node_attr['type'] == 'AST_NEW':
+        added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "OBJ")
+        node_name = G.get_name_from_child(node_id)
+        new_func_decl_id = G.get_func_declid_by_function_name(node_name)
+        new_entry_id = G.get_entryid_by_function_name(node_name)
+
+        backup_scope = G.cur_scope
+        backup_obj = G.cur_obj
+
+        # update current scope and object
+        G.cur_scope = G.get_scope_by_ast_decl(new_func_decl_id)
+        G.cur_obj = added_obj 
+        simurun_function(G, new_entry_id)
+
+        G.cur_scope = backup_scope
+        G.cur_obj = backup_obj
+
+    elif cur_node_attr['type'] == 'integer':
+        added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "INTEGER")
+
+
+    # delete if right node is temperate
+    remove_list = G.get_node_by_attr("name", "TMPRIGHT")
+    G.remove_nodes_from(remove_list)
+    return [added_obj, added_scope]
 
 def simurun_function(G, entry_nodeid):
     """

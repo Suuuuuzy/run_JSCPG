@@ -93,18 +93,16 @@ id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	c
 91	AST	AST_ARG_LIST		14	()	2	1			14		
 92		SCOPE									BASE_SCOPE	
 93		OBJ									BASE_OBJ	
-94		SCOPE									funca	
+94		SCOPE									CLOSURE_SCOPE	
 95		OBJ_DECL										
-96											{closure}	
-97											funca	
-99		OBJ										
-101		OBJ										
-102											a	
-103		SCOPE									funcb	
-104		OBJ_DECL										
-105											'test'	
-106		SCOPE									funcc	
-107		OBJ_DECL										
-109		OBJ										
-110											f	
-111											n	
+96											funca	
+98		OBJ										
+100		OBJ										
+101											a	
+102		SCOPE									CLOSURE_SCOPE	
+103		OBJ_DECL										
+104		SCOPE									CLOSURE_SCOPE	
+105		OBJ_DECL										
+107		OBJ										
+108											f	
+109											n	
