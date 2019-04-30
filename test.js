@@ -12,4 +12,5 @@ var funca = function() {
 f = new funca();
 var n = f;
 n.funcb();
+funca();
 

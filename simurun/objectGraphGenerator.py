@@ -153,6 +153,14 @@ def handle_node(G, node_id):
         # for now, we only support one level property
         return G.handle_property(node_id)
 
+    elif cur_node_attr['type'] == 'AST_METHOD_CALL':
+        # get the method decl position
+        [parent, child, var_list] = G.handle_method_call(node_id)
+        parent_name = G.get_name_from_child(parent)
+        child_name = G.get_name_from_child(child)
+        print parent_name, child_name, var_list
+
+        
 
 
     # delete if right node is temperate

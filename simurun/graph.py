@@ -412,3 +412,11 @@ class Graph:
         childnum_dict = self._get_childern_by_childnum(node_id)
         return [childnum_dict['0'], childnum_dict['1']]
 
+    def handle_method_call(self, node_id):
+        """
+        input the node_id, return the parent and child
+        return [parent, child, args]
+        currently we only support one level property
+        """
+        childnum_dict = self._get_childern_by_childnum(node_id)
+        return [childnum_dict['0'], childnum_dict['1'], childnum_dict['2']]

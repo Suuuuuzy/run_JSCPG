@@ -1,9 +1,9 @@
 id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	classname	namespace	endlineno:int	name	doccomment
 0	Filesystem	File									/home/lsong18/projs/JSCPG/test.js	
-1	AST	AST_TOPLEVEL	TOPLEVEL_FILE	1						14	/home/lsong18/projs/JSCPG/test.js	
+1	AST	AST_TOPLEVEL	TOPLEVEL_FILE	1						15	/home/lsong18/projs/JSCPG/test.js	
 2	Artificial	CFG_FUNC_ENTRY					1				/home/lsong18/projs/JSCPG/test.js	
 3	Artificial	CFG_FUNC_EXIT					1				/home/lsong18/projs/JSCPG/test.js	
-4	AST	AST_STMT_LIST		1		0	1			14		
+4	AST	AST_STMT_LIST		1		0	1			15		
 5	AST	AST_ASSIGN		1	"funca = function() {  var a = 1;  this.funcb = function() {    console.log('test');  }  this.funcc = function() {    var b = a + 2;    console.log(""funcc"");  }  a = 2;}"	0	1			11		
 6	AST	AST_VAR		1	any	0	1			11		
 7	AST	string		1	funca	0	1			1		
@@ -91,20 +91,24 @@ id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	c
 89	AST	string		14	n	0	1			14	n	
 90	AST	string		14	funcb	1	1			14		
 91	AST	AST_ARG_LIST		14	()	2	1			14		
-92		SCOPE									BASE_SCOPE	
-93		OBJ									BASE_OBJ	
-94		SCOPE									CLOSURE_SCOPE	
-95		OBJ_DECL										
-96											funca	
-98		OBJ										
-100		OBJ										
-101											a	
-102		SCOPE									CLOSURE_SCOPE	
-103		OBJ_DECL										
-104											funcb	
-105		SCOPE									CLOSURE_SCOPE	
-106		OBJ_DECL										
-107											funcc	
-109		OBJ										
-110											f	
-111											n	
+92	AST	AST_CALL		15		4	1			15		
+93	AST	AST_NAME	NAME_NOT_FQ	15		0	1			15		
+94	AST	string		15	funca	0	1					
+95	AST	AST_ARG_LIST		15	()	1	1			15		
+96		SCOPE									BASE_SCOPE	
+97		OBJ									BASE_OBJ	
+98		SCOPE									CLOSURE_SCOPE	
+99		OBJ_DECL										
+100											funca	
+102		OBJ										
+104		OBJ										
+105											a	
+106		SCOPE									CLOSURE_SCOPE	
+107		OBJ_DECL										
+108											funcb	
+109		SCOPE									CLOSURE_SCOPE	
+110		OBJ_DECL										
+111											funcc	
+113		OBJ										
+114											f	
+115											n	
