@@ -1,114 +1,121 @@
 id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	classname	namespace	endlineno:int	name	doccomment
 0	Filesystem	File									/home/lsong18/projs/JSCPG/test.js	
-1	AST	AST_TOPLEVEL	TOPLEVEL_FILE	1						15	/home/lsong18/projs/JSCPG/test.js	
+1	AST	AST_TOPLEVEL	TOPLEVEL_FILE	1						16	/home/lsong18/projs/JSCPG/test.js	
 2	Artificial	CFG_FUNC_ENTRY					1				/home/lsong18/projs/JSCPG/test.js	
 3	Artificial	CFG_FUNC_EXIT					1				/home/lsong18/projs/JSCPG/test.js	
-4	AST	AST_STMT_LIST		1		0	1			15		
-5	AST	AST_ASSIGN		1	"funca = function() {  var a = 1;  this.funcb = function() {    console.log('test');  }  this.funcc = function() {    var b = a + 2;    console.log(""funcc"");  }  a = 2;}"	0	1			11		
-6	AST	AST_VAR		1	any	0	1			11		
+4	AST	AST_STMT_LIST		1		0	1			16		
+5	AST	AST_ASSIGN		1	"funca = function() {  var a = 1;  this.funcb = function() {    var b = a;    console.log('test');  }  this.funcc = function() {    var b = a + 2;    console.log(""funcc"");  }  a = 2;}"	0	1			12		
+6	AST	AST_VAR		1	any	0	1			12		
 7	AST	string		1	funca	0	1			1		
-8	AST	AST_CLOSURE		1		1	1			11		
+8	AST	AST_CLOSURE		1		1	1			12		
 9	Artificial	CFG_FUNC_ENTRY					8					
 10	Artificial	CFG_FUNC_EXIT					8					
 11	AST	string		1	{closure}	0	8					
 12	AST	NULL		1		1	8					
-13	AST	AST_PARAM_LIST		1		2	8			11		
+13	AST	AST_PARAM_LIST		1		2	8			12		
 14	AST	NULL		1		3	8					
-15	AST	AST_STMT_LIST		1		4	8			11		
+15	AST	AST_STMT_LIST		1		4	8			12		
 16	AST	AST_ASSIGN		2	"a = 1"	0	8			2		
 17	AST	AST_VAR		2	any	0	8			2		
 18	AST	string		2	a	0	8			2		
 19	AST	integer		2	1	1	8			2		
-20	AST	AST_ASSIGN		3	=	1	8			5		
+20	AST	AST_ASSIGN		3	=	1	8			6		
 21	AST	AST_PROP		3	this.funcb	0	8			3		
 22	AST	AST_VAR		3		0	8			3		
 23	AST	string		3	this	0	8			3	this	
 24	AST	string		3	funcb	1	8			3		
-25	AST	AST_CLOSURE		3		1	8			5		
+25	AST	AST_CLOSURE		3		1	8			6		
 26	Artificial	CFG_FUNC_ENTRY					25					
 27	Artificial	CFG_FUNC_EXIT					25					
 28	AST	string		3	{closure}	0	25					
 29	AST	NULL		3		1	25					
-30	AST	AST_PARAM_LIST		3		2	25			5		
+30	AST	AST_PARAM_LIST		3		2	25			6		
 31	AST	NULL		3		3	25					
-32	AST	AST_STMT_LIST		3		4	25			5		
-33	AST	AST_METHOD_CALL		4		0	25			4		
-34	AST	AST_VAR		4		0	25			4		
-35	AST	string		4	console	0	25			4	console	
-36	AST	string		4	log	1	25			4		
-37	AST	AST_ARG_LIST		4	('test')	2	25			4		
-38	AST	string		4	'test'	0	25			4		
-39	AST	NULL		3		5	25					
-40	AST	NULL		3		6	25					
-41	AST	AST_ASSIGN		6	=	2	8			9		
-42	AST	AST_PROP		6	this.funcc	0	8			6		
-43	AST	AST_VAR		6		0	8			6		
-44	AST	string		6	this	0	8			6	this	
-45	AST	string		6	funcc	1	8			6		
-46	AST	AST_CLOSURE		6		1	8			9		
-47	Artificial	CFG_FUNC_ENTRY					46					
-48	Artificial	CFG_FUNC_EXIT					46					
-49	AST	string		6	{closure}	0	46					
-50	AST	NULL		6		1	46					
-51	AST	AST_PARAM_LIST		6		2	46			9		
-52	AST	NULL		6		3	46					
-53	AST	AST_STMT_LIST		6		4	46			9		
-54	AST	AST_ASSIGN		7	"b = a + 2"	0	46			7		
-55	AST	AST_VAR		7	any	0	46			7		
-56	AST	string		7	b	0	46			7		
-57	AST	AST_BINARY_OP	BINARY_ADD	7	+	1	46			7		
-58	AST	AST_VAR		7		0	46			7		
-59	AST	string		7	a	0	46			7	a	
-60	AST	integer		7	2	1	46			7		
-61	AST	AST_METHOD_CALL		8		1	46			8		
-62	AST	AST_VAR		8		0	46			8		
-63	AST	string		8	console	0	46			8	console	
-64	AST	string		8	log	1	46			8		
-65	AST	AST_ARG_LIST		8	"(""funcc"")"	2	46			8		
-66	AST	string		8	"""funcc"""	0	46			8		
-67	AST	NULL		6		5	46					
-68	AST	NULL		6		6	46					
-69	AST	AST_ASSIGN		10	=	3	8			10		
-70	AST	AST_VAR		10		0	8			10		
-71	AST	string		10	a	0	8			10	a	
-72	AST	integer		10	2	1	8			10		
-73	AST	NULL		1		5	8					
-74	AST	NULL		1		6	8					
-75	AST	AST_ASSIGN		12	=	1	1			12		
-76	AST	AST_VAR		12		0	1			12		
-77	AST	string		12	f	0	1			12	f	
-78	AST	AST_NEW		12		1	1			12		
-79	AST	AST_NAME	NAME_NOT_FQ	12		0	1			12		
-80	AST	string		12	funca	0	1					
-81	AST	AST_ARG_LIST		12	()	1	1			12		
-82	AST	AST_ASSIGN		13	"n = f"	2	1			13		
-83	AST	AST_VAR		13	any	0	1			13		
-84	AST	string		13	n	0	1			13		
-85	AST	AST_VAR		13		1	1			13		
-86	AST	string		13	f	0	1			13	f	
-87	AST	AST_METHOD_CALL		14		3	1			14		
-88	AST	AST_VAR		14		0	1			14		
-89	AST	string		14	n	0	1			14	n	
-90	AST	string		14	funcb	1	1			14		
-91	AST	AST_ARG_LIST		14	()	2	1			14		
-92	AST	AST_CALL		15		4	1			15		
-93	AST	AST_NAME	NAME_NOT_FQ	15		0	1			15		
-94	AST	string		15	funca	0	1					
-95	AST	AST_ARG_LIST		15	()	1	1			15		
-96		SCOPE									BASE_SCOPE	
-97		OBJ									BASE_OBJ	
-98		SCOPE									CLOSURE_SCOPE	
-99		OBJ_DECL										
-100											funca	
-102		OBJ										
-104		OBJ										
-105											a	
-106		SCOPE									CLOSURE_SCOPE	
-107		OBJ_DECL										
-108											funcb	
-109		SCOPE									CLOSURE_SCOPE	
-110		OBJ_DECL										
-111											funcc	
-113		OBJ										
-114											f	
-115											n	
+32	AST	AST_STMT_LIST		3		4	25			6		
+33	AST	AST_ASSIGN		4	"b = a"	0	25			4		
+34	AST	AST_VAR		4	any	0	25			4		
+35	AST	string		4	b	0	25			4		
+36	AST	AST_VAR		4		1	25			4		
+37	AST	string		4	a	0	25			4	a	
+38	AST	AST_METHOD_CALL		5		1	25			5		
+39	AST	AST_VAR		5		0	25			5		
+40	AST	string		5	console	0	25			5	console	
+41	AST	string		5	log	1	25			5		
+42	AST	AST_ARG_LIST		5	('test')	2	25			5		
+43	AST	string		5	'test'	0	25			5		
+44	AST	NULL		3		5	25					
+45	AST	NULL		3		6	25					
+46	AST	AST_ASSIGN		7	=	2	8			10		
+47	AST	AST_PROP		7	this.funcc	0	8			7		
+48	AST	AST_VAR		7		0	8			7		
+49	AST	string		7	this	0	8			7	this	
+50	AST	string		7	funcc	1	8			7		
+51	AST	AST_CLOSURE		7		1	8			10		
+52	Artificial	CFG_FUNC_ENTRY					51					
+53	Artificial	CFG_FUNC_EXIT					51					
+54	AST	string		7	{closure}	0	51					
+55	AST	NULL		7		1	51					
+56	AST	AST_PARAM_LIST		7		2	51			10		
+57	AST	NULL		7		3	51					
+58	AST	AST_STMT_LIST		7		4	51			10		
+59	AST	AST_ASSIGN		8	"b = a + 2"	0	51			8		
+60	AST	AST_VAR		8	any	0	51			8		
+61	AST	string		8	b	0	51			8		
+62	AST	AST_BINARY_OP	BINARY_ADD	8	+	1	51			8		
+63	AST	AST_VAR		8		0	51			8		
+64	AST	string		8	a	0	51			8	a	
+65	AST	integer		8	2	1	51			8		
+66	AST	AST_METHOD_CALL		9		1	51			9		
+67	AST	AST_VAR		9		0	51			9		
+68	AST	string		9	console	0	51			9	console	
+69	AST	string		9	log	1	51			9		
+70	AST	AST_ARG_LIST		9	"(""funcc"")"	2	51			9		
+71	AST	string		9	"""funcc"""	0	51			9		
+72	AST	NULL		7		5	51					
+73	AST	NULL		7		6	51					
+74	AST	AST_ASSIGN		11	=	3	8			11		
+75	AST	AST_VAR		11		0	8			11		
+76	AST	string		11	a	0	8			11	a	
+77	AST	integer		11	2	1	8			11		
+78	AST	NULL		1		5	8					
+79	AST	NULL		1		6	8					
+80	AST	AST_ASSIGN		13	=	1	1			13		
+81	AST	AST_VAR		13		0	1			13		
+82	AST	string		13	f	0	1			13	f	
+83	AST	AST_NEW		13		1	1			13		
+84	AST	AST_NAME	NAME_NOT_FQ	13		0	1			13		
+85	AST	string		13	funca	0	1					
+86	AST	AST_ARG_LIST		13	()	1	1			13		
+87	AST	AST_ASSIGN		14	"n = f"	2	1			14		
+88	AST	AST_VAR		14	any	0	1			14		
+89	AST	string		14	n	0	1			14		
+90	AST	AST_VAR		14		1	1			14		
+91	AST	string		14	f	0	1			14	f	
+92	AST	AST_METHOD_CALL		15		3	1			15		
+93	AST	AST_VAR		15		0	1			15		
+94	AST	string		15	n	0	1			15	n	
+95	AST	string		15	funcb	1	1			15		
+96	AST	AST_ARG_LIST		15	()	2	1			15		
+97	AST	AST_CALL		16		4	1			16		
+98	AST	AST_NAME	NAME_NOT_FQ	16		0	1			16		
+99	AST	string		16	funca	0	1					
+100	AST	AST_ARG_LIST		16	()	1	1			16		
+101		SCOPE									BASE_SCOPE	
+102		OBJ									BASE_OBJ	
+103		SCOPE									CLOSURE_SCOPE	
+104		OBJ_DECL										
+105											funca	
+107		OBJ										
+109		OBJ										
+110											a	
+111		SCOPE									CLOSURE_SCOPE	
+112		OBJ_DECL										
+113											funcb	
+114		SCOPE									CLOSURE_SCOPE	
+115		OBJ_DECL										
+116											funcc	
+118		OBJ										
+119											f	
+120											n	
+122		OBJ										
+123											b	

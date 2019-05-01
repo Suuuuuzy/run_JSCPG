@@ -251,8 +251,6 @@ class Graph:
 
         while(1):
             var_edges = self.get_out_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_VAR_EDGE")
-            if len(var_edges) == 0:
-                break
             for cur_edge in var_edges:
                 cur_var_attr = self.get_node_attr(cur_edge[1])
                 if cur_var_attr['name'] == var_name:
@@ -299,7 +297,7 @@ class Graph:
         self.add_node(obj_node_id)
         self.set_node_attr(obj_node_id, ('type', var_type))
         self.add_edge(self.cur_obj, obj_node_id, {"type:TYPE": "OBJ_PARENT"})
-        self.add_edge(ast_node, obj_node_id, {"type:TYPE": "AST_TO_OBJ"})
+        self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_AST"})
         return obj_node_id
 
     def setup_run(self, entry_nodeid):
@@ -367,13 +365,13 @@ class Graph:
         if scope == None:
             scope = self.cur_scope
 
-        func_obj = self.get_obj_by_name(function_name)
+        func_obj = self.get_obj_by_name(function_name, scope = scope)
         if func_obj == None:
             print 'FUNCTION {} not find'.format(function_name)
             return func_obj 
 
-        tmp_edge = self.get_in_edges(func_obj, data = True, keys = True, edge_type = "AST_TO_OBJ")[0]
-        func_decl_ast = tmp_edge[0]
+        tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")[0]
+        func_decl_ast = tmp_edge[1]
         return func_decl_ast
 
     def get_entryid_by_function_name(self, function_name, scope = None):
@@ -381,6 +379,8 @@ class Graph:
         return the entryid nodeid of a funcion
         """
         func_decl_ast = self.get_func_declid_by_function_name(function_name, scope)
+        if func_decl_ast == None:
+            return None
         tmp_edge = self.get_out_edges(func_decl_ast, data = True, keys = True, edge_type = "ENTRY")[0]
         return tmp_edge[1]
 
@@ -420,3 +420,12 @@ class Graph:
         """
         childnum_dict = self._get_childern_by_childnum(node_id)
         return [childnum_dict['0'], childnum_dict['1'], childnum_dict['2']]
+
+    def get_func_scope_by_name(self, func_name, scope = None):
+        """
+        get a func scope by name, get func obj first, return the obj_scope node
+        """
+        obj_node_id = self.get_obj_by_name(func_name, scope = scope)
+        scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_SCOPE")[0]
+        return scope_edge[1]
+

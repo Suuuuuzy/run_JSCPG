@@ -128,12 +128,19 @@ def handle_node(G, node_id):
         node_name = G.get_name_from_child(node_id)
         added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
         added_obj = G.add_obj_to_obj(node_id, "OBJ_DECL")
+        G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
 
     elif cur_node_attr['type'] == 'AST_NEW':
         added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "OBJ")
         node_name = G.get_name_from_child(node_id)
         new_func_decl_id = G.get_func_declid_by_function_name(node_name)
+        
+        # add edge between obj and obj decl
+        G.add_edge(added_obj, new_func_decl_id, {"type:TYPE": "OBJ_DECL"})
+
         new_entry_id = G.get_entryid_by_function_name(node_name)
+        if new_entry_id == None:
+            return "ERROR: Function {} not found".format(node_name)
 
         backup_scope = G.cur_scope
         backup_obj = G.cur_obj
@@ -142,7 +149,10 @@ def handle_node(G, node_id):
         G.cur_scope = G.get_scope_by_ast_decl(new_func_decl_id)
         G.cur_obj = added_obj 
         simurun_function(G, new_entry_id)
-
+        
+        # add obj to scope edge
+        G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
+        
         G.cur_scope = backup_scope
         G.cur_obj = backup_obj
 
@@ -158,9 +168,30 @@ def handle_node(G, node_id):
         [parent, child, var_list] = G.handle_method_call(node_id)
         parent_name = G.get_name_from_child(parent)
         child_name = G.get_name_from_child(child)
-        print parent_name, child_name, var_list
 
+        func_scope_id = G.get_func_scope_by_name(parent_name)
+        method_scope_id = G.get_func_scope_by_name(child_name, scope = func_scope_id)
+
+        method_entry_id = G.get_entryid_by_function_name(child_name, func_scope_id)
+        if method_entry_id == None:
+            return "ERROR: Function {} not found".format(child_name)
+
+        # add a tmp obj under parent scope
+        added_obj = G.add_obj_to_scope(func_scope_id, "TMPRIGHT", "OBJ")
+
+        backup_scope = G.cur_scope
+        backup_obj = G.cur_obj
+
+        # update current scope and object
+        G.cur_scope = method_scope_id
+        G.cur_obj = added_obj 
+        simurun_function(G, method_entry_id)
         
+        # add obj to scope edge
+        G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
+        
+        G.cur_scope = backup_scope
+        G.cur_obj = backup_obj
 
 
     # delete if right node is temperate
