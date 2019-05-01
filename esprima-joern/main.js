@@ -270,46 +270,72 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             }
             break;
         case 'VariableDeclarator':
-            nodeIdCounter++;
-            childNumberCounter = 0;
-            let vVarTypeId = nodeIdCounter;
-            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            nodes[vVarTypeId] = {
-                label: 'AST_V',
-                type: 'IdentifierDeclType',
-                phptype: 'AST_VAR',
-                code: 'any',
-                childNum: 0,
-                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
-                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
-                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
-            };
-            nodeIdCounter++;
-            relsStream.write([vVarTypeId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.id, nodeIdCounter, vVarTypeId, 0, currentFunctionId, {
-                doNotUseVar: true
-            });
-            if (currentNode.init) {
+            if (outputStyle == 'c') {
                 nodeIdCounter++;
-                childNumberCounter++;
+                childNumberCounter = 0;
+                let vVarTypeId = nodeIdCounter;
                 relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                dfs(currentNode.init, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, null);
+                nodes[vVarTypeId] = {
+                    label: 'AST_V',
+                    type: 'IdentifierDeclType',
+                    phptype: 'AST_VAR',
+                    code: 'any',
+                    childNum: 0,
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                    funcId: currentFunctionId
+                };
+                nodeIdCounter++;
+                relsStream.write([vVarTypeId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                dfs(currentNode.id, nodeIdCounter, vVarTypeId, 0, currentFunctionId, {
+                    doNotUseVar: true
+                });
+                if (currentNode.init) {
+                    nodeIdCounter++;
+                    childNumberCounter++;
+                    relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    dfs(currentNode.init, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, null);
+                }
+                nodes[currentId] = {
+                    label: 'AST',
+                    type: currentNode.type,
+                    ctype: 'IdentifierDecl',
+                    phptype: 'AST_ASSIGN',
+                    childNum: childNum,
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                    code: getCode(currentNode, sourceCode),
+                    funcId: currentFunctionId
+                };
+            } else if (outputStyle == 'php') {
+                nodeIdCounter++;
+                relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                dfs(currentNode.id, nodeIdCounter, currentId, 0, currentFunctionId, {
+                    doNotUseVar: false
+                });
+                if (currentNode.init) {
+                    nodeIdCounter++;
+                    relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    dfs(currentNode.init, nodeIdCounter, currentId, 1, currentFunctionId, null);
+                }
+                nodes[currentId] = {
+                    label: 'AST',
+                    type: currentNode.type,
+                    ctype: 'IdentifierDecl',
+                    phptype: 'AST_ASSIGN',
+                    childNum: childNum,
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                    code: getCode(currentNode, sourceCode),
+                    funcId: currentFunctionId
+                };
             }
-            nodes[currentId] = {
-                label: 'AST',
-                type: currentNode.type,
-                ctype: 'IdentifierDecl',
-                phptype: 'AST_ASSIGN',
-                childNum: childNum,
-                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
-                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
-                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
-            };
             break;
         case 'UpdateExpression':
             switch (currentNode.operator) {
@@ -407,6 +433,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     case '!':
                         phpflag = 'UNARY_BOOL_NOT';
                         break;
+                    case '~':
+                        phpflag = 'UNARY_BITWISE_NOT';
+                        break;
                     case '+':
                         phpflag = 'UNARY_PLUS';
                         break;
@@ -436,13 +465,42 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
         case 'AwaitExpression':
         case 'SpreadElement':
         case 'YieldExpression':
-            console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
-            nodeIdCounter++;
-            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.argument, nodeIdCounter, currentId, 0, currentFunctionId, null);
+            phptype = 'AST_YIELD';
+            switch (currentNode.type) {
+                case 'AwaitExpression':
+                    phpflag = 'JS_AWAIT_EXPRESSION';
+                    break;
+                case 'SpreadElement':
+                    phpflag = 'JS_SPREAD_ELEMENT';
+                    break;
+                case 'YieldExpression':
+                    phpflag = 'JS_YIELD';
+                    if (this.delegate) phptype = 'AST_YIELD_FROM';
+                    break;
+            }
+            // console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
+            if (currentNode.argument) {
+                nodeIdCounter++;
+                relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                dfs(currentNode.argument, nodeIdCounter, currentId, 0, currentFunctionId, null);
+            } else {
+                nodeIdCounter++;
+                relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                // if argument is null, insert a NULL node
+                nodes[nodeIdCounter] = {
+                    label: 'AST_V',
+                    type: 'NULL',
+                    phptype: 'NULL',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: 0,
+                    funcId: currentFunctionId
+                };
+            }
             nodes[currentId] = {
                 label: 'AST',
                 type: currentNode.type,
+                phptype: phptype,
+                phpflag: phpflag,
                 code: currentNode.operator || null,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
@@ -456,6 +514,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
         case 'BinaryExpression':
         case 'LogicalExpression':
         case 'AssignmentExpression':
+        case 'AssignmentPattern':
             ctype = null;
             phptype = null;
             phpflag = null;
@@ -501,11 +560,17 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         ctype = 'MultiplicativeExpression';
                         phpflag = 'BINARY_DIV';
                         break;
+                    case '==':
+                        phpflag = 'BINARY_IS_EQUAL';
+                        break;
                     case '!=':
                         phpflag = 'BINARY_IS_NOT_EQUAL';
                         break;
-                    case '==':
-                        phpflag = 'BINARY_IS_EQUAL';
+                    case '===':
+                        phpflag = 'BINARY_IS_IDENTICAL';
+                        break;
+                    case '!==':
+                        phpflag = 'BINARY_IS_NOT_IDENTICAL';
                         break;
                     case '<':
                         phpflag = 'BINARY_IS_SMALLER';
@@ -519,6 +584,15 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     case '<=':
                         phpflag = 'BINARY_IS_SMALLER_OR_EQUAL';
                         break;
+                    case '&':
+                        phpflag = 'BINARY_BITWISE_AND';
+                        break;
+                    case '|':
+                        phpflag = 'BINARY_BITWISE_OR';
+                        break;
+                    case '^':
+                        phpflag = 'BINARY_BITWISE_XOR';
+                        break;
                 }
             } else if (currentNode.type == 'LogicalExpression') {
                 phptype = 'AST_BINARY_OP';
@@ -530,6 +604,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         phpflag = 'BINARY_BOOL_AND';
                         break;
                 }
+            } else if (currentNode.type == 'AssignmentPattern') {
+                phptype = 'AST_ASSIGN';
+                phpflag = 'JS_ASSIGNMENT_PATTERN';
             }
             // left
             nodeIdCounter++;
@@ -901,7 +978,6 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             }
             break;
         case 'ClassBody':
-            console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
         case 'BlockStatement':
             ctype = null;
             phptype = null;
@@ -999,7 +1075,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             };
             break;
         case 'ArrayPattern':
-            console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
+            // console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
         case 'ArrayExpression':
             for (element of currentNode.elements) {
                 // make AST_ARRAY_ELEM virtual node
@@ -1066,28 +1142,8 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 funcId: currentFunctionId
             };
             break;
-        case 'AssignmentPattern':
-            console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
-            nodeIdCounter++;
-            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.left, nodeIdCounter, currentId, 0, currentFunctionId, null);
-            nodeIdCounter++;
-            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.right, nodeIdCounter, currentId, 1, currentFunctionId, null);
-            nodes[currentId] = {
-                label: 'AST',
-                type: currentNode.type,
-                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                childNum: childNum,
-                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
-                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
-                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
-            };
-            break;
         case 'ObjectPattern':
-            console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
+            // console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
         case 'ObjectExpression':
             // vNodeName = currentNode.type + 'Properties';
             // // Make a virtual node
@@ -1239,33 +1295,115 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
         case 'ClassExpression':
         case 'ClassDeclaration':
             console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
-            if (currentNode.id) {
+            if (outputStyle == 'c') {
+                if (currentNode.id) {
+                    nodeIdCounter++;
+                    childNumberCounter++;
+                    relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    dfs(currentNode.id, nodeIdCounter, currentId, 0, currentFunctionId, null);
+                }
+                if (currentId.superClass) {
+                    nodeIdCounter++;
+                    childNumberCounter++;
+                    relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    dfs(currentNode.superClass, nodeIdCounter, currentId, 0, currentFunctionId, null);
+                }
                 nodeIdCounter++;
                 childNumberCounter++;
                 relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                dfs(currentNode.id, nodeIdCounter, currentId, 0, currentFunctionId, null);
-            }
-            if (currentId.superClass) {
+                dfs(currentNode.body, nodeIdCounter, currentId, 0, currentFunctionId, null);
+                nodes[currentId] = {
+                    label: 'AST',
+                    type: currentNode.type,
+                    code: currentNode.kind,
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: childNum,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                    funcId: currentFunctionId
+                };
+            } else if (outputStyle == 'php') {
+                // name/id
+                if (currentNode.id) {
+                    nodeIdCounter++;
+                    relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    dfs(currentNode.id, nodeIdCounter, currentId, 0, currentFunctionId, {
+                        doNotUseVar: true
+                    });
+                }
+                // docComment, insert a NULL node
                 nodeIdCounter++;
-                childNumberCounter++;
                 relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                dfs(currentNode.superClass, nodeIdCounter, currentId, 0, currentFunctionId, null);
+                nodes[nodeIdCounter] = {
+                    label: 'AST_V',
+                    type: 'NULL',
+                    phptype: 'NULL',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: 1,
+                    funcId: currentFunctionId
+                };
+                // extends/superClass
+                if (currentId.superClass) {
+                    nodeIdCounter++;
+                    let vAstNameId = nodeIdCounter;
+                    relsStream.write([currentId, vAstNameId, parentOf].join(delimiter) + '\n');
+                    nodes[vAstNameId] = {
+                        label: 'AST_V',
+                        phptype: 'AST_NAME',
+                        phpflag: 'NAME_NOT_FQ',
+                        childNum: 2,
+                        lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                        lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                        colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                        colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                        funcId: currentFunctionId
+                    };
+                    nodeIdCounter++;
+                    relsStream.write([vAstNameId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    dfs(currentNode.superClass, nodeIdCounter, vAstNameId, 0, currentFunctionId, {
+                        doNotUseVar: true
+                    });
+                } else {
+                    // no super class, insert a NULL node
+                    nodeIdCounter++;
+                    relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    nodes[nodeIdCounter] = {
+                        label: 'AST_V',
+                        type: 'NULL',
+                        phptype: 'NULL',
+                        lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                        childNum: 2,
+                        funcId: currentFunctionId
+                    };
+                }
+                // implements, JavaScript does not support interface, insert a NULL node
+                nodeIdCounter++;
+                relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                nodes[nodeIdCounter] = {
+                    label: 'AST_V',
+                    type: 'NULL',
+                    phptype: 'NULL',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: 3,
+                    funcId: currentFunctionId
+                };
+                nodeIdCounter++;
+                relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                dfs(currentNode.body, nodeIdCounter, currentId, 4, currentFunctionId, null);
+                nodes[currentId] = {
+                    label: 'AST',
+                    type: currentNode.type,
+                    phptype: 'AST_CLASS',
+                    code: currentNode.kind,
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: childNum,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                    funcId: currentFunctionId
+                };
             }
-            nodeIdCounter++;
-            childNumberCounter++;
-            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.body, nodeIdCounter, currentId, 0, currentFunctionId, null);
-            nodes[currentId] = {
-                label: 'AST',
-                type: currentNode.type,
-                code: currentNode.kind,
-                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                childNum: childNum,
-                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
-                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
-                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
-            };
             break;
         case 'NewExpression':
         case 'CallExpression':
@@ -2132,9 +2270,13 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 funcId: currentFunctionId
             };
             break;
+        case 'ContinueStatement':
         case 'BreakStatement':
+            if (currentNode.type == 'ContinueStatement') phptype = 'AST_CONTINUE';
+            else if (currentNode.type == 'BreakStatement') phptype = 'AST_BREAK';
             if (outputStyle == 'php') {
-                // NULL node for depth (different in PHP & JS)
+                // NULL node for depth (different in PHP & JS, currently no support)
+                if (currentNode.label) console.log(`  Warning: uncompleted support for ${currentNode.type} with labels.`);
                 nodeIdCounter++;
                 relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                 nodes[nodeIdCounter] = {
@@ -2149,7 +2291,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             nodes[currentId] = {
                 label: 'AST',
                 type: currentNode.type,
-                phptype: 'AST_BREAK',
+                phptype: phptype,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -2170,6 +2312,147 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
                 childNum: childNum,
+                funcId: currentFunctionId
+            };
+            break;
+        case 'TryStatement':
+            // block
+            nodeIdCounter++;
+            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            dfs(currentNode.block, nodeIdCounter, currentId, 0, currentFunctionId, null);
+            // handler
+            // make a virtual AST_CATCH_LIST node
+            nodeIdCounter++;
+            let vAstCatchListId = nodeIdCounter;
+            relsStream.write([currentId, vAstCatchListId, parentOf].join(delimiter) + '\n');
+            // go to handler
+            nodeIdCounter++;
+            relsStream.write([vAstCatchListId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            dfs(currentNode.handler, nodeIdCounter, vAstCatchListId, 0, currentFunctionId, null);
+            // write the virtual AST_CATCH_LIST node
+            nodes[vAstCatchListId] = {
+                label: 'AST_V',
+                type: 'TryStatementCatchList',
+                phptype: 'AST_CATCH_LIST',
+                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                childNum: 1,
+                funcId: currentFunctionId
+            };
+            // finalizer
+            nodeIdCounter++;
+            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            dfs(currentNode.finalizer, nodeIdCounter, currentId, 2, currentFunctionId, null);
+            // finally, write the TryStatement node
+            nodes[currentId] = {
+                label: 'AST',
+                type: currentNode.type,
+                phptype: 'AST_TRY',
+                code: currentNode.operator ? currentId.operator : null,
+                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                childNum: childNum,
+                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                funcId: currentFunctionId
+            };
+            break;
+        case 'CatchClause':
+            // make a virtual AST_NAME_LIST node
+            nodeIdCounter++;
+            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            nodes[nodeIdCounter] = {
+                label: 'AST_V',
+                type: 'AstNameList',
+                phptype: 'AST_NAME_LIST',
+                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                childNum: 0,
+                funcId: currentFunctionId
+            };
+            // make a virtual AST_NAME node
+            nodeIdCounter++;
+            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            nodes[nodeIdCounter] = {
+                label: 'AST_V',
+                type: 'AstName',
+                phptype: 'AST_NAME',
+                phpflag: 'NAME_NOT_FQ',
+                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                childNum: 0,
+                funcId: currentFunctionId
+            };
+            // make a virtual string node
+            nodeIdCounter++;
+            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            nodes[nodeIdCounter] = {
+                label: 'AST_V',
+                type: 'Literal',
+                phptype: 'string',
+                code: 'Exception',
+                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                childNum: 0,
+                funcId: currentFunctionId
+            };
+            // param
+            nodeIdCounter++;
+            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            dfs(currentNode.param, nodeIdCounter, currentId, 1, currentFunctionId, null);
+            // body
+            nodeIdCounter++;
+            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            dfs(currentNode.body, nodeIdCounter, currentId, 2, currentFunctionId, null);
+            // finally, write the CatchClause node
+            nodes[currentId] = {
+                label: 'AST',
+                type: currentNode.type,
+                phptype: 'AST_CATCH',
+                code: currentNode.operator ? currentId.operator : null,
+                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                childNum: childNum,
+                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                funcId: currentFunctionId
+            };
+            break;
+        case 'ThrowStatement':
+            nodeIdCounter++;
+            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            if (currentNode.argument) {
+                dfs(currentNode.argument, nodeIdCounter, currentId, 0, currentFunctionId, null);
+            } else {
+                // insert a NULL node
+                nodes[nodeIdCounter] = {
+                    label: 'AST_V',
+                    type: 'NULL',
+                    phptype: 'NULL',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: 0,
+                    funcId: currentFunctionId
+                };
+            }
+            nodes[currentId] = {
+                label: 'AST',
+                type: currentNode.type,
+                phptype: 'AST_THROW',
+                code: currentNode.operator ? currentId.operator : null,
+                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                childNum: childNum,
+                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                code: getCode(currentNode, sourceCode),
                 funcId: currentFunctionId
             };
             break;
