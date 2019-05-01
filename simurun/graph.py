@@ -31,6 +31,8 @@ class Graph:
         else:
             self.cur_scope = cur_nodeid
 
+        return cur_nodeid
+
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
             headers = fp.readline()
@@ -159,7 +161,7 @@ class Graph:
         """
         return nx.dfs_edges(self.graph, source)
 
-    def get_out_edges(self, node_id, data = False, keys = False, edge_type = None):
+    def get_out_edges(self, node_id, data = True, keys = True, edge_type = None):
         if edge_type == None:
             return self.graph.out_edges(node_id, data = data, keys = keys)
         edges = self.graph.out_edges(node_id, data = data, keys = keys)
@@ -170,7 +172,7 @@ class Graph:
             idx += 1
         return [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
 
-    def get_in_edges(self, node_id, data = False, keys = False, edge_type = None):
+    def get_in_edges(self, node_id, data = True, keys = True, edge_type = None):
         if edge_type == None:
             return self.graph.in_edges(node_id, data = data, keys = keys)
         edges = self.graph.in_edges(node_id, data = data, keys = keys)
@@ -249,8 +251,6 @@ class Graph:
 
         while(1):
             var_edges = self.get_out_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_VAR_EDGE")
-            if len(var_edges) == 0:
-                break
             for cur_edge in var_edges:
                 cur_var_attr = self.get_node_attr(cur_edge[1])
                 if cur_var_attr['name'] == var_name:
@@ -297,7 +297,7 @@ class Graph:
         self.add_node(obj_node_id)
         self.set_node_attr(obj_node_id, ('type', var_type))
         self.add_edge(self.cur_obj, obj_node_id, {"type:TYPE": "OBJ_PARENT"})
-        self.add_edge(ast_node, obj_node_id, {"type:TYPE": "AST_TO_OBJ"})
+        self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_AST"})
         return obj_node_id
 
     def setup_run(self, entry_nodeid):
@@ -334,6 +334,7 @@ class Graph:
     def set_obj_by_name(self, var_name, obj_id, scope = None):
         """
         set a var name point to a obj id in a scope
+        if the var name never appeared, add to the current scope
         """
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
         if cur_namenode == None:
@@ -364,13 +365,13 @@ class Graph:
         if scope == None:
             scope = self.cur_scope
 
-        func_obj = self.get_obj_by_name(function_name)
+        func_obj = self.get_obj_by_name(function_name, scope = scope)
         if func_obj == None:
             print 'FUNCTION {} not find'.format(function_name)
             return func_obj 
 
-        tmp_edge = self.get_in_edges(func_obj, data = True, keys = True, edge_type = "AST_TO_OBJ")[0]
-        func_decl_ast = tmp_edge[0]
+        tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")[0]
+        func_decl_ast = tmp_edge[1]
         return func_decl_ast
 
     def get_entryid_by_function_name(self, function_name, scope = None):
@@ -378,6 +379,8 @@ class Graph:
         return the entryid nodeid of a funcion
         """
         func_decl_ast = self.get_func_declid_by_function_name(function_name, scope)
+        if func_decl_ast == None:
+            return None
         tmp_edge = self.get_out_edges(func_decl_ast, data = True, keys = True, edge_type = "ENTRY")[0]
         return tmp_edge[1]
 
@@ -387,3 +390,42 @@ class Graph:
         """
         print func_id
         return self.get_in_edges(func_id, data = True, keys = True, edge_type = "SCOPE_AST")[0][0]
+
+    def _get_childern_by_childnum(self, node_id):
+        """
+        helper function, get the childern nodeid of the node_id
+        return a dict, with {childnum: node_id}
+        """
+        edges = self.get_out_edges(node_id, edge_type = "PARENT_OF")
+        res = {}
+        for edge in edges:
+            node_attr = self.get_node_attr(edge[1])
+            res[node_attr['childnum:int']] = edge[1]
+        return res
+
+    def handle_property(self, node_id):
+        """
+        input the node_id, return the parent and child
+        return [parent, child]
+        currently we only support one level property
+        """
+        childnum_dict = self._get_childern_by_childnum(node_id)
+        return [childnum_dict['0'], childnum_dict['1']]
+
+    def handle_method_call(self, node_id):
+        """
+        input the node_id, return the parent and child
+        return [parent, child, args]
+        currently we only support one level property
+        """
+        childnum_dict = self._get_childern_by_childnum(node_id)
+        return [childnum_dict['0'], childnum_dict['1'], childnum_dict['2']]
+
+    def get_func_scope_by_name(self, func_name, scope = None):
+        """
+        get a func scope by name, get func obj first, return the obj_scope node
+        """
+        obj_node_id = self.get_obj_by_name(func_name, scope = scope)
+        scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_SCOPE")[0]
+        return scope_edge[1]
+

@@ -1,6 +1,7 @@
 var funca = function() {
   var a = 1;
   this.funcb = function() {
+    var b = a;
     console.log('test');
   }
   this.funcc = function() {
@@ -12,4 +13,5 @@ var funca = function() {
 f = new funca();
 var n = f;
 n.funcb();
+funca();
 
