@@ -298,8 +298,6 @@ def handle_node(G, node_id):
         # add call edge
         G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
 
-
-
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
         func_decl_id = cur_node_attr['HAVE_FUNC']
@@ -309,7 +307,6 @@ def handle_node(G, node_id):
     remove_list = G.get_node_by_attr("name", "TMPRIGHT")
     G.remove_nodes_from(remove_list)
     G.set_node_attr(node_id, ("VISITED", "1"))
-
     return [added_obj, added_scope]
 
 def simurun_function(G, func_decl_id):
