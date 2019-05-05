@@ -66,15 +66,49 @@ def add_edges_between_funcs(G):
 
     G.add_edges_from_list(added_edge_list)
 
+def register_func(G, node_id):
+    """
+    input a func_decl id, register it to the nearest parent who has CFG
+    """
+    # we assume that function decl should have a CF parent
+    cur_id = node_id
+    bfs_queue = []
+    visited = set()
+    bfs_queue.append(node_id)
+    while(len(bfs_queue)):
+        cur_node = bfs_queue.pop(0)
+
+        # if visited before, stop here
+        if cur_node in visited:
+            continue
+        else:
+            visited.add(cur_node)
+
+        out_edges = G.get_in_edges(cur_node, edge_type = 'PARENT_OF')
+        out_nodes = [edge[0] for edge in out_edges]
+        for node in out_nodes:
+            if len(G.get_out_edges(node[0], edge_type = "FLOWS_TO")) != 0 or len(G.get_out_edges(node[0], edge_type = "ENTRY")) != 0:
+                G.set_node_attr(node[0], ("HAVE_FUNC", node_id))
+                return
+
+        bfs_queue += out_nodes
+
 def handle_node(G, node_id):
     """
     for different node type, do different actions to handle this node
     """
     cur_node_attr = G.get_node_attr(node_id)
     cur_type = cur_node_attr['type']
+    print "HANDLE NODE: {} {}".format(node_id, cur_type)
     if cur_type == "AST_ASSIGN":
         # for assign operation, the right part is childnum 1, the left part is childnum 0
         ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
+
+        if len(ast_edges) == 1:
+            # only have left
+            handle_node(G, ast_edges[0][1])
+            return [None, None]
+
         if G.get_node_attr(ast_edges[0][1])['childnum:int'] == '1':
             right = ast_edges[0][1]
             left = ast_edges[1][1]
@@ -84,6 +118,9 @@ def handle_node(G, node_id):
 
         added_right = handle_node(G, right)
         added_left = handle_node(G, left)
+        if added_right == None:
+            print "RIGHT OBJ NOT FOUND"
+            return None
         right_obj = added_right[0]
         right_scope = added_right[1]
         left_attr = G.get_node_attr(left)
@@ -122,13 +159,30 @@ def handle_node(G, node_id):
 
     added_obj = None
     added_scope = None
+
     if cur_node_attr['type'] == 'AST_CLOSURE':
         # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
         # for now, we do not assign the name of the scope node 
-        node_name = G.get_name_from_child(node_id)
         added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
         added_obj = G.add_obj_to_obj(node_id, "OBJ_DECL")
         G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
+
+    elif cur_node_attr['type'] == 'AST_VAR':
+        pass
+
+    elif cur_node_attr['type'] == 'AST_FUNC_DECL':
+        # for a function decl, we add an obj and scope
+        node_name = G.get_name_from_child(node_id)
+
+        # do a normal add closure
+        added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
+        added_obj = G.add_obj_to_obj(node_id, "OBJ_DECL")
+        G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
+
+        # for a func decl, should not have local var name
+        # should add the name to base scope
+        G.set_obj_by_name(node_name, added_obj, scope = BASE_SCOPE)
+
 
     elif cur_node_attr['type'] == 'AST_NEW':
         added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "OBJ")
@@ -172,11 +226,11 @@ def handle_node(G, node_id):
         func_scope_id = G.get_func_scope_by_name(parent_name)
         method_scope_id = G.get_func_scope_by_name(child_name, scope = func_scope_id)
 
-        method_entry_id = G.get_entryid_by_function_name(child_name, func_scope_id)
-        if method_entry_id == None:
+        func_decl_id = G.get_func_declid_by_function_name(child_name, func_scope_id)
+        if func_decl_id == None:
             return "ERROR: Function {} not found".format(child_name)
 
-        # add a tmp obj under parent scope
+        # add a tmp name obj under parent scope
         added_obj = G.add_obj_to_scope(func_scope_id, "TMPRIGHT", "OBJ")
 
         backup_scope = G.cur_scope
@@ -185,7 +239,7 @@ def handle_node(G, node_id):
         # update current scope and object
         G.cur_scope = method_scope_id
         G.cur_obj = added_obj 
-        simurun_function(G, method_entry_id)
+        simurun_function(G, func_decl_id)
         
         # add obj to scope edge
         G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
@@ -193,21 +247,44 @@ def handle_node(G, node_id):
         G.cur_scope = backup_scope
         G.cur_obj = backup_obj
 
+    elif cur_node_attr['type'] == 'AST_CALL':
+        func_name = G.get_name_from_child(node_id)
+        func_scope_id = G.get_func_scope_by_name(func_name)
+        backup_obj = G.cur_obj
+        backup_scope = G.cur_scope
 
+        added_obj = G.add_obj_to_obj(node_id, "OBJ")
+        func_decl_id = G.get_func_declid_by_function_name(func_name)
+        G.cur_scope = func_scope_id
+        G.cur_obj = added_obj
+        simurun_function(G, func_decl_id)
+
+        # add obj to scope edge
+        G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
+        G.cur_scope = backup_scope
+        G.cur_obj = backup_obj
+
+
+    # handle registered functions
+    if "HAVE_FUNC" in cur_node_attr:
+        func_decl_id = cur_node_attr['HAVE_FUNC']
+        handle_node(G, func_decl_id)
+
+
+    
     # delete if right node is temperate
     remove_list = G.get_node_by_attr("name", "TMPRIGHT")
     G.remove_nodes_from(remove_list)
     return [added_obj, added_scope]
 
-def simurun_function(G, entry_nodeid):
+def simurun_function(G, func_decl_id):
     """
     bfs run a simurun from a entry id
     """
     bfs_queue = []
     visited = set()
-    bfs_queue.append(entry_nodeid)
+    bfs_queue.append(func_decl_id)
     while(len(bfs_queue)):
-        print "cur_queue: ", bfs_queue
         cur_node = bfs_queue.pop(0)
 
         # if visited before, stop here
@@ -218,6 +295,8 @@ def simurun_function(G, entry_nodeid):
 
         handle_node(G, cur_node)
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
+        if len(out_edges) == 0:
+            out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'ENTRY')
         out_nodes = [edge[1] for edge in out_edges]
         bfs_queue += out_nodes
 
@@ -235,12 +314,16 @@ def generate_obj_graph(G, entry_nodeid):
         G.set_node_attr(node[0], ("VAR_TYPE", "OBJECT"))
 
     G.setup_run(entry_nodeid)
+    print "RUN: ", entry_nodeid
+    obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
+    for node in obj_nodes:
+        register_func(G, node[0])
     simurun_function(G, entry_nodeid)
 
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
-add_edges_between_funcs(G)
+#add_edges_between_funcs(G)
 scopeContorller = ScopeController(G)
-generate_obj_graph(G, '2')
+generate_obj_graph(G, '1')
 G.export_to_CSV("./testnodes.csv", "./testrels.csv")
 

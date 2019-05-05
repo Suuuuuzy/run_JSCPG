@@ -1,10 +1,10 @@
-var funca = function() {
+function funca() {
   var a = 1;
   this.funcb = function() {
     var b = a;
     console.log('test');
   }
-  this.funcc = function() {
+  funcc = function() {
     var b = a + 2;
     console.log("funcc");
   }
@@ -13,5 +13,5 @@ var funca = function() {
 f = new funca();
 var n = f;
 n.funcb();
-funca();
+funcc();
 
