@@ -1,5 +1,7 @@
 import networkx as nx
 
+BASE_SCOPE = 0
+
 class Graph:
 
     def __init__(self):
@@ -225,20 +227,33 @@ class Graph:
     def get_name_from_child(self, nodeid):
         """
         try to find the name of a nodeid
-        check the id first, then check all of the childern 
-        recursively 
+        we have to use bfs strategy
         """
-        cur_attr = self.get_node_attr(nodeid)
-        if cur_attr['type'] == 'string':
-            if 'name' in cur_attr:
-                return cur_attr['name']
-            if 'code' in cur_attr:
-                return cur_attr['code']
-        childern = self.get_out_edges(nodeid, data = True, keys = True, edge_type = 'PARENT_OF')
-        for edge in childern:
-            sub_name = self.get_name_from_child(edge[1])
-            if sub_name != None:
-                return sub_name
+        bfs_queue = []
+        visited = set()
+        bfs_queue.append(nodeid)
+
+        while(len(bfs_queue)):
+            cur_node = bfs_queue.pop(0)
+
+            # if visited before, stop here
+            if cur_node in visited:
+                continue
+            else:
+                visited.add(cur_node)
+
+            cur_attr = self.get_node_attr(cur_node)
+
+            if cur_attr['type'] == 'string':
+                if 'name' in cur_attr:
+                    return cur_attr['name']
+                if 'code' in cur_attr:
+                    return cur_attr['code']
+
+            out_edges = self.get_out_edges(cur_node, edge_type = 'PARENT_OF')
+            out_nodes = [edge[1] for edge in out_edges]
+            bfs_queue += out_nodes
+
         return None
 
     def get_scope_namenode_by_name(self, var_name, scope = None):
@@ -307,7 +322,7 @@ class Graph:
         # init cur_id here!!
         self.cur_id = self.graph.number_of_nodes()
 
-        self.add_scope("BASE_SCOPE", entry_nodeid)
+        BASE_SCOPE = self.add_scope("BASE_SCOPE", entry_nodeid)
         cur_nodeid = str(self._get_new_nodeid())
         self.add_node(cur_nodeid)
         self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
@@ -388,7 +403,6 @@ class Graph:
         """
         return the scope id by the ast node
         """
-        print func_id
         return self.get_in_edges(func_id, data = True, keys = True, edge_type = "SCOPE_AST")[0][0]
 
     def _get_childern_by_childnum(self, node_id):
@@ -426,6 +440,7 @@ class Graph:
         get a func scope by name, get func obj first, return the obj_scope node
         """
         obj_node_id = self.get_obj_by_name(func_name, scope = scope)
+        if obj_node_id == None:
+            return None
         scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_SCOPE")[0]
         return scope_edge[1]
-

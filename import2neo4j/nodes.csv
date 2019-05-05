@@ -4,118 +4,125 @@ id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	c
 2	Artificial	CFG_FUNC_ENTRY					1				/home/lsong18/projs/JSCPG/test.js	
 3	Artificial	CFG_FUNC_EXIT					1				/home/lsong18/projs/JSCPG/test.js	
 4	AST	AST_STMT_LIST		1		0	1			16		
-5	AST	AST_ASSIGN		1	"funca = function() {  var a = 1;  this.funcb = function() {    var b = a;    console.log('test');  }  this.funcc = function() {    var b = a + 2;    console.log(""funcc"");  }  a = 2;}"	0	1			12		
-6	AST	AST_VAR		1	any	0	1			12		
-7	AST	string		1	funca	0	1			1		
-8	AST	AST_CLOSURE		1		1	1			12		
-9	Artificial	CFG_FUNC_ENTRY					8					
-10	Artificial	CFG_FUNC_EXIT					8					
-11	AST	string		1	{closure}	0	8					
-12	AST	NULL		1		1	8					
-13	AST	AST_PARAM_LIST		1		2	8			12		
-14	AST	NULL		1		3	8					
-15	AST	AST_STMT_LIST		1		4	8			12		
-16	AST	AST_ASSIGN		2	"a = 1"	0	8			2		
-17	AST	AST_VAR		2	any	0	8			2		
-18	AST	string		2	a	0	8			2		
-19	AST	integer		2	1	1	8			2		
-20	AST	AST_ASSIGN		3	=	1	8			6		
-21	AST	AST_PROP		3	this.funcb	0	8			3		
-22	AST	AST_VAR		3		0	8			3		
-23	AST	string		3	this	0	8			3	this	
-24	AST	string		3	funcb	1	8			3		
-25	AST	AST_CLOSURE		3		1	8			6		
-26	Artificial	CFG_FUNC_ENTRY					25					
-27	Artificial	CFG_FUNC_EXIT					25					
-28	AST	string		3	{closure}	0	25					
-29	AST	NULL		3		1	25					
-30	AST	AST_PARAM_LIST		3		2	25			6		
-31	AST	NULL		3		3	25					
-32	AST	AST_STMT_LIST		3		4	25			6		
-33	AST	AST_ASSIGN		4	"b = a"	0	25			4		
-34	AST	AST_VAR		4	any	0	25			4		
-35	AST	string		4	b	0	25			4		
-36	AST	AST_VAR		4		1	25			4		
-37	AST	string		4	a	0	25			4	a	
-38	AST	AST_METHOD_CALL		5		1	25			5		
-39	AST	AST_VAR		5		0	25			5		
-40	AST	string		5	console	0	25			5	console	
-41	AST	string		5	log	1	25			5		
-42	AST	AST_ARG_LIST		5	('test')	2	25			5		
-43	AST	string		5	'test'	0	25			5		
-44	AST	NULL		3		5	25					
-45	AST	NULL		3		6	25					
-46	AST	AST_ASSIGN		7	=	2	8			10		
-47	AST	AST_PROP		7	this.funcc	0	8			7		
-48	AST	AST_VAR		7		0	8			7		
-49	AST	string		7	this	0	8			7	this	
-50	AST	string		7	funcc	1	8			7		
-51	AST	AST_CLOSURE		7		1	8			10		
-52	Artificial	CFG_FUNC_ENTRY					51					
-53	Artificial	CFG_FUNC_EXIT					51					
-54	AST	string		7	{closure}	0	51					
-55	AST	NULL		7		1	51					
-56	AST	AST_PARAM_LIST		7		2	51			10		
-57	AST	NULL		7		3	51					
-58	AST	AST_STMT_LIST		7		4	51			10		
-59	AST	AST_ASSIGN		8	"b = a + 2"	0	51			8		
-60	AST	AST_VAR		8	any	0	51			8		
-61	AST	string		8	b	0	51			8		
-62	AST	AST_BINARY_OP	BINARY_ADD	8	+	1	51			8		
-63	AST	AST_VAR		8		0	51			8		
-64	AST	string		8	a	0	51			8	a	
-65	AST	integer		8	2	1	51			8		
-66	AST	AST_METHOD_CALL		9		1	51			9		
-67	AST	AST_VAR		9		0	51			9		
-68	AST	string		9	console	0	51			9	console	
-69	AST	string		9	log	1	51			9		
-70	AST	AST_ARG_LIST		9	"(""funcc"")"	2	51			9		
-71	AST	string		9	"""funcc"""	0	51			9		
-72	AST	NULL		7		5	51					
-73	AST	NULL		7		6	51					
-74	AST	AST_ASSIGN		11	=	3	8			11		
-75	AST	AST_VAR		11		0	8			11		
-76	AST	string		11	a	0	8			11	a	
-77	AST	integer		11	2	1	8			11		
-78	AST	NULL		1		5	8					
-79	AST	NULL		1		6	8					
-80	AST	AST_ASSIGN		13	=	1	1			13		
-81	AST	AST_VAR		13		0	1			13		
-82	AST	string		13	f	0	1			13	f	
-83	AST	AST_NEW		13		1	1			13		
-84	AST	AST_NAME	NAME_NOT_FQ	13		0	1			13		
-85	AST	string		13	funca	0	1					
-86	AST	AST_ARG_LIST		13	()	1	1			13		
-87	AST	AST_ASSIGN		14	"n = f"	2	1			14		
-88	AST	AST_VAR		14	any	0	1			14		
-89	AST	string		14	n	0	1			14		
-90	AST	AST_VAR		14		1	1			14		
-91	AST	string		14	f	0	1			14	f	
-92	AST	AST_METHOD_CALL		15		3	1			15		
-93	AST	AST_VAR		15		0	1			15		
-94	AST	string		15	n	0	1			15	n	
-95	AST	string		15	funcb	1	1			15		
-96	AST	AST_ARG_LIST		15	()	2	1			15		
-97	AST	AST_CALL		16		4	1			16		
-98	AST	AST_NAME	NAME_NOT_FQ	16		0	1			16		
-99	AST	string		16	funca	0	1					
-100	AST	AST_ARG_LIST		16	()	1	1			16		
-101		SCOPE									BASE_SCOPE	
-102		OBJ									BASE_OBJ	
-103		SCOPE									CLOSURE_SCOPE	
-104		OBJ_DECL										
-105											funca	
-107		OBJ										
-109		OBJ										
-110											a	
-111		SCOPE									CLOSURE_SCOPE	
-112		OBJ_DECL										
-113											funcb	
-114		SCOPE									CLOSURE_SCOPE	
-115		OBJ_DECL										
-116											funcc	
+5	AST	AST_FUNC_DECL		1	funca	0	1			12		
+6	Artificial	CFG_FUNC_ENTRY					5					
+7	Artificial	CFG_FUNC_EXIT					5					
+8	AST	string		1	funca	0	5			1		
+9	AST	NULL		1		1	5					
+10	AST	AST_PARAM_LIST		1		2	5			12		
+11	AST	AST_STMT_LIST		1		3	5			12		
+12	AST	AST_ASSIGN		2	"a = 1"	0	5			2		
+13	AST	AST_VAR		2	any	0	5			2		
+14	AST	string		2	a	0	5			2		
+15	AST	integer		2	1	1	5			2		
+16	AST	AST_ASSIGN		3	=	1	5			6		
+17	AST	AST_PROP		3	this.funcb	0	5			3		
+18	AST	AST_VAR		3		0	5			3		
+19	AST	string		3	this	0	5			3	this	
+20	AST	string		3	funcb	1	5			3		
+21	AST	AST_CLOSURE		3		1	5			6		
+22	Artificial	CFG_FUNC_ENTRY					21					
+23	Artificial	CFG_FUNC_EXIT					21					
+24	AST	string		3	{closure}	0	21					
+25	AST	NULL		3		1	21					
+26	AST	AST_PARAM_LIST		3		2	21			6		
+27	AST	NULL		3		3	21					
+28	AST	AST_STMT_LIST		3		4	21			6		
+29	AST	AST_ASSIGN		4	"b = a"	0	21			4		
+30	AST	AST_VAR		4	any	0	21			4		
+31	AST	string		4	b	0	21			4		
+32	AST	AST_VAR		4		1	21			4		
+33	AST	string		4	a	0	21			4	a	
+34	AST	AST_METHOD_CALL		5		1	21			5		
+35	AST	AST_VAR		5		0	21			5		
+36	AST	string		5	console	0	21			5	console	
+37	AST	string		5	log	1	21			5		
+38	AST	AST_ARG_LIST		5	('test')	2	21			5		
+39	AST	string		5	'test'	0	21			5		
+40	AST	NULL		3		5	21					
+41	AST	NULL		3		6	21					
+42	AST	AST_ASSIGN		7	=	2	5			10		
+43	AST	AST_PROP		7	this.funcc	0	5			7		
+44	AST	AST_VAR		7		0	5			7		
+45	AST	string		7	this	0	5			7	this	
+46	AST	string		7	funcc	1	5			7		
+47	AST	AST_CLOSURE		7		1	5			10		
+48	Artificial	CFG_FUNC_ENTRY					47					
+49	Artificial	CFG_FUNC_EXIT					47					
+50	AST	string		7	{closure}	0	47					
+51	AST	NULL		7		1	47					
+52	AST	AST_PARAM_LIST		7		2	47			10		
+53	AST	NULL		7		3	47					
+54	AST	AST_STMT_LIST		7		4	47			10		
+55	AST	AST_ASSIGN		8	"b = a + 2"	0	47			8		
+56	AST	AST_VAR		8	any	0	47			8		
+57	AST	string		8	b	0	47			8		
+58	AST	AST_BINARY_OP	BINARY_ADD	8	+	1	47			8		
+59	AST	AST_VAR		8		0	47			8		
+60	AST	string		8	a	0	47			8	a	
+61	AST	integer		8	2	1	47			8		
+62	AST	AST_METHOD_CALL		9		1	47			9		
+63	AST	AST_VAR		9		0	47			9		
+64	AST	string		9	console	0	47			9	console	
+65	AST	string		9	log	1	47			9		
+66	AST	AST_ARG_LIST		9	"(""funcc"")"	2	47			9		
+67	AST	string		9	"""funcc"""	0	47			9		
+68	AST	NULL		7		5	47					
+69	AST	NULL		7		6	47					
+70	AST	AST_ASSIGN		11	=	3	5			11		
+71	AST	AST_VAR		11		0	5			11		
+72	AST	string		11	a	0	5			11	a	
+73	AST	integer		11	2	1	5			11		
+74	AST	NULL		1		4	5					
+75	AST	NULL		1		5	5					
+76	AST	AST_ASSIGN		13	=	1	1			13		
+77	AST	AST_VAR		13		0	1			13		
+78	AST	string		13	f	0	1			13	f	
+79	AST	AST_NEW		13		1	1			13		
+80	AST	AST_NAME	NAME_NOT_FQ	13		0	1			13		
+81	AST	string		13	funca	0	1					
+82	AST	AST_ARG_LIST		13	()	1	1			13		
+83	AST	AST_ASSIGN		14	"n = f"	2	1			14		
+84	AST	AST_VAR		14	any	0	1			14		
+85	AST	string		14	n	0	1			14		
+86	AST	AST_VAR		14		1	1			14		
+87	AST	string		14	f	0	1			14	f	
+88	AST	AST_METHOD_CALL		15		3	1			15		
+89	AST	AST_VAR		15		0	1			15		
+90	AST	string		15	n	0	1			15	n	
+91	AST	string		15	funcb	1	1			15		
+92	AST	AST_ARG_LIST		15	()	2	1			15		
+93	AST	AST_CALL		16		4	1			16		
+94	AST	AST_NAME	NAME_NOT_FQ	16		0	1			16		
+95	AST	string		16	funca	0	1					
+96	AST	AST_ARG_LIST		16	()	1	1			16		
+97		SCOPE									BASE_SCOPE	
+98		OBJ									BASE_OBJ	
+99		SCOPE									CLOSURE_SCOPE	
+100		OBJ_DECL										
+101											funca	
+103		OBJ										
+105		OBJ										
+106											a	
+107		SCOPE									CLOSURE_SCOPE	
+108		OBJ_DECL										
+109											funcb	
+110		SCOPE									CLOSURE_SCOPE	
+111		OBJ_DECL										
+112											funcc	
+114		OBJ										
+115											f	
+116											n	
 118		OBJ										
-119											f	
-120											n	
+119		SCOPE									CLOSURE_SCOPE	
+120		OBJ_DECL										
+121											b	
 122		OBJ										
-123											b	
+123		SCOPE									CLOSURE_SCOPE	
+124		OBJ_DECL										
+126		OBJ										
+127		SCOPE									CLOSURE_SCOPE	
+128		OBJ_DECL										
+129		SCOPE									CLOSURE_SCOPE	
+130		OBJ_DECL										
+132		OBJ										
