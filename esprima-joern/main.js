@@ -82,13 +82,80 @@ if (process.argv.length != 3) {
 var dirname = process.argv[2];
 var filename = "";
 
+var requiredModules = [],
+    analyzedModules = [];
+var searchPaths = ['~/packagecrawler', '.'].concat(module.paths);
+const builtInModules = ['assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https', 'net', 'os', 'path', 'punycode', 'querystring', 'readline', 'stream', 'string_decoder', 'timers', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'];
+
+// main
+
+// analyze the designated source code files
 if (!fs.statSync(dirname).isDirectory()) {
     analyze(dirname, null);
 } else {
     walkDir(dirname, null, analyze);
 }
 
+// analyze any required packages
+console.log('Package search paths: ' + searchPaths);
+while (requiredModules.length > 0) {
+    let currentModule = requiredModules.shift();
+    if (builtInModules.includes(currentModule)) {
+        console.log(`${currentModule} is a built-in module.`);
+        continue;
+    }
+    let found = false;
+    for (let p of searchPaths) {
+        // search file
+        let currentPath = path.join(p, currentModule);
+        if (!currentModule.endsWith('.js'))
+            currentPath += '.js';
+        if (analyzedModules.includes(currentPath)) {
+            found = true;
+            console.log(`Package ${currentModule} had been analyzed.`);
+            break;
+        } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isFile()) {
+            console.log(`Package ${currentModule} found at ${currentPath}.`);
+            analyzedModules.push(currentPath);
+            analyze(currentPath, null);
+            found = true;
+            break;
+        }
+        // search directory
+        if (!currentModule.endsWith('.js')) {
+            if (analyzedModules.includes(currentPath)) {
+                found = true;
+                console.log(`Package ${currentModule} had been analyzed.`);
+                break;
+            } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
+                // check if package.json exists
+                let jsonPath = path.join(currentPath, 'package.json');
+                let main = 'main.js';
+                if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
+                    try {
+                        main = JSON.parse(fs.readFileSync(filePath, 'utf8'))['main'];
+                    } catch (e) {
+                        console.error(`Error: package.json (${jsonPath}) does not include main field.`);
+                    }
+                }
+                let mainPath = path.join(currentPath, main);
+                if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
+                    console.log(`Package ${currentModule} found at ${mainPath}.`);
+                    analyzedModules.push(currentPath);
+                    analyze(mainPath, null);
+                    found = true;
+                    break;
+                }
+            }
+        }
+    }
+    if (!found) {
+        console.error(`Error: required package ${currentModule} not found.`);
+    }
+}
+
 function getCode(node, sourceCode) {
+    /* get corresponding source code string of a node */
     if (node.range) {
         return sourceCode.substr(node.range[0], node.range[1] - node.range[0]).replace(/\n/g, '');
     } else {
@@ -97,6 +164,7 @@ function getCode(node, sourceCode) {
 };
 
 function getParameterList(node) {
+    /* get argument list of a function call */
     let p = [];
     if (node.params) {
         for (var i of node.params) {
@@ -107,6 +175,7 @@ function getParameterList(node) {
 };
 
 function getFunctionDef(node) {
+    /* get the line of code of a function call */
     let pl = getParameterList(node);
     let id = node.id ? node.id.name : '[anonymous]';
     return id + ' (' + pl + ')';
@@ -122,7 +191,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
     let blockExtra;
     // switch (currentNode.constructor.name){
     fs.appendFile('./out.dat', currentNode.type + '\n', function(err) {
-        if (err) return console.log(err)
+        if (err) return console.log(err);
     });
     switch (currentNode.type) {
         // case 'Script':
@@ -799,6 +868,8 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     funcId: prevFunctionId // function itself does not use functionId
                 };
             } else if (outputStyle == 'php') {
+                phptype = null;
+                phpflag = null;
                 // make CFG_FUNC_ENTRY artificial node
                 nodeIdCounter++;
                 let vCFGFuncEntryId = nodeIdCounter;
@@ -826,18 +897,23 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     });
                     phptype = 'AST_FUNC_DECL';
                 } else {
-                    // anonymous function
+                    // anonymous function, or method in a class
                     nodeIdCounter++;
                     relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                     nodes[nodeIdCounter] = {
                         label: 'AST',
                         type: 'string',
-                        code: '{closure}',
+                        code: (extra && extra.methodName) ? extra.methodName : '{closure}',
                         childNum: childNumberCounter,
                         lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                         funcId: currentFunctionId
                     };
-                    phptype = 'AST_CLOSURE';
+                    if (extra && extra.methodName) {
+                        phptype = 'AST_METHOD';
+                        phpflag = 'MODIFIER_PUBLIC';
+                    } else {
+                        phptype = 'AST_CLOSURE';
+                    }
                 }
                 childNumberCounter++;
                 // NULL node, childnum = 1
@@ -883,24 +959,39 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                         funcId: currentFunctionId
                     };
-                    // go to the parameter Identifier node (childnum = 1)
-                    nodeIdCounter++;
-                    relsStream.write([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    dfs(param, nodeIdCounter, vParameterId, 1, currentFunctionId, {
-                        doNotUseVar: true
-                    });
-                    // write the 2nd NULL virtual node (childnum = 2)
-                    nodeIdCounter++;
-                    relsStream.write([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    nodes[nodeIdCounter] = {
-                        label: 'AST_V',
-                        // type: 'ParameterType',
-                        phptype: 'NULL',
-                        childNum: 2,
-                        code: 'any',
-                        lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                        funcId: currentFunctionId
-                    };
+                    if (param.type == 'Identifier') { // no default value
+                        // go to the parameter Identifier node (childnum = 1)
+                        nodeIdCounter++;
+                        relsStream.write([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                        dfs(param, nodeIdCounter, vParameterId, 1, currentFunctionId, {
+                            doNotUseVar: true
+                        });
+                        // write the 2nd NULL virtual node (childnum = 2)
+                        nodeIdCounter++;
+                        relsStream.write([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                        nodes[nodeIdCounter] = {
+                            label: 'AST_V',
+                            // type: 'ParameterType',
+                            phptype: 'NULL',
+                            childNum: 2,
+                            code: 'any',
+                            lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                            funcId: currentFunctionId
+                        };
+                    } else if (param.type == 'AssignmentPattern') { // with default value
+                        // go to the parameter Identifier node (childnum = 1)
+                        nodeIdCounter++;
+                        relsStream.write([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                        dfs(param.left, nodeIdCounter, vParameterId, 1, currentFunctionId, {
+                            doNotUseVar: true
+                        });
+                        // write the 2nd NULL virtual node (childnum = 2)
+                        nodeIdCounter++;
+                        relsStream.write([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                        dfs(param.right, nodeIdCounter, vParameterId, 2, currentFunctionId, {
+                            doNotUseVar: true
+                        });
+                    }
                     // finally update the childnum counter
                     vNodeChildNumberCounter++;
                 }
@@ -920,7 +1011,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 };
                 childNumberCounter++;
                 // NULL node, childnum = 3 (anonymous function only)
-                if (!currentNode.id) {
+                if (!currentNode.id && !(extra && extra.methodName)) {
                     nodeIdCounter++;
                     relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                     nodes[nodeIdCounter] = {
@@ -966,6 +1057,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     type: currentNode.type,
                     ctype: 'Function',
                     phptype: phptype,
+                    phpflag: phpflag,
                     code: currentNode.id ? currentNode.id.name : null,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: childNum,
@@ -978,13 +1070,74 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             }
             break;
         case 'ClassBody':
-        case 'BlockStatement':
-            ctype = null;
-            phptype = null;
-            if (currentNode.type == 'BlockStatement') {
-                ctype = 'CompoundStatement';
-                phptype = 'AST_STMT_LIST';
+            if (outputStyle == 'php') {
+                prevFunctionId = currentFunctionId;
+                currentFunctionId = currentId;
+                // make AST_TOPLEVEL virtual node, as the new parent node
+                // nodeIdCounter++; // do not write this
+                let vAstToplevelClass = nodeIdCounter;
+                nodes[vAstToplevelClass] = {
+                    label: 'AST_V',
+                    type: 'AST_TOPLEVEL',
+                    phpflag: 'TOPLEVEL_CLASS',
+                    funcId: prevFunctionId
+                };
+                // make CFG_FUNC_ENTRY artificial node
+                nodeIdCounter++;
+                let vCFGFuncEntryId = nodeIdCounter;
+                relsStream.write([vAstToplevelClass, vCFGFuncEntryId, 'ENTRY'].join(delimiter) + '\n');
+                nodes[vCFGFuncEntryId] = {
+                    label: 'Artificial',
+                    type: 'CFG_FUNC_ENTRY',
+                    funcId: currentFunctionId
+                };
+                // make CFG_FUNC_EXIT artificial node
+                nodeIdCounter++;
+                let vCFGFuncExitId = nodeIdCounter;
+                relsStream.write([vAstToplevelClass, vCFGFuncExitId, 'EXIT'].join(delimiter) + '\n');
+                nodes[vCFGFuncExitId] = {
+                    label: 'Artificial',
+                    type: 'CFG_FUNC_EXIT',
+                    funcId: currentFunctionId
+                };
+                // reserve a node id for AST_STMT_LIST
+                nodeIdCounter++;
+                let classBodyId = nodeIdCounter;
+                // go into the body
+                for (b of currentNode.body) {
+                    nodeIdCounter++;
+                    relsStream.write([classBodyId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    blockExtra = {
+                        childNumberCounter: childNumberCounter
+                    };
+                    dfs(b, nodeIdCounter, classBodyId, childNumberCounter, currentFunctionId, blockExtra);
+                    childNumberCounter = blockExtra.childNumberCounter;
+                    childNumberCounter++;
+                    /*
+                        The purpose of childNumberCounter in blockExtra is to make VariableDeclaration
+                        child node in the next recursion able to modify its parent's childNumberCounter,
+                        so the VariableDeclarator nodes in PHP style can be flattened as if they are
+                        BlockStatement's children instead of VariableDeclaration's children.
+                    */
+                }
+                // finally, write the ClassBody node
+                nodes[classBodyId] = {
+                    label: 'AST',
+                    type: currentNode.type,
+                    phptype: 'AST_STMT_LIST',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: childNum,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                    funcId: currentFunctionId
+                };
+                currentFunctionId = prevFunctionId
             }
+            break;
+        case 'BlockStatement':
+            ctype = 'CompoundStatement';
+            phptype = 'AST_STMT_LIST';
             for (b of currentNode.body) {
                 nodeIdCounter++;
                 relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
@@ -1271,30 +1424,34 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             }
             break;
         case 'MethodDefinition':
-            console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
-            nodeIdCounter++;
-            childNumberCounter++;
-            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.key, nodeIdCounter, currentId, 0, currentFunctionId, null);
-            nodeIdCounter++;
-            childNumberCounter++;
-            relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.value, nodeIdCounter, currentId, 0, currentFunctionId, null);
-            nodes[currentId] = {
-                label: 'AST',
-                type: currentNode.type,
-                code: currentNode.kind,
-                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                childNum: childNum,
-                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
-                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
-                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
-            };
+            // directly go to the value child node
+            dfs(currentNode.value, currentId, parentId, childNum, currentFunctionId, {
+                methodName: currentNode.key.name
+            });
+            // console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
+            // nodeIdCounter++;
+            // childNumberCounter++;
+            // relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            // dfs(currentNode.key, nodeIdCounter, currentId, 0, currentFunctionId, null);
+            // nodeIdCounter++;
+            // childNumberCounter++;
+            // relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            // dfs(currentNode.value, nodeIdCounter, currentId, 0, currentFunctionId, null);
+            // nodes[currentId] = {
+            //     label: 'AST',
+            //     type: currentNode.type,
+            //     code: currentNode.kind,
+            //     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+            //     childNum: childNum,
+            //     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+            //     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+            //     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+            //     funcId: currentFunctionId
+            // };
             break;
         case 'ClassExpression':
         case 'ClassDeclaration':
-            console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
+            // console.log(`  Warning: uncompleted support for ${currentNode.type}.`);
             if (outputStyle == 'c') {
                 if (currentNode.id) {
                     nodeIdCounter++;
@@ -1302,7 +1459,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                     dfs(currentNode.id, nodeIdCounter, currentId, 0, currentFunctionId, null);
                 }
-                if (currentId.superClass) {
+                if (currentNode.superClass) {
                     nodeIdCounter++;
                     childNumberCounter++;
                     relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
@@ -1344,7 +1501,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     funcId: currentFunctionId
                 };
                 // extends/superClass
-                if (currentId.superClass) {
+                if (currentNode.superClass) {
                     nodeIdCounter++;
                     let vAstNameId = nodeIdCounter;
                     relsStream.write([currentId, vAstNameId, parentOf].join(delimiter) + '\n');
@@ -1517,6 +1674,14 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 // code: getCode(currentNode, sourceCode),
                 funcId: currentFunctionId
             };
+            // if the callee is 'require', add the required module into the queue
+            if (currentNode.callee && currentNode.callee.name == 'require') {
+                if (currentNode.arguments && currentNode.arguments.length >= 1 && currentNode.arguments[0].type == 'Literal') {
+                    requiredModules.push(currentNode.arguments[0].value);
+                } else {
+                    console.error(`Invalid require expression: ${getCode(currentNode, sourceCode)}`);
+                }
+            }
             break;
         case 'SwitchStatement':
             // discriminant
