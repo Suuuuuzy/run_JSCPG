@@ -307,6 +307,7 @@ def handle_node(G, node_id):
     remove_list = G.get_node_by_attr("name", "TMPRIGHT")
     G.remove_nodes_from(remove_list)
     G.set_node_attr(node_id, ("VISITED", "1"))
+
     return [added_obj, added_scope]
 
 def simurun_function(G, func_decl_id):
