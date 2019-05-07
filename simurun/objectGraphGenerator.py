@@ -25,6 +25,8 @@ def get_argnames_from_funcaller(node_id):
     paras = []
     nodes = G.get_successors(node_id)
     for node in nodes:
+        if node == None:
+            continue
         if G.get_node_attr(node)['type'] == 'AST_ARG_LIST':
             params_id = list(G.get_successors(node))
             for i in range(len(params_id)):
@@ -175,7 +177,17 @@ def handle_node(G, node_id):
         G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
 
     elif cur_node_attr['type'] == 'AST_VAR':
-        pass
+        # for var variables, we return it's obj and scope
+        # for local variables, "any" should be the type
+        return 
+        var_name = G.get_name_from_child(node_id)
+        added_obj = G.get_obj_by_name(var_name)
+
+        if "code" in cur_node_attr and cur_node_attr['code'] == "any":
+            added_scope = G.cur_scope
+        else:
+            added_scope = G.BASE_SCOPE
+
 
     elif cur_node_attr['type'] == 'AST_FUNC_DECL':
         # for a function decl, if already visited, return
@@ -220,6 +232,9 @@ def handle_node(G, node_id):
         G.cur_scope = backup_scope
         G.cur_obj = backup_obj
 
+        # finally add call edge from caller to callee
+        G.add_edge(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
+
     elif cur_node_attr['type'] == 'integer':
         added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "INTEGER")
 
@@ -258,6 +273,9 @@ def handle_node(G, node_id):
         G.cur_scope = backup_scope
         G.cur_obj = backup_obj
 
+        # add calls edge
+        G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
+
     elif cur_node_attr['type'] == 'AST_CALL':
         func_name = G.get_name_from_child(node_id)
         func_scope_id = G.get_func_scope_by_name(func_name)
@@ -268,12 +286,19 @@ def handle_node(G, node_id):
         func_decl_id = G.get_func_declid_by_function_name(func_name)
         G.cur_scope = func_scope_id
         G.cur_obj = added_obj
+        
         simurun_function(G, func_decl_id)
 
         # add obj to scope edge
         G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
+
         G.cur_scope = backup_scope
         G.cur_obj = backup_obj
+
+        # add call edge
+        G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
+
+
 
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
@@ -284,6 +309,7 @@ def handle_node(G, node_id):
     remove_list = G.get_node_by_attr("name", "TMPRIGHT")
     G.remove_nodes_from(remove_list)
     G.set_node_attr(node_id, ("VISITED", "1"))
+
     return [added_obj, added_scope]
 
 def simurun_function(G, func_decl_id):
@@ -304,7 +330,9 @@ def simurun_function(G, func_decl_id):
         else:
             visited.add(cur_node)
 
+        
         handle_node(G, cur_node)
+
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
         if len(out_edges) == 0:
             out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'ENTRY')
@@ -333,8 +361,8 @@ def generate_obj_graph(G, entry_nodeid):
 
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
-#add_edges_between_funcs(G)
 scopeContorller = ScopeController(G)
 generate_obj_graph(G, '1')
+add_edges_between_funcs(G)
 G.export_to_CSV("./testnodes.csv", "./testrels.csv")
 
