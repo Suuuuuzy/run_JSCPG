@@ -318,7 +318,6 @@ class Graph:
         self.add_node(obj_node_id)
         self.set_node_attr(obj_node_id, ('type', var_type))
         if parent_obj != "DoNotSet":
-            print "add obj++++++++++++++"
             self.add_edge(self.cur_obj, obj_node_id, {"type:TYPE": "OBJ_PARENT"})
         self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_AST"})
         return obj_node_id
