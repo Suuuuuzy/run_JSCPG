@@ -312,7 +312,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 // Make its children its parent's children
                 // Let's assume its parent is a BlockStatement node, which provides an 'extra' information,
                 // otherwise the script can only handle one variable declaration.
-                if (currentNode.declarations.length > 1) {
+                if (currentNode.declarations.length >= 1) {
                     if (extra && 'childNumberCounter' in extra) {
                         // console.log(`Got extra: ${JSON.stringify(extra)}`);
                         let firstChildFlag = true,
@@ -327,7 +327,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                                 extra.childNumberCounter++;
                                 relsStream.write([parentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                             }
-                            dfs(child, flattenedId, parentId, extra.childNumberCounter, currentFunctionId, null);
+                            dfs(child, flattenedId, parentId, extra.childNumberCounter, currentFunctionId, {
+                                kind: currentNode.kind
+                            });
                         }
                         break;
                     } else {
@@ -335,7 +337,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         console.error(`Parent ID: ${parentId}, extra: ${JSON.stringify(extra)}`);
                     }
                 }
-                dfs(currentNode.declarations[0], currentId, parentId, childNum, currentFunctionId, null);
+                // dfs(currentNode.declarations[0], currentId, parentId, childNum, currentFunctionId, null);
             }
             break;
         case 'VariableDeclarator':
@@ -347,7 +349,6 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 nodes[vVarTypeId] = {
                     label: 'AST_V',
                     type: 'IdentifierDeclType',
-                    phptype: 'AST_VAR',
                     code: 'any',
                     childNum: 0,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
@@ -381,6 +382,19 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     funcId: currentFunctionId
                 };
             } else if (outputStyle == 'php') {
+                if (extra && extra.kind) {
+                    switch (extra.kind) {
+                        case 'var':
+                            phpflag = 'JS_DECL_VAR';
+                            break;
+                        case 'let':
+                            phpflag = 'JS_DECL_LET';
+                            break;
+                        case 'const':
+                            phpflag = 'JS_DECL_CONST';
+                            break;
+                    }
+                }
                 nodeIdCounter++;
                 relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                 dfs(currentNode.id, nodeIdCounter, currentId, 0, currentFunctionId, {
@@ -396,6 +410,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     type: currentNode.type,
                     ctype: 'IdentifierDecl',
                     phptype: 'AST_ASSIGN',
+                    phpflag: phpflag,
                     childNum: childNum,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
