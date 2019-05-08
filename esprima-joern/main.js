@@ -382,23 +382,11 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     funcId: currentFunctionId
                 };
             } else if (outputStyle == 'php') {
-                if (extra && extra.kind) {
-                    switch (extra.kind) {
-                        case 'var':
-                            phpflag = 'JS_DECL_VAR';
-                            break;
-                        case 'let':
-                            phpflag = 'JS_DECL_LET';
-                            break;
-                        case 'const':
-                            phpflag = 'JS_DECL_CONST';
-                            break;
-                    }
-                }
                 nodeIdCounter++;
                 relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                 dfs(currentNode.id, nodeIdCounter, currentId, 0, currentFunctionId, {
-                    doNotUseVar: false
+                    doNotUseVar: false,
+                    kind: (extra && extra.kind) ? extra.kind : null
                 });
                 if (currentNode.init) {
                     nodeIdCounter++;
@@ -1407,12 +1395,28 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     funcId: currentFunctionId
                 };
             } else {
+                // receive the kind information passed from VariableDeclaration via VariableDeclarator
+                // then convert kind to PHP flag
+                if (extra && extra.kind) {
+                    switch (extra.kind) {
+                        case 'var':
+                            phpflag = 'JS_DECL_VAR';
+                            break;
+                        case 'let':
+                            phpflag = 'JS_DECL_LET';
+                            break;
+                        case 'const':
+                            phpflag = 'JS_DECL_CONST';
+                            break;
+                    }
+                }
                 // make AST_VAR virtual node
                 let vAstVarId = currentId;
                 nodes[vAstVarId] = {
                     label: 'AST_V',
                     type: currentNode.type,
                     phptype: 'AST_VAR',
+                    phpflag: phpflag,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: childNum,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
