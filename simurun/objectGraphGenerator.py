@@ -337,6 +337,7 @@ def simurun_function(G, func_decl_id):
     """
     bfs run a simurun from a entry id
     """
+    print "FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj)
     bfs_queue = []
     visited = set()
     # we start from the entry id
