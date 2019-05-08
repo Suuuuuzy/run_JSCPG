@@ -182,10 +182,12 @@ def handle_node(G, node_id):
         # for var variables, we return it's obj and scope
         # for local variables, "any" should be the type
         var_name = G.get_name_from_child(node_id)
+
+        # this is not added object, just get the object and return
         added_obj = G.get_obj_by_name(var_name)
 
         # for now, we think let is equals to var.
-        # TODO: limit the scope of let
+        # TODO: limit the scope of let and handle const
         if "flag" in cur_node_attr and (cur_node_attr['flag'] == "JS_DECL_VAR" or cur_node_attr['flag'] == 'JS_DECL_LET'):
             added_scope = G.cur_scope
         else:
@@ -243,7 +245,6 @@ def handle_node(G, node_id):
 
     elif cur_node_attr['type'] == 'AST_PROP':
         # for now, we only support one level property
-        print G.handle_property(node_id)
         return G.handle_property(node_id)
 
     elif cur_node_attr['type'] == 'AST_METHOD_CALL':
