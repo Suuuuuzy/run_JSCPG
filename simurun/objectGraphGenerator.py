@@ -128,9 +128,12 @@ def handle_node(G, node_id):
 
         right_obj = added_right[0]
         right_scope = added_right[1]
+        left_obj = added_left[0]
+        left_scope = added_left[1]
         left_attr = G.get_node_attr(left)
         right_attr = G.get_node_attr(right)
         right_name = G.get_name_from_child(right)
+        left_name = G.get_name_from_child(left)
 
         if right_obj == None:
             right_obj = G.get_obj_by_name(right_name)
@@ -138,11 +141,10 @@ def handle_node(G, node_id):
         if right_obj == None:
             print "Right OBJ not found"
             return 
-
-        if left_attr['type'] == 'AST_VAR':
-            left_name = G.get_name_from_child(left)
-            G.set_obj_by_name(left_name, right_obj)
-        elif left_attr['type'] == 'AST_PROP':
+        
+        G.set_obj_by_name(left_name, right_obj, scope = left_scope)
+        
+        if left_attr['type'] == 'AST_PROP':
             # for property, find the scope, point the name
             [parent, child] = added_left
             parent_name = G.get_name_from_child(parent)
@@ -160,7 +162,7 @@ def handle_node(G, node_id):
         try:
             left_obj = G.get_obj_by_name(left_name)
         except:
-            print "left obj {} not found".format(left)
+            print "ERROR: left obj {} not found".format(left)
 
     added_obj = None
     added_scope = None
@@ -179,11 +181,12 @@ def handle_node(G, node_id):
     elif cur_node_attr['type'] == 'AST_VAR':
         # for var variables, we return it's obj and scope
         # for local variables, "any" should be the type
-        return 
         var_name = G.get_name_from_child(node_id)
         added_obj = G.get_obj_by_name(var_name)
 
-        if "code" in cur_node_attr and cur_node_attr['code'] == "any":
+        # for now, we think let is equals to var.
+        # TODO: limit the scope of let
+        if "flag" in cur_node_attr and (cur_node_attr['flag'] == "JS_DECL_VAR" or cur_node_attr['flag'] == 'JS_DECL_LET'):
             added_scope = G.cur_scope
         else:
             added_scope = G.BASE_SCOPE
