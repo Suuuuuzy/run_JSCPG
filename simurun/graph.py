@@ -279,6 +279,18 @@ class Graph:
             cur_scope = list(scope_edges)[0][0]
         return None
 
+    def get_obj_by_obj_name(self, var_name, parent_obj = None):
+        """
+        get the sub obj of a parent obj based on the name
+        """
+        namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
+        if namenode == None:
+            return None
+        out_edges = list(self.get_out_edges(namenode))
+        if len(out_edges) == 0:
+            return None
+        return out_edges[0][1]
+
     def get_obj_by_name(self, var_name, scope = None):
         """
         get the obj of a name based on the scope
@@ -306,19 +318,38 @@ class Graph:
         self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_VAR_EDGE"})
         self.set_node_attr(new_node_id, ('name', name))
 
-    def add_obj_to_obj(self, ast_node, var_type, parent_obj = None):
+    def add_obj_to_obj(self, ast_node, var_type, var_name, parent_obj = None):
         """
         add obj to current obj as a sub obj
+        obj->name node->sub obj
         add edge from ast node to obj generation node
         """
         if parent_obj == None:
             parent_obj = self.cur_obj
 
+        var_name_id = str(self._get_new_nodeid())
+        self.add_node(var_name_id)
+        self.set_node_attr(var_name_id, ('name', var_name))
+
         obj_node_id = str(self._get_new_nodeid())
         self.add_node(obj_node_id)
         self.set_node_attr(obj_node_id, ('type', var_type))
-        if parent_obj != "DoNotSet":
-            self.add_edge(self.cur_obj, obj_node_id, {"type:TYPE": "OBJ_PARENT"})
+
+        self.add_edge(parent_obj, var_name_id, {"type:TYPE": "OBJ_VAR_EDGE"})
+        self.add_edge(var_name_id, obj_node_id, {"type:TYPE": "NAME_OBJ"})
+        self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_AST"})
+
+        return obj_node_id
+
+    def add_obj_node(self, ast_node, var_type):
+        """
+        add a obj node with var type
+        return the added obj
+        """
+        obj_node_id = str(self._get_new_nodeid())
+        self.add_node(obj_node_id)
+        self.set_node_attr(obj_node_id, ('type', var_type))
+
         self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_AST"})
         return obj_node_id
 
@@ -351,19 +382,24 @@ class Graph:
 
         # here we do not add obj to current obj when add to scope
         # we just add a obj to scope
-        obj_node_id = self.add_obj_to_obj(ast_node, "OBJ", parent_obj = "DoNotSet")
+        obj_node_id = self.add_obj_node(ast_node, "OBJ")
 
         self.add_edge(new_node_id, obj_node_id, {"type:TYPE": "NAME_OBJ"})
         return obj_node_id
 
-    def set_obj_by_name(self, var_name, obj_id, scope = None):
+    def set_obj_by_scope_name(self, var_name, obj_id, scope = None):
         """
         set a var name point to a obj id in a scope
         if the var name never appeared, add to the current scope
         """
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
+
+        [int(x[0]) for x in list(self.graph.nodes(data = True))]
         if cur_namenode == None:
             self.add_namenode_to_scope(var_name, scope = scope)
+
+        [int(x[0]) for x in list(self.graph.nodes(data = True))]
+
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
         pre_obj_id = self.get_obj_by_name(var_name, scope = scope)
         self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_OBJ"})
@@ -454,3 +490,77 @@ class Graph:
             return None
         scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_SCOPE")[0]
         return scope_edge[1]
+
+    def get_name_node_of_obj(self, var_name, parent_obj = None):
+        """
+        get the name node of a child of obj 
+        return the name node
+        """
+        if parent_obj == None:
+            parent_obj = self.cur_obj
+        
+        edges = self.get_out_edges(parent_obj, edge_type = "OBJ_VAR_EDGE")
+        for edge in edges:
+            cur_attr = self.get_node_attr(edge[1])
+            if "name" in cur_attr and cur_attr["name"] == var_name:
+                return edge[1]
+        return None
+
+    def add_namenode_to_obj(self, name, obj = None):
+        """
+        helper function
+        add a namenode to scope
+        """
+        if obj == None:
+            obj = self.cur_obj
+
+        new_node_id = str(self._get_new_nodeid())
+        self.add_node(new_node_id)
+        self.add_edge(obj, new_node_id, {"type:TYPE": "OBJ_VAR_EDGE"})
+        self.set_node_attr(new_node_id, ('name', name))
+
+    def set_obj_by_obj_name(self, var_name, obj_id, parent_obj = None):
+        """
+        set a var name point to a obj id in a obj 
+        if the var name never appeared, add to the current obj 
+        """
+        if parent_obj == None:
+            parent_obj = self.cur_obj
+
+        cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
+
+        if cur_namenode == None:
+            self.add_namenode_to_obj(var_name, obj = parent_obj)
+
+        cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
+        pre_obj_id = self.get_obj_by_obj_name(var_name, parent_obj = parent_obj)
+        self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_OBJ"})
+        if pre_obj_id != None:
+            print "remove pre", var_name
+            self.graph.remove_edge(cur_namenode, pre_obj_id)
+
+    def get_func_scope_by_obj_name(self, func_name, parent_obj = None):
+        """
+        get a func scope by name, get func obj first, return the obj_scope node
+        """
+        obj_node_id = self.get_obj_by_obj_name(func_name, parent_obj = parent_obj)
+        if obj_node_id == None:
+            return None
+        scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_SCOPE")[0]
+        return scope_edge[1]
+
+    def get_func_declid_by_function_obj_name(self, function_name, parent_obj = None):
+        """
+        return the function decl nodeid of a funcion
+        """
+        if parent_obj == None:
+            parent_obj = self.cur_obj
+
+        func_obj = self.get_obj_by_obj_name(function_name, parent_obj = parent_obj)
+        if func_obj == None:
+            print 'FUNCTION {} not find'.format(function_name)
+            return func_obj 
+
+        tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")[0]
+        func_decl_ast = tmp_edge[1]
+        return func_decl_ast

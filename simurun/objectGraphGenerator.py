@@ -119,39 +119,35 @@ def handle_node(G, node_id):
             right = ast_edges[1][1]
             left = ast_edges[0][1]
 
-        added_right = handle_node(G, right)
-        added_left = handle_node(G, left)
+        handled_right = handle_node(G, right)
+        handled_left = handle_node(G, left)
 
-        if added_right == None:
+        if handled_right == None:
             print "RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right)
             return None
 
-        right_obj = added_right[0]
-        right_scope = added_right[1]
-        left_obj = added_left[0]
-        left_scope = added_left[1]
+        right_obj = handled_right[0]
+        right_scope = handled_right[1]
+        left_obj = handled_left[0]
+        left_scope = handled_left[1]
+
         left_attr = G.get_node_attr(left)
         right_attr = G.get_node_attr(right)
         right_name = G.get_name_from_child(right)
         left_name = G.get_name_from_child(left)
 
         if right_obj == None:
-            right_obj = G.get_obj_by_name(right_name)
-        # if we added new right_obj, we do not need to find it
-        if right_obj == None:
             print "Right OBJ not found"
             return 
         
-        G.set_obj_by_name(left_name, right_obj, scope = left_scope)
-        
         if left_attr['type'] == 'AST_PROP':
             # for property, find the scope, point the name
-            [parent, child] = added_left
-            parent_name = G.get_name_from_child(parent)
-            child_name = G.get_name_from_child(child)
+            [parent_name, child_name, obj_namenode] = handled_left
             if parent_name == 'this':
-                G.set_obj_by_name(child_name, right_obj)
+                G.set_obj_by_obj_name(child_name, right_obj, parent_obj = None)
 
+        else:
+            G.set_obj_by_scope_name(left_name, right_obj, scope = left_scope)
 
         if 'VAR_TYPE' not in right_attr:
             print 'right var type not set'
@@ -164,8 +160,11 @@ def handle_node(G, node_id):
         except:
             print "ERROR: left obj {} not found".format(left)
 
+
     added_obj = None
     added_scope = None
+    now_obj = None
+    now_scope = None
 
     if cur_node_attr['type'] == 'AST_CLOSURE':
         # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
@@ -175,7 +174,7 @@ def handle_node(G, node_id):
             return None 
 
         added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
-        added_obj = G.add_obj_to_obj(node_id, "OBJ_DECL", parent_obj = "DoNotSet")
+        added_obj = G.add_obj_node(node_id, "OBJ_DECL")
         G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
 
     elif cur_node_attr['type'] == 'AST_VAR':
@@ -188,7 +187,7 @@ def handle_node(G, node_id):
 
         # for now, we think let is equals to var.
         # TODO: limit the scope of let and handle const
-        if "flag" in cur_node_attr and (cur_node_attr['flag'] == "JS_DECL_VAR" or cur_node_attr['flag'] == 'JS_DECL_LET'):
+        if "flags:string[]" in cur_node_attr and (cur_node_attr['flags:string[]'] == "JS_DECL_VAR" or cur_node_attr['flags:string[]'] == 'JS_DECL_LET'):
             added_scope = G.cur_scope
         else:
             added_scope = G.BASE_SCOPE
@@ -203,12 +202,12 @@ def handle_node(G, node_id):
 
         # do a normal add closure
         added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
-        added_obj = G.add_obj_to_obj(node_id, "OBJ_DECL", parent_obj = "DoNotSet")
+        added_obj = G.add_obj_node(node_id, "OBJ_DECL")
         G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
 
         # for a func decl, should not have local var name
         # should add the name to base scope
-        G.set_obj_by_name(node_name, added_obj, scope = G.BASE_SCOPE)
+        G.set_obj_by_scope_name(node_name, added_obj, scope = G.BASE_SCOPE)
 
 
     elif cur_node_attr['type'] == 'AST_NEW':
@@ -245,7 +244,26 @@ def handle_node(G, node_id):
 
     elif cur_node_attr['type'] == 'AST_PROP':
         # for now, we only support one level property
-        return G.handle_property(node_id)
+        [parent, child] = G.handle_property(node_id)
+
+        parent_name = G.get_name_from_child(parent)
+        child_name = G.get_name_from_child(child)
+
+        if parent_name == "this":
+            parent_obj = G.cur_obj
+        else:
+            parent_obj = G.get_obj_by_name(parent_name)
+
+        if parent_obj == None:
+            print "PARENT OBJ NOT DEFINED"
+
+        name_node = G.get_name_node_of_obj(child_name)
+        if name_node == None:
+            name_node = G.add_namenode_to_obj(child_name, obj = parent_obj)
+
+
+        return [parent_name, child_name, name_node]
+
 
     elif cur_node_attr['type'] == 'AST_METHOD_CALL':
         # get the method decl position
@@ -254,14 +272,15 @@ def handle_node(G, node_id):
         child_name = G.get_name_from_child(child)
 
         func_scope_id = G.get_func_scope_by_name(parent_name)
-        method_scope_id = G.get_func_scope_by_name(child_name, scope = func_scope_id)
+        func_obj = G.get_obj_by_name(parent_name)
+        method_scope_id = G.get_func_scope_by_obj_name(child_name, parent_obj = func_obj)
 
-        func_decl_id = G.get_func_declid_by_function_name(child_name, func_scope_id)
+        func_decl_id = G.get_func_declid_by_function_obj_name(child_name, func_obj)
         if func_decl_id == None:
             return "ERROR: Function {} not found".format(child_name)
 
         # add a tmp name obj under parent obj 
-        added_obj = G.add_obj_to_obj(node_id, "FUNC_RUN_OBJ", parent_obj = "DoNotSet")
+        added_obj = G.add_obj_node(node_id, "FUNC_RUN_OBJ")
 
         backup_scope = G.cur_scope
         backup_obj = G.cur_obj
@@ -286,7 +305,7 @@ def handle_node(G, node_id):
         backup_obj = G.cur_obj
         backup_scope = G.cur_scope
 
-        added_obj = G.add_obj_to_obj(node_id, "FUNC_RUN_OBJ", parent_obj = "DoNotSet")
+        added_obj = G.add_obj_node(node_id, "FUNC_RUN_OBJ")
         func_decl_id = G.get_func_declid_by_function_name(func_name)
         G.cur_scope = func_scope_id
         G.cur_obj = added_obj
@@ -312,7 +331,7 @@ def handle_node(G, node_id):
     G.remove_nodes_from(remove_list)
     G.set_node_attr(node_id, ("VISITED", "1"))
 
-    return [added_obj, added_scope]
+    return [added_obj, added_scope, now_obj, now_scope]
 
 def simurun_function(G, func_decl_id):
     """
