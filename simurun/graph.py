@@ -1,7 +1,5 @@
 import networkx as nx
 
-BASE_SCOPE = 0
-
 class Graph:
 
     def __init__(self):
@@ -20,8 +18,13 @@ class Graph:
     def add_scope(self, scope_name, define_id):
         """
         add a new scope under current scope
+        if the scope already exist, return the scope without add
+        a new one
         """
         cur_scope = self.cur_scope
+        scope_id = self.get_func_scope_by_name(scope_name)
+        if scope_id != None:
+            return scope_id
         cur_nodeid = str(self._get_new_nodeid())
         self.add_node(cur_nodeid)
         self.set_node_attr(cur_nodeid, ('type', 'SCOPE'))
@@ -303,15 +306,19 @@ class Graph:
         self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_VAR_EDGE"})
         self.set_node_attr(new_node_id, ('name', name))
 
-    def add_obj_to_obj(self, ast_node, var_type):
+    def add_obj_to_obj(self, ast_node, var_type, parent_obj = None):
         """
         add obj to current obj as a sub obj
         add edge from ast node to obj generation node
         """
+        if parent_obj == None:
+            parent_obj = self.cur_obj
+
         obj_node_id = str(self._get_new_nodeid())
         self.add_node(obj_node_id)
         self.set_node_attr(obj_node_id, ('type', var_type))
-        self.add_edge(self.cur_obj, obj_node_id, {"type:TYPE": "OBJ_PARENT"})
+        if parent_obj != "DoNotSet":
+            self.add_edge(self.cur_obj, obj_node_id, {"type:TYPE": "OBJ_PARENT"})
         self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_AST"})
         return obj_node_id
 
@@ -322,7 +329,7 @@ class Graph:
         # init cur_id here!!
         self.cur_id = self.graph.number_of_nodes()
 
-        BASE_SCOPE = self.add_scope("BASE_SCOPE", entry_nodeid)
+        self.BASE_SCOPE = self.add_scope("BASE_SCOPE", entry_nodeid)
         cur_nodeid = str(self._get_new_nodeid())
         self.add_node(cur_nodeid)
         self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
@@ -342,7 +349,10 @@ class Graph:
         self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_VAR_EDGE"})
         self.set_node_attr(new_node_id, ('name', name))
 
-        obj_node_id = self.add_obj_to_obj(ast_node, "OBJ")
+        # here we do not add obj to current obj when add to scope
+        # we just add a obj to scope
+        obj_node_id = self.add_obj_to_obj(ast_node, "OBJ", parent_obj = "DoNotSet")
+
         self.add_edge(new_node_id, obj_node_id, {"type:TYPE": "NAME_OBJ"})
         return obj_node_id
 
