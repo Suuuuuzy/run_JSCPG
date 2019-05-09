@@ -33,9 +33,12 @@ def get_argnames_from_funcaller(node_id):
                 paras.append(0)
             for param_id in params_id:
                 # only on child node
-                para_num = int(G.get_node_attr(param_id)['childnum:int'])
-                sub_param_id = list(G.get_successors(param_id))[0]
-                paras[para_num] = G.get_node_attr(sub_param_id)['code']
+                try:
+                    para_num = int(G.get_node_attr(param_id)['childnum:int'])
+                    sub_param_id = list(G.get_successors(param_id))[0]
+                    paras[para_num] = G.get_node_attr(sub_param_id)['code']
+                except:
+                    pass
     return paras
 
 def add_edges_between_funcs(G):
@@ -63,7 +66,7 @@ def add_edges_between_funcs(G):
         caller_para_names = get_argnames_from_funcaller(caller_id)
         callee_paras = get_argids_from_funcallee(callee_id)
 
-        for idx in range(len(caller_para_names)):
+        for idx in range(len(callee_paras)):
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'REACHES', 'var': caller_para_names[idx]}))
 
     G.add_edges_from_list(added_edge_list)
@@ -128,6 +131,7 @@ def handle_node(G, node_id):
 
         right_obj = handled_right[0]
         right_scope = handled_right[1]
+
         left_obj = handled_left[0]
         left_scope = handled_left[1]
 
@@ -139,13 +143,21 @@ def handle_node(G, node_id):
         if right_obj == None:
             print "Right OBJ not found"
             return 
+        if right_attr['type'] == 'AST_PROP':
+            [parent_ast_id, child_ast_id, parent_obj, child_obj] = handled_right
+            child_name = G.get_name_from_child(child_ast_id)
+            if child_obj == None:
+                # should be a built in 
+                child_obj = G.add_obj_to_obj(child_ast_id, 'BUILT_IN', child_name, parent_obj = parent_obj)
+            right_obj = child_obj
         
         if left_attr['type'] == 'AST_PROP':
             # for property, find the scope, point the name
-            [parent_name, child_name, obj_namenode] = handled_left
+            [parent_ast_id, child_ast_id, parent_obj, child_obj] = handled_left
+            parent_name = G.get_name_from_child(parent_ast_id)
+            child_name = G.get_name_from_child(child_ast_id)
             if parent_name == 'this':
                 G.set_obj_by_obj_name(child_name, right_obj, parent_obj = None)
-
         else:
             G.set_obj_by_scope_name(left_name, right_obj, scope = left_scope)
 
@@ -154,7 +166,6 @@ def handle_node(G, node_id):
         else:
             right_vartype = right_attr['VAR_TYPE']
             G.set_node_attr(left, ("VAR_TYPE", right_vartype))
-
         try:
             left_obj = G.get_obj_by_name(left_name)
         except:
@@ -178,12 +189,15 @@ def handle_node(G, node_id):
         G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
 
     elif cur_node_attr['type'] == 'AST_VAR':
-        # for var variables, we return it's obj and scope
-        # for local variables, "any" should be the type
+        # for var variables, we return it's obj, scope
         var_name = G.get_name_from_child(node_id)
 
         # this is not added object, just get the object and return
         added_obj = G.get_obj_by_name(var_name)
+
+        if added_obj != None:
+            # if we already have the var defined
+            return [added_obj, G.cur_scope]
 
         # for now, we think let is equals to var.
         # TODO: limit the scope of let and handle const
@@ -191,7 +205,6 @@ def handle_node(G, node_id):
             added_scope = G.cur_scope
         else:
             added_scope = G.BASE_SCOPE
-
 
     elif cur_node_attr['type'] == 'AST_FUNC_DECL':
         # for a function decl, if already visited, return
@@ -208,6 +221,9 @@ def handle_node(G, node_id):
         # for a func decl, should not have local var name
         # should add the name to base scope
         G.set_obj_by_scope_name(node_name, added_obj, scope = G.BASE_SCOPE)
+
+    elif cur_node_attr['type'] == 'AST_BINARY_OP':
+        added_obj = G.literal_obj_nodeid
 
 
     elif cur_node_attr['type'] == 'AST_NEW':
@@ -240,10 +256,11 @@ def handle_node(G, node_id):
         G.add_edge(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
 
     elif cur_node_attr['type'] == 'integer':
-        added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "INTEGER")
+        added_obj = G.literal_obj_nodeid
 
     elif cur_node_attr['type'] == 'AST_PROP':
         # for now, we only support one level property
+        # return parent ast node, child ast node
         [parent, child] = G.handle_property(node_id)
 
         parent_name = G.get_name_from_child(parent)
@@ -255,14 +272,13 @@ def handle_node(G, node_id):
             parent_obj = G.get_obj_by_name(parent_name)
 
         if parent_obj == None:
-            print "PARENT OBJ NOT DEFINED"
+            print "PARENT OBJ {} NOT DEFINED".format(parent_name)
+            # we assume this happens when it's a built-in var name
+            parent_obj = G.add_obj_to_scope(node_id, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)
 
-        name_node = G.get_name_node_of_obj(child_name)
-        if name_node == None:
-            name_node = G.add_namenode_to_obj(child_name, obj = parent_obj)
+        child_obj = G.get_obj_by_obj_name(child_name, parent_obj)
 
-
-        return [parent_name, child_name, name_node]
+        return [parent, child, parent_obj, child_obj]
 
 
     elif cur_node_attr['type'] == 'AST_METHOD_CALL':
@@ -300,13 +316,19 @@ def handle_node(G, node_id):
         G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
 
     elif cur_node_attr['type'] == 'AST_CALL':
-        func_name = G.get_name_from_child(node_id)
+        func_name = G.find_name_of_call(node_id)
+        func_decl_id = G.get_func_declid_by_function_name(func_name)
+        if func_decl_id == None:
+            func_decl_id = G.add_blank_func(func_name)
+
+        # build the related function nodes 
+        handle_node(G, func_decl_id)
+
         func_scope_id = G.get_func_scope_by_name(func_name)
         backup_obj = G.cur_obj
         backup_scope = G.cur_scope
 
         added_obj = G.add_obj_node(node_id, "FUNC_RUN_OBJ")
-        func_decl_id = G.get_func_declid_by_function_name(func_name)
         G.cur_scope = func_scope_id
         G.cur_obj = added_obj
         
@@ -337,6 +359,7 @@ def simurun_function(G, func_decl_id):
     """
     bfs run a simurun from a entry id
     """
+    print "FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj)
     bfs_queue = []
     visited = set()
     # we start from the entry id

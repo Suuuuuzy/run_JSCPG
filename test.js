@@ -1,6 +1,14 @@
+var exec = require('child_process')
+  , fs = require('fs')
+  , path = require('path')
+  , exists = fs.existsSync || path.existsSync
+  , os = require('os')
+  , quote = JSON.stringify
+  , cmd;
+
 function funca() {
   var a = 1;
-  this.funcb = function() {
+  this.funcb = function(a) {
     var b = a;
     console.log('test');
   }
@@ -10,8 +18,9 @@ function funca() {
   }
   a = 2;
 }
+
 f = new funca();
 var n = f;
-n.funcb();
+n.funcb(a);
 funcc();
 
