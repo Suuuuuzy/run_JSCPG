@@ -3,9 +3,9 @@
 const outputStyle = 'php'; // 'php' or 'c'
 const delimiter = '\t'; // '\t' or ','
 
-var path = require('path');
-var fs = require('fs');
-var esprima = require('esprima');
+const path = require('path');
+const fs = require('fs');
+const esprima = require('esprima');
 
 var sourceCode = "";
 
@@ -84,8 +84,8 @@ var filename = "";
 
 var requiredModules = [],
     analyzedModules = [];
-var searchPaths = ['~/packagecrawler', '.'].concat(module.paths);
-const builtInModules = ['assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https', 'net', 'os', 'path', 'punycode', 'querystring', 'readline', 'stream', 'string_decoder', 'timers', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'];
+var searchPaths = module.paths.concat(['~/packagecrawler', '.']);
+const builtInModules = require('module').builtinModules;
 
 // main
 
@@ -1583,6 +1583,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             break;
         case 'NewExpression':
         case 'CallExpression':
+            phpflag = null;
             vNodeName = currentNode.type + 'Arguments';
             if (currentNode.type == 'NewExpression') phptype = 'AST_NEW';
             else phptype = 'AST_CALL';
@@ -1680,11 +1681,26 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 funcId: currentFunctionId
             };
             childNumberCounter++;
+            // if the callee is 'require', add the required module into the queue
+            if (currentNode.callee && currentNode.callee.name == 'require') {
+                if (currentNode.arguments && currentNode.arguments.length >= 1 && currentNode.arguments[0].type == 'Literal') {
+                    let moduleName = currentNode.arguments[0].value;
+                    requiredModules.push(moduleName);
+                    if (builtInModules.includes(moduleName)) {
+                        phpflag = 'JS_REQUIRE_BUILTIN';
+                    } else {
+                        phpflag = 'JS_REQUIRE_EXTERNAL';
+                    }
+                } else {
+                    console.error(`Invalid require expression: ${getCode(currentNode, sourceCode)}`);
+                }
+            }
             // Finally, write the CallExpression/NewExpression itself
             nodes[currentId] = {
                 label: 'AST',
                 type: currentNode.type,
                 phptype: phptype,
+                phpflag: phpflag,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -1693,14 +1709,6 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 // code: getCode(currentNode, sourceCode),
                 funcId: currentFunctionId
             };
-            // if the callee is 'require', add the required module into the queue
-            if (currentNode.callee && currentNode.callee.name == 'require') {
-                if (currentNode.arguments && currentNode.arguments.length >= 1 && currentNode.arguments[0].type == 'Literal') {
-                    requiredModules.push(currentNode.arguments[0].value);
-                } else {
-                    console.error(`Invalid require expression: ${getCode(currentNode, sourceCode)}`);
-                }
-            }
             break;
         case 'SwitchStatement':
             // discriminant
