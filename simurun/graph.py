@@ -7,6 +7,7 @@ class Graph:
         self.cur_obj = None 
         self.cur_scope = None
         self.cur_id = 0
+        self.literal_obj_nodeid = 0
 
     def _get_new_nodeid(self):
         """
@@ -366,6 +367,9 @@ class Graph:
         self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
         self.cur_obj = cur_nodeid
+        self.literal_obj_nodeid = self._get_new_nodeid()
+        self.add_node(self.literal_obj_nodeid)
+        self.set_node_attr(self.literal_obj_nodeid, ('type', "LITERAL_OBJ"))
 
     def add_obj_to_scope(self, ast_node, name, var_type, scope = None):
         """

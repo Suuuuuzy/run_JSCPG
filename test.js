@@ -1,3 +1,13 @@
+/*
+var exec = require('child_process').exec
+  , fs = require('fs')
+  , path = require('path')
+  , exists = fs.existsSync || path.existsSync
+  , os = require('os')
+  , quote = JSON.stringify
+  , cmd;
+  */
+
 function funca() {
   var a = 1;
   this.funcb = function() {
@@ -10,6 +20,7 @@ function funca() {
   }
   a = 2;
 }
+
 f = new funca();
 var n = f;
 n.funcb();

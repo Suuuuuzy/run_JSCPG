@@ -178,12 +178,15 @@ def handle_node(G, node_id):
         G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
 
     elif cur_node_attr['type'] == 'AST_VAR':
-        # for var variables, we return it's obj and scope
-        # for local variables, "any" should be the type
+        # for var variables, we return it's obj, scope
         var_name = G.get_name_from_child(node_id)
 
         # this is not added object, just get the object and return
         added_obj = G.get_obj_by_name(var_name)
+
+        if added_obj != None:
+            # if we already have the var defined
+            return [added_obj, G.cur_scope]
 
         # for now, we think let is equals to var.
         # TODO: limit the scope of let and handle const
@@ -208,6 +211,9 @@ def handle_node(G, node_id):
         # for a func decl, should not have local var name
         # should add the name to base scope
         G.set_obj_by_scope_name(node_name, added_obj, scope = G.BASE_SCOPE)
+
+    elif cur_node_attr['type'] == 'AST_BINARY_OP':
+        added_obj = G.literal_obj_nodeid
 
 
     elif cur_node_attr['type'] == 'AST_NEW':
@@ -240,7 +246,7 @@ def handle_node(G, node_id):
         G.add_edge(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
 
     elif cur_node_attr['type'] == 'integer':
-        added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "INTEGER")
+        added_obj = G.literal_obj_nodeid
 
     elif cur_node_attr['type'] == 'AST_PROP':
         # for now, we only support one level property
