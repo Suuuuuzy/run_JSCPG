@@ -114,7 +114,10 @@ class Graph:
                 else:
                     cur_line.append('')
             
-            fp.write('\t'.join(cur_line) + '\n')
+            try:
+                fp.write('\t'.join(cur_line) + '\n')
+            except:
+                print cur_line
         fp.close()
         print ("Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name))
 
@@ -568,3 +571,64 @@ class Graph:
         tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")[0]
         func_decl_ast = tmp_edge[1]
         return func_decl_ast
+
+    def add_blank_func(self, func_name, scope = None):
+        """
+        add a blank func under a scope
+        used for built-in functions
+        we need to run the function after the define
+        """
+        if scope == None:
+            scope = self.cur_scope
+
+        # add a function decl node first
+        cur_id = self._get_new_nodeid()
+        self.add_node(cur_id)
+        self.set_node_attr(cur_id, ('funcid', cur_id))
+        self.set_node_attr(cur_id, ('type', "AST_FUNC_DECL"))
+        self.set_node_attr(cur_id, ('labels:label', 'Artificial_AST'))
+
+        # add a node as the name of the function
+        namenode_id = self._get_new_nodeid()
+        self.add_node(namenode_id)
+        self.set_node_attr(namenode_id, ('type', 'string'))
+        self.set_node_attr(namenode_id, ('name', func_name))
+        self.set_node_attr(namenode_id, ('labels:label', 'Artificial_AST'))
+
+        entry_id = self._get_new_nodeid()
+        self.add_node(entry_id)
+        self.set_node_attr(entry_id, ('funcid', cur_id))
+        self.set_node_attr(entry_id, ('type', 'CFG_FUNC_ENTRY'))
+        self.set_node_attr(entry_id, ('labels:label', 'Artificial'))
+
+        exit_id = self._get_new_nodeid()
+        self.add_node(exit_id)
+        self.set_node_attr(exit_id, ('funcid', cur_id))
+        self.set_node_attr(exit_id, ('type', 'CFG_FUNC_EXIT'))
+        self.set_node_attr(exit_id, ('labels:label', 'Artificial'))
+
+        params_id = self._get_new_nodeid()
+        self.add_node(params_id)
+        self.set_node_attr(params_id, ('funcid', cur_id))
+        self.set_node_attr(params_id, ('type', 'AST_PARAM_LIST'))
+        self.set_node_attr(params_id, ('labels:label', 'Artificial_AST'))
+
+        # add edges
+        self.add_edge(cur_id, entry_id, {'type:TYPE': "ENTRY"})
+        self.add_edge(cur_id, exit_id, {'type:TYPE': "EXIT"})
+        self.add_edge(cur_id, namenode_id, {'type:TYPE': "PARENT_OF"})
+        self.add_edge(cur_id, params_id, {'type:TYPE': "PARENT_OF"})
+        self.add_edge(entry_id, exit_id, {'type:TYPE': "FLOWS_TO"})
+
+        # we need to run the function 
+        return cur_id
+
+    def find_name_of_call(self, node_id):
+        """
+        input a ast call node, return the function name
+        """
+        edges = self.get_out_edges(node_id, edge_type = "PARENT_OF")
+        for edge in edges:
+            cur_attr = self.get_node_attr(edge[1])
+            if cur_attr['type'] == 'AST_NAME':
+                return self.get_name_from_child(edge[1])
