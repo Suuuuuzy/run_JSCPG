@@ -1,8 +1,6 @@
 from graph import Graph
 from scopeController import ScopeController
 
-modified_objs = set()
-
 def get_argids_from_funcallee(node_id):
     """
     given a func node id, return a list of para ids
@@ -105,10 +103,10 @@ def handle_node(G, node_id):
     """
     for different node type, do different actions to handle this node
     """
-    global modified_objs
+    modified_objs = set()
     cur_node_attr = G.get_node_attr(node_id)
     cur_type = cur_node_attr['type']
-    print "HANDLE NODE: {} {}".format(node_id, cur_type)
+   # print "HANDLE NODE: {} {}".format(node_id, cur_type)
 
     added_obj = None
     added_scope = None
@@ -122,7 +120,7 @@ def handle_node(G, node_id):
         if len(ast_edges) == 1:
             # only have left
             handle_node(G, ast_edges[0][1])
-            return [None, None]
+            return [None, None, None, None, None]
 
         if G.get_node_attr(ast_edges[0][1])['childnum:int'] == '1':
             right = ast_edges[0][1]
@@ -153,7 +151,7 @@ def handle_node(G, node_id):
             print "Right OBJ not found"
             return 
         if right_attr['type'] == 'AST_PROP':
-            [parent_ast_id, child_ast_id, parent_obj, child_obj] = handled_right
+            [parent_ast_id, child_ast_id, parent_obj, child_obj, _] = handled_right
             child_name = G.get_name_from_child(child_ast_id)
             if child_obj == None:
                 # should be a built in 
@@ -162,7 +160,7 @@ def handle_node(G, node_id):
         
         if left_attr['type'] == 'AST_PROP':
             # for property, find the scope, point the name
-            [parent_ast_id, child_ast_id, parent_obj, child_obj] = handled_left
+            [parent_ast_id, child_ast_id, parent_obj, child_obj, _] = handled_left
             parent_name = G.get_name_from_child(parent_ast_id)
             child_name = G.get_name_from_child(child_ast_id)
             if parent_name == 'this':
@@ -188,7 +186,7 @@ def handle_node(G, node_id):
         # for now, we do not assign the name of the scope node 
         # if visited, return
         if "VISITED" in G.get_node_attr(node_id):
-            return None 
+            return [None, None, None, None, None] 
 
         added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
         added_obj = G.add_obj_node(node_id, "OBJ_DECL")
@@ -282,7 +280,7 @@ def handle_node(G, node_id):
 
         child_obj = G.get_obj_by_obj_name(child_name, parent_obj)
 
-        return [parent, child, parent_obj, child_obj]
+        return [parent, child, parent_obj, child_obj, modified_objs]
 
     elif cur_node_attr['type'] == 'AST_METHOD_CALL':
         # get the method decl position
@@ -336,21 +334,19 @@ def handle_node(G, node_id):
     G.remove_nodes_from(remove_list)
     G.set_node_attr(node_id, ("VISITED", "1"))
 
-    return [added_obj, added_scope, now_obj, now_scope]
+    return [added_obj, added_scope, now_obj, now_scope, modified_objs]
 
 def simurun_function(G, func_decl_id):
     """
     bfs run a simurun from a entry id
     """
     print "FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj)
-    global modified_objs
     bfs_queue = []
     visited = set()
     # we start from the entry id
     entry_id = G.get_out_edges(func_decl_id, edge_type = "ENTRY")[0][1]
     bfs_queue.append(entry_id)
     while(len(bfs_queue)):
-        modified_objs = set()
         cur_node = bfs_queue.pop(0)
 
         # if visited before, stop here
@@ -360,9 +356,11 @@ def simurun_function(G, func_decl_id):
             visited.add(cur_node)
 
         print "BFS NODE {}".format(cur_node)
-        handle_node(G, cur_node)
-        build_df(G, cur_node)
-        print "Modified nodes {}".format(modified_objs)
+        handled_res = handle_node(G, cur_node)
+        if len(handled_res) == 5:
+            modified_objs = handled_res[4]
+            print "BUILDING NODE {} {}".format(cur_node, modified_objs)
+            build_df(G, cur_node, modified_objs)
 
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
         if len(out_edges) == 0:
@@ -475,29 +473,28 @@ def ast_call_function(G, node_id):
     G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
     return [added_obj, None]
 
-def build_df(G, node_id):
+def build_df(G, node_id, modified_objs):
     """
     build the df of current node id
     """
-    global modified_objs
     input_objs = set()
     inputs = G.get_all_inputs(node_id)
-    if len(inputs) == 0:
-        return 
 
     for cur_input in inputs:
         cur_obj = G.get_obj_by_node_id(cur_input)
         if cur_obj != None:
             input_objs.add(cur_obj)
-        print input_objs, node_id
+
     for cur_obj in input_objs:
         edges = G.get_in_edges(cur_obj, edge_type = 'LAST_MODIFIED')
         # we assume we only have one last modified edge
         for edge in edges:
             cur_modify_node = edge[0]
+            print "OBJ REACHES {} {}", edge[0], node_id
             G.add_edge(edge[0], node_id, {'type:TYPE': 'OBJ_REACHES'})
 
-    G.update_modified_edges(node_id, modified_objs)
+    if modified_objs != None:
+        G.update_modified_edges(node_id, modified_objs)
 
 
 G = Graph()

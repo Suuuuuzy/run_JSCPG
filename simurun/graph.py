@@ -703,7 +703,6 @@ class Graph:
         if node_type == 'AST_VAR':
             var_name = self.get_name_from_child(node_id)
             res = self.get_obj_by_name(var_name)
-            print var_name, res
         elif node_type == 'AST_PROP':
             [parent, child] = self.handle_property(node_id)
             parent_name = self.get_name_from_child(parent)
@@ -719,7 +718,10 @@ class Graph:
         """
         update the modified objs and link with node id
         """
+        
         for cur_obj in modified_objs:
+            if cur_obj == None:
+                continue
             edges = self.get_in_edges(modified_objs, edge_type = 'LAST_MODIFIED')
             for edge in edges:
                 self.graph.remove_edge(*edge[:3])
