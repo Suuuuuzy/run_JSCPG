@@ -206,21 +206,12 @@ def handle_node(G, node_id):
         else:
             added_scope = G.BASE_SCOPE
 
+    elif cur_node_attr['type'] == 'AST_TOPLEVEL':
+        [added_obj, added_scope] = run_toplevel_file(G, node_id)
+
     elif cur_node_attr['type'] == 'AST_FUNC_DECL':
-        # for a function decl, if already visited, return
-        if "VISITED" in G.get_node_attr(node_id):
-            return 
-        # for a function decl, we add an obj and scope
-        node_name = G.get_name_from_child(node_id)
+        [added_obj, added_scope] = decl_function(G, node_id)
 
-        # do a normal add closure
-        added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
-        added_obj = G.add_obj_node(node_id, "OBJ_DECL")
-        G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
-
-        # for a func decl, should not have local var name
-        # should add the name to base scope
-        G.set_obj_by_scope_name(node_name, added_obj, scope = G.BASE_SCOPE)
 
     elif cur_node_attr['type'] == 'AST_BINARY_OP':
         added_obj = G.literal_obj_nodeid
@@ -262,6 +253,7 @@ def handle_node(G, node_id):
         # for now, we only support one level property
         # return parent ast node, child ast node
         [parent, child] = G.handle_property(node_id)
+
 
         parent_name = G.get_name_from_child(parent)
         child_name = G.get_name_from_child(child)
@@ -316,32 +308,8 @@ def handle_node(G, node_id):
         G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
 
     elif cur_node_attr['type'] == 'AST_CALL':
-        func_name = G.find_name_of_call(node_id)
-        func_decl_id = G.get_func_declid_by_function_name(func_name)
-        if func_decl_id == None:
-            func_decl_id = G.add_blank_func(func_name)
+        [added_obj, added_scope] = ast_call_function(G, node_id)
 
-        # build the related function nodes 
-        handle_node(G, func_decl_id)
-
-        func_scope_id = G.get_func_scope_by_name(func_name)
-        backup_obj = G.cur_obj
-        backup_scope = G.cur_scope
-
-        added_obj = G.add_obj_node(node_id, "FUNC_RUN_OBJ")
-        G.cur_scope = func_scope_id
-        G.cur_obj = added_obj
-        
-        simurun_function(G, func_decl_id)
-
-        # add obj to scope edge
-        G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
-
-        G.cur_scope = backup_scope
-        G.cur_obj = backup_obj
-
-        # add call edge
-        G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
 
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
@@ -374,7 +342,6 @@ def simurun_function(G, func_decl_id):
         else:
             visited.add(cur_node)
 
-        
         handle_node(G, cur_node)
 
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
@@ -401,7 +368,93 @@ def generate_obj_graph(G, entry_nodeid):
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
         register_func(G, node[0])
-    simurun_function(G, entry_nodeid)
+    handle_node(G, entry_nodeid)
+#    simurun_function(G, entry_nodeid)
+
+def decl_function(G, node_id, func_name = None):
+    """
+    decl a function based on the node_id on current SCOPE
+    func_name is designed for top level nodes only
+    """
+    # for a function decl, if already visited, return
+    if "VISITED" in G.get_node_attr(node_id):
+        return [None, None]
+    # for a function decl, we add an obj and scope
+    if func_name == None:
+        node_name = G.get_name_from_child(node_id)
+    else:
+        node_name = func_name
+
+    # do a normal add closure
+    added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
+    added_obj = G.add_obj_node(node_id, "OBJ_DECL")
+    G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
+
+    # for a func decl, should not have local var name
+    # should add the name to base scope
+    G.set_obj_by_scope_name(node_name, added_obj, scope = G.BASE_SCOPE)
+    return [added_obj, added_scope]
+
+def run_toplevel_file(G, node_id):
+    """
+    run a top level file 
+    return a obj and scope
+    """
+    # add scope and obj first
+    func_name = G.get_node_attr(node_id)['name']
+    [added_obj, added_scope] = decl_function(G, node_id, func_name = func_name)
+    # simurun the file
+    func_scope_id = G.get_func_scope_by_name(func_name)
+    backup_obj = G.cur_obj
+    backup_scope = G.cur_scope
+
+    added_obj = G.add_obj_node(node_id, "FUNC_RUN_OBJ")
+    G.cur_scope = func_scope_id
+    G.cur_obj = added_obj
+    
+    simurun_function(G, node_id)
+
+    # add obj to scope edge
+    G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
+
+    G.cur_scope = backup_scope
+    G.cur_obj = backup_obj
+
+    return [added_obj, func_scope_id]
+
+
+def ast_call_function(G, node_id):
+    """
+    run a function start from node id
+    """
+    func_name = G.find_name_of_call(node_id)
+    func_decl_id = G.get_func_declid_by_function_name(func_name)
+
+    if func_decl_id == None:
+        func_decl_id = G.add_blank_func(func_name)
+
+    # build the related function nodes 
+    handle_node(G, func_decl_id)
+
+    func_scope_id = G.get_func_scope_by_name(func_name)
+    backup_obj = G.cur_obj
+    backup_scope = G.cur_scope
+
+    added_obj = G.add_obj_node(node_id, "FUNC_RUN_OBJ")
+    G.cur_scope = func_scope_id
+    G.cur_obj = added_obj
+    
+    simurun_function(G, func_decl_id)
+
+    # add obj to scope edge
+    G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
+
+    G.cur_scope = backup_scope
+    G.cur_obj = backup_obj
+
+    # add call edge
+    G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
+    return [added_obj, None]
 
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")

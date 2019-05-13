@@ -495,6 +495,7 @@ class Graph:
         obj_node_id = self.get_obj_by_name(func_name, scope = scope)
         if obj_node_id == None:
             return None
+        print obj_node_id, func_name
         scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_SCOPE")[0]
         return scope_edge[1]
 
