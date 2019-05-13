@@ -633,3 +633,41 @@ class Graph:
             cur_attr = self.get_node_attr(edge[1])
             if cur_attr['type'] == 'AST_NAME':
                 return self.get_name_from_child(edge[1])
+
+    def get_child_nodes(self, node_id, edge_type = None):
+        """
+        return the childern of node (with a specific edge type)
+        """
+        edges = self.get_out_edges(node_id, edge_type = edge_type)
+        return [e[1] for e in edges] 
+
+    def get_all_inputs(self, node_id):
+        """
+        input a node
+        return the input of this node and it's sub nodes
+        """
+        node_attr = self.get_node_attr(node_id)
+        node_type = node_attr['type'] 
+        res = []
+        if node_type == "AST_ASSIGN":
+            right = self._get_childern_by_childnum(node_id)['1']
+            res += self.get_all_inputs(right)
+        elif node_type == 'AST_PROP' or node_type == 'AST_VAR':
+            res = [node_id]
+        elif node_type == 'AST_CALL':
+            arg_list_node = self._get_childern_by_childnum(node_id)['1']
+            res += self.get_child_nodes(arg_list_node, edge_type = 'PARENT_OF')
+        elif node_type == 'AST_BINARY_OP':
+            args = self._get_childern_by_childnum(node_id)
+            for arg in args:
+                res += self.get_all_inputs(args[arg])
+        elif node_type == 'AST_METHOD_CALL':
+            args = self.get_child_nodes(node_id)
+            for arg in args:
+                cur_attr = self.get_node_attr(arg)
+                if cur_attr['type'] == 'AST_ARG_LIST':
+                    arg_list = arg
+                    break
+            res += self.get_child_nodes(arg_list, edge_type = 'PARENT_OF')
+
+        return res

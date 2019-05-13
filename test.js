@@ -3,7 +3,7 @@ var exec = require('child_process')
   , fs = require('fs')
   , path = require('path')
   , exists = fs.existsSync || path.existsSync
-  , os = require('os')
+  , os = require('os', 'fillout')
   , quote = JSON.stringify
   , cmd;
 

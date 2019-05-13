@@ -321,6 +321,8 @@ def handle_node(G, node_id):
     G.remove_nodes_from(remove_list)
     G.set_node_attr(node_id, ("VISITED", "1"))
 
+    build_df(G, node_id)
+
     return [added_obj, added_scope, now_obj, now_scope]
 
 def simurun_function(G, func_decl_id):
@@ -369,7 +371,7 @@ def generate_obj_graph(G, entry_nodeid):
     for node in obj_nodes:
         register_func(G, node[0])
     handle_node(G, entry_nodeid)
-#    simurun_function(G, entry_nodeid)
+    #simurun_function(G, entry_nodeid)
 
 def decl_function(G, node_id, func_name = None):
     """
@@ -422,7 +424,6 @@ def run_toplevel_file(G, node_id):
 
     return [added_obj, func_scope_id]
 
-
 def ast_call_function(G, node_id):
     """
     run a function start from node id
@@ -455,6 +456,14 @@ def ast_call_function(G, node_id):
     # add call edge
     G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
     return [added_obj, None]
+
+def build_df(G, node_id):
+    """
+    build the df of current node id
+    """
+    inputs = G.get_all_inputs(node_id)
+    if len(inputs) > 0:
+        print inputs
 
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
