@@ -7,7 +7,6 @@ class Graph:
         self.cur_obj = None 
         self.cur_scope = None
         self.cur_id = 0
-        self.literal_obj_nodeid = 0
 
     def _get_new_nodeid(self):
         """
@@ -38,6 +37,15 @@ class Graph:
             self.cur_scope = cur_nodeid
 
         return cur_nodeid
+
+    def add_literal_obj(self):
+        """
+        add a literal object
+        """
+        node_id = self._get_new_nodeid()
+        self.add_node(node_id)
+        self.set_node_attr(node_id, ('type', 'LITERAL'))
+        return node_id
 
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
@@ -123,6 +131,7 @@ class Graph:
 
     def add_node(self, node_for_adding):
         self.graph.add_node(node_for_adding)
+        return node_for_adding
 
     def set_node_attr(self, node_id, attr):
         """
@@ -370,9 +379,6 @@ class Graph:
         self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
         self.cur_obj = cur_nodeid
-        self.literal_obj_nodeid = self._get_new_nodeid()
-        self.add_node(self.literal_obj_nodeid)
-        self.set_node_attr(self.literal_obj_nodeid, ('type', "LITERAL_OBJ"))
 
     def add_obj_to_scope(self, ast_node, name, var_type, scope = None):
         """
@@ -399,13 +405,13 @@ class Graph:
         set a var name point to a obj id in a scope
         if the var name never appeared, add to the current scope
         """
+        obj_attr = self.get_node_attr(obj_id) 
+        if obj_attr['type'] == 'LITERAL':
+            obj_id = self.add_literal_obj()
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
 
-        [int(x[0]) for x in list(self.graph.nodes(data = True))]
         if cur_namenode == None:
             self.add_namenode_to_scope(var_name, scope = scope)
-
-        [int(x[0]) for x in list(self.graph.nodes(data = True))]
 
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
         pre_obj_id = self.get_obj_by_name(var_name, scope = scope)
@@ -534,6 +540,10 @@ class Graph:
         """
         if parent_obj == None:
             parent_obj = self.cur_obj
+
+        obj_attr = self.get_node_attr(obj_id) 
+        if obj_attr['type'] == 'LITERAL':
+            obj_id = self.add_literal_obj()
 
         cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
 

@@ -214,8 +214,7 @@ def handle_node(G, node_id):
 
 
     elif cur_node_attr['type'] == 'AST_BINARY_OP':
-        added_obj = G.literal_obj_nodeid
-
+        added_obj = G.add_literal_obj()
 
     elif cur_node_attr['type'] == 'AST_NEW':
         added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "OBJ")
@@ -247,7 +246,7 @@ def handle_node(G, node_id):
         G.add_edge(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
 
     elif cur_node_attr['type'] == 'integer':
-        added_obj = G.literal_obj_nodeid
+        added_obj = G.add_literal_obj()
 
     elif cur_node_attr['type'] == 'AST_PROP':
         # for now, we only support one level property
