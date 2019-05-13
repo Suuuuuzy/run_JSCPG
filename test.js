@@ -22,6 +22,8 @@ function funca() {
 
 f = new funca();
 var n = f;
+a = 1;
 n.funcb(a);
 funcc();
+f.funcb(2);
 

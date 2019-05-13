@@ -1,6 +1,8 @@
 from graph import Graph
 from scopeController import ScopeController
 
+modified_objs = set()
+
 def get_argids_from_funcallee(node_id):
     """
     given a func node id, return a list of para ids
@@ -103,9 +105,16 @@ def handle_node(G, node_id):
     """
     for different node type, do different actions to handle this node
     """
+    global modified_objs
     cur_node_attr = G.get_node_attr(node_id)
     cur_type = cur_node_attr['type']
     print "HANDLE NODE: {} {}".format(node_id, cur_type)
+
+    added_obj = None
+    added_scope = None
+    now_obj = None
+    now_scope = None
+
     if cur_type == "AST_ASSIGN":
         # for assign operation, the right part is childnum 1, the left part is childnum 0
         ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
@@ -170,14 +179,11 @@ def handle_node(G, node_id):
             left_obj = G.get_obj_by_name(left_name)
         except:
             print "ERROR: left obj {} not found".format(left)
+        
+        modified_objs.add(left_obj)
 
 
-    added_obj = None
-    added_scope = None
-    now_obj = None
-    now_scope = None
-
-    if cur_node_attr['type'] == 'AST_CLOSURE':
+    elif cur_node_attr['type'] == 'AST_CLOSURE':
         # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
         # for now, we do not assign the name of the scope node 
         # if visited, return
@@ -187,6 +193,8 @@ def handle_node(G, node_id):
         added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
         added_obj = G.add_obj_node(node_id, "OBJ_DECL")
         G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
+
+        modified_objs.add(added_obj)
 
     elif cur_node_attr['type'] == 'AST_VAR':
         # for var variables, we return it's obj, scope
@@ -212,9 +220,12 @@ def handle_node(G, node_id):
     elif cur_node_attr['type'] == 'AST_FUNC_DECL':
         [added_obj, added_scope] = decl_function(G, node_id)
 
+        modified_objs.add(added_obj)
+
 
     elif cur_node_attr['type'] == 'AST_BINARY_OP':
         added_obj = G.add_literal_obj()
+        modified_objs.add(added_obj)
 
     elif cur_node_attr['type'] == 'AST_NEW':
         added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "OBJ")
@@ -244,15 +255,16 @@ def handle_node(G, node_id):
 
         # finally add call edge from caller to callee
         G.add_edge(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
+        modified_objs.add(added_obj)
 
     elif cur_node_attr['type'] == 'integer':
         added_obj = G.add_literal_obj()
+        modified_objs.add(added_obj)
 
     elif cur_node_attr['type'] == 'AST_PROP':
         # for now, we only support one level property
         # return parent ast node, child ast node
         [parent, child] = G.handle_property(node_id)
-
 
         parent_name = G.get_name_from_child(parent)
         child_name = G.get_name_from_child(child)
@@ -266,6 +278,7 @@ def handle_node(G, node_id):
             print "PARENT OBJ {} NOT DEFINED".format(parent_name)
             # we assume this happens when it's a built-in var name
             parent_obj = G.add_obj_to_scope(node_id, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)
+            modified_objs.add(parent_obj)
 
         child_obj = G.get_obj_by_obj_name(child_name, parent_obj)
 
@@ -305,8 +318,13 @@ def handle_node(G, node_id):
         # add calls edge
         G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
 
+        # for a method call, assume it will influence the parent obj
+        modified_objs.add(func_obj)
+
+
     elif cur_node_attr['type'] == 'AST_CALL':
         [added_obj, added_scope] = ast_call_function(G, node_id)
+        modified_objs.add(added_obj)
 
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
@@ -325,12 +343,14 @@ def simurun_function(G, func_decl_id):
     bfs run a simurun from a entry id
     """
     print "FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj)
+    global modified_objs
     bfs_queue = []
     visited = set()
     # we start from the entry id
     entry_id = G.get_out_edges(func_decl_id, edge_type = "ENTRY")[0][1]
     bfs_queue.append(entry_id)
     while(len(bfs_queue)):
+        modified_objs = set()
         cur_node = bfs_queue.pop(0)
 
         # if visited before, stop here
@@ -342,6 +362,7 @@ def simurun_function(G, func_decl_id):
         print "BFS NODE {}".format(cur_node)
         handle_node(G, cur_node)
         build_df(G, cur_node)
+        print "Modified nodes {}".format(modified_objs)
 
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
         if len(out_edges) == 0:
@@ -458,9 +479,26 @@ def build_df(G, node_id):
     """
     build the df of current node id
     """
+    global modified_objs
+    input_objs = set()
     inputs = G.get_all_inputs(node_id)
-    if len(inputs) > 0:
-        print inputs
+    if len(inputs) == 0:
+        return 
+
+    for cur_input in inputs:
+        cur_obj = G.get_obj_by_node_id(cur_input)
+        if cur_obj != None:
+            input_objs.add(cur_obj)
+        print input_objs, node_id
+    for cur_obj in input_objs:
+        edges = G.get_in_edges(cur_obj, edge_type = 'LAST_MODIFIED')
+        # we assume we only have one last modified edge
+        for edge in edges:
+            cur_modify_node = edge[0]
+            G.add_edge(edge[0], node_id, {'type:TYPE': 'OBJ_REACHES'})
+
+    G.update_modified_edges(node_id, modified_objs)
+
 
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")

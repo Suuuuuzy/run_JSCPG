@@ -667,11 +667,15 @@ class Graph:
             else:
                 right = childern['1']
                 res += self.get_all_inputs(right)
-        elif node_type == 'AST_PROP' or node_type == 'AST_VAR':
+        elif node_type == 'AST_PROP':
             res = [node_id]
+
+        elif node_type == 'AST_VAR':
+            res = [node_id]
+
         elif node_type == 'AST_CALL':
             arg_list_node = self._get_childern_by_childnum(node_id)['1']
-            res += self.get_child_nodes(arg_list_node, edge_type = 'PARENT_OF')
+            res = self.get_child_nodes(arg_list_node, edge_type = 'PARENT_OF')
         elif node_type == 'AST_BINARY_OP':
             args = self._get_childern_by_childnum(node_id)
             for arg in args:
@@ -682,7 +686,44 @@ class Graph:
                 cur_attr = self.get_node_attr(arg)
                 if cur_attr['type'] == 'AST_ARG_LIST':
                     arg_list = arg
-                    break
             res += self.get_child_nodes(arg_list, edge_type = 'PARENT_OF')
+            func_name_id = self._get_childern_by_childnum(node_id)['0']
+            res.append(func_name_id)
 
         return res
+    
+    def get_obj_by_node_id(self, node_id):
+        """
+        return the obj of a node id
+        assume a node id only have one obj
+        """
+        node_attr = self.get_node_attr(node_id)
+        node_type = node_attr['type'] 
+        res = None
+        if node_type == 'AST_VAR':
+            var_name = self.get_name_from_child(node_id)
+            res = self.get_obj_by_name(var_name)
+            print var_name, res
+        elif node_type == 'AST_PROP':
+            [parent, child] = self.handle_property(node_id)
+            parent_name = self.get_name_from_child(parent)
+            child_name = self.get_name_from_child(child)
+
+            parent_obj = self.get_obj_by_name(parent_name)
+            child_obj = self.get_obj_by_obj_name(child_name, parent_obj = parent_obj)
+            
+            res = child_obj
+        return res
+
+    def update_modified_edges(self, node_id, modified_objs):
+        """
+        update the modified objs and link with node id
+        """
+        for cur_obj in modified_objs:
+            edges = self.get_in_edges(modified_objs, edge_type = 'LAST_MODIFIED')
+            for edge in edges:
+                self.graph.remove_edge(*edge[:3])
+
+            self.graph.add_edge(node_id, cur_obj, key = 'MODIFIED')
+            nx.set_edge_attributes(self.graph, {(node_id, cur_obj, 'MODIFIED'): {'type:TYPE': 'LAST_MODIFIED'}})
+
