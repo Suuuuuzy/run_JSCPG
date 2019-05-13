@@ -650,8 +650,13 @@ class Graph:
         node_type = node_attr['type'] 
         res = []
         if node_type == "AST_ASSIGN":
-            right = self._get_childern_by_childnum(node_id)['1']
-            res += self.get_all_inputs(right)
+            childern = self._get_childern_by_childnum(node_id)
+            # only define no assign
+            if len(childern) == 1:
+                res = []
+            else:
+                right = childern['1']
+                res += self.get_all_inputs(right)
         elif node_type == 'AST_PROP' or node_type == 'AST_VAR':
             res = [node_id]
         elif node_type == 'AST_CALL':

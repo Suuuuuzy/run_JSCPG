@@ -272,7 +272,6 @@ def handle_node(G, node_id):
 
         return [parent, child, parent_obj, child_obj]
 
-
     elif cur_node_attr['type'] == 'AST_METHOD_CALL':
         # get the method decl position
         [parent, child, var_list] = G.handle_method_call(node_id)
@@ -310,7 +309,6 @@ def handle_node(G, node_id):
     elif cur_node_attr['type'] == 'AST_CALL':
         [added_obj, added_scope] = ast_call_function(G, node_id)
 
-
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
         func_decl_id = cur_node_attr['HAVE_FUNC']
@@ -320,8 +318,6 @@ def handle_node(G, node_id):
     remove_list = G.get_node_by_attr("name", "TMPRIGHT")
     G.remove_nodes_from(remove_list)
     G.set_node_attr(node_id, ("VISITED", "1"))
-
-    build_df(G, node_id)
 
     return [added_obj, added_scope, now_obj, now_scope]
 
@@ -344,7 +340,9 @@ def simurun_function(G, func_decl_id):
         else:
             visited.add(cur_node)
 
+        print "BFS NODE {}".format(cur_node)
         handle_node(G, cur_node)
+        build_df(G, cur_node)
 
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
         if len(out_edges) == 0:
