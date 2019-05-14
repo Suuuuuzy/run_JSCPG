@@ -21,9 +21,11 @@ function funca() {
 }
 
 f = new funca();
-var n = f;
 a = 1;
-n.funcb(a);
+if (a == 1) {
+  n.funcb(a)
+}
+var n = f;
 funcc();
 f.funcb(2);
 
