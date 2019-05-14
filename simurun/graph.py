@@ -7,7 +7,6 @@ class Graph:
         self.cur_obj = None 
         self.cur_scope = None
         self.cur_id = 0
-        self.literal_obj_nodeid = 0
 
     def _get_new_nodeid(self):
         """
@@ -38,6 +37,15 @@ class Graph:
             self.cur_scope = cur_nodeid
 
         return cur_nodeid
+
+    def add_literal_obj(self):
+        """
+        add a literal object
+        """
+        node_id = self._get_new_nodeid()
+        self.add_node(node_id)
+        self.set_node_attr(node_id, ('type', 'LITERAL'))
+        return node_id
 
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
@@ -123,6 +131,7 @@ class Graph:
 
     def add_node(self, node_for_adding):
         self.graph.add_node(node_for_adding)
+        return node_for_adding
 
     def set_node_attr(self, node_id, attr):
         """
@@ -370,9 +379,6 @@ class Graph:
         self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
         self.cur_obj = cur_nodeid
-        self.literal_obj_nodeid = self._get_new_nodeid()
-        self.add_node(self.literal_obj_nodeid)
-        self.set_node_attr(self.literal_obj_nodeid, ('type', "LITERAL_OBJ"))
 
     def add_obj_to_scope(self, ast_node, name, var_type, scope = None):
         """
@@ -399,13 +405,13 @@ class Graph:
         set a var name point to a obj id in a scope
         if the var name never appeared, add to the current scope
         """
+        obj_attr = self.get_node_attr(obj_id) 
+        if obj_attr['type'] == 'LITERAL':
+            obj_id = self.add_literal_obj()
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
 
-        [int(x[0]) for x in list(self.graph.nodes(data = True))]
         if cur_namenode == None:
             self.add_namenode_to_scope(var_name, scope = scope)
-
-        [int(x[0]) for x in list(self.graph.nodes(data = True))]
 
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
         pre_obj_id = self.get_obj_by_name(var_name, scope = scope)
@@ -495,6 +501,7 @@ class Graph:
         obj_node_id = self.get_obj_by_name(func_name, scope = scope)
         if obj_node_id == None:
             return None
+        print obj_node_id, func_name
         scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_SCOPE")[0]
         return scope_edge[1]
 
@@ -533,6 +540,10 @@ class Graph:
         """
         if parent_obj == None:
             parent_obj = self.cur_obj
+
+        obj_attr = self.get_node_attr(obj_id) 
+        if obj_attr['type'] == 'LITERAL':
+            obj_id = self.add_literal_obj()
 
         cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
 
@@ -632,3 +643,89 @@ class Graph:
             cur_attr = self.get_node_attr(edge[1])
             if cur_attr['type'] == 'AST_NAME':
                 return self.get_name_from_child(edge[1])
+
+    def get_child_nodes(self, node_id, edge_type = None):
+        """
+        return the childern of node (with a specific edge type)
+        """
+        edges = self.get_out_edges(node_id, edge_type = edge_type)
+        return [e[1] for e in edges] 
+
+    def get_all_inputs(self, node_id):
+        """
+        input a node
+        return the input of this node and it's sub nodes
+        """
+        node_attr = self.get_node_attr(node_id)
+        node_type = node_attr['type'] 
+        res = []
+        if node_type == "AST_ASSIGN":
+            childern = self._get_childern_by_childnum(node_id)
+            # only define no assign
+            if len(childern) == 1:
+                res = []
+            else:
+                right = childern['1']
+                res += self.get_all_inputs(right)
+        elif node_type == 'AST_PROP':
+            res = [node_id]
+
+        elif node_type == 'AST_VAR':
+            res = [node_id]
+
+        elif node_type == 'AST_CALL':
+            arg_list_node = self._get_childern_by_childnum(node_id)['1']
+            res = self.get_child_nodes(arg_list_node, edge_type = 'PARENT_OF')
+        elif node_type == 'AST_BINARY_OP':
+            args = self._get_childern_by_childnum(node_id)
+            for arg in args:
+                res += self.get_all_inputs(args[arg])
+        elif node_type == 'AST_METHOD_CALL':
+            args = self.get_child_nodes(node_id)
+            for arg in args:
+                cur_attr = self.get_node_attr(arg)
+                if cur_attr['type'] == 'AST_ARG_LIST':
+                    arg_list = arg
+            res += self.get_child_nodes(arg_list, edge_type = 'PARENT_OF')
+            func_name_id = self._get_childern_by_childnum(node_id)['0']
+            res.append(func_name_id)
+
+        return res
+    
+    def get_obj_by_node_id(self, node_id):
+        """
+        return the obj of a node id
+        assume a node id only have one obj
+        """
+        node_attr = self.get_node_attr(node_id)
+        node_type = node_attr['type'] 
+        res = None
+        if node_type == 'AST_VAR':
+            var_name = self.get_name_from_child(node_id)
+            res = self.get_obj_by_name(var_name)
+        elif node_type == 'AST_PROP':
+            [parent, child] = self.handle_property(node_id)
+            parent_name = self.get_name_from_child(parent)
+            child_name = self.get_name_from_child(child)
+
+            parent_obj = self.get_obj_by_name(parent_name)
+            child_obj = self.get_obj_by_obj_name(child_name, parent_obj = parent_obj)
+            
+            res = child_obj
+        return res
+
+    def update_modified_edges(self, node_id, modified_objs):
+        """
+        update the modified objs and link with node id
+        """
+        
+        for cur_obj in modified_objs:
+            if cur_obj == None:
+                continue
+            edges = self.get_in_edges(modified_objs, edge_type = 'LAST_MODIFIED')
+            for edge in edges:
+                self.graph.remove_edge(*edge[:3])
+
+            self.graph.add_edge(node_id, cur_obj, key = 'MODIFIED')
+            nx.set_edge_attributes(self.graph, {(node_id, cur_obj, 'MODIFIED'): {'type:TYPE': 'LAST_MODIFIED'}})
+

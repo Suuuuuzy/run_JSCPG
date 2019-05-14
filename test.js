@@ -1,8 +1,9 @@
 var exec = require('child_process')
+  //.exec
   , fs = require('fs')
   , path = require('path')
   , exists = fs.existsSync || path.existsSync
-  , os = require('os')
+  , os = require('os', 'fillout')
   , quote = JSON.stringify
   , cmd;
 
@@ -20,7 +21,11 @@ function funca() {
 }
 
 f = new funca();
+a = 1;
+if (a == 1) {
+  n.funcb(a)
+}
 var n = f;
-n.funcb(a);
 funcc();
+f.funcb(2);
 
