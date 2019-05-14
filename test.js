@@ -1,5 +1,5 @@
 var exec = require('child_process')
-  //.exec
+// .exec
   , fs = require('fs')
   , path = require('path')
   , exists = fs.existsSync || path.existsSync
@@ -23,9 +23,7 @@ function funca() {
 f = new funca();
 a = 1;
 var n = f;
-if (a == 1) {
-  n.funcb(a)
-}
+n.funcb(a)
 funcc();
 f.funcb(2);
 

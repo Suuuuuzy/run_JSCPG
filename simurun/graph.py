@@ -121,8 +121,7 @@ class Graph:
                     cur_line.append(edge[2][header])
                 else:
                     cur_line.append('')
-            
-                fp.write('\t'.join(cur_line) + '\n')
+            fp.write('\t'.join(cur_line) + '\n')
         fp.close()
         print ("Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name))
 
