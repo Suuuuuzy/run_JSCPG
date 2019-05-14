@@ -122,10 +122,7 @@ class Graph:
                 else:
                     cur_line.append('')
             
-            try:
                 fp.write('\t'.join(cur_line) + '\n')
-            except:
-                print cur_line
         fp.close()
         print ("Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name))
 

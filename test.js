@@ -22,10 +22,10 @@ function funca() {
 
 f = new funca();
 a = 1;
+var n = f;
 if (a == 1) {
   n.funcb(a)
 }
-var n = f;
 funcc();
 f.funcb(2);
 

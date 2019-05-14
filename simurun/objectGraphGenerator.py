@@ -67,8 +67,7 @@ def add_edges_between_funcs(G):
         callee_paras = get_argids_from_funcallee(callee_id)
 
         for idx in range(len(callee_paras)):
-            added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'REACHES', 'var': caller_para_names[idx]}))
-
+            added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'REACHES', 'var': str(caller_para_names[idx])}))
     G.add_edges_from_list(added_edge_list)
 
 def register_func(G, node_id):
