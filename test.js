@@ -1,5 +1,4 @@
-var exec = require('child_process')
-  //.exec
+var exec = require('child_process').exec
   , fs = require('fs')
   , path = require('path')
   , exists = fs.existsSync || path.existsSync
@@ -21,11 +20,10 @@ function funca() {
 }
 
 f = new funca();
+f.first().firstelement.second()
 a = 1;
-if (a == 1) {
-  n.funcb(a)
-}
 var n = f;
+n.funcb(a)
 funcc();
 f.funcb(2);
 
