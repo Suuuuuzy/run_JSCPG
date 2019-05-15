@@ -93,6 +93,7 @@ class Graph:
         header_str = '\t'.join(headers)
         fp.write(header_str + '\n')
         nodes = list(self.graph.nodes(data = True))
+
         nodes.sort(key = lambda x: int(x[0]))
         for node in nodes:
             cur_line = [node[0]]
@@ -414,6 +415,7 @@ class Graph:
         self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_OBJ"})
         if pre_obj_id != None:
             print "remove pre", var_name
+            print "remove edge {} to {} =========================".format(cur_namenode, pre_obj_id)
             self.graph.remove_edge(cur_namenode, pre_obj_id)
 
     def get_node_by_attr(self, key, value):
@@ -430,13 +432,14 @@ class Graph:
 
     def get_func_declid_by_function_name(self, function_name, scope = None):
         """
-        return the function decl nodeid of a funcion
+        return the function decl ast nodeid of a funcion
         """
         if scope == None:
             scope = self.cur_scope
 
         func_obj = self.get_obj_by_name(function_name, scope = scope)
         if func_obj == None:
+            print function_name 
             print 'FUNCTION {} not find'.format(function_name)
             return func_obj 
 
@@ -574,19 +577,16 @@ class Graph:
         if func_obj == None:
             print 'FUNCTION {} not find'.format(function_name)
             return func_obj 
-
         tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")[0]
         func_decl_ast = tmp_edge[1]
         return func_decl_ast
 
     def add_blank_func(self, func_name, scope = None):
         """
-        add a blank func under a scope
+        add a blank func
         used for built-in functions
         we need to run the function after the define
         """
-        if scope == None:
-            scope = self.cur_scope
 
         # add a function decl node first
         cur_id = self._get_new_nodeid()

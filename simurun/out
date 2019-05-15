@@ -1,0 +1,4078 @@
+Finished Importing
+RUN:  1
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 1 AST_TOPLEVEL second
+181 /home/lsong18/projs/JSCPG/test.js
+FUNCTION 1 START, SCOPE ID 180, OBJ ID 183
+BFS NODE 2
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 2 CFG_FUNC_ENTRY None
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 62 AST_FUNC_DECL funca
+BFS NODE 5
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 5 AST_ASSIGN exec
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 8 AST_PROP exec
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 9 AST_CALL require
+require
+FUNCTION require not find
+None 187
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 187 AST_FUNC_DECL require
+[]
+193 require
+FUNCTION 187 START, SCOPE ID 192, OBJ ID 196
+BFS NODE 189
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 189 CFG_FUNC_ENTRY None
+BFS NODE 190
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 190 CFG_FUNC_EXIT None
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 6 AST_VAR exec
+right var type not set
+BFS NODE 15
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 15 AST_ASSIGN fs
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 18 AST_CALL require
+None 187
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 187 AST_FUNC_DECL require
+193 require
+FUNCTION 187 START, SCOPE ID 192, OBJ ID 200
+BFS NODE 189
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 189 CFG_FUNC_ENTRY None
+BFS NODE 190
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 190 CFG_FUNC_EXIT None
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 16 AST_VAR fs
+right var type not set
+BFS NODE 23
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 23 AST_ASSIGN path
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 26 AST_CALL require
+None 187
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 187 AST_FUNC_DECL require
+193 require
+FUNCTION 187 START, SCOPE ID 192, OBJ ID 202
+BFS NODE 189
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 189 CFG_FUNC_ENTRY None
+BFS NODE 190
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 190 CFG_FUNC_EXIT None
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 24 AST_VAR path
+right var type not set
+BFS NODE 31
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 31 AST_ASSIGN exists
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 34 AST_BINARY_OP existsSync
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 32 AST_VAR exists
+right var type not set
+BFS NODE 43
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 43 AST_ASSIGN os
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 46 AST_CALL require
+None 187
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 187 AST_FUNC_DECL require
+193 require
+FUNCTION 187 START, SCOPE ID 192, OBJ ID 207
+BFS NODE 189
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 189 CFG_FUNC_ENTRY None
+BFS NODE 190
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 190 CFG_FUNC_EXIT None
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 44 AST_VAR os
+right var type not set
+BFS NODE 52
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 52 AST_ASSIGN stringify
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 55 AST_PROP stringify
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 56 AST_VAR JSON
+PARENT OBJ JSON NOT DEFINED
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 53 AST_VAR quote
+right var type not set
+[('211', '212', 0, {'type:TYPE': 'NAME_OBJ'})]
+BFS NODE 59
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 59 AST_ASSIGN cmd
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 60 AST_VAR cmd
+BFS NODE 135
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 135 AST_ASSIGN f
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 138 AST_NEW funca
+FUNCTION 62 START, SCOPE ID 184, OBJ ID 215
+BFS NODE 63
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 63 CFG_FUNC_ENTRY None
+BFS NODE 69
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 69 AST_ASSIGN a
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 72 integer None
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 70 AST_VAR a
+right var type not set
+BFS NODE 73
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 73 AST_ASSIGN funcb
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 78 AST_CLOSURE {closure}
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 74 AST_PROP funcb
+[('2', '5', 0, {'type:TYPE': 'FLOWS_TO'}), ('2', '5', 0, {'type:TYPE': 'FLOWS_TO'})]
+HANDLE NODE: 75 AST_VAR this
+PARENT OBJ this NOT DEFINED
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})] ==================
+BFS NODE 103
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 103 AST_ASSIGN {closure}
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 106 AST_CLOSURE {closure}
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 104 AST_VAR funcc
+BFS NODE 129
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 129 AST_ASSIGN a
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 132 integer None
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 130 AST_VAR a
+right var type not set
+BFS NODE 64
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 64 CFG_FUNC_EXIT None
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 136 AST_VAR f
+BFS NODE 142
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 142 AST_METHOD_CALL second
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 143 AST_PROP firstelement
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
+233 +++++++=
+215 144
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 144 AST_METHOD_CALL first
+[('223', '220', 0, {'type:TYPE': 'NAME_OBJ'})]
+HANDLE NODE: 145 AST_VAR f
+[('232', '233', 0, {'type:TYPE': 'NAME_OBJ'})]
