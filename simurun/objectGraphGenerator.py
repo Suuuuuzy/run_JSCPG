@@ -16,6 +16,7 @@ def get_argids_from_funcallee(node_id):
                 # only on child node
                 para_num = int(G.get_node_attr(param_id)['childnum:int'])
                 paras[para_num] = param_id 
+
     return paras
 
 def get_argnames_from_funcaller(node_id):
@@ -65,8 +66,8 @@ def add_edges_between_funcs(G):
         # the order of para in paras matters!
         caller_para_names = get_argnames_from_funcaller(caller_id)
         callee_paras = get_argids_from_funcallee(callee_id)
-        for idx in range(len(callee_paras)):
-            added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'REACHES', 'var': str(caller_para_names[idx])}))
+        for idx in range(min(len(callee_paras), len(caller_para_names))):
+            added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
 
     G.add_edges_from_list(added_edge_list)
 
@@ -324,7 +325,7 @@ def handle_node(G, node_id):
         node_var_name = child_name
 
         func_obj = parent_obj
-        [added_obj, added_scope] = ast_call_function(G, child, func_name = child_name, parent_obj = parent_obj)
+        [added_obj, added_scope] = ast_call_function(G, node_id, func_name = child_name, parent_obj = parent_obj)
 
 
     elif cur_node_attr['type'] == 'AST_CALL':
@@ -525,6 +526,6 @@ G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
 scopeContorller = ScopeController(G)
 generate_obj_graph(G, '1')
-#add_edges_between_funcs(G)
+add_edges_between_funcs(G)
 G.export_to_CSV("./testnodes.csv", "./testrels.csv")
 
