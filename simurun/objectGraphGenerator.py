@@ -6,6 +6,7 @@ registered_func = {}
 # TODO:
 # treat or as multiple options, for now, only assign the first one
 # for undefined property, eg. a = g.f, a(), currently a point to blank function but not g.f. Fix later by changing ast_func_call
+# param to inner obj reaches
 
 def get_argids_from_funcallee(node_id):
     """
@@ -196,6 +197,10 @@ def handle_node(G, node_id):
             print "ERROR: left obj {} not found".format(left)
         
         modified_objs.add(left_obj)
+    
+    elif cur_node_attr['type'] == 'AST_ARRAY':
+        added_obj = G.add_obj_node(node_id, "OBJ_DECL")
+
 
     elif cur_node_attr['type'] == 'AST_VAR':
         # return [added obj, added scope, var name]
@@ -579,5 +584,5 @@ G.import_from_CSV("./nodes.csv", "./rels.csv")
 scopeContorller = ScopeController(G)
 generate_obj_graph(G, '1')
 add_edges_between_funcs(G)
-# G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
+#G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
 G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)

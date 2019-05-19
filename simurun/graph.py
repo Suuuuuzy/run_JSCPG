@@ -109,7 +109,7 @@ class Graph:
 
         headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
         skip_headers = ['start:START_ID', 'end:END_ID']
-        light_edge_type = ['FLOWS_TO', 'REACHES', 'OBJ_REACHES', 'CALLS', 'ENTRY', 'EXIT']
+        light_edge_type = ['FLOWS_TO', 'REACHES', 'OBJ_REACHES', 'ENTRY', 'EXIT']
 
         fp = open(rels_file_name, 'w')
         header_str = '\t'.join(headers)
@@ -684,12 +684,17 @@ class Graph:
 
         elif node_type == 'AST_CALL':
             arg_list_node = self._get_childern_by_childnum(node_id)['1']
-            res = self.get_child_nodes(arg_list_node, edge_type = 'PARENT_OF')
+            args = self.get_child_nodes(arg_list_node, edge_type = 'PARENT_OF')
+            for arg in args:
+                res += self.get_all_inputs(arg)
+
         elif node_type == 'AST_BINARY_OP':
             args = self._get_childern_by_childnum(node_id)
             for arg in args:
                 res += self.get_all_inputs(args[arg])
         elif node_type == 'AST_METHOD_CALL':
+            edges = self.get_in_edges('322', edge_type = 'LAST_MODIFIED')
+
             args = self.get_child_nodes(node_id)
             for arg in args:
                 cur_attr = self.get_node_attr(arg)
@@ -722,7 +727,7 @@ class Graph:
             
             res.add(child_obj)
             res.add(parent_obj)
-            print parent, child, res, '------------------------------------'
+
         return res
 
     def update_modified_edges(self, node_id, modified_objs):

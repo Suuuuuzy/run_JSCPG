@@ -8,7 +8,7 @@ def check_os_command():
     """
     query_str ="""
     MATCH (n)-[:PARENT_OF*0..]->(a),
-    (src)-[rel:REACHES*]->(n)
+    (src)-[rel:OBJ_REACHES*]->(n)
     WHERE a.code =~ ".*exec.*" and ALL(r in rel where r.taint_dst is null and r.taint_src is null)
     return src, rel"""
     return js_database.run_query(query_str)
@@ -20,7 +20,7 @@ def check_sub_src(node):
     query_str =""" 
     START root=node({})
     MATCH (root)-[:PARENT_OF*2..3]->(a)
-    WHERE a.code="request"
+    WHERE a.code="cmd"
     return a""".format(node)
     return js_database.run_query(query_str)
 

@@ -27,7 +27,7 @@ function test(cmd){
   f.first();
   a = 1;
   args.push(n);
-  exec(a, args)
+  exec(args.join(' '), a);
   if (a == 1) {
     n.funcb(a);
   }
