@@ -1,4 +1,5 @@
 from jsDatabase import JSDatabase
+from graph import Graph
 
 js_database = JSDatabase("123456")
 
@@ -10,7 +11,7 @@ def check_os_command():
     MATCH (n)-[:PARENT_OF*0..]->(a),
     (src)-[rel:OBJ_REACHES*]->(n)
     WHERE a.code =~ ".*exec.*" and ALL(r in rel where r.taint_dst is null and r.taint_src is null)
-    return src, rel"""
+    return src, rel, n"""
     return js_database.run_query(query_str)
 
 def check_sub_src(node):
@@ -35,4 +36,5 @@ for path in res:
             if len(res) != 0:
                 print res
                 print path['rel']
-
+                for r in path['rel']:
+                    print r
