@@ -610,7 +610,7 @@ class Graph:
         cur_id = self._get_new_nodeid()
         self.add_node(cur_id)
         self.set_node_attr(cur_id, ('funcid', cur_id))
-        self.set_node_attr(cur_id, ('type', "AST_FUNC_DECL"))
+        self.set_node_attr(cur_id, ('type', "AST_CLOSURE"))
         self.set_node_attr(cur_id, ('labels:label', 'Artificial_AST'))
 
         # add a node as the name of the function

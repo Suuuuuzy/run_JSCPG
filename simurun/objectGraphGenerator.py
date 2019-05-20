@@ -517,7 +517,6 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
 
     if func_name == None:
         func_name = G.find_name_of_call(node_id)
-
     if parent_obj == None:
         func_decl_id = G.get_func_declid_by_function_name(func_name)
     else:
