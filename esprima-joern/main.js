@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// setup
+
 const outputStyle = 'php'; // 'php' or 'c'
 const delimiter = '\t'; // '\t' or ','
 
@@ -7,7 +9,32 @@ const path = require('path');
 const fs = require('fs');
 const esprima = require('esprima');
 
-var sourceCode = "";
+if (process.argv.length != 3) {
+    console.log('Wrong arguments: ' + process.argv);
+    console.log('Usage: ' + process.argv[1] + ' filename');
+    process.exit();
+}
+
+// initialization
+
+var sourceCode = ""; // source code being analyzed
+var nodeIdCounter;
+var nodes = [];
+if (outputStyle == 'php') {
+    nodeIdCounter = 0;
+} else if (outputStyle == 'c') {
+    nodeIdCounter = 1;
+}
+
+var dirname = process.argv[2];
+var filename = "";
+
+var requiredModules = [],
+    analyzedModules = [];
+var searchPaths = module.paths.concat(['~/packagecrawler', '.']);
+const builtInModules = require('module').builtinModules;
+
+// write csv headers
 
 var csvHead1PHP = `id:ID\tlabels:label\ttype\tflags:string[]\tlineno:int\tcode\tchildnum:int\tfuncid:int\tclassname\tnamespace\tendlineno:int\tname\tdoccomment\n`.replace(/\t/g, delimiter);
 var csvHead1C = `command\tkey\ttype\tcode\tlocation\tfunctionId\tchildNum\tisCFGNode\toperator\tbaseType\tcompleteType\tidentifier\n`.replace(/\t/g, delimiter);
@@ -27,131 +54,6 @@ if (outputStyle == 'php') {
 } else if (outputStyle == 'c') {
     relsStream.write(csvHead2C);
     parentOf = 'IS_AST_PARENT';
-}
-
-var nodeIdCounter;
-var nodes = [];
-if (outputStyle == 'php') {
-    nodeIdCounter = 0;
-} else if (outputStyle == 'c') {
-    nodeIdCounter = 1;
-}
-
-function walkDir(dir, parentNodeId, callback) {
-    /**
-     * walk the dir and combine files together
-     */
-    let currentId = nodeIdCounter;
-    if (outputStyle == 'php') {
-        if (parentNodeId !== null) {
-            relsStream.write([parentNodeId, currentId, 'DIRECTORY_OF'].join(delimiter) + '\n');
-        }
-        nodes[currentId] = {
-            label: 'Filesystem',
-            type: 'Directory',
-            name: dir
-        };
-    } else if (outputStyle == 'c') {
-        if (parentNodeId !== null) {
-            relsStream.write([parentNodeId, currentId, 'IS_DIRECTORY_OF'].join(delimiter) + '\n');
-        }
-        nodes[currentId] = {
-            label: 'Filesystem',
-            type: 'Directory',
-            name: dir
-        };
-    }
-    nodeIdCounter++;
-    fs.readdirSync(dir).forEach(f => {
-        let dirPath = path.join(dir, f);
-        let isDirectory = fs.statSync(dirPath).isDirectory();
-        if (isDirectory) {
-            walkDir(dirPath, currentId, callback);
-        } else {
-            if (f.endsWith(".js")) callback(path.join(dir, f), currentId);
-        }
-    });
-};
-
-if (process.argv.length != 3) {
-    console.log('Wrong arguments: ' + process.argv);
-    console.log('Usage: ' + process.argv[1] + ' filename');
-    process.exit();
-}
-
-var dirname = process.argv[2];
-var filename = "";
-
-var requiredModules = [],
-    analyzedModules = [];
-var searchPaths = module.paths.concat(['~/packagecrawler', '.']);
-const builtInModules = require('module').builtinModules;
-
-// main
-
-// analyze the designated source code files
-if (!fs.statSync(dirname).isDirectory()) {
-    analyze(dirname, null);
-} else {
-    walkDir(dirname, null, analyze);
-}
-
-// analyze any required packages
-console.log('Package search paths: ' + searchPaths);
-while (requiredModules.length > 0) {
-    let currentModule = requiredModules.shift();
-    if (builtInModules.includes(currentModule)) {
-        console.log(`${currentModule} is a built-in module.`);
-        continue;
-    }
-    let found = false;
-    for (let p of searchPaths) {
-        // search file
-        let currentPath = path.join(p, currentModule);
-        if (!currentModule.endsWith('.js'))
-            currentPath += '.js';
-        if (analyzedModules.includes(currentPath)) {
-            found = true;
-            console.log(`Package ${currentModule} had been analyzed.`);
-            break;
-        } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isFile()) {
-            console.log(`Package ${currentModule} found at ${currentPath}.`);
-            analyzedModules.push(currentPath);
-            analyze(currentPath, null);
-            found = true;
-            break;
-        }
-        // search directory
-        if (!currentModule.endsWith('.js')) {
-            if (analyzedModules.includes(currentPath)) {
-                found = true;
-                console.log(`Package ${currentModule} had been analyzed.`);
-                break;
-            } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
-                // check if package.json exists
-                let jsonPath = path.join(currentPath, 'package.json');
-                let main = 'main.js';
-                if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
-                    try {
-                        main = JSON.parse(fs.readFileSync(filePath, 'utf8'))['main'];
-                    } catch (e) {
-                        console.error(`Error: package.json (${jsonPath}) does not include main field.`);
-                    }
-                }
-                let mainPath = path.join(currentPath, main);
-                if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
-                    console.log(`Package ${currentModule} found at ${mainPath}.`);
-                    analyzedModules.push(currentPath);
-                    analyze(mainPath, null);
-                    found = true;
-                    break;
-                }
-            }
-        }
-    }
-    if (!found) {
-        console.error(`Error: required package ${currentModule} not found.`);
-    }
 }
 
 function getCode(node, sourceCode) {
@@ -2664,6 +2566,42 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
     }
 };
 
+function walkDir(dir, parentNodeId, callback) {
+    /**
+     * walk the dir and combine files together
+     */
+    let currentId = nodeIdCounter;
+    if (outputStyle == 'php') {
+        if (parentNodeId !== null) {
+            relsStream.write([parentNodeId, currentId, 'DIRECTORY_OF'].join(delimiter) + '\n');
+        }
+        nodes[currentId] = {
+            label: 'Filesystem',
+            type: 'Directory',
+            name: dir
+        };
+    } else if (outputStyle == 'c') {
+        if (parentNodeId !== null) {
+            relsStream.write([parentNodeId, currentId, 'IS_DIRECTORY_OF'].join(delimiter) + '\n');
+        }
+        nodes[currentId] = {
+            label: 'Filesystem',
+            type: 'Directory',
+            name: dir
+        };
+    }
+    nodeIdCounter++;
+    fs.readdirSync(dir).forEach(f => {
+        let dirPath = path.join(dir, f);
+        let isDirectory = fs.statSync(dirPath).isDirectory();
+        if (isDirectory) {
+            walkDir(dirPath, currentId, callback);
+        } else {
+            if (f.endsWith(".js")) callback(path.join(dir, f), currentId);
+        }
+    });
+};
+
 function analyze(filePath, parentNodeId) {
     // read the file
     filename = filePath;
@@ -2748,6 +2686,73 @@ function analyze(filePath, parentNodeId) {
     nodeIdCounter++;
     nodes = []; // reset the node array but not the nodeIdCounter
 };
+
+// main
+
+// analyze the designated source code files
+if (!fs.statSync(dirname).isDirectory()) {
+    analyze(dirname, null);
+} else {
+    walkDir(dirname, null, analyze);
+}
+
+// analyze any required packages
+console.log('Package search paths: ' + searchPaths);
+while (requiredModules.length > 0) {
+    let currentModule = requiredModules.shift();
+    if (builtInModules.includes(currentModule)) {
+        console.log(`${currentModule} is a built-in module.`);
+        continue;
+    }
+    let found = false;
+    for (let p of searchPaths) {
+        // search file
+        let currentPath = path.join(p, currentModule);
+        if (!currentModule.endsWith('.js'))
+            currentPath += '.js';
+        if (analyzedModules.includes(currentPath)) {
+            found = true;
+            console.log(`Package ${currentModule} had been analyzed.`);
+            break;
+        } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isFile()) {
+            console.log(`Package ${currentModule} found at ${currentPath}.`);
+            analyzedModules.push(currentPath);
+            analyze(currentPath, null);
+            found = true;
+            break;
+        }
+        // search directory
+        if (!currentModule.endsWith('.js')) {
+            if (analyzedModules.includes(currentPath)) {
+                found = true;
+                console.log(`Package ${currentModule} had been analyzed.`);
+                break;
+            } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
+                // check if package.json exists
+                let jsonPath = path.join(currentPath, 'package.json');
+                let main = 'main.js';
+                if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
+                    try {
+                        main = JSON.parse(fs.readFileSync(filePath, 'utf8'))['main'];
+                    } catch (e) {
+                        console.error(`Error: package.json (${jsonPath}) does not include main field.`);
+                    }
+                }
+                let mainPath = path.join(currentPath, main);
+                if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
+                    console.log(`Package ${currentModule} found at ${mainPath}.`);
+                    analyzedModules.push(currentPath);
+                    analyze(mainPath, null);
+                    found = true;
+                    break;
+                }
+            }
+        }
+    }
+    if (!found) {
+        console.error(`Error: required package ${currentModule} not found.`);
+    }
+}
 
 nodesStream.end();
 relsStream.end();
