@@ -676,6 +676,14 @@ class Graph:
             else:
                 right = childern['1']
                 res += self.get_all_inputs(right)
+        elif node_type == 'AST_ARRAY':
+            elem_list_node = self._get_childern_by_childnum(node_id)
+            if '0' in elem_list_node:
+                elem_list_node = elem_list_node['0']
+                elems = self.get_child_nodes(elem_list_node, edge_type = 'PARENT_OF')
+                for elem in elems:
+                    res += self.get_all_inputs(elem)
+
         elif node_type == 'AST_PROP':
             res = [node_id]
 

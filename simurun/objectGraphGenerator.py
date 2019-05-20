@@ -125,9 +125,25 @@ def handle_node(G, node_id):
     node_var_name = None
     var_name_node = None
     modified_objs = set()
+    [int(x[0]) for x in G.graph.edges()]
     
+    if cur_type == "AST_PARAM":
+        node_name = G.get_name_from_child(node_id)
+        # assume we only have on reaches edge to this node
+        now_edge = G.get_in_edges(node_id, edge_type = "REACHES")
+        if len(now_edge) != 0:
+            from_node = now_edge[0][0]
+            now_obj = G.get_obj_by_node_id(from_node)
+            G.set_obj_by_scope_name(node_name, now_obj)
+        
+        if now_obj == None:
+            # for now, just add a new obj.
+            added_obj = G.add_obj_to_scope(node_id, node_name, "PARAM_OBJ")
+            now_obj = added_obj
 
-    if cur_type == "AST_ASSIGN":
+        modified_objs.add(now_obj)
+
+    elif cur_type == "AST_ASSIGN":
         # for assign operation, the right part is childnum 1, the left part is childnum 0
         ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
 
@@ -552,29 +568,24 @@ def build_df(G, node_id, modified_objs):
     """
     build the df of current node id
     """
-    input_objs = {}
+    input_objs = set()
     inputs = G.get_all_inputs(node_id)
 
     for cur_input in inputs:
         cur_obj = G.get_obj_by_node_id(cur_input)
         var_name = G.get_name_from_child(cur_input)
         if cur_obj != None:
-            if var_name not in input_objs:
-                input_objs[var_name] = set()
-            input_objs[var_name] = input_objs[var_name].union(cur_obj)
+            input_objs = input_objs.union(cur_obj)
 
-    for var_name in input_objs:
-        source_line_set = set()
-        for cur_obj in input_objs[var_name]:
-            edges = G.get_in_edges(cur_obj, edge_type = 'LAST_MODIFIED')
-            # we assume we only have one last modified edge
-            # TODO: name error, should be parent or child name
-            for edge in edges:
-                if edge[0] in source_line_set:
-                    continue
-                source_line_set.add(edge[0])
-                print "OBJ REACHES {} {}".format(edge[0], node_id)
-                G.add_edge(edge[0], node_id, {'type:TYPE': 'OBJ_REACHES', 'var': var_name})
+    for cur_obj in input_objs:
+        if cur_obj == None:
+            continue
+        edges = G.get_in_edges(cur_obj, edge_type = 'LAST_MODIFIED')
+        # we assume we only have one last modified edge
+        # TODO: name error, should be parent or child name
+        for edge in edges:
+            print "OBJ REACHES {} {}".format(edge[0], node_id)
+            G.add_edge(edge[0], node_id, {'type:TYPE': 'OBJ_REACHES', 'var': cur_obj})
 
     if modified_objs != None:
         G.update_modified_edges(node_id, modified_objs)
