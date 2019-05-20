@@ -19,11 +19,18 @@ function funca() {
   a = 2;
 }
 
-f = new funca();
-f.first().firstelement.second()
-a = 1;
-var n = f;
-n.funcb(a)
-funcc();
-f.funcb(2);
+function test(cmd){
+  exists("wtf");
+  args = [cmd.pkg];
+  f = new funca();
+  var n = f;
+  f.first();
+  a = 1;
+  args.push(n);
+  exec(args.join(' '), a);
+  if (a == 1) {
+    n.funcb(a);
+  }
+}
 
+test("");
