@@ -125,8 +125,7 @@ def handle_node(G, node_id):
     node_var_name = None
     var_name_node = None
     modified_objs = set()
-    [int(x[0]) for x in G.graph.edges()]
-    
+
     if cur_type == "AST_PARAM":
         node_name = G.get_name_from_child(node_id)
         # assume we only have on reaches edge to this node
@@ -214,8 +213,13 @@ def handle_node(G, node_id):
         
         modified_objs.add(left_obj)
     
+    
     elif cur_node_attr['type'] == 'AST_ARRAY':
         added_obj = G.add_obj_node(node_id, "OBJ_DECL")
+
+    elif cur_node_attr['type'] == 'AST_DIM':
+        G.set_node_attr(node_id, ('type', 'AST_PROP'))
+        return handle_node(G, node_id)
 
 
     elif cur_node_attr['type'] == 'AST_VAR':
@@ -244,6 +248,8 @@ def handle_node(G, node_id):
         handled_parent = handle_node(G, parent)
 
         [parent_added_obj, parent_added_scope, parent_obj, parent_scope, modified_objs, parent_name, _] = handled_parent
+        if child_name == None:
+            child_name = 'undifined'
 
         # for newly added obj
         if parent_added_obj != None:
@@ -266,6 +272,7 @@ def handle_node(G, node_id):
             added_obj = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
             added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = child_obj)
 
+        now_obj = child_obj
         var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
         node_var_name = child_name
 

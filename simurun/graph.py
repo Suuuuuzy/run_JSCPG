@@ -104,7 +104,10 @@ class Graph:
                     cur_line.append(node[1][header])
                 else:
                     cur_line.append('')
-            fp.write('\t'.join(cur_line) + '\n')
+            try:
+                fp.write('\t'.join(cur_line) + '\n')
+            except:
+                print '==========================ERROR LINE: ', cur_line, '==================================='
         fp.close()
 
         headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
@@ -274,6 +277,8 @@ class Graph:
                     return cur_attr['name']
                 if 'code' in cur_attr:
                     return cur_attr['code']
+            elif cur_attr['type'] == 'integer':
+                return str(cur_attr['code'])
 
             out_edges = self.get_out_edges(cur_node, edge_type = 'PARENT_OF')
             out_nodes = [edge[1] for edge in out_edges]
