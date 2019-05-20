@@ -178,6 +178,8 @@ def handle_node(G, node_id):
             # added new right obj, left should be assigned to the new one
             right_obj = right_added_obj
 
+        print right_added_obj, right_obj, right_attr['type'], '====================='
+
         if right_obj == None:
             print "Right OBJ not found"
             return None
@@ -342,7 +344,7 @@ def handle_node(G, node_id):
         G.add_edge(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
         modified_objs.add(added_obj)
 
-    elif cur_node_attr['type'] == 'integer':
+    elif cur_node_attr['type'] == 'integer' or cur_node_attr['type'] == 'string':
         added_obj = G.add_literal_obj()
         modified_objs.add(added_obj)
 

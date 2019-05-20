@@ -606,6 +606,7 @@ class Graph:
         we need to run the function after the define
         """
 
+        print "adding====================", func_name
         # add a function decl node first
         cur_id = self._get_new_nodeid()
         self.add_node(cur_id)
