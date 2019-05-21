@@ -116,7 +116,9 @@ def handle_node(G, node_id):
     """
     cur_node_attr = G.get_node_attr(node_id)
     cur_type = cur_node_attr['type']
-    print "HANDLE NODE: {} {} {}".format(node_id, cur_type, G.get_name_from_child(node_id))
+    if 'lineno:int' not in cur_node_attr:
+        cur_node_attr['lineno:int'] = '-1'
+    print "HANDLE NODE: {} {} {}, lineno: {}".format(node_id, cur_type, G.get_name_from_child(node_id), cur_node_attr['lineno:int'])
 
     added_obj = None
     added_scope = None
@@ -125,8 +127,7 @@ def handle_node(G, node_id):
     node_var_name = None
     var_name_node = None
     modified_objs = set()
-    [int(x[0]) for x in G.graph.edges()]
-    
+
     if cur_type == "AST_PARAM":
         node_name = G.get_name_from_child(node_id)
         # assume we only have on reaches edge to this node
@@ -166,6 +167,7 @@ def handle_node(G, node_id):
             print "RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right)
             return None
 
+        print handled_right
         [right_added_obj, right_added_scope, right_obj, right_scope, modified_objs, right_name, right_name_node] = handled_right
         [left_added_obj, left_added_scope, left_obj, left_scope, modified_objs, right_name, right_name_node] = handled_left
 
@@ -214,8 +216,13 @@ def handle_node(G, node_id):
         
         modified_objs.add(left_obj)
     
+    
     elif cur_node_attr['type'] == 'AST_ARRAY':
         added_obj = G.add_obj_node(node_id, "OBJ_DECL")
+
+    elif cur_node_attr['type'] == 'AST_DIM':
+        G.set_node_attr(node_id, ('type', 'AST_PROP'))
+        return handle_node(G, node_id)
 
 
     elif cur_node_attr['type'] == 'AST_VAR':
@@ -244,6 +251,8 @@ def handle_node(G, node_id):
         handled_parent = handle_node(G, parent)
 
         [parent_added_obj, parent_added_scope, parent_obj, parent_scope, modified_objs, parent_name, _] = handled_parent
+        if child_name == None:
+            child_name = 'undifined'
 
         # for newly added obj
         if parent_added_obj != None:
@@ -266,6 +275,7 @@ def handle_node(G, node_id):
             added_obj = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
             added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = child_obj)
 
+        now_obj = child_obj
         var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
         node_var_name = child_name
 
@@ -306,16 +316,34 @@ def handle_node(G, node_id):
         modified_objs.add(added_obj)
 
     elif cur_node_attr['type'] == 'AST_NEW':
+        # for now, only support ast call not method call
         added_obj = G.add_obj_to_scope(node_id, "TMPRIGHT", "OBJ")
         node_name = G.get_name_from_child(node_id)
         new_func_decl_id = G.get_func_declid_by_function_name(node_name)
         
+        new_entry_id = G.get_entryid_by_function_name(node_name)
+
+        if new_entry_id == None:
+            # we assume it's a built-in function
+            print "Built-in: Function {} not found".format(node_name)
+            name_node = G.get_scope_namenode_by_name(node_name)
+            cur_obj_node = G.get_obj_by_name(node_name)
+
+            # point the current varnode to the blank function
+            if new_func_decl_id != None:
+                G.graph.remove_edge(name_node, cur_obj_node)
+
+            new_func_decl_id = G.add_blank_func(node_name, scope = G.BASE_SCOPE)
+            [added_obj, _, _, _, _, _, _] = handle_node(G, new_func_decl_id)
+
+            G.add_edge(name_node, added_obj, {'type:TYPE': 'NAME_OBJ'})
+            G.add_edge(added_obj, new_func_decl_id, {'type:TYPE': 'OBJ_AST'})
+
+            new_entry_id = G.get_entryid_by_function_name(node_name)
+        
+
         # add edge between obj and obj decl
         G.add_edge(added_obj, new_func_decl_id, {"type:TYPE": "OBJ_DECL"})
-
-        new_entry_id = G.get_entryid_by_function_name(node_name)
-        if new_entry_id == None:
-            return "ERROR: Function {} not found".format(node_name)
 
         backup_scope = G.cur_scope
         backup_obj = G.cur_obj
@@ -335,7 +363,7 @@ def handle_node(G, node_id):
         G.add_edge(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
         modified_objs.add(added_obj)
 
-    elif cur_node_attr['type'] == 'integer':
+    elif cur_node_attr['type'] == 'integer' or cur_node_attr['type'] == 'string':
         added_obj = G.add_literal_obj()
         modified_objs.add(added_obj)
 
@@ -510,7 +538,6 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
 
     if func_name == None:
         func_name = G.find_name_of_call(node_id)
-
     if parent_obj == None:
         func_decl_id = G.get_func_declid_by_function_name(func_name)
     else:

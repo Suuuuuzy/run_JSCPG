@@ -104,7 +104,10 @@ class Graph:
                     cur_line.append(node[1][header])
                 else:
                     cur_line.append('')
-            fp.write('\t'.join(cur_line) + '\n')
+            try:
+                fp.write('\t'.join(cur_line) + '\n')
+            except:
+                print '==========================ERROR LINE: ', cur_line, '==================================='
         fp.close()
 
         headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
@@ -274,6 +277,8 @@ class Graph:
                     return cur_attr['name']
                 if 'code' in cur_attr:
                     return cur_attr['code']
+            elif cur_attr['type'] == 'integer':
+                return str(cur_attr['code'])
 
             out_edges = self.get_out_edges(cur_node, edge_type = 'PARENT_OF')
             out_nodes = [edge[1] for edge in out_edges]
@@ -454,7 +459,11 @@ class Graph:
             print 'FUNCTION {} not find'.format(function_name)
             return func_obj 
 
-        tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")[0]
+        tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")
+        if len(tmp_edge) == 0:
+            return None
+        else:
+            tmp_edge = tmp_edge[0]
         func_decl_ast = tmp_edge[1]
         return func_decl_ast
 
@@ -465,7 +474,11 @@ class Graph:
         func_decl_ast = self.get_func_declid_by_function_name(function_name, scope)
         if func_decl_ast == None:
             return None
-        tmp_edge = self.get_out_edges(func_decl_ast, data = True, keys = True, edge_type = "ENTRY")[0]
+        tmp_edge = self.get_out_edges(func_decl_ast, data = True, keys = True, edge_type = "ENTRY")
+        if len(tmp_edge) == 0:
+            return None
+        else:
+            tmp_edge = tmp_edge[0]
         return tmp_edge[1]
 
     def get_scope_by_ast_decl(self, func_id):
@@ -601,11 +614,12 @@ class Graph:
         we need to run the function after the define
         """
 
+        print "adding====================", func_name
         # add a function decl node first
         cur_id = self._get_new_nodeid()
         self.add_node(cur_id)
         self.set_node_attr(cur_id, ('funcid', cur_id))
-        self.set_node_attr(cur_id, ('type', "AST_FUNC_DECL"))
+        self.set_node_attr(cur_id, ('type', "AST_CLOSURE"))
         self.set_node_attr(cur_id, ('labels:label', 'Artificial_AST'))
 
         # add a node as the name of the function
