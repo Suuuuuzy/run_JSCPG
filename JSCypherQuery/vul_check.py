@@ -35,6 +35,6 @@ for path in res:
             res_set.add(str(res))
             if len(res) != 0:
                 print res
-                print path['rel']
+                #print path['rel']
                 for r in path['rel']:
                     print r
