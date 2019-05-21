@@ -459,7 +459,11 @@ class Graph:
             print 'FUNCTION {} not find'.format(function_name)
             return func_obj 
 
-        tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")[0]
+        tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")
+        if len(tmp_edge) == 0:
+            return None
+        else:
+            tmp_edge = tmp_edge[0]
         func_decl_ast = tmp_edge[1]
         return func_decl_ast
 
@@ -470,7 +474,11 @@ class Graph:
         func_decl_ast = self.get_func_declid_by_function_name(function_name, scope)
         if func_decl_ast == None:
             return None
-        tmp_edge = self.get_out_edges(func_decl_ast, data = True, keys = True, edge_type = "ENTRY")[0]
+        tmp_edge = self.get_out_edges(func_decl_ast, data = True, keys = True, edge_type = "ENTRY")
+        if len(tmp_edge) == 0:
+            return None
+        else:
+            tmp_edge = tmp_edge[0]
         return tmp_edge[1]
 
     def get_scope_by_ast_decl(self, func_id):
