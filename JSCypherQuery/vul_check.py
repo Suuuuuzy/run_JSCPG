@@ -21,8 +21,8 @@ def check_sub_src(node):
     query_str =""" 
     START root=node({})
     MATCH (root)-[:PARENT_OF*..4]->(a)
-    WHERE a.code="options"
-    return a""".format(node)
+    WHERE a.code=~".*{}.*"
+    return a""".format(node, "options")
     return js_database.run_query(query_str)
 
 res = check_os_command()
@@ -35,6 +35,6 @@ for path in res:
             res_set.add(str(res))
             if len(res) != 0:
                 print res
-                print path['rel']
+                #print path['rel']
                 for r in path['rel']:
                     print r

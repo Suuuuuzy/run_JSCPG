@@ -324,6 +324,8 @@ class Graph:
         if the scope is not specified, starts from the current scope
         we assume that one node only has one parent
         """
+        if var_name == 'this':
+            return self.cur_obj
         namenode = self.get_scope_namenode_by_name(var_name, scope)
         if namenode == None:
             return None
@@ -614,7 +616,6 @@ class Graph:
         we need to run the function after the define
         """
 
-        print "adding====================", func_name
         # add a function decl node first
         cur_id = self._get_new_nodeid()
         self.add_node(cur_id)
@@ -715,8 +716,6 @@ class Graph:
             for arg in args:
                 res += self.get_all_inputs(args[arg])
         elif node_type == 'AST_METHOD_CALL':
-            edges = self.get_in_edges('322', edge_type = 'LAST_MODIFIED')
-
             args = self.get_child_nodes(node_id)
             for arg in args:
                 cur_attr = self.get_node_attr(arg)
@@ -738,16 +737,26 @@ class Graph:
         res = set() 
         if node_type == 'AST_VAR':
             var_name = self.get_name_from_child(node_id)
-            res.add(self.get_obj_by_name(var_name))
+            if var_name == 'this':
+                res.add(self.cur_obj)
+            else:
+                res.add(self.get_obj_by_name(var_name))
         elif node_type == 'AST_PROP':
             [parent, child] = self.handle_property(node_id)
-            parent_name = self.get_name_from_child(parent)
             child_name = self.get_name_from_child(child)
+            parent_name = self.get_name_from_child(parent)
 
             parent_obj = self.get_obj_by_name(parent_name)
             child_obj = self.get_obj_by_obj_name(child_name, parent_obj = parent_obj)
             
             res.add(child_obj)
+            res.add(parent_obj)
+
+        elif node_type == 'AST_METHOD_CALL':
+            [parent, child] = self.handle_property(node_id)
+            parent_name = self.get_name_from_child(parent)
+            parent_obj = self.get_obj_by_name(parent_name)
+
             res.add(parent_obj)
 
         return res
