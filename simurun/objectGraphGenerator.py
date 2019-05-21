@@ -213,6 +213,10 @@ def handle_node(G, node_id):
             left_obj = G.get_obj_by_name(left_name)
         except:
             print "ERROR: left obj {} not found".format(left)
+
+        if left_obj == None:
+            # may be tricky, for left property
+            left_obj = right_obj
         
         modified_objs.add(left_obj)
     
@@ -274,7 +278,9 @@ def handle_node(G, node_id):
             # we assume the var is a method name
             added_obj = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
             added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = child_obj)
+            child_obj = added_obj
 
+        print parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '====================================='
         now_obj = child_obj
         var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
         node_var_name = child_name
@@ -574,7 +580,8 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     G.add_edge(added_obj, func_decl_id, {'type:TYPE': 'OBJ_DECL'})
 
     G.cur_scope = func_scope_id
-    G.cur_obj = added_obj
+    if parent_obj != None:
+        G.cur_obj = parent_obj 
 
     
     simurun_function(G, func_decl_id)

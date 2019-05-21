@@ -21,7 +21,7 @@ def check_sub_src(node):
     query_str =""" 
     START root=node({})
     MATCH (root)-[:PARENT_OF*..4]->(a)
-    WHERE a.code="options"
+    WHERE a.code=~".*argv.*"
     return a""".format(node)
     return js_database.run_query(query_str)
 
