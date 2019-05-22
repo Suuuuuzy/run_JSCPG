@@ -311,6 +311,7 @@ class Graph:
         get the sub obj of a parent obj based on the name
         """
         namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
+        print "getting {} from {}".format(var_name, parent_obj)
         if namenode == None:
             return None
         out_edges = list(self.get_out_edges(namenode))
@@ -524,7 +525,7 @@ class Graph:
         get a func scope by name, get func obj first, return the obj_scope node
         """
         obj_node_id = self.get_obj_by_name(func_name, scope = scope)
-        print obj_node_id, func_name
+        #print obj_node_id, func_name
         if obj_node_id == None:
             return None
         scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_SCOPE")

@@ -22,7 +22,7 @@ def check_sub_src(node):
     START root=node({})
     MATCH (root)-[:PARENT_OF*..4]->(a)
     WHERE a.code=~".*{}.*"
-    return a""".format(node, "options")
+    return a""".format(node, "argv")
     return js_database.run_query(query_str)
 
 res = check_os_command()

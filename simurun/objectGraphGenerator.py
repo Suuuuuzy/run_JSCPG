@@ -167,7 +167,7 @@ def handle_node(G, node_id):
             print "RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right)
             return None
 
-        print handled_right
+        #print handled_right
         [right_added_obj, right_added_scope, right_obj, right_scope, modified_objs, right_name, right_name_node] = handled_right
         [left_added_obj, left_added_scope, left_obj, left_scope, modified_objs, right_name, right_name_node] = handled_left
 
@@ -218,6 +218,7 @@ def handle_node(G, node_id):
             # may be tricky, for left property
             left_obj = right_obj
         
+        print "ASSIGNED {} to {}".format(left_obj, left_name) 
         modified_objs.add(left_obj)
     
     
@@ -280,7 +281,7 @@ def handle_node(G, node_id):
             added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = child_obj)
             child_obj = added_obj
 
-        print parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '====================================='
+#        print parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '====================================='
         now_obj = child_obj
         var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
         node_var_name = child_name
