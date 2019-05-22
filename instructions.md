@@ -39,3 +39,13 @@
 7, The source is "options", the line 25 of "vul_check" should be like
 	"return a""".format(node, "options")"
 8, Same as small demo
+
+================================================Show the graph===============================================
+We can show the graph by browser
+1, Open the URL: http://lab.songli.io:7474
+2, Input a command line to change the maxmium node value:
+	run ":config initialNodeDisplay: 3000"
+	ATTENTION: we need to run the command line only once
+3, Run the command line to show the nodes
+	run "match(n) return n;"
+
