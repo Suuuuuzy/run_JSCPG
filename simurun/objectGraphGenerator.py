@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from graph import Graph
 from scopeController import ScopeController
 
@@ -118,7 +119,7 @@ def handle_node(G, node_id):
     cur_type = cur_node_attr['type']
     if 'lineno:int' not in cur_node_attr:
         cur_node_attr['lineno:int'] = '-1'
-    print "HANDLE NODE: {} {} {}, lineno: {}".format(node_id, cur_type, G.get_name_from_child(node_id), cur_node_attr['lineno:int'])
+    print("HANDLE NODE: {} {} {}, lineno: {}".format(node_id, cur_type, G.get_name_from_child(node_id), cur_node_attr['lineno:int']))
 
     added_obj = None
     added_scope = None
@@ -164,10 +165,10 @@ def handle_node(G, node_id):
         handled_left = handle_node(G, left)
 
         if handled_right == None:
-            print "RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right)
+            print("RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right))
             return None
 
-        #print handled_right
+        # print(handled_right)
         [right_added_obj, right_added_scope, right_obj, right_scope, modified_objs, right_name, right_name_node] = handled_right
         [left_added_obj, left_added_scope, left_obj, left_scope, modified_objs, right_name, right_name_node] = handled_left
 
@@ -182,12 +183,12 @@ def handle_node(G, node_id):
             right_obj = right_added_obj
 
         if right_obj == None:
-            print "Right OBJ not found"
+            print("Right OBJ not found")
             return None
 
         if right_attr['type'] == 'AST_PROP':
             [child_added_obj, child_added_scope, child_obj, child_scope, _, child_name, child_name_node] = handled_right
-            #child_name = G.get_name_from_child(child_ast_id)
+            # child_name = G.get_name_from_child(child_ast_id)
             if child_added_obj != None:
                 child_obj = child_added_obj
             right_obj = child_obj
@@ -205,20 +206,20 @@ def handle_node(G, node_id):
             G.set_obj_by_scope_name(left_name, right_obj, scope = left_scope)
 
         if 'VAR_TYPE' not in right_attr:
-            print 'right var type not set'
+            print('right var type not set')
         else:
             right_vartype = right_attr['VAR_TYPE']
             G.set_node_attr(left, ("VAR_TYPE", right_vartype))
         try:
             left_obj = G.get_obj_by_name(left_name)
         except:
-            print "ERROR: left obj {} not found".format(left)
+            print("ERROR: left obj {} not found".format(left))
 
         if left_obj == None:
             # may be tricky, for left property
             left_obj = right_obj
         
-        print "ASSIGNED {} to {}".format(left_obj, left_name) 
+        print("ASSIGNED {} to {}".format(left_obj, left_name) )
         modified_objs.add(left_obj)
     
     
@@ -263,7 +264,7 @@ def handle_node(G, node_id):
         if parent_added_obj != None:
             parent_obj = parent_added_obj
         if parent_obj == None:
-            print "PARENT OBJ {} NOT DEFINED".format(parent_name)
+            print("PARENT OBJ {} NOT DEFINED".format(parent_name))
             # we assume this happens when it's a built-in var name
             parent_obj = G.add_obj_to_scope(node_id, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)
             modified_objs.add(parent_obj)
@@ -281,7 +282,7 @@ def handle_node(G, node_id):
             added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = child_obj)
             child_obj = added_obj
 
-#        print parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '====================================='
+#        print(parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '=====================================')
         now_obj = child_obj
         var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
         node_var_name = child_name
@@ -332,7 +333,7 @@ def handle_node(G, node_id):
 
         if new_entry_id == None:
             # we assume it's a built-in function
-            print "Built-in: Function {} not found".format(node_name)
+            print("Built-in: Function {} not found".format(node_name))
             name_node = G.get_scope_namenode_by_name(node_name)
             cur_obj_node = G.get_obj_by_name(node_name)
 
@@ -388,7 +389,7 @@ def handle_node(G, node_id):
         if parent_added_obj != None:
             parent_obj = parent_added_obj
         if parent_obj == None:
-            print "PARENT OBJ {} NOT DEFINED".format(parent_name)
+            print("PARENT OBJ {} NOT DEFINED".format(parent_name))
             # we assume this happens when it's a built-in var name
             parent_obj = G.add_obj_to_scope(node_id, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)
             modified_objs.add(parent_obj)
@@ -419,7 +420,7 @@ def handle_node(G, node_id):
 
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
-        #func_decl_id = cur_node_attr['HAVE_FUNC']
+        # func_decl_id = cur_node_attr['HAVE_FUNC']
         for func_decl_id in registered_func[node_id]:
             handle_node(G, func_decl_id)
     
@@ -434,7 +435,7 @@ def simurun_function(G, func_decl_id):
     """
     bfs run a simurun from a entry id
     """
-    print "FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj)
+    print("FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj))
     bfs_queue = []
     visited = set()
     # we start from the entry id
@@ -449,11 +450,11 @@ def simurun_function(G, func_decl_id):
         else:
             visited.add(cur_node)
 
-        #print "BFS NODE {}".format(cur_node)
+        # print("BFS NODE {}".format(cur_node))
         handled_res = handle_node(G, cur_node)
         if handled_res != None and len(handled_res) == 7:
             modified_objs = handled_res[4]
-            #print "BUILDING NODE {} {}".format(cur_node, modified_objs)
+            # print("BUILDING NODE {} {}".format(cur_node, modified_objs))
             build_df(G, cur_node, modified_objs)
 
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
@@ -476,12 +477,12 @@ def generate_obj_graph(G, entry_nodeid):
         G.set_node_attr(node[0], ("VAR_TYPE", "OBJECT"))
 
     G.setup_run(entry_nodeid)
-    print "RUN: ", entry_nodeid
+    print("RUN: ", entry_nodeid)
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
         register_func(G, node[0])
     handle_node(G, entry_nodeid)
-    #simurun_function(G, entry_nodeid)
+    # simurun_function(G, entry_nodeid)
 
 def decl_function(G, node_id, func_name = None, parent_scope = None):
     """
@@ -619,7 +620,7 @@ def build_df(G, node_id, modified_objs):
         # we assume we only have one last modified edge
         # TODO: name error, should be parent or child name
         for edge in edges:
-            print "OBJ REACHES {} {}".format(edge[0], node_id)
+            print("OBJ REACHES {} {}".format(edge[0], node_id))
             G.add_edge(edge[0], node_id, {'type:TYPE': 'OBJ_REACHES', 'var': cur_obj})
 
     if modified_objs != None:
@@ -630,5 +631,5 @@ G.import_from_CSV("./nodes.csv", "./rels.csv")
 scopeContorller = ScopeController(G)
 generate_obj_graph(G, '1')
 add_edges_between_funcs(G)
-#G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
+# G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
 G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
