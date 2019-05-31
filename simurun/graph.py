@@ -1,4 +1,6 @@
 import networkx as nx
+import sys
+import sty
 
 class Graph:
 
@@ -81,7 +83,7 @@ class Graph:
                         attrs[headers[idx]] = cur_vals[idx]
                 edge_list.append((cur_start_id, cur_end_id, attrs))
             self.add_edges_from_list(edge_list)
-        print("Finished Importing")
+        print(sty.fg.black + sty.bg.white + "Finished Importing" + sty.rs.all)
 
     def export_to_CSV(self, nodes_file_name, rels_file_name, light = False):
         """
@@ -107,7 +109,7 @@ class Graph:
             try:
                 fp.write('\t'.join(cur_line) + '\n')
             except:
-                print('==========================ERROR LINE: ', cur_line, '===================================')
+                print(sty.fg.red + '==========================ERROR LINE: ', cur_line, '===================================', file=sys.stderr)
         fp.close()
 
         headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
@@ -139,7 +141,7 @@ class Graph:
 
         
 
-        print("Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name))
+        print(sty.fg.black + sty.bg.white + "Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name) + sty.rs.all)
 
     def add_node(self, node_for_adding):
         self.graph.add_node(node_for_adding)
@@ -459,7 +461,7 @@ class Graph:
 
         func_obj = self.get_obj_by_name(function_name, scope = scope)
         if func_obj == None:
-            print('FUNCTION {} not find'.format(function_name))
+            print(sty.ef.b + sty.fg.yellow + 'FUNCTION {} NOT FOUND'.format(function_name) + sty.rs.all)
             return func_obj 
 
         tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")
@@ -525,7 +527,7 @@ class Graph:
         get a func scope by name, get func obj first, return the obj_scope node
         """
         obj_node_id = self.get_obj_by_name(func_name, scope = scope)
-        #print(obj_node_id, func_name)
+        # print(obj_node_id, func_name)
         if obj_node_id == None:
             return None
         scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_SCOPE")
@@ -604,7 +606,7 @@ class Graph:
 
         func_obj = self.get_obj_by_obj_name(function_name, parent_obj = parent_obj)
         if func_obj == None:
-            print('FUNCTION {} not find'.format(function_name))
+            print(sty.ef.b + sty.fg.yellow + 'FUNCTION {} NOT FOUND'.format(function_name) + sty.rs.all)
             return func_obj 
         tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_AST")[0]
         func_decl_ast = tmp_edge[1]
