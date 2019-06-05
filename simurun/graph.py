@@ -352,7 +352,7 @@ class Graph:
             return None
         return out_edges[0][1]
 
-    def get_multi_obj_by_name(self, var_name, scope = None):
+    def get_multi_objs_by_name(self, var_name, scope = None):
         """
         Multiple possibility version of get_obj_by_name
         Returns an array with multiple objects
@@ -361,7 +361,7 @@ class Graph:
             return [self.cur_obj]
         namenode = self.get_scope_namenode_by_name(var_name, scope)
         if namenode == None:
-            return None
+            return []
         out_edges = list(self.get_out_edges(namenode))
         # if not out_edges:
         #     return None
@@ -450,7 +450,7 @@ class Graph:
         self.add_edge(new_node_id, obj_node_id, {"type:TYPE": "NAME_OBJ"})
         return obj_node_id
 
-    def set_obj_by_scope_name(self, var_name, obj_id, scope = None):
+    def set_obj_by_scope_name(self, var_name, obj_id, scope = None, multi = False):
         """
         set a var name point to a obj id in a scope
         if the var name never appeared, add to the current scope
@@ -464,11 +464,12 @@ class Graph:
             self.add_namenode_to_scope(var_name, scope = scope)
 
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
-        pre_obj_id = self.get_obj_by_name(var_name, scope = scope)
+        pre_objs = self.get_multi_objs_by_name(var_name, scope = scope)
         self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_OBJ"})
-        if pre_obj_id != None:
+        if pre_objs and not multi:
             print("remove pre", var_name)
-            self.graph.remove_edge(cur_namenode, pre_obj_id)
+            for obj in pre_objs:
+                self.graph.remove_edge(cur_namenode, obj)
 
     def get_node_by_attr(self, key, value):
         """

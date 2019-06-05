@@ -133,7 +133,7 @@ def handle_node(G, node_id, extra = None):
 
     added_obj = None
     added_scope = None
-    now_obj = None
+    now_objs = []
     now_scope = None
     node_var_name = None
     var_name_node = None
@@ -145,15 +145,16 @@ def handle_node(G, node_id, extra = None):
         now_edge = G.get_in_edges(node_id, edge_type = "REACHES")
         if len(now_edge) != 0:
             from_node = now_edge[0][0]
-            now_obj = G.get_obj_by_node_id(from_node)
-            G.set_obj_by_scope_name(node_name, now_obj)
+            now_objs = G.get_multi_objs_by_name(from_node)
+            for obj in now_objs:
+                G.set_obj_by_scope_name(node_name, now_objs)
         
-        if now_obj == None:
+        if not now_objs:
             # for now, just add a new obj.
             added_obj = G.add_obj_to_scope(node_id, node_name, "PARAM_OBJ")
-            now_obj = added_obj
+            now_objs = [added_obj]
 
-        modified_objs.add(now_obj)
+        modified_objs.union(now_objs)
 
     elif cur_type == "AST_ASSIGN":
         # for assign operation, the right part is childnum 1, the left part is childnum 0
@@ -179,8 +180,8 @@ def handle_node(G, node_id, extra = None):
             return None
 
         # print(handled_right)
-        [right_added_obj, right_added_scope, right_obj, right_scope, modified_objs, right_name, right_name_node] = handled_right
-        [left_added_obj, left_added_scope, left_obj, left_scope, modified_objs, right_name, right_name_node] = handled_left
+        [right_added_obj, right_added_scope, right_objs, right_scope, modified_objs, right_name, right_name_node] = handled_right
+        [left_added_obj, left_added_scope, left_objs, left_scope, modified_objs, right_name, right_name_node] = handled_left
 
 
         left_attr = G.get_node_attr(left)
@@ -190,30 +191,35 @@ def handle_node(G, node_id, extra = None):
 
         if right_added_obj != None:
             # added new right obj, left should be assigned to the new one
-            right_obj = right_added_obj
+            right_objs = [right_added_obj]
 
-        if right_obj == None:
+        if not right_objs:
             print(sty.fg.red + "Right OBJ not found" + sty.rs.all, file=sys.stderr)
             return None
 
         if right_attr['type'] == 'AST_PROP':
-            [child_added_obj, child_added_scope, child_obj, child_scope, _, child_name, child_name_node] = handled_right
+            [child_added_obj, child_added_scope, child_objs, child_scope, _, child_name, child_name_node] = handled_right
             # child_name = G.get_name_from_child(child_ast_id)
             if child_added_obj != None:
-                child_obj = child_added_obj
-            right_obj = child_obj
+                child_objs = child_added_obj
+            right_objs = child_objs
 
 
         if left_attr['type'] == 'AST_PROP':
             # for property, find the scope, point the name
-            [child_added_obj, child_added_scope, child_obj, child_scope, _, child_name, child_name_node] = handled_left
+            [child_added_obj, child_added_scope, child_objs, child_scope, _, child_name, child_name_node] = handled_left
             # get the current obj of this name node
             cur_child_edge = G.get_out_edges(child_name_node, edge_type = "NAME_OBJ")
             if cur_child_edge != None:
                 G.graph.remove_edge(child_name_node, cur_child_edge[0][1])
-            G.add_edge(child_name_node, right_obj, {"type:TYPE": "NAME_OBJ"})
+            for obj in right_objs:
+                G.add_edge(child_name_node, obj, {"type:TYPE": "NAME_OBJ"})
         else:
-            G.set_obj_by_scope_name(left_name, right_obj, scope = left_scope)
+            flag = False
+            for obj in right_objs:
+                G.set_obj_by_scope_name(left_name, obj, scope = left_scope, multi = flag)
+                if flag == False:
+                    flag = True
 
         if 'VAR_TYPE' not in right_attr:
             print('right var type not set')
@@ -221,16 +227,16 @@ def handle_node(G, node_id, extra = None):
             right_vartype = right_attr['VAR_TYPE']
             G.set_node_attr(left, ("VAR_TYPE", right_vartype))
         try:
-            left_obj = G.get_obj_by_name(left_name)
+            left_objs = G.get_multi_objs_by_name(left_name)
         except:
             print(sty.fg.red + "ERROR: left obj {} not found".format(left) + sty.rs.all, file=sys.stderr)
 
-        if left_obj == None:
+        if not left_objs:
             # may be tricky, for left property
-            left_obj = right_obj
+            left_objs = right_objs
         
-        print(sty.ef.b + sty.fg.green + "ASSIGNED" + sty.rs.all + " {}: {}: {} -> {}".format(right_name, right_obj, G.get_node_attr(right_obj), left_name) )
-        modified_objs.add(left_obj)
+        print(sty.ef.b + sty.fg.green + "ASSIGNED" + sty.rs.all + " {}: {} -> {}".format(right_name, [(int(obj), G.get_node_attr(obj)) for obj in right_objs], left_name))
+        modified_objs.union(left_objs)
     
     
     elif cur_node_attr['type'] == 'AST_ARRAY':
@@ -264,14 +270,21 @@ def handle_node(G, node_id, extra = None):
         # for var variables, we return it's obj, scope
         var_name = G.get_name_from_child(node_id)
 
-        now_obj = G.get_obj_by_name(var_name)
+        now_objs = G.get_multi_objs_by_name(var_name)
 
         # this is not added before, add an object and return
         # for now, we think let is equals to var.
         # TODO: limit the scope of let and handle const
-        if now_obj == None and "flags:string[]" in cur_node_attr and (cur_node_attr['flags:string[]'] == "JS_DECL_VAR" or cur_node_attr['flags:string[]'] == 'JS_DECL_LET'):
+        # like 'let', 'const' is also block-scoped.
+        # TODO: add block scopes
+        if now_objs or ("flags:string[]" in cur_node_attr and cur_node_attr['flags:string[]'] in ["JS_DECL_VAR", 'JS_DECL_LET', 'JS_DECL_CONST']):
+            # if the variable is defined in current scope or parent scopes,
+            # or undefined but has 'var', 'let' or 'const',
+            # we use the current scope
             now_scope = G.cur_scope
         else:
+            # only if the variable is not defined and doesn't have 'var', 'let' or 'const',
+            # we define it in the global scope
             now_scope = G.BASE_SCOPE
         node_var_name = var_name
 
@@ -284,7 +297,8 @@ def handle_node(G, node_id, extra = None):
         # get the next level of parent
         handled_parent = handle_node(G, parent)
 
-        [parent_added_obj, parent_added_scope, parent_obj, parent_scope, modified_objs, parent_name, _] = handled_parent
+        [parent_added_obj, parent_added_scope, parent_objs, parent_scope, modified_objs, parent_name, _] = handled_parent
+        parent_obj = parent_objs.pop() if parent_objs else None # TODO: temporary workaround
         if child_name == None:
             child_name = 'undefined'
 
@@ -312,7 +326,7 @@ def handle_node(G, node_id, extra = None):
                 child_obj = added_obj
 
             # print(parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '=====================================')
-            now_obj = child_obj
+            now_objs = [child_obj]
             var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
             node_var_name = child_name
 
@@ -347,7 +361,7 @@ def handle_node(G, node_id, extra = None):
             if or_obj == None:
                 added_obj = G.add_literal_obj()
             else:
-                now_obj = or_obj
+                now_objs = [or_obj]
         else:
             added_obj = G.add_literal_obj()
         modified_objs.add(added_obj)
@@ -413,7 +427,9 @@ def handle_node(G, node_id, extra = None):
         # get the next level of parent
         handled_parent = handle_node(G, parent)
 
-        [parent_added_obj, parent_added_scope, parent_obj, parent_scope, modified_objs, parent_name, _] = handled_parent
+        [parent_added_obj, parent_added_scope, parent_objs, parent_scope, modified_objs, parent_name, _] = handled_parent
+        parent_obj = parent_objs.pop() if parent_objs else None # TODO: temporary workaround
+
         # for newly added obj
         if parent_added_obj != None:
             parent_obj = parent_added_obj
@@ -442,8 +458,8 @@ def handle_node(G, node_id, extra = None):
         modified_objs.add(parent_obj)
         _, added_scope, returned_objs, func_modified_objs = ast_call_function(G, node_id, func_name = child_name, parent_obj = parent_obj)
         if returned_objs:
-            now_obj = returned_objs.pop()
-            print(sty.fg.green + 'method call return value ' + sty.rs.all + '{}: {}'.format(now_obj, G.get_node_attr(now_obj)))
+            now_objs = list(returned_objs)
+            print(sty.fg.green + 'method call return value ' + sty.rs.all + ', '.join(['{}: {}'.format(obj, G.get_node_attr(obj)) for obj in returned_objs]))
         if func_modified_objs:
             modified_objs.union(func_modified_objs)
 
@@ -451,8 +467,8 @@ def handle_node(G, node_id, extra = None):
     elif cur_node_attr['type'] == 'AST_CALL':
         _, added_scope, returned_objs, func_modified_objs = ast_call_function(G, node_id)
         if returned_objs:
-            now_obj = returned_objs.pop()
-            print(sty.fg.green + 'function call return value ' + sty.rs.all + '{}: {}'.format(now_obj, G.get_node_attr(now_obj)))
+            now_objs = returned_objs
+            print(sty.fg.green + 'function call return value ' + sty.rs.all + ', '.join(['{}: {}'.format(obj, G.get_node_attr(obj)) for obj in returned_objs]))
         modified_objs.add(added_obj)
         if func_modified_objs:
             modified_objs.union(func_modified_objs)
@@ -460,8 +476,8 @@ def handle_node(G, node_id, extra = None):
     elif cur_node_attr['type'] == 'AST_RETURN':
         ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
         returned_var = ast_edges[0][1]
-        var_name = G.get_name_from_child(node_id)
-        now_obj = G.get_obj_by_name(var_name)
+        var_name = G.get_name_from_child(returned_var)
+        now_objs = G.get_multi_objs_by_name(var_name)
         now_scope = G.cur_scope
         node_var_name = var_name
 
@@ -476,7 +492,7 @@ def handle_node(G, node_id, extra = None):
     G.remove_nodes_from(remove_list)
     G.set_node_attr(node_id, ("VISITED", "1"))
 
-    return [added_obj, added_scope, now_obj, now_scope, modified_objs, node_var_name, var_name_node]
+    return [added_obj, added_scope, now_objs, now_scope, modified_objs, node_var_name, var_name_node]
 
 def simurun_function(G, func_decl_id):
     """
@@ -507,8 +523,8 @@ def simurun_function(G, func_decl_id):
             build_df(G, cur_node, modified_objs)
 
         if G.get_node_attr(cur_node)['type'] == 'AST_RETURN':
-            _, _, returned_obj, _, stmt_modified_objs, _, _ = handled_res
-            returned_objs.add(returned_obj)
+            _, _, stmt_returned_objs, _, stmt_modified_objs, _, _ = handled_res
+            returned_objs.union(stmt_returned_objs)
             modified_objs.union(stmt_modified_objs)
 
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
