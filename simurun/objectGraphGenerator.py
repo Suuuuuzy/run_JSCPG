@@ -70,6 +70,7 @@ def add_edges_between_funcs(G):
         CPG_caller_id = G.find_nearest_upper_CPG_node(caller_id)
         entry_edge = G.get_out_edges(callee_id, data = True, edge_type = 'ENTRY')[0]
         # add CFG edge to ENTRY
+        print(sty.fg.black + sty.bg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, entry_edge[1]))
         added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
 
         # add DF edge to PARAM
@@ -77,13 +78,14 @@ def add_edges_between_funcs(G):
         caller_para_names = get_argnames_from_funcaller(caller_id)
         callee_paras = get_argids_from_funcallee(callee_id)
         for idx in range(min(len(callee_paras), len(caller_para_names))):
+            print(sty.fg.black + sty.bg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, callee_paras[idx]))
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
 
         for child in G.get_child_nodes(callee_id, 'PARENT_OF'):
             if G.get_node_attr(child)['type'] == 'AST_STMT_LIST':
                 for stmt in G.get_child_nodes(child, 'PARENT_OF'):
                     if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
-                        print(sty.fg.black + sty.bg.li_magenta + 'Add return value data flow' + sty.rs.all + ' from {} to {}'.format(stmt, CPG_caller_id) + sty.rs.all)
+                        print(sty.fg.black + sty.bg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {}'.format(stmt, CPG_caller_id))
                         added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
 
     G.add_edges_from_list(added_edge_list)

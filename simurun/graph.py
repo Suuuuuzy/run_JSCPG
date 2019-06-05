@@ -548,8 +548,7 @@ class Graph:
         return [parent, child]
         currently we only support one level property
         """
-        childnum_dict = self._get_childern_by_childnum(node_id)
-        return [childnum_dict['0'], childnum_dict['1']]
+        return self.get_ordered_ast_child_nodes(node_id)
 
     def handle_method_call(self, node_id):
         """
