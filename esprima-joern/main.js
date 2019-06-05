@@ -1266,10 +1266,10 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             if (outputStyle == 'php') {
                 nodeIdCounter++;
                 relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                dfs(currentNode.value, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, null);
+                dfs(currentNode.value, nodeIdCounter, currentId, 0, currentFunctionId, null);
                 nodeIdCounter++;
                 relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                dfs(currentNode.key, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, {
+                dfs(currentNode.key, nodeIdCounter, currentId, 1, currentFunctionId, {
                     doNotUseVar: true
                 });
                 nodes[currentId] = {

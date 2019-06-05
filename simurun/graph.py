@@ -40,13 +40,15 @@ class Graph:
 
         return cur_nodeid
 
-    def add_literal_obj(self):
+    def add_literal_obj(self, ast_node = None):
         """
         add a literal object
         """
         node_id = self._get_new_nodeid()
         self.add_node(node_id)
         self.set_node_attr(node_id, ('type', 'LITERAL'))
+        if ast_node:
+            self.add_edge(node_id, ast_node, {"type:TYPE": "OBJ_AST"})
         return node_id
 
     def import_from_CSV(self, nodes_file_name, rels_file_name):
@@ -172,6 +174,19 @@ class Graph:
         attr is like {key: value, key: value}
         """
         self.graph.add_edges_from([(from_ID, to_ID, attr)])
+    
+    def add_edge_if_not_exist(self, from_ID, to_ID, attr):
+        """
+        insert an edge to the graph if the graph does not already has the same edge
+        """
+        if not self.graph.has_edge(from_ID, to_ID):
+            self.add_edge(from_ID, to_ID, attr)
+        else:
+            for key, edge_attr in self.graph[from_ID][to_ID].items():
+                if edge_attr == attr:
+                    print(sty.fg.red + "Edge {}->{} exists: {}, {}. Duplicate edge will not be created.".format(from_ID,to_ID,key,edge_attr) + sty.rs.all)
+                    return
+            self.add_edge(from_ID, to_ID, attr)
 
     def set_edge_attr(self, from_ID, to_ID, edge_id, attr):
         self.graph[from_ID][to_ID][attr[0]][edge_id] = attr[1]
@@ -336,6 +351,21 @@ class Graph:
         if len(out_edges) == 0:
             return None
         return out_edges[0][1]
+
+    def get_multi_obj_by_name(self, var_name, scope = None):
+        """
+        Multiple possibility version of get_obj_by_name
+        Returns an array with multiple objects
+        """
+        if var_name == 'this':
+            return [self.cur_obj]
+        namenode = self.get_scope_namenode_by_name(var_name, scope)
+        if namenode == None:
+            return None
+        out_edges = list(self.get_out_edges(namenode))
+        # if not out_edges:
+        #     return None
+        return [edge[1] for edge in out_edges]
     
     def add_namenode_to_scope(self, name, scope = None):
         """
@@ -503,6 +533,14 @@ class Graph:
             node_attr = self.get_node_attr(edge[1])
             res[node_attr['childnum:int']] = edge[1]
         return res
+
+    def get_ordered_ast_child_nodes(self, node_id):
+        """
+        return AST children of a node in childnum order
+        """
+        children = sorted(self._get_childern_by_childnum(node_id).items(), key=lambda x: x[0])
+        children = list(zip(*children))[1]
+        return children
 
     def handle_property(self, node_id):
         """
@@ -768,7 +806,7 @@ class Graph:
         """
         update the modified objs and link with node id
         """
-        
+        if not modified_objs: return
         for cur_obj in modified_objs:
             if cur_obj == None:
                 continue

@@ -79,6 +79,13 @@ def add_edges_between_funcs(G):
         for idx in range(min(len(callee_paras), len(caller_para_names))):
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
 
+        for child in G.get_child_nodes(callee_id, 'PARENT_OF'):
+            if G.get_node_attr(child)['type'] == 'AST_STMT_LIST':
+                for stmt in G.get_child_nodes(child, 'PARENT_OF'):
+                    if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
+                        print(sty.fg.black + sty.bg.li_magenta + 'Add return value data flow' + sty.rs.all + ' from {} to {}'.format(stmt, CPG_caller_id) + sty.rs.all)
+                        added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
+
     G.add_edges_from_list(added_edge_list)
 
 def register_func(G, node_id):
@@ -86,7 +93,6 @@ def register_func(G, node_id):
     input a func_decl id, register it to the nearest parent who has CFG
     """
     # we assume that function decl should have a CF parent
-    cur_id = node_id
     bfs_queue = []
     visited = set()
     bfs_queue.append(node_id)
@@ -112,7 +118,7 @@ def register_func(G, node_id):
 
         bfs_queue += out_nodes
 
-def handle_node(G, node_id):
+def handle_node(G, node_id, extra = None):
     """
     for different node type, do different actions to handle this node
     return [added_obj, added_scope, cur_obj, cur_scope, modified_objs, var_name, var_name_node]
@@ -120,7 +126,7 @@ def handle_node(G, node_id):
     cur_node_attr = G.get_node_attr(node_id)
     cur_type = cur_node_attr['type']
     if 'lineno:int' not in cur_node_attr:
-        cur_node_attr['lineno:int'] = '-1'
+        cur_node_attr['lineno:int'] = ''
     print(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id}: {sty.fg.li_white}{sty.bg.li_black}{cur_type}{sty.rs.all} {G.get_name_from_child(node_id)}, lineno: {cur_node_attr['lineno:int']}")
 
     added_obj = None
@@ -163,8 +169,8 @@ def handle_node(G, node_id):
             right = ast_edges[1][1]
             left = ast_edges[0][1]
 
-        handled_right = handle_node(G, right)
-        handled_left = handle_node(G, left)
+        handled_right = handle_node(G, right, {"side": "right"})
+        handled_left = handle_node(G, left, {"side": "left"})
 
         if handled_right == None:
             print(sty.fg.red + "RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right) + sty.rs.all, file=sys.stderr)
@@ -221,12 +227,30 @@ def handle_node(G, node_id):
             # may be tricky, for left property
             left_obj = right_obj
         
-        print(sty.ef.b + sty.fg.green + "ASSIGNED" + sty.rs.all + " {} -> {}".format(left_obj, left_name) )
+        print(sty.ef.b + sty.fg.green + "ASSIGNED" + sty.rs.all + " {}: {}: {} -> {}".format(right_name, right_obj, G.get_node_attr(right_obj), left_name) )
         modified_objs.add(left_obj)
     
     
     elif cur_node_attr['type'] == 'AST_ARRAY':
         added_obj = G.add_obj_node(node_id, "OBJ_DECL")
+        # added_obj = G.add_obj_to_scope(node_id, "LITERAL", "OBJ_DECL")
+
+        ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
+        for edge in ast_edges:
+            child = edge[1]
+            handle_node(G, child, {"parent_obj": added_obj})
+
+
+    elif cur_node_attr['type'] == 'AST_ARRAY_ELEM':
+        if not (extra and 'parent_obj' in extra):
+            print(sty.fg.black + sty.bg.red + "AST_ARRAY_ELEM occurs outside AST_ARRAY" + sty.rs.all, file=sys.stderr)
+        else:
+            key_node, value_node = G.get_ordered_ast_child_nodes(node_id)
+            key = G.get_name_from_child(key_node)
+            if not key: key = '*' # add wildcard for future use
+            child_added_obj, _, _, _, _, _, _ = handle_node(G, value_node)
+            added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', key, parent_obj = extra['parent_obj'], tobe_added_obj = child_added_obj)
+
 
     elif cur_node_attr['type'] == 'AST_DIM':
         G.set_node_attr(node_id, ('type', 'AST_PROP'))
@@ -260,12 +284,12 @@ def handle_node(G, node_id):
 
         [parent_added_obj, parent_added_scope, parent_obj, parent_scope, modified_objs, parent_name, _] = handled_parent
         if child_name == None:
-            child_name = 'undifined'
+            child_name = 'undefined'
 
         # for newly added obj
         if parent_added_obj != None:
             parent_obj = parent_added_obj
-        if parent_obj == None:
+        if parent_obj == None and not (extra and extra['side'] == 'right'):
             print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED".format(parent_name) + sty.rs.all)
             # we assume this happens when it's a built-in var name
             parent_obj = G.add_obj_to_scope(node_id, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)
@@ -274,20 +298,21 @@ def handle_node(G, node_id):
             parent_obj = G.cur_obj
             parent_scope = G.cur_scope
 
-        child_obj = G.get_obj_by_obj_name(child_name, parent_obj = parent_obj)
-        if child_obj == None:
-            # assume the ast node is the root node
-            # added_obj = G.add_obj_to_obj(node_id, "OBJ", child_name, parent_obj = parent_obj)
-            # TODO: get the type by running a testing nodejs
-            # we assume the var is a method name
-            added_obj = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
-            added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = child_obj)
-            child_obj = added_obj
+        if parent_obj != None:
+            child_obj = G.get_obj_by_obj_name(child_name, parent_obj = parent_obj)
+            if child_obj == None and not (extra and extra['side'] == 'right'):
+                # assume the ast node is the root node
+                # added_obj = G.add_obj_to_obj(node_id, "OBJ", child_name, parent_obj = parent_obj)
+                # TODO: get the type by running a testing nodejs
+                # we assume the var is a method name
+                added_obj = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
+                added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = child_obj)
+                child_obj = added_obj
 
-#        print(parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '=====================================')
-        now_obj = child_obj
-        var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
-        node_var_name = child_name
+            # print(parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '=====================================')
+            now_obj = child_obj
+            var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
+            node_var_name = child_name
 
     elif cur_node_attr['type'] == 'AST_CLOSURE':
         # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
@@ -351,7 +376,6 @@ def handle_node(G, node_id):
 
             new_entry_id = G.get_entryid_by_function_name(node_name)
         
-
         # add edge between obj and obj decl
         G.add_edge(added_obj, new_func_decl_id, {"type:TYPE": "OBJ_DECL"})
 
@@ -370,11 +394,12 @@ def handle_node(G, node_id):
         G.cur_obj = backup_obj
 
         # finally add call edge from caller to callee
-        G.add_edge(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
+        G.add_edge_if_not_exist(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
         modified_objs.add(added_obj)
 
     elif cur_node_attr['type'] == 'integer' or cur_node_attr['type'] == 'string':
-        added_obj = G.add_literal_obj()
+        added_obj = G.add_literal_obj(node_id)
+        G.set_node_attr(added_obj, ('code', G.get_name_from_child(node_id)))
         modified_objs.add(added_obj)
 
 
@@ -413,12 +438,30 @@ def handle_node(G, node_id):
         func_obj = parent_obj
         # assume the method call will modify the parent object
         modified_objs.add(parent_obj)
-        [added_obj, added_scope] = ast_call_function(G, node_id, func_name = child_name, parent_obj = parent_obj)
+        _, added_scope, returned_objs, func_modified_objs = ast_call_function(G, node_id, func_name = child_name, parent_obj = parent_obj)
+        if returned_objs:
+            now_obj = returned_objs.pop()
+            print(sty.fg.green + 'method call return value ' + sty.rs.all + '{}: {}'.format(now_obj, G.get_node_attr(now_obj)))
+        if func_modified_objs:
+            modified_objs.union(func_modified_objs)
 
 
     elif cur_node_attr['type'] == 'AST_CALL':
-        [added_obj, added_scope] = ast_call_function(G, node_id)
+        _, added_scope, returned_objs, func_modified_objs = ast_call_function(G, node_id)
+        if returned_objs:
+            now_obj = returned_objs.pop()
+            print(sty.fg.green + 'function call return value ' + sty.rs.all + '{}: {}'.format(now_obj, G.get_node_attr(now_obj)))
         modified_objs.add(added_obj)
+        if func_modified_objs:
+            modified_objs.union(func_modified_objs)
+
+    elif cur_node_attr['type'] == 'AST_RETURN':
+        ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
+        returned_var = ast_edges[0][1]
+        var_name = G.get_name_from_child(node_id)
+        now_obj = G.get_obj_by_name(var_name)
+        now_scope = G.cur_scope
+        node_var_name = var_name
 
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
@@ -440,6 +483,8 @@ def simurun_function(G, func_decl_id):
     print(sty.fg.black + sty.bg.green + "FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj) + sty.rs.all)
     bfs_queue = []
     visited = set()
+    returned_objs = set()
+    modified_objs = set()
     # we start from the entry id
     entry_id = G.get_out_edges(func_decl_id, edge_type = "ENTRY")[0][1]
     bfs_queue.append(entry_id)
@@ -459,11 +504,18 @@ def simurun_function(G, func_decl_id):
             # print("BUILDING NODE {} {}".format(cur_node, modified_objs))
             build_df(G, cur_node, modified_objs)
 
+        if G.get_node_attr(cur_node)['type'] == 'AST_RETURN':
+            _, _, returned_obj, _, stmt_modified_objs, _, _ = handled_res
+            returned_objs.add(returned_obj)
+            modified_objs.union(stmt_modified_objs)
+
         out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'FLOWS_TO')
         if len(out_edges) == 0:
             out_edges = G.get_out_edges(cur_node, data = True, keys = True, edge_type = 'ENTRY')
         out_nodes = [edge[1] for edge in out_edges]
         bfs_queue += out_nodes
+
+    return returned_objs, modified_objs
 
 def generate_obj_graph(G, entry_nodeid):
     """
@@ -587,8 +639,8 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     if parent_obj != None:
         G.cur_obj = parent_obj 
 
-    
-    simurun_function(G, func_decl_id)
+
+    returned_objs, modified_objs = simurun_function(G, func_decl_id)
 
     # add obj to scope edge
     if G.cur_scope == None:
@@ -598,9 +650,9 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     G.cur_obj = backup_obj
 
     # add call edge
-    G.add_edge(node_id, func_decl_id, {"type:TYPE": "CALLS"})
+    G.add_edge_if_not_exist(node_id, func_decl_id, {"type:TYPE": "CALLS"})
 
-    return [added_obj, None]
+    return [added_obj, None, returned_objs, modified_objs]
 
 def build_df(G, node_id, modified_objs):
     """
