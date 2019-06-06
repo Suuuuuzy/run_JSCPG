@@ -85,7 +85,7 @@ class Graph:
                         attrs[headers[idx]] = cur_vals[idx]
                 edge_list.append((cur_start_id, cur_end_id, attrs))
             self.add_edges_from_list(edge_list)
-        print(sty.fg.black + sty.bg.white + "Finished Importing" + sty.rs.all)
+        print(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
 
     def export_to_CSV(self, nodes_file_name, rels_file_name, light = False):
         """
@@ -143,7 +143,7 @@ class Graph:
 
         
 
-        print(sty.fg.black + sty.bg.white + "Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name) + sty.rs.all)
+        print(sty.ef.inverse + sty.fg.white + "Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name) + sty.rs.all)
 
     def add_node(self, node_for_adding):
         self.graph.add_node(node_for_adding)
@@ -656,6 +656,7 @@ class Graph:
         used for built-in functions
         we need to run the function after the define
         """
+        print(sty.ef.inverse + sty.fg.yellow + "add_blank_func" + sty.rs.all + " func_name:{} scope:{}".format(func_name, scope))
 
         # add a function decl node first
         cur_id = self._get_new_nodeid()

@@ -70,7 +70,7 @@ def add_edges_between_funcs(G):
         CPG_caller_id = G.find_nearest_upper_CPG_node(caller_id)
         entry_edge = G.get_out_edges(callee_id, data = True, edge_type = 'ENTRY')[0]
         # add CFG edge to ENTRY
-        print(sty.fg.black + sty.bg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, entry_edge[1]))
+        print(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, entry_edge[1]))
         added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
 
         # add DF edge to PARAM
@@ -78,14 +78,14 @@ def add_edges_between_funcs(G):
         caller_para_names = get_argnames_from_funcaller(caller_id)
         callee_paras = get_argids_from_funcallee(callee_id)
         for idx in range(min(len(callee_paras), len(caller_para_names))):
-            print(sty.fg.black + sty.bg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, callee_paras[idx]))
+            print(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, callee_paras[idx]))
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
 
         for child in G.get_child_nodes(callee_id, 'PARENT_OF'):
             if G.get_node_attr(child)['type'] == 'AST_STMT_LIST':
                 for stmt in G.get_child_nodes(child, 'PARENT_OF'):
                     if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
-                        print(sty.fg.black + sty.bg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {}'.format(stmt, CPG_caller_id))
+                        print(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {}'.format(stmt, CPG_caller_id))
                         added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
 
     G.add_edges_from_list(added_edge_list)
@@ -251,13 +251,13 @@ def handle_node(G, node_id, extra = None):
 
     elif cur_node_attr['type'] == 'AST_ARRAY_ELEM':
         if not (extra and 'parent_obj' in extra):
-            print(sty.fg.black + sty.bg.red + "AST_ARRAY_ELEM occurs outside AST_ARRAY" + sty.rs.all, file=sys.stderr)
+            print(sty.ef.inverse + sty.fg.red + "AST_ARRAY_ELEM occurs outside AST_ARRAY" + sty.rs.all, file=sys.stderr)
         else:
-            key_node, value_node = G.get_ordered_ast_child_nodes(node_id)
+            value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
             key = G.get_name_from_child(key_node)
             if not key: key = '*' # add wildcard for future use
             child_added_obj, _, _, _, _, _, _ = handle_node(G, value_node)
-            added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', key, parent_obj = extra['parent_obj'], tobe_added_obj = child_added_obj)
+            added_obj = G.add_obj_to_obj(node_id, None, key, parent_obj = extra['parent_obj'], tobe_added_obj = child_added_obj)
 
 
     elif cur_node_attr['type'] == 'AST_DIM':
@@ -305,28 +305,33 @@ def handle_node(G, node_id, extra = None):
         # for newly added obj
         if parent_added_obj != None:
             parent_obj = parent_added_obj
-        if parent_obj == None and not (extra and extra['side'] == 'right'):
-            print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED".format(parent_name) + sty.rs.all)
-            # we assume this happens when it's a built-in var name
-            parent_obj = G.add_obj_to_scope(node_id, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)
-            modified_objs.add(parent_obj)
+        if parent_obj == None:
+            if not (extra and 'side' in extra and extra['side'] == 'right'):
+                print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, creating object nodes".format(parent_name) + sty.rs.all)
+                # we assume this happens when it's a built-in var name
+                parent_obj = G.add_obj_to_scope(node_id, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)
+                modified_objs.add(parent_obj)
+            else:
+                print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, return undefined".format(parent_name) + sty.rs.all)
         if parent_name == "this":
             parent_obj = G.cur_obj
             parent_scope = G.cur_scope
 
         if parent_obj != None:
             child_obj = G.get_obj_by_obj_name(child_name, parent_obj = parent_obj)
-            if child_obj == None and not (extra and extra['side'] == 'right'):
+            # TODO: implement built-in modules (in a database, etc.)
+            # this is just a workaround for required modules
+            if child_obj == None and (not (extra and 'side' in extra and extra['side'] == 'right') or G.get_node_attr(left)['type'] == 'AST_CALL'):
                 # assume the ast node is the root node
                 # added_obj = G.add_obj_to_obj(node_id, "OBJ", child_name, parent_obj = parent_obj)
-                # TODO: get the type by running a testing nodejs
-                # we assume the var is a method name
-                added_obj = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
-                added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = child_obj)
+                added_func = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
+                # should the object node of the blank function point to the artificial AST node?
+                added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = added_func)
                 child_obj = added_obj
 
             # print(parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '=====================================')
-            now_objs = [child_obj]
+            if child_obj != None:
+                now_objs = [child_obj]
             var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
             node_var_name = child_name
 
@@ -498,7 +503,7 @@ def simurun_function(G, func_decl_id):
     """
     bfs run a simurun from a entry id
     """
-    print(sty.fg.black + sty.bg.green + "FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj) + sty.rs.all)
+    print(sty.ef.inverse + sty.fg.green + "FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj) + sty.rs.all)
     bfs_queue = []
     visited = set()
     returned_objs = set()
@@ -600,6 +605,11 @@ def run_toplevel_file(G, node_id):
 
     G.cur_scope = func_scope_id
     G.cur_obj = added_obj
+
+    # add module object to the current file's scope
+    added_module_obj = G.add_obj_to_scope(node_id, "module", "BUILT-IN")
+    # add module.exports
+    G.add_obj_to_obj(node_id, None, "exports", parent_obj = added_module_obj)
     
     simurun_function(G, node_id)
 
