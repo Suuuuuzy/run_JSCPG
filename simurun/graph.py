@@ -110,8 +110,9 @@ class Graph:
                     cur_line.append('')
             try:
                 fp.write('\t'.join(cur_line) + '\n')
-            except:
-                print(sty.fg.red + '==========================ERROR LINE: ', cur_line, '===================================', file=sys.stderr)
+            except Exception as e:
+                print(sty.fg.red + '==========================ERROR LINE: ', cur_line, '===================================' + sty.rs.all, file=sys.stderr)
+                print(sty.fg.red + str(e) + sty.rs.all, file=sys.stderr)
         fp.close()
 
         headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
@@ -269,17 +270,18 @@ class Graph:
     def get_cur_scope(self):
         return self.cur_scope
 
-    def get_name_from_child(self, nodeid):
+    def get_name_from_child(self, nodeid, max_depth = None):
         """
         try to find the name of a nodeid
         we have to use bfs strategy
         """
         bfs_queue = []
         visited = set()
-        bfs_queue.append(nodeid)
+        bfs_queue.append((nodeid,0))
 
         while(len(bfs_queue)):
-            cur_node = bfs_queue.pop(0)
+            cur_node, cur_depth = bfs_queue.pop(0)
+            if max_depth and cur_depth > max_depth: break
 
             # if visited before, stop here
             if cur_node in visited:
@@ -298,7 +300,7 @@ class Graph:
                 return str(cur_attr['code'])
 
             out_edges = self.get_out_edges(cur_node, edge_type = 'PARENT_OF')
-            out_nodes = [edge[1] for edge in out_edges]
+            out_nodes = [(edge[1], cur_depth + 1) for edge in out_edges]
             bfs_queue += out_nodes
 
         return None

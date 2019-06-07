@@ -129,7 +129,8 @@ def handle_node(G, node_id, extra = None):
     cur_type = cur_node_attr['type']
     if 'lineno:int' not in cur_node_attr:
         cur_node_attr['lineno:int'] = ''
-    print(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id}: {sty.fg.li_white}{sty.bg.li_black}{cur_type}{sty.rs.all} {G.get_name_from_child(node_id)}, lineno: {cur_node_attr['lineno:int']}")
+    node_name = G.get_name_from_child(node_id, 2)
+    print(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id}: {sty.fg.li_white}{sty.bg.li_black}{cur_type}{sty.rs.all}{' ' + node_name if node_name else ''}, lineno: {cur_node_attr['lineno:int']}")
 
     added_obj = None
     added_scope = None
@@ -322,12 +323,15 @@ def handle_node(G, node_id, extra = None):
             # TODO: implement built-in modules (in a database, etc.)
             # this is just a workaround for required modules
             if child_obj == None and (not (extra and 'side' in extra and extra['side'] == 'right') or G.get_node_attr(left)['type'] == 'AST_CALL'):
+                '''
                 # assume the ast node is the root node
                 # added_obj = G.add_obj_to_obj(node_id, "OBJ", child_name, parent_obj = parent_obj)
                 added_func = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
                 # should the object node of the blank function point to the artificial AST node?
                 added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = added_func)
                 child_obj = added_obj
+                '''
+                added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj, None)
 
             # print(parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '=====================================')
             if child_obj != None:
@@ -359,14 +363,19 @@ def handle_node(G, node_id, extra = None):
 
     elif cur_node_attr['type'] == 'AST_BINARY_OP':
         if 'flags:string[]' in cur_node_attr and cur_node_attr['flags:string[]'] == 'BINARY_BOOL_OR':
-            handled_left_or = handle_node(G, G.get_child_nodes(node_id)[0])
-            [or_added_obj, or_added_scope, or_obj, or_scope, _, or_name, or_name_node] = handled_left_or 
-            if or_added_obj != None:
-                or_obj = or_added_obj
-            if or_obj == None:
-                added_obj = G.add_literal_obj()
-            else:
-                now_objs = [or_obj]
+            # handled_left_or = handle_node(G, G.get_child_nodes(node_id)[0])
+            # [or_added_obj, or_added_scope, or_obj, or_scope, _, or_name, or_name_node] = handled_left_or 
+            # if or_added_obj != None:
+            #     or_obj = or_added_obj
+            # if or_obj == None:
+            #     added_obj = G.add_literal_obj()
+            # else:
+            #     now_objs = [or_obj]
+            left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
+            _, _, left_objs, _, _, _, _ = handle_node(G, left_objs)
+            _, _, right_objs, _, _, _, _ = handle_node(G, right_objs)
+            now_objs.extend(left_objs)
+            now_objs.extend(right_objs)
         else:
             added_obj = G.add_literal_obj()
         modified_objs.add(added_obj)
@@ -609,7 +618,7 @@ def run_toplevel_file(G, node_id):
     # add module object to the current file's scope
     added_module_obj = G.add_obj_to_scope(node_id, "module", "BUILT-IN")
     # add module.exports
-    G.add_obj_to_obj(node_id, None, "exports", parent_obj = added_module_obj)
+    G.add_obj_to_obj(node_id, "BUILT-IN", "exports", parent_obj = added_module_obj)
     
     simurun_function(G, node_id)
 
