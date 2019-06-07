@@ -1,5 +1,6 @@
 import networkx as nx
 import sys
+import csv
 import sty
 
 class Graph:
@@ -53,37 +54,22 @@ class Graph:
 
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
-            headers = fp.readline()
-            headers = headers.split("\t")
-            line = headers
-            while line:
-                line = fp.readline().strip()
-                cur_vals = line.split("\t")
-                if len(line) < 1:
-                    continue
-                cur_id = cur_vals[0]
+            reader = csv.DictReader(fp, delimiter='\t')
+            for row in reader:
+                cur_id = row['id:ID']
                 self.add_node(cur_id)
-                for idx in range(1, len(cur_vals)):
-                    if cur_vals[idx] != '':
-                        self.set_node_attr(cur_id, (headers[idx], cur_vals[idx]))
+                for attr, val in row.items():
+                    if attr == 'id:ID': continue
+                    self.set_node_attr(cur_id, (attr, val))
 
         with open(rels_file_name) as fp:
-            headers = fp.readline()
-            headers = headers.split("\t")
-            line = headers
+            reader = csv.DictReader(fp, delimiter='\t')
             edge_list = []
-            while line:
-                attrs = {}
-                line = fp.readline().strip()
-                cur_vals = line.split("\t")
-                if len(cur_vals) < 3:
-                    continue
-                cur_start_id = cur_vals[0]
-                cur_end_id = cur_vals[1]
-                for idx in range(2, len(cur_vals)):
-                    if cur_vals[idx] != '':
-                        attrs[headers[idx]] = cur_vals[idx]
-                edge_list.append((cur_start_id, cur_end_id, attrs))
+            for row in reader:
+                attrs = dict(row)
+                del attrs['start:START_ID']
+                del attrs['end:END_ID']
+                edge_list.append((row['start:START_ID'], row['end:END_ID'], attrs))
             self.add_edges_from_list(edge_list)
         print(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
 
@@ -91,58 +77,36 @@ class Graph:
         """
         export to CSV to import to neo4j
         """
-        headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment']
-        skip_headers = ['id:ID']
-        fp = open(nodes_file_name, 'w')
-        header_str = '\t'.join(headers)
-        fp.write(header_str + '\n')
-        nodes = list(self.graph.nodes(data = True))
 
-        nodes.sort(key = lambda x: int(x[0]))
-        for node in nodes:
-            cur_line = [node[0]]
-            for header in headers:
-                if header in skip_headers:
-                    continue
-                if header in node[1]:
-                    cur_line.append(node[1][header])
-                else:
-                    cur_line.append('')
-            try:
-                fp.write('\t'.join(cur_line) + '\n')
-            except Exception as e:
-                print(sty.fg.red + '==========================ERROR LINE: ', cur_line, '===================================' + sty.rs.all, file=sys.stderr)
-                print(sty.fg.red + str(e) + sty.rs.all, file=sys.stderr)
-        fp.close()
+        with open(nodes_file_name, 'w') as fp:
+            headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment']
+            writer = csv.DictWriter(fp, delimiter='\t', fieldnames=headers, extrasaction='ignore')
+            writer.writeheader()
+            nodes = list(self.graph.nodes(data = True))
+            nodes.sort(key = lambda x: int(x[0]))
+            for node in nodes:
+                node_id, attr = node
+                row = dict(attr)
+                row['id:ID'] = node_id
+                writer.writerow(row)
 
-        headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
-        skip_headers = ['start:START_ID', 'end:END_ID']
-        light_edge_type = ['FLOWS_TO', 'REACHES', 'OBJ_REACHES', 'ENTRY', 'EXIT']
-
-        fp = open(rels_file_name, 'w')
-        header_str = '\t'.join(headers)
-        fp.write(header_str + '\n')
-
-        edges = []
-        if light:
-            for edge_type in light_edge_type:
-                edges += self.get_edges_by_type(edge_type)
-        else:
-            edges = list(self.graph.edges(data = True, keys = True))
-
-        for edge in edges:
-            cur_line = [edge[0], edge[1]]
-            for header in headers:
-                if header in skip_headers:
-                    continue
-                if header in edge[3]:
-                    cur_line.append(edge[3][header])
-                else:
-                    cur_line.append('')
-            fp.write('\t'.join(cur_line) + '\n')
-        fp.close()
-
-        
+        with open(rels_file_name, 'w') as fp:
+            headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
+            writer = csv.DictWriter(fp, delimiter='\t', fieldnames=headers, extrasaction='ignore')
+            writer.writeheader()
+            light_edge_type = ['FLOWS_TO', 'REACHES', 'OBJ_REACHES', 'ENTRY', 'EXIT']
+            edges = []
+            if light:
+                for edge_type in light_edge_type:
+                    edges += self.get_edges_by_type(edge_type)
+            else:
+                edges = list(self.graph.edges(data = True, keys = True))
+            for edge in edges:
+                edge_from, edge_to, _, attr = edge
+                row = dict(attr)
+                row['start:START_ID'] = edge_from
+                row['end:END_ID'] = edge_to
+                writer.writerow(row)
 
         print(sty.ef.inverse + sty.fg.white + "Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name) + sty.rs.all)
 
