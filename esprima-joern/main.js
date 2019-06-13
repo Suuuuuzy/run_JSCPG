@@ -32,7 +32,6 @@ var filename = "";
 
 var requiredModules = [],
     analyzedModules = [];
-// var searchPaths = module.paths.concat(['~/packagecrawler', '.']);
 var searchPaths = ['./node_modules', '../node_modules', '~/node_modules', '/node_modules', '~/packagecrawler']
 const builtInModules = require('module').builtinModules;
 
@@ -2718,7 +2717,6 @@ while (requiredModules.length > 0) {
         // search file
         if (!currentModule.endsWith('.js'))
             currentPath += '.js';
-        console.log(currentPath);
         if (analyzedModules.includes(currentPath)) {
             found = true;
             console.log(`Package ${currentModule} had been analyzed.`.white.inverse);
