@@ -244,9 +244,10 @@ class Graph:
     def get_successors(self, node_id):
         return self.graph.successors(node_id)
     
-    def get_nodes_by_type(self, node_type):
+    def get_nodes_and_attrs_by_type(self, node_type):
         """
         return a list of nodes with a specific node type
+        as tuples of node id and attrs
         """
         return [node for node in self.graph.nodes(data = True) if node[1].get('type') == node_type]
 
@@ -254,15 +255,7 @@ class Graph:
         """
         return a list of nodes with a specific node type and flag
         """
-        ret = []
-        print(len(list(self.graph.nodes())))
-        for node in self.graph.nodes(data = True):
-            print(node)
-            if node[1].get('type') == node_type:
-                if node[1].get('flags:string[]') == node_flag:
-                    ret.append(node)
-        return ret
-        # return [node for node in self.graph.nodes(data = True) if node[1].get('type') == node_type and node[1].get('flags:string[]') == node_flag]
+        return [node[0] for node in self.graph.nodes(data = True) if node[1].get('type') == node_type and node[1].get('flags:string[]') == node_flag]
 
     def get_cur_scope(self):
         return self.cur_scope

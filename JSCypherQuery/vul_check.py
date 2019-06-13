@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from jsDatabase import JSDatabase
 from graph import Graph
 
@@ -34,7 +35,7 @@ for path in res:
         if str(res) not in res_set:
             res_set.add(str(res))
             if len(res) != 0:
-                print res
-                #print path['rel']
+                print(res)
+                # print(path['rel'])
                 for r in path['rel']:
-                    print r
+                    print(r)

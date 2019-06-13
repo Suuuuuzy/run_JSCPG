@@ -3,6 +3,7 @@ from graph import Graph
 from scopeController import ScopeController
 import sys
 import sty
+import re
 
 registered_func = {}
 
@@ -513,7 +514,7 @@ def simurun_function(G, func_decl_id):
     """
     bfs run a simurun from a entry id
     """
-    print(sty.ef.inverse + sty.fg.green + "FUNCTION {} START, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj) + sty.rs.all)
+    print(sty.ef.inverse + sty.fg.green + "FUNCTION {} STARTS, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj) + sty.rs.all)
     bfs_queue = []
     visited = set()
     returned_objs = set()
@@ -556,21 +557,22 @@ def generate_obj_graph(G, entry_nodeid):
     """
     # set every function and closure to vartype object
 
-    obj_nodes = G.get_descendant_nodes_by_types(entry_nodeid, max_depth=None, node_types=["AST_CLOSURE","AST_FUNC_DECL","AST_NEW"])
+    obj_nodes = G.get_nodes_and_attrs_by_type("AST_CLOSURE")
+    obj_nodes += G.get_nodes_and_attrs_by_type("AST_FUNC_DECL")
+    obj_nodes += G.get_nodes_and_attrs_by_type("AST_NEW")
 
     for node in obj_nodes:
         G.set_node_attr(node[0], ("VAR_TYPE", "OBJECT"))
 
     G.setup_run(entry_nodeid)
     print(sty.fg.green + "RUN" + sty.rs.all + ":", entry_nodeid)
-    obj_nodes = G.get_descendant_nodes_by_types(entry_nodeid, max_depth=None, node_types=["AST_FUNC_DECL"])
+    obj_nodes = G.get_nodes_and_attrs_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
         register_func(G, node[0])
-    added_obj, added_scope, returned_objs, _, _, _, _ = handle_node(G, entry_nodeid)
-    module_exports = returned_objs.pop()
+    handle_node(G, entry_nodeid)
     # simurun_function(G, entry_nodeid)
     add_edges_between_funcs(G)
-    return added_obj, added_scope, module_exports
+    # return added_obj, added_scope, module_exports
 
 def decl_function(G, node_id, func_name = None, parent_scope = None):
     """
@@ -605,7 +607,8 @@ def run_toplevel_file(G, node_id):
     """
     # add scope and obj first
     func_name = G.get_node_attr(node_id)['name']
-    [func_decl_id, func_scope_id] = decl_function(G, node_id, func_name = func_name)
+    print(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(func_name) + sty.rs.all)
+    [func_decl_id, func_scope_id] = decl_function(G, node_id, func_name = func_name, parent_scope=G.BASE_SCOPE)
     # simurun the file
     func_scope_id = G.get_func_scope_by_name(func_name)
     backup_obj = G.cur_obj
@@ -637,15 +640,16 @@ def run_toplevel_file(G, node_id):
 
 def handle_require(G, node_id):
     arg_list = G.get_ordered_ast_child_nodes(node_id)[1]
-    module_name = G.get_name_from_child(arg_list)
+    module_name = G.get_name_from_child(arg_list).strip("'\"") # TODO: add file id
     toplevel_nodes = G.get_nodes_by_type_and_flag('AST_TOPLEVEL', 'TOPLEVEL_FILE')
     added_obj = None
     added_scope = None
     module_exports = None
     for node in toplevel_nodes:
         file_name = G.get_node_attr(node).get('name')
+        module_name = re.search(r'([^/\\]*)$', module_name)[1]
         if module_name in file_name:
-            added_obj, added_scope, module_exports = generate_obj_graph(G, node)
+            added_obj, added_scope, module_exports = run_toplevel_file(G, node)
             break
     return added_obj, added_scope, module_exports
 
@@ -658,7 +662,11 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         func_name = G.find_name_of_call(node_id)
     if func_name == 'require':
         added_obj, added_scope, module_exports = handle_require(G, node_id)
-        return added_obj, added_scope, [module_exports], set()
+        if module_exports:
+            returned_objs = [module_exports]
+        else:
+            returned_objs = None
+        return added_obj, added_scope, returned_objs, set()
     if parent_obj == None:
         func_decl_id = G.get_func_declid_by_function_name(func_name)
     else:
