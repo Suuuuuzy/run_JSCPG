@@ -88,7 +88,7 @@ def add_edges_between_funcs(G):
                         print(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {}'.format(stmt, CPG_caller_id))
                         added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
 
-    G.add_edges_from_list(added_edge_list)
+    G.add_edges_from_list_if_not_exist(added_edge_list)
 
 def register_func(G, node_id):
     """
@@ -278,7 +278,7 @@ def handle_node(G, node_id, extra = None):
         # TODO: limit the scope of let and handle const
         # like 'let', 'const' is also block-scoped.
         # TODO: add block scopes
-        if now_objs or ("flags:string[]" in cur_node_attr and cur_node_attr['flags:string[]'] in ["JS_DECL_VAR", 'JS_DECL_LET', 'JS_DECL_CONST']):
+        if now_objs or cur_node_attr.get('flags:string[]') in ["JS_DECL_VAR", 'JS_DECL_LET', 'JS_DECL_CONST']:
             # if the variable is defined in current scope or parent scopes,
             # or undefined but has 'var', 'let' or 'const',
             # we use the current scope
@@ -307,7 +307,7 @@ def handle_node(G, node_id, extra = None):
         if parent_added_obj != None:
             parent_obj = parent_added_obj
         if parent_obj == None:
-            if not (extra and 'side' in extra and extra['side'] == 'right'):
+            if not (extra and extra.get('side') == 'right'):
                 print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, creating object nodes".format(parent_name) + sty.rs.all)
                 # we assume this happens when it's a built-in var name
                 parent_obj = G.add_obj_to_scope(node_id, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)
@@ -354,7 +354,8 @@ def handle_node(G, node_id, extra = None):
 
 
     elif cur_node_attr['type'] == 'AST_TOPLEVEL':
-        [added_obj, added_scope] = run_toplevel_file(G, node_id)
+        added_obj, added_scope, module_exports = run_toplevel_file(G, node_id)
+        now_objs = [module_exports]
 
     elif cur_node_attr['type'] == 'AST_FUNC_DECL':
         [added_obj, added_scope] = decl_function(G, node_id)
@@ -362,7 +363,7 @@ def handle_node(G, node_id, extra = None):
 
 
     elif cur_node_attr['type'] == 'AST_BINARY_OP':
-        if 'flags:string[]' in cur_node_attr and cur_node_attr['flags:string[]'] == 'BINARY_BOOL_OR':
+        if cur_node_attr.get('flags:string[]') == 'BINARY_BOOL_OR':
             # handled_left_or = handle_node(G, G.get_child_nodes(node_id)[0])
             # [or_added_obj, or_added_scope, or_obj, or_scope, _, or_name, or_name_node] = handled_left_or 
             # if or_added_obj != None:
@@ -555,20 +556,21 @@ def generate_obj_graph(G, entry_nodeid):
     """
     # set every function and closure to vartype object
 
-    obj_nodes = G.get_nodes_by_type("AST_CLOSURE")
-    obj_nodes += G.get_nodes_by_type("AST_FUNC_DECL")
-    obj_nodes += G.get_nodes_by_type("AST_NEW")
+    obj_nodes = G.get_descendant_nodes_by_types(entry_nodeid, max_depth=None, node_types=["AST_CLOSURE","AST_FUNC_DECL","AST_NEW"])
 
     for node in obj_nodes:
         G.set_node_attr(node[0], ("VAR_TYPE", "OBJECT"))
 
     G.setup_run(entry_nodeid)
     print(sty.fg.green + "RUN" + sty.rs.all + ":", entry_nodeid)
-    obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
+    obj_nodes = G.get_descendant_nodes_by_types(entry_nodeid, max_depth=None, node_types=["AST_FUNC_DECL"])
     for node in obj_nodes:
         register_func(G, node[0])
-    handle_node(G, entry_nodeid)
+    added_obj, added_scope, returned_objs, _, _, _, _ = handle_node(G, entry_nodeid)
+    module_exports = returned_objs.pop()
     # simurun_function(G, entry_nodeid)
+    add_edges_between_funcs(G)
+    return added_obj, added_scope, module_exports
 
 def decl_function(G, node_id, func_name = None, parent_scope = None):
     """
@@ -622,13 +624,30 @@ def run_toplevel_file(G, node_id):
     
     simurun_function(G, node_id)
 
+    module_obj = G.get_obj_by_name('module')
+    module_exports = G.get_obj_by_obj_name('exports', parent_obj=module_obj)
+
     # add obj to scope edge
     G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
 
     G.cur_scope = backup_scope
     G.cur_obj = backup_obj
 
-    return [added_obj, func_scope_id]
+    return [added_obj, func_scope_id, module_exports]
+
+def handle_require(G, node_id):
+    arg_list = G.get_ordered_ast_child_nodes(node_id)[1]
+    module_name = G.get_name_from_child(arg_list)
+    toplevel_nodes = G.get_nodes_by_type_and_flag('AST_TOPLEVEL', 'TOPLEVEL_FILE')
+    added_obj = None
+    added_scope = None
+    module_exports = None
+    for node in toplevel_nodes:
+        file_name = G.get_node_attr(node).get('name')
+        if module_name in file_name:
+            added_obj, added_scope, module_exports = generate_obj_graph(G, node)
+            break
+    return added_obj, added_scope, module_exports
 
 def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     """
@@ -637,6 +656,9 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
 
     if func_name == None:
         func_name = G.find_name_of_call(node_id)
+    if func_name == 'require':
+        added_obj, added_scope, module_exports = handle_require(G, node_id)
+        return added_obj, added_scope, [module_exports], set()
     if parent_obj == None:
         func_decl_id = G.get_func_declid_by_function_name(func_name)
     else:
@@ -721,6 +743,6 @@ G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
 scopeContorller = ScopeController(G)
 generate_obj_graph(G, '1')
-add_edges_between_funcs(G)
+# add_edges_between_funcs(G)
 # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
 G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)

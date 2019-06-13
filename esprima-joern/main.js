@@ -32,7 +32,8 @@ var filename = "";
 
 var requiredModules = [],
     analyzedModules = [];
-var searchPaths = module.paths.concat(['~/packagecrawler', '.']);
+// var searchPaths = module.paths.concat(['~/packagecrawler', '.']);
+var searchPaths = ['./node_modules', '../node_modules', '~/node_modules', '/node_modules', '~/packagecrawler']
 const builtInModules = require('module').builtinModules;
 
 // write csv headers
@@ -1594,7 +1595,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             if (currentNode.callee && currentNode.callee.name == 'require') {
                 if (currentNode.arguments && currentNode.arguments.length >= 1 && currentNode.arguments[0].type == 'Literal') {
                     let moduleName = currentNode.arguments[0].value;
-                    requiredModules.push(moduleName);
+                    requiredModules.push([moduleName, filename]);
                     if (builtInModules.includes(moduleName)) {
                         phpflag = 'JS_REQUIRE_BUILTIN';
                     } else {
@@ -2706,48 +2707,76 @@ if (!fs.statSync(dirname).isDirectory()) {
 // analyze any required packages
 console.log('Package search paths: ' + searchPaths);
 while (requiredModules.length > 0) {
-    let currentModule = requiredModules.shift();
+    let [currentModule, requiredBy] = requiredModules.shift();
     if (builtInModules.includes(currentModule)) {
         console.log(`${currentModule} is a built-in module.`);
         continue;
     }
     let found = false;
-    for (let p of searchPaths) {
+    if (currentModule.match(/\/|\\/)){ // module name is a path
+        let currentPath = path.resolve(requiredBy, '..', currentModule);
         // search file
-        let currentPath = path.join(p, currentModule);
         if (!currentModule.endsWith('.js'))
             currentPath += '.js';
+        console.log(currentPath);
         if (analyzedModules.includes(currentPath)) {
             found = true;
-            console.log(`Package ${currentModule} had been analyzed.`);
+            console.log(`Package ${currentModule} had been analyzed.`.white.inverse);
             break;
         } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isFile()) {
-            console.log(`Package ${currentModule} found at ${currentPath}.`);
+            console.log(`Package ${currentModule} found at ${currentPath}.`.white.inverse);
             analyzedModules.push(currentPath);
             analyze(currentPath, null);
             found = true;
             break;
         }
         // search directory
-        if (!currentModule.endsWith('.js')) {
+        currentPath = path.resolve(requiredBy, '..', currentModule);
+        if (analyzedModules.includes(currentPath)) {
+            found = true;
+            console.log(`Package ${currentModule} had been analyzed.`.white.inverse);
+            break;
+        } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
+            // check if package.json exists
+            let jsonPath = path.resolve(currentPath, 'package.json');
+            let main = 'main.js';
+            if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
+                try {
+                    main = JSON.parse(fs.readFileSync(filePath, 'utf8'))['main'];
+                } catch (e) {
+                    console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
+                }
+            }
+            let mainPath = path.resolve(currentPath, main);
+            if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
+                console.log(`Package ${currentModule} found at ${mainPath}.`.white.inverse);
+                analyzedModules.push(currentPath);
+                analyze(mainPath, null);
+                found = true;
+                break;
+            }
+        }
+    } else { // module name is not a path
+        for (let p of searchPaths) {
+            let currentPath = path.resolve(requiredBy, '..', p, currentModule);
             if (analyzedModules.includes(currentPath)) {
                 found = true;
-                console.log(`Package ${currentModule} had been analyzed.`);
+                console.log(`Package ${currentModule} had been analyzed.`.white.inverse);
                 break;
             } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
                 // check if package.json exists
-                let jsonPath = path.join(currentPath, 'package.json');
+                let jsonPath = path.resolve(currentPath, 'package.json');
                 let main = 'main.js';
                 if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
                     try {
                         main = JSON.parse(fs.readFileSync(filePath, 'utf8'))['main'];
                     } catch (e) {
-                        console.error(`Error: package.json (${jsonPath}) does not include main field.`);
+                        console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
                     }
                 }
-                let mainPath = path.join(currentPath, main);
+                let mainPath = path.resolve(currentPath, main);
                 if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
-                    console.log(`Package ${currentModule} found at ${mainPath}.`);
+                    console.log(`Package ${currentModule} found at ${mainPath}.`.white.inverse);
                     analyzedModules.push(currentPath);
                     analyze(mainPath, null);
                     found = true;
@@ -2757,7 +2786,7 @@ while (requiredModules.length > 0) {
         }
     }
     if (!found) {
-        console.error(`Error: required package ${currentModule} not found.`);
+        console.error(`Error: required package ${currentModule} not found.`.lightRed.inverse);
     }
 }
 

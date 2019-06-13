@@ -138,7 +138,8 @@ class Graph:
         insert an edge to graph
         attr is like {key: value, key: value}
         """
-        self.graph.add_edges_from([(from_ID, to_ID, attr)])
+        # self.graph.add_edges_from([(from_ID, to_ID, attr)])
+        self.graph.add_edge(from_ID, to_ID, None, **attr)
     
     def add_edge_if_not_exist(self, from_ID, to_ID, attr):
         """
@@ -166,6 +167,24 @@ class Graph:
 
     def add_edges_from_list(self, edge_list):
         return self.graph.add_edges_from(edge_list)
+
+    def add_edges_from_list_if_not_exist(self, edge_list):
+        for e in edge_list:
+            if len(e) != 3:
+                print("Length of the edge tuple {} is not 3".format(e), file=sys.stderr)
+                continue
+            u, v, attr = e
+            existing_edges = self.graph.get_edge_data(u, v)
+            if existing_edges:
+                flag = True
+                for _, d in existing_edges.items():
+                    if d == attr:
+                        flag = False
+                        break
+                if flag:
+                    self.add_edge(u, v, attr)
+            else:
+                self.add_edge(u, v, attr)
 
     def dfs_edges(self, source, depth_limit = None):
         """
@@ -231,6 +250,12 @@ class Graph:
         """
         return [node for node in self.graph.nodes(data = True) if node[1]['type'] == node_type]
 
+    def get_nodes_by_type_and_flag(self, node_type, node_flag):
+        """
+        return a list of nodes with a specific node type and flag
+        """
+        return [node for node in self.graph.nodes(data = True) if node[1]['type'] == node_type and node[1]['flags:string[]'] == node_flag]
+
     def get_cur_scope(self):
         return self.cur_scope
 
@@ -256,9 +281,9 @@ class Graph:
             cur_attr = self.get_node_attr(cur_node)
 
             if cur_attr['type'] == 'string':
-                if 'name' in cur_attr:
+                if cur_attr.get('name'):
                     return cur_attr['name']
-                if 'code' in cur_attr:
+                if cur_attr.get('code'):
                     return cur_attr['code']
             elif cur_attr['type'] == 'integer':
                 return str(cur_attr['code'])
@@ -508,6 +533,20 @@ class Graph:
         children = sorted(self._get_childern_by_childnum(node_id).items(), key=lambda x: x[0])
         children = list(zip(*children))[1]
         return children
+
+    def get_descendant_nodes_by_types(self, root_id, max_depth = 1, node_types = [], edge_type = 'PARENT_OF'):
+        bfs_queue = [(root_id, 0)]
+        returned_nodes = []
+        while bfs_queue:
+            cur_node, cur_depth = bfs_queue.pop(0)
+            if max_depth and cur_depth > max_depth: break
+            edges = self.get_out_edges(cur_node, edge_type = edge_type)
+            for edge in edges:
+                child_node = edge[1]
+                if not node_types or self.graph[child_node].get('type') in node_types:
+                    returned_nodes.append(edge[1])
+                bfs_queue.append((edge[1], cur_depth+1))
+        return returned_nodes
 
     def handle_property(self, node_id):
         """
