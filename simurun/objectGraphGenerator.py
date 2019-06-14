@@ -82,6 +82,7 @@ def add_edges_between_funcs(G):
             print(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, callee_paras[idx]))
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
 
+        # add data flows for return values
         for child in G.get_child_nodes(callee_id, 'PARENT_OF'):
             if G.get_node_attr(child)['type'] == 'AST_STMT_LIST':
                 for stmt in G.get_child_nodes(child, 'PARENT_OF'):
@@ -131,7 +132,12 @@ def handle_node(G, node_id, extra = None):
     if 'lineno:int' not in cur_node_attr:
         cur_node_attr['lineno:int'] = ''
     node_name = G.get_name_from_child(node_id, 2)
-    print(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id}: {sty.fg.li_white}{sty.bg.li_black}{cur_type}{sty.rs.all}{' ' + node_name if node_name else ''}, lineno: {cur_node_attr['lineno:int']}")
+    node_color = sty.fg.li_white + sty.bg.li_black
+    if G.get_node_attr(node_id).get('labels:label') == 'Artificial':
+        node_color = sty.fg.li_white + sty.bg.red
+    elif G.get_node_attr(node_id).get('labels:label') == 'Artificial_AST':
+        node_color = sty.fg.black + sty.bg(179)
+    print(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id}: {node_color}{cur_type}{sty.rs.all}{' ' + node_name if node_name else ''}, lineno: {cur_node_attr['lineno:int']}")
 
     added_obj = None
     added_scope = None
@@ -206,16 +212,15 @@ def handle_node(G, node_id, extra = None):
                 child_objs = child_added_obj
             right_objs = child_objs
 
-
         if left_attr['type'] == 'AST_PROP':
             # for property, find the scope, point the name
             [child_added_obj, child_added_scope, child_objs, child_scope, _, child_name, child_name_node] = handled_left
             # get the current obj of this name node
-            cur_child_edge = G.get_out_edges(child_name_node, edge_type = "NAME_OBJ")
-            if cur_child_edge != None:
+            cur_child_edge = G.get_out_edges(child_name_node, edge_type = "NAME_TO_OBJ")
+            if cur_child_edge: # if it's not an empty list (when the name node has no corresponding obj)
                 G.graph.remove_edge(child_name_node, cur_child_edge[0][1])
             for obj in right_objs:
-                G.add_edge(child_name_node, obj, {"type:TYPE": "NAME_OBJ"})
+                G.add_edge(child_name_node, obj, {"type:TYPE": "NAME_TO_OBJ"})
         else:
             flag = False
             for obj in right_objs:
@@ -323,16 +328,21 @@ def handle_node(G, node_id, extra = None):
             child_obj = G.get_obj_by_obj_name(child_name, parent_obj = parent_obj)
             # TODO: implement built-in modules (in a database, etc.)
             # this is just a workaround for required modules
-            if child_obj == None and (not (extra and 'side' in extra and extra['side'] == 'right') or G.get_node_attr(left)['type'] == 'AST_CALL'):
-                '''
-                # assume the ast node is the root node
-                # added_obj = G.add_obj_to_obj(node_id, "OBJ", child_name, parent_obj = parent_obj)
-                added_func = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
-                # should the object node of the blank function point to the artificial AST node?
-                added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = added_func)
-                child_obj = added_obj
-                '''
-                added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj, None)
+            if child_obj == None:
+                if not (extra and extra.get('side') == 'right'):
+                    G.add_namenode_under_obj(child_name, parent_obj)
+                elif G.get_node_attr(parent)['type'] == 'AST_CALL':
+                    '''
+                    # assume the ast node is the root node
+                    # added_obj = G.add_obj_to_obj(node_id, "OBJ", child_name, parent_obj = parent_obj)
+                    added_func = G.add_blank_func(child_name, scope = G.BASE_SCOPE)
+                    # should the object node of the blank function point to the artificial AST node?
+                    added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj = parent_obj, tobe_added_obj = added_func)
+                    child_obj = added_obj
+                    '''
+                    print('add child obj {}.{}'.format(parent_name, child_name))
+                    added_obj = G.add_obj_to_obj(node_id, 'BUILT_IN', child_name, parent_obj, None)
+                    child_obj = added_obj
 
             # print(parent_name, parent_obj, child_name, child_obj, cur_node_attr['lineno:int'], '=====================================')
             if child_obj != None:
@@ -349,7 +359,7 @@ def handle_node(G, node_id, extra = None):
 
         added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
         added_obj = G.add_obj_node(node_id, "OBJ_DECL")
-        G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
+        G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
 
         modified_objs.add(added_obj)
 
@@ -403,8 +413,8 @@ def handle_node(G, node_id, extra = None):
             new_func_decl_id = G.add_blank_func(node_name, scope = G.BASE_SCOPE)
             [added_obj, _, _, _, _, _, _] = handle_node(G, new_func_decl_id)
 
-            G.add_edge(name_node, added_obj, {'type:TYPE': 'NAME_OBJ'})
-            G.add_edge(added_obj, new_func_decl_id, {'type:TYPE': 'OBJ_AST'})
+            G.add_edge(name_node, added_obj, {'type:TYPE': 'NAME_TO_OBJ'})
+            G.add_edge(added_obj, new_func_decl_id, {'type:TYPE': 'OBJ_TO_AST'})
 
             new_entry_id = G.get_entryid_by_function_name(node_name)
         
@@ -420,7 +430,7 @@ def handle_node(G, node_id, extra = None):
         simurun_function(G, new_func_decl_id)
         
         # add obj to scope edge
-        G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
+        G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
         
         G.cur_scope = backup_scope
         G.cur_obj = backup_obj
@@ -593,7 +603,7 @@ def decl_function(G, node_id, func_name = None, parent_scope = None):
     # do a normal add closure
     added_scope = G.add_scope("CLOSURE_SCOPE", node_id)
     added_obj = G.add_obj_node(node_id, "OBJ_DECL")
-    G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_SCOPE"})
+    G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
 
     # for a func decl, should not have local var name
     # should add the name to base scope
@@ -631,7 +641,7 @@ def run_toplevel_file(G, node_id):
     module_exports = G.get_obj_by_obj_name('exports', parent_obj=module_obj)
 
     # add obj to scope edge
-    G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
+    G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
 
     G.cur_scope = backup_scope
     G.cur_obj = backup_obj
@@ -711,7 +721,7 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
 
     # add obj to scope edge
     if G.cur_scope == None:
-        G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_SCOPE"})
+        G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
 
     G.cur_scope = backup_scope
     G.cur_obj = backup_obj
