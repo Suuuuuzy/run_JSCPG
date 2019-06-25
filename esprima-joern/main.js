@@ -86,7 +86,7 @@ function getFunctionDef(node) {
     return id + ' (' + pl + ')';
 };
 
-function searchModule(moduleName, requiredBy){
+function searchModule(moduleName, requiredBy) {
     if (builtInModules.includes(moduleName)) {
         console.log(`${moduleName} is a built-in module.`);
         return 'built-in';
@@ -104,7 +104,7 @@ function searchModule(moduleName, requiredBy){
     console.log(`Search ${moduleName} in ${Array.from(searchPaths)}`);
     let found = false;
     let modulePath = null;
-    if (moduleName.match(/\/|\\/)){ // module name is a path
+    if (moduleName.match(/\/|\\/)) { // module name is a path
         let currentPath = path.resolve(requiredBy, '..', moduleName);
         // search file
         if (!moduleName.endsWith('.js'))
@@ -1695,7 +1695,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 if (currentNode.arguments && currentNode.arguments.length >= 1 && currentNode.arguments[0].type == 'Literal') {
                     let moduleName = currentNode.arguments[0].value;
                     modulePath = searchModule(moduleName, filename);
-                    if (modulePath && !requiredModules.has(modulePath)){
+                    if (modulePath && !requiredModules.has(modulePath)) {
                         requiredModules.add(modulePath);
                     }
                     if (builtInModules.includes(moduleName)) {
@@ -2808,7 +2808,7 @@ if (!fs.statSync(dirname).isDirectory()) {
 }
 
 // analyze any required packages
-for (let currentModule of requiredModules){
+for (let currentModule of requiredModules) {
     analyze(currentModule, null);
 }
 
