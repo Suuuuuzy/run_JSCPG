@@ -1695,7 +1695,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 if (currentNode.arguments && currentNode.arguments.length >= 1 && currentNode.arguments[0].type == 'Literal') {
                     let moduleName = currentNode.arguments[0].value;
                     modulePath = searchModule(moduleName, filename);
-                    if (modulePath && requiredModules.has(modulePath)){
+                    if (modulePath && !requiredModules.has(modulePath)){
                         requiredModules.add(modulePath);
                     }
                     if (builtInModules.includes(moduleName)) {

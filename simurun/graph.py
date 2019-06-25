@@ -18,28 +18,28 @@ class Graph:
         self.cur_id += 1
         return str(self.cur_id - 1)
 
-    def add_scope(self, scope_name, define_id):
+    def add_scope(self, scope_type, ast_node, scope_name=None):
         """
         add a new scope under current scope
         if the scope already exist, return the scope without add
         a new one
         """
         cur_scope = self.cur_scope
-        scope_id = self.get_func_scope_by_name(scope_name)
-        if scope_id != None:
-            return scope_id
-        cur_nodeid = str(self._get_new_nodeid())
-        self.add_node(cur_nodeid)
-        self.set_node_attr(cur_nodeid, ('labels:label', 'Scope'))
-        self.set_node_attr(cur_nodeid, ('type', 'SCOPE'))
-        self.set_node_attr(cur_nodeid, ('name', scope_name))
-        self.add_edge(cur_nodeid, define_id, {'type:TYPE': 'SCOPE_TO_AST'})
+        if scope_name and scope_type == 'FUNCTION_SCOPE':
+            existing_scope = self.get_func_scope_by_name(scope_name)
+            if existing_scope != None:
+                return existing_scope
+        new_scope_node = str(self._get_new_nodeid())
+        self.add_node(new_scope_node, {'labels:label': 'Scope', 'type': scope_type, 'name': scope_name})
+        # self.set_node_attr(new_scope_node, ('labels:label', 'Scope'))
+        # self.set_node_attr(new_scope_node, ('type', scope_type))
+        # self.set_node_attr(new_scope_node, ('name', scope_name))
+        self.add_edge(new_scope_node, ast_node, {'type:TYPE': 'SCOPE_TO_AST'})
         if cur_scope != None:
-            self.add_edge(cur_scope, cur_nodeid, {'type:TYPE': 'PARENT_SCOPE_OF'})
+            self.add_edge(cur_scope, new_scope_node, {'type:TYPE': 'PARENT_SCOPE_OF'})
         else:
-            self.cur_scope = cur_nodeid
-
-        return cur_nodeid
+            self.cur_scope = new_scope_node
+        return new_scope_node
 
     def add_literal_obj(self, ast_node = None):
         """
@@ -78,7 +78,6 @@ class Graph:
         """
         export to CSV to import to neo4j
         """
-
         with open(nodes_file_name, 'w') as fp:
             headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment']
             writer = csv.DictWriter(fp, delimiter='\t', fieldnames=headers, extrasaction='ignore')
@@ -111,8 +110,8 @@ class Graph:
 
         print(sty.ef.inverse + sty.fg.white + "Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name) + sty.rs.all)
 
-    def add_node(self, node_for_adding):
-        self.graph.add_node(node_for_adding)
+    def add_node(self, node_for_adding, attr={}):
+        self.graph.add_node(node_for_adding, **attr)
         return node_for_adding
 
     def set_node_attr(self, node_id, attr):
@@ -560,6 +559,8 @@ class Graph:
     def get_descendant_nodes_by_types(self, root_id, max_depth = 1, node_types = [], edge_type = 'PARENT_OF'):
         bfs_queue = [(root_id, 0)]
         returned_nodes = []
+        if max_depth == None:
+            max_depth = sys.maxsize
         while bfs_queue:
             cur_node, cur_depth = bfs_queue.pop(0)
             if max_depth and cur_depth > max_depth: break
@@ -847,3 +848,32 @@ class Graph:
             self.graph.add_edge(node_id, cur_obj, key = 'MODIFIED')
             nx.set_edge_attributes(self.graph, {(node_id, cur_obj, 'MODIFIED'): {'type:TYPE': 'LAST_MODIFIED'}})
 
+    def get_obj_def_ast_node(self, obj_node_id):
+        """
+        Find where in AST an object is defined.
+        The AST node is the successor of the object node via the OBJ_TO_AST edge.
+        """
+        tmp_edge = self.get_out_edges(obj_node_id, data = True, keys = True, edge_type = "OBJ_TO_AST")
+        if not tmp_edge:
+            return None
+        else:
+            tmp_edge = tmp_edge[0]
+        def_ast_node = tmp_edge[1]
+        return def_ast_node
+
+    def scope_exists_by_ast_node(self, ast_node_id, parent_scope = None, max_depth = 1):
+        if parent_scope == None:
+            parent_scope = self.BASE_SCOPE
+        if max_depth == None:
+            max_depth = sys.maxsize
+        for depth in range(max_depth):
+            children = self.get_child_nodes(parent_scope, 'PARENT_SCOPE_OF')
+            if not children:
+                return False
+            else:
+                for child in self.get_child_nodes(parent_scope, 'PARENT_SCOPE_OF'):
+                    out_edges = self.get_out_edges(child, data = True, keys = True, edge_type = 'SCOPE_TO_AST')
+                    for edge in out_edges:
+                        if edge[1] == ast_node_id:
+                            return True
+        return False
