@@ -88,7 +88,7 @@ function getFunctionDef(node) {
 
 function searchModule(moduleName, requiredBy) {
     if (builtInModules.includes(moduleName)) {
-        console.log(`${moduleName} is a built-in module.`);
+        console.log(`${moduleName.blue.bright} is a built-in module.`);
         return 'built-in';
     }
     let searchPaths = new Set();
@@ -101,7 +101,7 @@ function searchModule(moduleName, requiredBy) {
     searchPaths.add(path.resolve(os.homedir(), '.node_modules'));
     searchPaths.add(path.resolve(os.homedir(), '.node_libraries'));
     searchPaths.add(path.resolve(os.homedir(), 'packagecrawler'));
-    console.log(`Search ${moduleName} in ${Array.from(searchPaths)}`);
+    console.log(`Search ${moduleName.blue.bright} in ${Array.from(searchPaths)}`);
     let found = false;
     let modulePath = null;
     if (moduleName.match(/\/|\\/)) { // module name is a path
@@ -130,19 +130,20 @@ function searchModule(moduleName, requiredBy) {
         } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
             // check if package.json exists
             let jsonPath = path.resolve(currentPath, 'package.json');
-            let main = 'main.js';
+            let main;
             if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
                 try {
-                    main = JSON.parse(fs.readFileSync(filePath, 'utf8'))['main'];
+                    main = JSON.parse(fs.readFileSync(jsonPath, 'utf8'))['main'];
                 } catch (e) {
                     console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
                 }
             }
+            main = main || 'main.js';
             let mainPath = path.resolve(currentPath, main);
             if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
                 console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
                 found = true;
-                modulePath = currentPath;
+                modulePath = mainPath;
                 return modulePath;
             }
         }
@@ -157,19 +158,20 @@ function searchModule(moduleName, requiredBy) {
             } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
                 // check if package.json exists
                 let jsonPath = path.resolve(currentPath, 'package.json');
-                let main = 'main.js';
+                let main;
                 if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
                     try {
-                        main = JSON.parse(fs.readFileSync(filePath, 'utf8'))['main'];
+                        main = JSON.parse(fs.readFileSync(jsonPath, 'utf8'))['main'];
                     } catch (e) {
                         console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
                     }
                 }
+                main = main || 'main.js';
                 let mainPath = path.resolve(currentPath, main);
                 if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
                     console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
                     found = true;
-                    modulePath = currentPath;
+                    modulePath = mainPath;
                     return modulePath;
                 }
             }
@@ -1385,9 +1387,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 };
             }
             break;
-        case 'Identifier':
-            let name = currentNode.name,
-                code = getCode(currentNode, sourceCode);
+        case 'Identifier': {
+            let name = currentNode.name;
+            let code = getCode(currentNode, sourceCode);
             if (outputStyle == 'c' || (extra && extra.doNotUseVar)) {
                 nodes[currentId] = {
                     label: 'AST',
@@ -1450,6 +1452,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 };
             }
             break;
+        }
         case 'MethodDefinition':
             // directly go to the value child node
             dfs(currentNode.value, currentId, parentId, childNum, currentFunctionId, {
@@ -1590,7 +1593,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             }
             break;
         case 'NewExpression':
-        case 'CallExpression':
+        case 'CallExpression': {
             phpflag = null;
             vNodeName = currentNode.type + 'Arguments';
             if (currentNode.type == 'NewExpression') phptype = 'AST_NEW';
@@ -1674,6 +1677,8 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 }
                 vNodeChildNumberCounter++;
             }
+            code = getCode(currentNode, sourceCode).match(/\(([^\)]*)\)/);
+            code = code ? code[0] : '';
             // Write the virtual ArgumentList node
             nodes[vNodeId] = {
                 label: 'AST_V',
@@ -1685,7 +1690,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                code: getCode(currentNode, sourceCode).match(/\(([^\)]*)\)/)[0],
+                code: code,
                 funcId: currentFunctionId
             };
             childNumberCounter++;
@@ -1723,6 +1728,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 name: modulePath
             };
             break;
+        }
         case 'SwitchStatement':
             // discriminant
             nodeIdCounter++;
@@ -2718,6 +2724,7 @@ function analyze(filePath, parentNodeId) {
     filename = filePath;
     console.log(("Analyzing " + filename).green.inverse);
     sourceCode = fs.readFileSync(filePath, 'utf8');
+    sourceCode = sourceCode.replace(/^#!.*\n/, '');
     // initialize
     let currentId = nodeIdCounter;
     if (outputStyle == 'php') {
@@ -2809,6 +2816,7 @@ if (!fs.statSync(dirname).isDirectory()) {
 
 // analyze any required packages
 for (let currentModule of requiredModules) {
+    if (currentModule == 'built-in') continue;
     analyze(currentModule, null);
 }
 
