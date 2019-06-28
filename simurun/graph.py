@@ -190,7 +190,7 @@ class Graph:
         """
         Iterate over edges in a depth-first-search (DFS).
         """
-        return nx.dfs_edges(self.graph, source)
+        return nx.dfs_edges(self.graph, source, depth_limit)
 
     def get_out_edges(self, node_id, data = True, keys = True, edge_type = None):
         if edge_type == None:
@@ -463,7 +463,7 @@ class Graph:
         self.add_edge(new_node_id, obj_node_id, {"type:TYPE": "NAME_TO_OBJ"})
         return obj_node_id
 
-    def set_obj_by_scope_name(self, var_name, obj_id, scope = None, multi = False):
+    def set_obj_by_scope_name(self, var_name, obj_id, scope = None, multi = False, branch = None):
         """
         set a var name point to a obj id in a scope
         if the var name never appeared, add to the current scope
@@ -478,11 +478,17 @@ class Graph:
 
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
         pre_objs = self.get_multi_objs_by_name(var_name, scope = scope)
-        self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ"})
+        if branch:
+            self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ", "branch": branch+"A"})
+        else:
+            self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ"})
         if pre_objs and not multi:
-            print("remove pre", var_name)
-            for obj in pre_objs:
-                self.graph.remove_edge(cur_namenode, obj)
+            if branch:
+                for obj in pre_objs:
+                    self.set_node_attr(obj, {"branch": branch+"D"})
+            else:
+                for obj in pre_objs:
+                    self.graph.remove_edge(cur_namenode, obj)
 
     def get_node_by_attr(self, key, value):
         """
@@ -745,7 +751,8 @@ class Graph:
         return the childern of node (with a specific edge type)
         """
         edges = self.get_out_edges(node_id, edge_type = edge_type)
-        return [e[1] for e in edges] 
+        # return [e[1] for e in edges]
+        return set([e[1] for e in edges])
 
     def get_all_inputs(self, node_id):
         """

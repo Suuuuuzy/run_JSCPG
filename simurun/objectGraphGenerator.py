@@ -171,18 +171,13 @@ def handle_node(G, node_id, extra = {}):
 
         if len(ast_edges) == 1:
             # only have left
-            handle_node(G, ast_edges[0][1])
+            handle_node(G, ast_edges[0][1], extra)
             return [None]
 
-        if G.get_node_attr(ast_edges[0][1])['childnum:int'] == '1':
-            right = ast_edges[0][1]
-            left = ast_edges[1][1]
-        else:
-            right = ast_edges[1][1]
-            left = ast_edges[0][1]
+        left, right = G.get_ordered_ast_child_nodes(node_id)
 
-        handled_right = handle_node(G, right, dict(extra, 'side': 'right'))
-        handled_left = handle_node(G, left, dict(extra, 'side': 'left'))
+        handled_right = handle_node(G, right, dict(extra, side='right'))
+        handled_left = handle_node(G, left, dict(extra, side='left'))
 
         if handled_right == None:
             print(sty.fg.red + "RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right) + sty.rs.all, file=sys.stderr)
@@ -191,7 +186,6 @@ def handle_node(G, node_id, extra = {}):
         # print(handled_right)
         [right_added_obj, right_added_scope, right_objs, right_scope, modified_objs, used_objs, right_name, right_name_node] = handled_right
         [left_added_obj, left_added_scope, left_objs, left_scope, modified_objs, used_objs, right_name, right_name_node] = handled_left
-
 
         left_attr = G.get_node_attr(left)
         right_attr = G.get_node_attr(right)
@@ -204,7 +198,7 @@ def handle_node(G, node_id, extra = {}):
 
         if not right_objs:
             print(sty.fg.red + "Right OBJ not found" + sty.rs.all, file=sys.stderr)
-            return None
+            return [None] * 8
 
         if right_attr['type'] == 'AST_PROP':
             [child_added_obj, child_added_scope, child_objs, child_scope, _, _, child_name, child_name_node] = handled_right
@@ -219,13 +213,19 @@ def handle_node(G, node_id, extra = {}):
             # get the current obj of this name node
             cur_child_edge = G.get_out_edges(child_name_node, edge_type = "NAME_TO_OBJ")
             if cur_child_edge: # if it's not an empty list (when the name node has no corresponding obj)
-                G.graph.remove_edge(child_name_node, cur_child_edge[0][1])
+                if extra.get('branch'):
+                    G.set_edge_attr(child_name_node, cur_child_edge[0][1], 0, {"branch": extra.get('branch')+"D"})
+                else:
+                    G.graph.remove_edge(child_name_node, cur_child_edge[0][1])
             for obj in right_objs:
-                G.add_edge(child_name_node, obj, {"type:TYPE": "NAME_TO_OBJ"})
+                if extra.get('branch'):
+                    G.add_edge(child_name_node, obj, {"type:TYPE": "NAME_TO_OBJ", "branch": extra.get('branch')+"A"})
+                else:
+                    G.add_edge(child_name_node, obj, {"type:TYPE": "NAME_TO_OBJ"})
         else:
             flag = False
             for obj in right_objs:
-                G.set_obj_by_scope_name(left_name, obj, scope = left_scope, multi = flag)
+                G.set_obj_by_scope_name(left_name, obj, scope = left_scope, multi = flag, branch = extra.get('branch'))
                 if flag == False:
                     flag = True
 
@@ -264,13 +264,13 @@ def handle_node(G, node_id, extra = {}):
             value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
             key = G.get_name_from_child(key_node)
             if not key: key = '*' # add wildcard for future use
-            child_added_obj, _, _, _, _, _, _, _ = handle_node(G, value_node)
+            child_added_obj, _, _, _, _, _, _, _ = handle_node(G, value_node, extra)
             added_obj = G.add_obj_to_obj(node_id, None, key, parent_obj = extra['parent_obj'], tobe_added_obj = child_added_obj)
 
 
     elif cur_node_attr['type'] == 'AST_DIM':
         G.set_node_attr(node_id, ('type', 'AST_PROP'))
-        return handle_node(G, node_id)
+        return handle_node(G, node_id, extra)
 
 
     elif cur_node_attr['type'] == 'AST_VAR':
@@ -303,7 +303,7 @@ def handle_node(G, node_id, extra = {}):
         child_name = G.get_name_from_child(child)
         # parent contains many parent, child only has one
         # get the next level of parent
-        handled_parent = handle_node(G, parent)
+        handled_parent = handle_node(G, parent, extra)
 
         [parent_added_obj, parent_added_scope, parent_objs, parent_scope, modified_objs, used_objs, parent_name, _] = handled_parent
         parent_obj = parent_objs.pop() if parent_objs else None # TODO: temporary workaround
@@ -385,8 +385,8 @@ def handle_node(G, node_id, extra = {}):
             # else:
             #     now_objs = [or_obj]
             left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
-            _, _, left_objs, _, _, _, _, _ = handle_node(G, left_objs)
-            _, _, right_objs, _, _, _, _, _ = handle_node(G, right_objs)
+            _, _, left_objs, _, _, _, _, _ = handle_node(G, left_objs, extra)
+            _, _, right_objs, _, _, _, _, _ = handle_node(G, right_objs, extra)
             now_objs.extend(left_objs)
             now_objs.extend(right_objs)
         else:
@@ -412,7 +412,7 @@ def handle_node(G, node_id, extra = {}):
                 G.graph.remove_edge(name_node, cur_obj_node)
 
             new_func_decl_id = G.add_blank_func(node_name, scope = G.BASE_SCOPE)
-            [added_obj, _, _, _, _, _, _, _] = handle_node(G, new_func_decl_id)
+            [added_obj, _, _, _, _, _, _, _] = handle_node(G, new_func_decl_id, extra)
 
             G.add_edge(name_node, added_obj, {'type:TYPE': 'NAME_TO_OBJ'})
             G.add_edge(added_obj, new_func_decl_id, {'type:TYPE': 'OBJ_TO_AST'})
@@ -428,7 +428,7 @@ def handle_node(G, node_id, extra = {}):
         # update current scope and object
         G.cur_scope = G.get_scope_by_ast_decl(new_func_decl_id)
         G.cur_obj = added_obj 
-        simurun_function(G, new_func_decl_id)
+        simurun_function_new(G, new_func_decl_id)
         
         # add obj to scope edge
         G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
@@ -452,7 +452,7 @@ def handle_node(G, node_id, extra = {}):
 
         # parent contains many parent, child only has one
         # get the next level of parent
-        handled_parent = handle_node(G, parent)
+        handled_parent = handle_node(G, parent, extra)
 
         [parent_added_obj, parent_added_scope, parent_objs, parent_scope, modified_objs, used_objs, parent_name, _] = handled_parent
         parent_obj = parent_objs.pop() if parent_objs else None # TODO: temporary workaround
@@ -507,12 +507,27 @@ def handle_node(G, node_id, extra = {}):
         now_objs = G.get_multi_objs_by_name(var_name)
         now_scope = G.cur_scope
         node_var_name = var_name
+    
+    elif cur_node_attr['type'] == 'AST_IF':
+        lineno = G.get_node_attr(node_id).get('lineno:int')
+        if_elems = G.get_ordered_ast_child_nodes(node_id)
+        for if_elem in if_elems:
+            handle_node(G, if_elem, dict(extra, if_id=lineno))
+        merge(G, lineno, len(if_elems))
+
+    elif cur_node_attr['type'] == 'AST_IF_ELEM':
+        condition, body = G.get_ordered_ast_child_nodes(node_id)
+        handle_node(G, condition)
+        cur_branch = extra.get('branch', '')
+        if_id = extra.get('if_id', None)
+        if_elem_id = G.get_node_attr(node_id).get('childnum:int', None)
+        simurun_block(G, body, G.cur_scope, branch=f'{cur_branch}-If{if_id}#{if_elem_id}')
 
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
         # func_decl_id = cur_node_attr['HAVE_FUNC']
         for func_decl_id in registered_func[node_id]:
-            handle_node(G, func_decl_id)
+            handle_node(G, func_decl_id, extra)
     
     # delete if right node is temperate
     remove_list = G.get_node_by_attr("name", "TMPRIGHT")
@@ -521,7 +536,7 @@ def handle_node(G, node_id, extra = {}):
 
     return [added_obj, added_scope, now_objs, now_scope, modified_objs, used_objs, node_var_name, var_name_node]
 
-def simurun_function(G, func_decl_id):
+def simurun_function_new(G, func_decl_id):
     """
     bfs run a simurun from a entry id
     """
@@ -569,7 +584,8 @@ def simurun_function_new(G, func_decl_id):
     print(sty.ef.inverse + sty.fg.green + "FUNCTION {} STARTS, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj) + sty.rs.all)
     for child in G.get_descendant_nodes_by_types(func_decl_id, node_types=[]):
         if G.get_node_attr(child).get('type') == 'AST_STMT_LIST':
-            return simurun_block(G, child, parent_scope=G.get_func_scope_by_name())
+            return simurun_block(G, child, parent_scope=G.cur_scope)
+    return None, None
 
 def simurun_block(G, ast_node, parent_scope, branch=None):
     """
@@ -578,8 +594,10 @@ def simurun_block(G, ast_node, parent_scope, branch=None):
     """
     returned_objs = set()
     modified_objs = set()
+    if parent_scope == None:
+        parent_scope = G.cur_scope
     if not G.scope_exists_by_ast_node(ast_node, parent_scope, max_depth=1):
-        G.add_scope('BLOCK_SCOPE', f'Block{ast_node}', ast_node)
+        G.add_scope('BLOCK_SCOPE', ast_node, f'Block{ast_node}')
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     for stmt in stmts:
         handled_res = handle_node(G, stmt, {'branch': branch})
@@ -593,6 +611,48 @@ def simurun_block(G, ast_node, parent_scope, branch=None):
             modified_objs.union(stmt_modified_objs)
     
     return returned_objs, modified_objs
+
+def merge(G, if_id, num_of_elems):
+    name_nodes = G.get_node_by_attr('labels:label', 'Name')
+    for u in name_nodes:
+        for v in G.get_child_nodes:
+            created = [False] * num_of_elems
+            deleted = [False] * num_of_elems
+            for key, edge_attr in G.graph[u][v].items():
+                branch = edge_attr.get('branch', '')
+                match_a = re.match(f'-If{if_id}#([^-]*)A$', branch)
+                match_d = re.match(f'-If{if_id}#([^-]*)D$', branch)
+                if match_a:
+                    if_elem_id = int(match_a.group(1))
+                    created[if_elem_id] = True
+                if match_d:
+                    if_elem_id = int(match_d.group(1))
+                    deleted[if_elem_id] = True
+            flag_a = True
+            for i in created:
+                if i == False:
+                    flag_a = False
+            flag_d = True
+            for i in deleted:
+                if i == False:
+                    flag_d = False
+            if flag_a:
+                attr = dict(G.graph[u][v].items()[0][1])
+                branch = attr['branch']
+                del attr['branch']
+                new_branch = branch.split('-')[:-1]
+                for key, edge_attr in G.graph[u][v].items():
+                    G.graph.remove_edge(u, v, key)
+                G.add_edge(u, v, dict(attr, branch = new_branch))
+            if flag_d:
+                attr = dict(G.graph[u][v].items()[0][1])
+                branch = attr['branch']
+                del attr['branch']
+                new_branch = branch.split('-')[:-1]
+                for key, edge_attr in G.graph[u][v].items():
+                    G.graph.remove_edge(u, v, key)
+                if new_branch != '':
+                    G.add_edge(u, v, dict(attr, branch = new_branch))
 
 def generate_obj_graph(G, entry_nodeid):
     """
@@ -613,9 +673,7 @@ def generate_obj_graph(G, entry_nodeid):
     for node in obj_nodes:
         register_func(G, node[0])
     handle_node(G, entry_nodeid)
-    # simurun_function(G, entry_nodeid)
     add_edges_between_funcs(G)
-    # return added_obj, added_scope, module_exports
 
 def decl_function(G, node_id, func_name = None, parent_scope = None):
     """
@@ -668,7 +726,7 @@ def run_toplevel_file(G, node_id):
     # add module.exports
     G.add_obj_to_obj(node_id, "BUILT-IN", "exports", parent_obj = added_module_obj)
     
-    simurun_function(G, node_id)
+    simurun_function_new(G, node_id)
 
     module_obj = G.get_obj_by_name('module')
     module_exports = G.get_obj_by_obj_name('exports', parent_obj=module_obj)
@@ -689,16 +747,19 @@ def handle_require(G, node_id):
     added_obj = None
     added_scope = None
     module_exports = None
+    found = False
     for node in toplevel_nodes:
         # file_name = G.get_node_attr(node).get('name')
         # module_name = re.search(r'([^/\\]*)$', file_name)[1]
         # if module_name in file_name:
         #     added_obj, added_scope, module_exports = run_toplevel_file(G, node)
         #     break
-        print("file: " + G.get_node_attr(node).get('name'), file_name)
         if G.get_node_attr(node).get('name') == file_name:
+            found = True
             added_obj, added_scope, module_exports = run_toplevel_file(G, node)
             break
+    if not found:
+        print(sty.fg.red + sty.ef.bold + "Required module {} at {} not found!".format(module_name, file_name) + sty.rs.all, file=sys.stderr)
     return added_obj, added_scope, module_exports
 
 def ast_call_function(G, node_id, func_name = None, parent_obj = None):
@@ -755,7 +816,7 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         G.cur_obj = parent_obj 
 
 
-    returned_objs, modified_objs = simurun_function(G, func_decl_id)
+    returned_objs, modified_objs = simurun_function_new(G, func_decl_id)
 
     # add obj to scope edge
     if G.cur_scope == None:
