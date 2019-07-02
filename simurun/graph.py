@@ -15,6 +15,8 @@ class Graph:
         """
         return a nodeid
         """
+        if self.cur_id == 1183:
+            print('warning')
         self.cur_id += 1
         return str(self.cur_id - 1)
 
@@ -138,6 +140,8 @@ class Graph:
         insert an edge to graph
         attr is like {key: value, key: value}
         """
+        assert from_ID != None, "Failed to add an edge, from_ID is None."
+        assert to_ID != None, "Failed to add an edge, to_ID is None."
         # self.graph.add_edges_from([(from_ID, to_ID, attr)])
         self.graph.add_edge(from_ID, to_ID, None, **attr)
     
@@ -145,6 +149,8 @@ class Graph:
         """
         insert an edge to the graph if the graph does not already has the same edge
         """
+        assert from_ID != None, "Failed to add an edge, from_ID is None."
+        assert to_ID != None, "Failed to add an edge, to_ID is None."
         if not self.graph.has_edge(from_ID, to_ID):
             self.add_edge(from_ID, to_ID, attr)
         else:
@@ -232,7 +238,8 @@ class Graph:
         return the nearest upper CPG node of the input node_id
         we assume that the nearest will appear within 2 steps
         """
-        edges = nx.bfs_edges(self.graph, node_id, reverse = True, depth_limit = 3)
+        # edges = nx.bfs_edges(self.graph, node_id, reverse = True, depth_limit = 3)
+        edges = nx.bfs_edges(self.graph, node_id, reverse = True, depth_limit = sys.maxsize)
         for edge in edges:
             # the nodes are reversed
             edges_data = self.get_edge_attr(edge[1], edge[0])
@@ -267,7 +274,7 @@ class Graph:
         """
         bfs_queue = []
         visited = set()
-        bfs_queue.append((nodeid,0))
+        bfs_queue.append((nodeid, 0))
 
         while(len(bfs_queue)):
             cur_node, cur_depth = bfs_queue.pop(0)
@@ -468,27 +475,27 @@ class Graph:
         set a var name point to a obj id in a scope
         if the var name never appeared, add to the current scope
         """
-        obj_attr = self.get_node_attr(obj_id) 
-        if obj_attr['type'] == 'LITERAL':
-            obj_id = self.add_literal_obj()
         cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
-
         if cur_namenode == None:
             self.add_namenode_to_scope(var_name, scope = scope)
 
-        cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
-        pre_objs = self.get_multi_objs_by_name(var_name, scope = scope)
-        if branch:
-            self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ", "branch": branch+"A"})
-        else:
-            self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ"})
-        if pre_objs and not multi:
+        if obj_id != None:
+            obj_attr = self.get_node_attr(obj_id) 
+            if obj_attr['type'] == 'LITERAL':
+                obj_id = self.add_literal_obj()
+            cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
+            pre_objs = self.get_multi_objs_by_name(var_name, scope = scope)
             if branch:
-                for obj in pre_objs:
-                    self.set_node_attr(obj, {"branch": branch+"D"})
+                self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ", "branch": branch+"A"})
             else:
-                for obj in pre_objs:
-                    self.graph.remove_edge(cur_namenode, obj)
+                self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ"})
+            if pre_objs and not multi:
+                if branch:
+                    for obj in pre_objs:
+                        self.set_node_attr(obj, {"branch": branch+"D"})
+                else:
+                    for obj in pre_objs:
+                        self.graph.remove_edge(cur_namenode, obj)
 
     def get_node_by_attr(self, key, value):
         """
@@ -558,7 +565,7 @@ class Graph:
         """
         return AST children of a node in childnum order
         """
-        children = sorted(self._get_childern_by_childnum(node_id).items(), key=lambda x: x[0])
+        children = sorted(self._get_childern_by_childnum(node_id).items(), key=lambda x: int(x[0]))
         children = list(zip(*children))[1]
         return children
 

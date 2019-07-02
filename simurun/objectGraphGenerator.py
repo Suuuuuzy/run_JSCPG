@@ -72,6 +72,8 @@ def add_edges_between_funcs(G):
         entry_edge = G.get_out_edges(callee_id, data = True, edge_type = 'ENTRY')[0]
         # add CFG edge to ENTRY
         print(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, entry_edge[1]))
+        assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
+        assert entry_edge[1] != None, "Failed to add CFG edge. Callee ENTRY is None."
         added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
 
         # add DF edge to PARAM
@@ -80,6 +82,8 @@ def add_edges_between_funcs(G):
         callee_paras = get_argids_from_funcallee(callee_id)
         for idx in range(min(len(callee_paras), len(caller_para_names))):
             print(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, callee_paras[idx]))
+            assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
+            assert callee_paras[idx] != None, f"Failed to add CFG edge. callee_paras[{idx}] is None."
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
 
         # add data flows for return values
@@ -88,6 +92,8 @@ def add_edges_between_funcs(G):
                 for stmt in G.get_child_nodes(child, 'PARENT_OF'):
                     if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
                         print(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {}'.format(stmt, CPG_caller_id))
+                        assert stmt != None, "Failed to add CFG edge. Statement ID is None."
+                        assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
                         added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
 
     G.add_edges_from_list_if_not_exist(added_edge_list)
@@ -112,7 +118,7 @@ def register_func(G, node_id):
         out_edges = G.get_in_edges(cur_node, edge_type = 'PARENT_OF')
         out_nodes = [edge[0] for edge in out_edges]
         for node in out_nodes:
-            if len(G.get_out_edges(node[0], edge_type = "FLOWS_TO")) != 0 or len(G.get_out_edges(node[0], edge_type = "ENTRY")) != 0:
+            if len(G.get_out_edges(node[0], edge_type = "FLOWS_TO")) != 0 and len(G.get_out_edges(node[0], edge_type = "ENTRY")) != 0: # and? or?
                 entry_id = G.get_out_edges(node[0], edge_type = "ENTRY")[0][1]
                 G.set_node_attr(entry_id, ("HAVE_FUNC", node_id))
                 if entry_id not in registered_func:
@@ -198,6 +204,7 @@ def handle_node(G, node_id, extra = {}):
 
         if not right_objs:
             print(sty.fg.red + "Right OBJ not found" + sty.rs.all, file=sys.stderr)
+            G.set_obj_by_scope_name(left_name, None)
             return [None] * 8
 
         if right_attr['type'] == 'AST_PROP':
@@ -385,8 +392,8 @@ def handle_node(G, node_id, extra = {}):
             # else:
             #     now_objs = [or_obj]
             left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
-            _, _, left_objs, _, _, _, _, _ = handle_node(G, left_objs, extra)
-            _, _, right_objs, _, _, _, _, _ = handle_node(G, right_objs, extra)
+            _, _, left_objs, _, _, _, _, _ = handle_node(G, left_child, extra)
+            _, _, right_objs, _, _, _, _, _ = handle_node(G, right_child, extra)
             now_objs.extend(left_objs)
             now_objs.extend(right_objs)
         else:
@@ -405,6 +412,9 @@ def handle_node(G, node_id, extra = {}):
             # we assume it's a built-in function
             print("Built-in: Function {} not found".format(node_name))
             name_node = G.get_scope_namenode_by_name(node_name)
+            if name_node == None:
+                G.set_obj_by_scope_name(node_name, None, scope=G.BASE_SCOPE)
+                name_node = G.get_scope_namenode_by_name(node_name)
             cur_obj_node = G.get_obj_by_name(node_name)
 
             # point the current varnode to the blank function
@@ -536,7 +546,7 @@ def handle_node(G, node_id, extra = {}):
 
     return [added_obj, added_scope, now_objs, now_scope, modified_objs, used_objs, node_var_name, var_name_node]
 
-def simurun_function_new(G, func_decl_id):
+def simurun_function(G, func_decl_id):
     """
     bfs run a simurun from a entry id
     """
@@ -615,7 +625,7 @@ def simurun_block(G, ast_node, parent_scope, branch=None):
 def merge(G, if_id, num_of_elems):
     name_nodes = G.get_node_by_attr('labels:label', 'Name')
     for u in name_nodes:
-        for v in G.get_child_nodes:
+        for v in G.get_child_nodes(u, 'NAME_TO_OBJ'):
             created = [False] * num_of_elems
             deleted = [False] * num_of_elems
             for key, edge_attr in G.graph[u][v].items():
@@ -741,23 +751,24 @@ def run_toplevel_file(G, node_id):
 
 def handle_require(G, node_id):
     arg_list = G.get_ordered_ast_child_nodes(node_id)[1]
-    module_name = G.get_name_from_child(arg_list).strip("'\"")
+    module_name = (G.get_name_from_child(arg_list) or '').strip("'\"")
     file_name = G.get_node_attr(node_id).get('name')
     toplevel_nodes = G.get_nodes_by_type_and_flag('AST_TOPLEVEL', 'TOPLEVEL_FILE')
     added_obj = None
     added_scope = None
     module_exports = None
     found = False
-    for node in toplevel_nodes:
-        # file_name = G.get_node_attr(node).get('name')
-        # module_name = re.search(r'([^/\\]*)$', file_name)[1]
-        # if module_name in file_name:
-        #     added_obj, added_scope, module_exports = run_toplevel_file(G, node)
-        #     break
-        if G.get_node_attr(node).get('name') == file_name:
-            found = True
-            added_obj, added_scope, module_exports = run_toplevel_file(G, node)
-            break
+    if module_name and file_name:
+        for node in toplevel_nodes:
+            # file_name = G.get_node_attr(node).get('name')
+            # module_name = re.search(r'([^/\\]*)$', file_name)[1]
+            # if module_name in file_name:
+            #     added_obj, added_scope, module_exports = run_toplevel_file(G, node)
+            #     break
+            if G.get_node_attr(node).get('name') == file_name:
+                found = True
+                added_obj, added_scope, module_exports = run_toplevel_file(G, node)
+                break
     if not found:
         print(sty.fg.red + sty.ef.bold + "Required module {} at {} not found!".format(module_name, file_name) + sty.rs.all, file=sys.stderr)
     return added_obj, added_scope, module_exports
@@ -861,6 +872,8 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     Build data flows for objects used in current statement.
     The flow will be from the object's definition to current statement (current node).
     """
+    if not used_objs or cur_stmt == None:
+        return
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
         def_cpg_node = G.find_nearest_upper_CPG_node(def_ast_node)
