@@ -11,9 +11,9 @@ const esprima = require('esprima');
 const os = require('os');
 const ansicolor = require('ansicolor').nice;
 
-if (process.argv.length != 3) {
+if (process.argv.length < 3) {
     console.log('Wrong arguments: ' + process.argv);
-    console.log('Usage: ' + process.argv[1] + ' filename');
+    console.log('Usage: ' + process.argv[1] + ' filename [start_number]');
     process.exit();
 }
 
@@ -26,6 +26,9 @@ if (outputStyle == 'php') {
     nodeIdCounter = 0;
 } else if (outputStyle == 'c') {
     nodeIdCounter = 1;
+}
+if (process.argv[3]) {
+    nodeIdCounter = process.argv[3];
 }
 
 var dirname = process.argv[2];
