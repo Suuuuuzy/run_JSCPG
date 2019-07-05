@@ -2,6 +2,8 @@ import networkx as nx
 import sys
 import csv
 import sty
+from utilities import *
+from typing import Iterable
 
 class Graph:
 
@@ -351,6 +353,32 @@ class Graph:
             return None
         return out_edges[0][1]
 
+    def get_objs_by_name_node(self, name_node, branches: Iterable = None):
+        out_edges = self.get_out_edges(name_node, edge_type='NAME_TO_OBJ')
+        objs = set([edge[1] for edge in out_edges])
+        if branches:
+            # initiate a dictionary that records if the object exists in the current branch
+            has_obj = {}
+            for obj in objs:
+                has_obj[obj] = True
+            # for each branch in branch history
+            # we check from the oldest (shallowest) to the most recent (deepest)
+            for branch in branches:
+                # check which edge matches the current checking branch
+                for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
+                    tag = attr.get('branch', BranchTag())
+                    if tag.stmt == branch.stmt and tag.branch == branch.branch:
+                        if tag.op == 'A': # if the object is added (assigned) in that branch
+                            has_obj[obj] = True
+                        elif tag.op == 'D': # if the object is removed in that branch
+                            has_obj[obj] = False
+            for obj in objs:
+                if not has_obj[obj]:
+                    objs.remove(obj)
+            return objs
+        else:
+            return objs
+
     def get_multi_objs_by_name(self, var_name, scope = None):
         """
         Multiple possibility version of get_obj_by_name
@@ -393,6 +421,7 @@ class Graph:
         self.set_node_attr(var_name_id, ('labels:label', 'Name'))
         self.set_node_attr(var_name_id, ('name', var_name))
         self.add_edge(parent_obj, var_name_id, {"type:TYPE": "OBJ_TO_PROP"})
+        return var_name_id
 
     def add_obj_to_obj(self, ast_node, var_type, var_name, parent_obj = None, tobe_added_obj = None):
         """
@@ -496,6 +525,48 @@ class Graph:
                 else:
                     for obj in pre_objs:
                         self.graph.remove_edge(cur_namenode, obj)
+    
+    def assign_obj_nodes_to_name_node(self, name_node, obj_nodes, multi = False, branch: BranchTag = None):
+        '''
+        Assign (multiple) object nodes to a name node.
+        
+        Args:
+            name_node
+            obj_nodes
+            multi (bool, optional): True: do NOT delete edges. False: delete existing edges. Defaults to False.
+            branch (BranchTag, optional): Current branch tag. Defaults to None.
+        '''
+        # remove previous objects
+        pre_objs = self.get_objs_by_name_node(name_node)
+        if pre_objs and not multi:
+            for obj in pre_objs:
+                if branch:
+                    # check if any addition (assignment) exists in current branch
+                    flag = False
+                    for key, edge_attr in self.get_edges_between(name_node, obj, 'NAME_TO_OBJ').items():
+                        tag = edge_attr.get('branch', BranchTag())
+                        if tag == BranchTag(stmt=branch.stmt, branch=branch.branch, op='A'):
+                            # if addition exists, delete the addition edge
+                            self.graph.remove_edge(name_node, obj, key)
+                            flag = True
+                    if not flag:
+                        # if no addition, add a deletion edge
+                        self.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(stmt=branch.stmt, branch=branch.branch, op='D')})
+                else:
+                    self.graph.remove_edge(name_node, obj)
+        # add new objects to name node
+        for obj in obj_nodes:
+            if branch:
+                self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ", "branch": BranchTag(stmt=branch.stmt, branch=branch.branch, op='A')})
+            else:
+                self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ"})
+    
+    def get_edges_between(self, u, v, edge_type = None) -> dict:
+        result = {}
+        for key, edge_attr in self.graph[u][v].items():
+            if not edge_type or edge_attr.get('type:TYPE') == edge_type:
+                result[key] = edge_attr
+        return result
 
     def get_node_by_attr(self, key, value):
         """

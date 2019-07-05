@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from graph import Graph
 from scopeController import ScopeController
+from utilities import *
 import sys
 import sty
 import re
@@ -128,6 +129,81 @@ def register_func(G, node_id):
 
         bfs_queue += out_nodes
 
+def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
+    '''
+    Handle property.
+    '''
+    parent, prop = G.get_ordered_ast_child_nodes(ast_node)
+    handled_parent = handle_node(G, parent, extra)
+    prop_name = handle_node(G, prop, extra).get('name', 'undefined')
+    
+    parent_name = handled_parent.name
+    parent_objs = handled_parent.obj_nodes
+    if parent_name == "this":
+        parent_objs = G.cur_obj
+        # parent_scope = G.cur_scope
+    elif not parent_objs:
+        if not (extra and extra.get('side') == 'right'):
+            print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, creating object nodes".format(parent_name) + sty.rs.all)
+            # we assume this happens when it's a built-in var name
+            parent_objs = [G.add_obj_to_scope(ast_node, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)]
+        else:
+            print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, return undefined".format(parent_name) + sty.rs.all)
+            return NodeHandleResult()
+
+    prop_objs = set()
+    prop_name_nodes = set()
+    if parent_objs:
+        for parent_obj in parent_objs:
+            prop_name_nodes.add(G.get_name_node_of_obj(prop_name, parent_obj))
+            prop_objs.add(G.get_obj_by_obj_name(prop_name, parent_obj = parent_obj))
+        # TODO: implement built-in modules (in a database, etc.)
+        # this is just a workaround for required modules
+        if not prop_objs:
+            if extra and extra.get('side') == 'right':
+                return NodeHandleResult()
+            else:
+                print('add prop name node {}.{}'.format(parent_name, prop_name))
+                # only add a name node
+                for parent_obj in parent_objs:
+                    prop_name_nodes.add(G.add_namenode_under_obj(prop_name, parent_obj))
+
+    return NodeHandleResult(obj_nodes=prop_objs, name=prop_name, name_nodes=prop_name_nodes)
+
+def handle_assign(G, node_id, extra = {}) -> NodeHandleResult:
+    '''
+    Handle assignment statement.
+    '''
+    # get AST children (left and right sides)
+    ast_children = G.get_ordered_ast_child_nodes(node_id)
+    try:
+        left, right = ast_children
+    except ValueError:
+        # if only have left side
+        return handle_node(G, ast_children[0], extra)
+    
+    # recursively handle both sides
+    handled_right = handle_node(G, right, dict(extra, side='right'))
+    handled_left = handle_node(G, left, dict(extra, side='left'))
+
+    if not handled_right:
+        print(sty.fg.red + "RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right) + sty.rs.all, file=sys.stderr)
+        return NodeHandleResult()
+
+    right_objs = handled_right.obj_nodes
+
+    # if not right_objs:
+    #     print(sty.fg.red + "Right OBJ not found" + sty.rs.all, file=sys.stderr)
+    #     G.set_obj_by_scope_name(left_name, None)
+    #     return NodeHandleResult()
+
+    branch = None
+    if extra.get('branches'):
+        branch = extra.get('branches')[-1]
+    
+    for name_node in handled_left.name_nodes:
+        G.assign_obj_nodes_to_name_node(name_node, right_objs, BranchTag=branch)
+
 def handle_node(G, node_id, extra = {}):
     """
     for different node type, do different actions to handle this node
@@ -185,7 +261,7 @@ def handle_node(G, node_id, extra = {}):
         handled_right = handle_node(G, right, dict(extra, side='right'))
         handled_left = handle_node(G, left, dict(extra, side='left'))
 
-        if handled_right == None:
+        if not handled_right:
             print(sty.fg.red + "RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right) + sty.rs.all, file=sys.stderr)
             return None
 
@@ -252,7 +328,6 @@ def handle_node(G, node_id, extra = {}):
         
         print(sty.ef.b + sty.fg.green + "ASSIGNED" + sty.rs.all + " {}: {} -> {}".format(right_name, [(int(obj), G.get_node_attr(obj)) for obj in right_objs], left_name))
         modified_objs.union(left_objs)
-    
     
     elif cur_node_attr['type'] == 'AST_ARRAY':
         added_obj = G.add_obj_node(node_id, "OBJ_DECL")
