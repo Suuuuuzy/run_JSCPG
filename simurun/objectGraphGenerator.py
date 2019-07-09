@@ -8,11 +8,6 @@ import re
 
 registered_func = {}
 
-# TODO:
-# treat or as multiple options, for now, only assign the first one
-# for undefined property, eg. a = g.f, a(), currently a point to blank function but not g.f. Fix later by changing ast_func_call
-# param to inner obj reaches
-
 def get_argids_from_funcallee(node_id):
     """
     given a func node id, return a list of para ids
@@ -73,8 +68,8 @@ def add_edges_between_funcs(G):
         entry_edge = G.get_out_edges(callee_id, data = True, edge_type = 'ENTRY')[0]
         # add CFG edge to ENTRY
         print(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, entry_edge[1]))
-        assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
-        assert entry_edge[1] != None, "Failed to add CFG edge. Callee ENTRY is None."
+        # assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
+        # assert entry_edge[1] != None, "Failed to add CFG edge. Callee ENTRY is None."
         added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
 
         # add DF edge to PARAM
@@ -101,33 +96,22 @@ def add_edges_between_funcs(G):
 
 def register_func(G, node_id):
     """
-    input a func_decl id, register it to the nearest parent who has CFG
+    register the function to the nearest parent function like node
+    we assume the 1-level parent node is the stmt of parent function
+
+    Args:
+        G: the graph object
+        node_id: the node that needed to be registered
     """
-    # we assume that function decl should have a CF parent
-    bfs_queue = []
-    visited = set()
-    bfs_queue.append(node_id)
-    while(len(bfs_queue)):
-        cur_node = bfs_queue.pop(0)
+    # we assume this node only have one parent node
+    parent_stmt_nodeid = G.get_in_edges(node_id, edge_type = "PARENT_OF")[0][0]
+    parent_func_nodeid = G.get_in_edges(parent_stmt_nodeid, edge_type = "PARENT_OF")[0][0]
+    G.set_node_attr(parent_func_nodeid, ("HAVE_FUNC", node_id))
+    if parent_func_nodeid not in registered_func:
+        registered_func[parent_func_nodeid] = set()
+    registered_func[parent_func_nodeid].add(node_id)
 
-        # if visited before, stop here
-        if cur_node in visited:
-            continue
-        else:
-            visited.add(cur_node)
-
-        out_edges = G.get_in_edges(cur_node, edge_type = 'PARENT_OF')
-        out_nodes = [edge[0] for edge in out_edges]
-        for node in out_nodes:
-            if len(G.get_out_edges(node[0], edge_type = "FLOWS_TO")) != 0 and len(G.get_out_edges(node[0], edge_type = "ENTRY")) != 0: # and? or?
-                entry_id = G.get_out_edges(node[0], edge_type = "ENTRY")[0][1]
-                G.set_node_attr(entry_id, ("HAVE_FUNC", node_id))
-                if entry_id not in registered_func:
-                    registered_func[entry_id] = set()
-                registered_func[entry_id].add(node_id)
-                return
-
-        bfs_queue += out_nodes
+    print(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
 
 def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
     '''
@@ -230,6 +214,21 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
     elif G.get_node_attr(node_id).get('labels:label') == 'Artificial_AST':
         node_color = sty.fg.black + sty.bg(179)
     print(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id}: {node_color}{cur_type}{sty.rs.all}{' ' + node_name if node_name else ''}, lineno: {cur_node_attr['lineno:int']}")
+
+    added_obj = None
+    added_scope = None
+    now_objs = []
+    now_scope = None
+    node_var_name = None
+    var_name_node = None
+    modified_objs = set()
+    used_objs = set()
+
+    # handle registered functions
+    if "HAVE_FUNC" in cur_node_attr:
+        for func_decl_id in registered_func[node_id]:
+            print(sty.ef.inverse + sty.fg.red + "RUN register {}".format(func_decl_id) + sty.rs.all)
+            handle_node(G, func_decl_id, extra)
 
     if cur_type == "AST_PARAM":
         node_name = G.get_name_from_child(node_id)
@@ -622,23 +621,18 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         simurun_block(G, body, G.cur_scope, branches)
         return NodeHandleResult()
 
-    return NodeHandleResult()
 
-    # TODO: find alternative to function registration
-    # handle registered functions
-    if "HAVE_FUNC" in cur_node_attr:
-        # func_decl_id = cur_node_attr['HAVE_FUNC']
-        for func_decl_id in registered_func[node_id]:
-            handle_node(G, func_decl_id, extra)
-    
     # TODO: TMPRIGHT needs to be removed
     # delete if right node is temperate
     remove_list = G.get_node_by_attr("name", "TMPRIGHT")
     G.remove_nodes_from(remove_list)
     G.set_node_attr(node_id, ("VISITED", "1"))
 
+    return NodeHandleResult()
+
 def simurun_function(G, func_decl_id):
     """
+<<<<<<< HEAD
     deprecated
     bfs run a simurun from a entry id
     """
@@ -661,9 +655,8 @@ def simurun_function(G, func_decl_id):
 
         # print("BFS NODE {}".format(cur_node))
         handled_res = handle_node(G, cur_node)
-        if handled_res != None and len(handled_res) == 8:
-            # modified_objs = handled_res[4]
-            used_objs = handled_res[5]
+        if handled_res is not None:
+            used_objs = handled_res.used_objs
             build_df_by_def_use(G, cur_node, used_objs)
 
         if G.get_node_attr(cur_node)['type'] == 'AST_RETURN':
@@ -681,6 +674,8 @@ def simurun_function(G, func_decl_id):
 
 def simurun_function_new(G, func_decl_id):
     """
+=======
+>>>>>>> removing Joern
     Simurun a function by running its body.
     """
     print(sty.ef.inverse + sty.fg.green + "FUNCTION {} STARTS, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj) + sty.rs.all)
@@ -703,7 +698,9 @@ def simurun_block(G, ast_node, parent_scope, branches=[]):
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     for stmt in stmts:
         handled_res = handle_node(G, stmt, {'branches': branches})
+
         if handled_res:
+            print(sty.fg.red + "{}".format(len(handled_res)) + sty.rs.all)
             stmt_used_objs = handled_res.used_objs
             build_df_by_def_use(G, stmt, stmt_used_objs)
 
@@ -814,7 +811,6 @@ def merge_new(G, stmt, num_of_branches, parent_branch):
                     # we don't do anything, because the edges have been deleted
                     pass
 
-
 def generate_obj_graph(G, entry_nodeid):
     """
     generate the obj graph of a specific object
@@ -834,7 +830,7 @@ def generate_obj_graph(G, entry_nodeid):
     for node in obj_nodes:
         register_func(G, node[0])
     handle_node(G, entry_nodeid)
-    add_edges_between_funcs(G)
+    # add_edges_between_funcs(G)
 
 def decl_function(G, node_id, func_name = None, parent_scope = None):
     """
@@ -887,7 +883,7 @@ def run_toplevel_file(G, node_id):
     # add module.exports
     G.add_obj_to_obj(node_id, "BUILT-IN", "exports", parent_obj = added_module_obj)
     
-    simurun_function_new(G, node_id)
+    simurun_function(G, node_id)
 
     module_obj = G.get_obj_by_name('module')
     module_exports = G.get_obj_by_obj_name('exports', parent_obj=module_obj)
@@ -928,7 +924,6 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     """
     run a function start from node id
     """
-
     if func_name == None:
         func_name = G.find_name_of_call(node_id)
     if func_name == 'require':
@@ -979,7 +974,7 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         G.cur_obj = parent_obj 
 
 
-    returned_objs, modified_objs = simurun_function_new(G, func_decl_id)
+    returned_objs, modified_objs = simurun_function(G, func_decl_id)
 
     # add obj to scope edge
     if G.cur_scope == None:
@@ -1010,7 +1005,6 @@ def build_df(G, node_id, modified_objs):
         if cur_obj == None:
             continue
         edges = G.get_in_edges(cur_obj, edge_type = 'LAST_MODIFIED')
-        # we assume we only have one last modified edge
         # TODO: name error, should be parent or child name
         for edge in edges:
             print(sty.fg.li_magenta + sty.ef.b + "OBJ REACHES" + sty.rs.all + " {} -> {}".format(edge[0], node_id))
