@@ -1628,14 +1628,35 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     phptype = 'AST_METHOD_CALL';
                     nodeIdCounter++;
                     relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    dfs(currentNode.callee.object, nodeIdCounter, currentId, 0, currentFunctionId);
+                    dfs(currentNode.callee.object, nodeIdCounter, currentId, childNumberCounter, currentFunctionId);
+                    childNumberCounter++;
                     // go to the method (member) child node
                     nodeIdCounter++;
                     relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    dfs(currentNode.callee.property, nodeIdCounter, currentId, 1, currentFunctionId, {
+                    dfs(currentNode.callee.property, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, {
                         doNotUseVar: true
                     });
-                    childNumberCounter++;
+                } else if (currentNode.callee.type == 'Identifier') {
+                    nodeIdCounter++; // virtual Callee node
+                    let vAstNameId = nodeIdCounter;
+                    relsStream.write([currentId, vAstNameId, parentOf].join(delimiter) + '\n');
+                    nodes[vAstNameId] = {
+                        label: 'AST_V',
+                        phptype: 'AST_NAME',
+                        phpflag: 'NAME_NOT_FQ',
+                        childNum: childNumberCounter,
+                        // code: currentNode.callee.name || getCode(currentNode.callee, sourceCode) || '',
+                        lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                        lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                        colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                        colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                        funcId: currentFunctionId
+                    };
+                    nodeIdCounter++;
+                    relsStream.write([vAstNameId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    dfs(currentNode.callee, nodeIdCounter, currentId, 0, currentFunctionId, {
+                        doNotUseVar: true
+                    });
                 } else {
                     nodeIdCounter++;
                     relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
