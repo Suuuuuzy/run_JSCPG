@@ -42,7 +42,7 @@ const builtInModules = require('module').builtinModules;
 
 var csvHead1PHP = `id:ID\tlabels:label\ttype\tflags:string[]\tlineno:int\tcode\tchildnum:int\tfuncid:int\tclassname\tnamespace\tendlineno:int\tname\tdoccomment\n`.replace(/\t/g, delimiter);
 var csvHead1C = `command\tkey\ttype\tcode\tlocation\tfunctionId\tchildNum\tisCFGNode\toperator\tbaseType\tcompleteType\tidentifier\n`.replace(/\t/g, delimiter);
-var csvHead2PHP = `start\tend\ttype\n`.replace(/\t/g, delimiter);
+var csvHead2PHP = `start:START_ID\tend:END_ID\ttype:TYPE\n`.replace(/\t/g, delimiter);
 var csvHead2C = `start\tend\ttype\tvar\n`.replace(/\t/g, delimiter);
 var nodesStream = fs.createWriteStream('nodes.csv');
 var relsStream = fs.createWriteStream(outputStyle == 'php' ? 'rels.csv' : 'edges.csv');
