@@ -17,8 +17,6 @@ class Graph:
         """
         return a nodeid
         """
-        if self.cur_id == 1183:
-            print('warning')
         self.cur_id += 1
         return str(self.cur_id - 1)
 
@@ -179,7 +177,7 @@ class Graph:
     def add_edges_from_list_if_not_exist(self, edge_list):
         for e in edge_list:
             if len(e) != 3:
-                print("Length of the edge tuple {} is not 3".format(e), file=sys.stderr)
+                print("Length of the edge tuple {} is not 3".format(e))
                 continue
             u, v, attr = e
             existing_edges = self.graph.get_edge_data(u, v)
@@ -240,15 +238,16 @@ class Graph:
         return the nearest upper CPG node of the input node_id
         we assume that the nearest will appear within 2 steps
         """
-        # edges = nx.bfs_edges(self.graph, node_id, reverse = True, depth_limit = 3)
-        edges = nx.bfs_edges(self.graph, node_id, reverse = True, depth_limit = sys.maxsize)
-        for edge in edges:
-            # the nodes are reversed
-            edges_data = self.get_edge_attr(edge[1], edge[0])
-            for key in edges_data:
-                edge_data = edges_data[key]
-                if 'type:TYPE' in edge_data and edge_data['type:TYPE'] == 'FLOWS_TO':
-                    return edge[0]
+        # follow the parent_of edge to research the stmt node
+        while True:
+            parent_edges = self.get_in_edges(node_id, edge_type = "PARENT_OF")
+            if parent_edges is None or len(parent_edges) == 0:
+                return None
+            parent_node = parent_edges[0][0]
+            parent_node_attr = self.get_node_attr(parent_node)
+            if 'type' in parent_node_attr and parent_node_attr['type'] == "AST_STMT_LIST":
+                return node_id 
+            node_id = parent_node
     
     def get_successors(self, node_id):
         return self.graph.successors(node_id)
@@ -922,21 +921,6 @@ class Graph:
             res.add(parent_obj)
 
         return res
-
-    def update_modified_edges(self, node_id, modified_objs):
-        """
-        update the modified objs and link with node id
-        """
-        if not modified_objs: return
-        for cur_obj in modified_objs:
-            if cur_obj == None:
-                continue
-            edges = self.get_in_edges(modified_objs, edge_type = 'LAST_MODIFIED')
-            for edge in edges:
-                self.graph.remove_edge(*edge[:3])
-
-            self.graph.add_edge(node_id, cur_obj, key = 'MODIFIED')
-            nx.set_edge_attributes(self.graph, {(node_id, cur_obj, 'MODIFIED'): {'type:TYPE': 'LAST_MODIFIED'}})
 
     def get_obj_def_ast_node(self, obj_node_id):
         """
