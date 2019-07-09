@@ -329,7 +329,6 @@ class Graph:
         get the sub obj of a parent obj based on the name
         """
         namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
-        print("getting {} from {}".format(var_name, parent_obj))
         if namenode == None:
             return None
         out_edges = list(self.get_out_edges(namenode))

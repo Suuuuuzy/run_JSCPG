@@ -136,11 +136,6 @@ def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)
     handled_parent = handle_node(G, parent, extra)
     prop_name = G.get_name_from_child(prop) or 'undefined'
-
-    if prop_name == 'exports':
-        print('exports')
-    if prop_name == 'greet':
-        print('greet')
     
     parent_name = handled_parent.name
     parent_objs = handled_parent.obj_nodes
@@ -360,7 +355,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             child_added_objs = child_handle_result.obj_nodes
             now_objs = []
             for obj in child_added_objs:
-                now_objs.append(G.add_obj_to_obj(node_id, None, key, parent_obj = extra['parent_obj'], tobe_added_obj = child_added_obj))
+                now_objs.append(G.add_obj_to_obj(node_id, None, key, parent_obj = extra['parent_obj'], tobe_added_obj = obj))
         return NodeHandleResult(obj_nodes=now_objs)
 
     elif cur_type == 'AST_DIM':
@@ -481,7 +476,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
             left_objs = handle_node(G, left_child, extra).obj_nodes
             right_objs = handle_node(G, right_child, extra).obj_nodes
-            now_objs = left_objs + right_objs
+            now_objs = left_objs + right_objs # TODO: find cause of empty obj_nodes
             return NodeHandleResult(obj_nodes=now_objs)
         else:
             added_obj = G.add_literal_obj()
@@ -601,7 +596,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             return NodeHandleResult()
 
     elif cur_type == 'AST_RETURN':
-        returned_var = G.get_ordered_ast_child_nodes(node_id)
+        returned_var = G.get_ordered_ast_child_nodes(node_id)[0]
         var_name = G.get_name_from_child(returned_var)
         now_objs = G.get_multi_objs_by_name(var_name)
         now_scope = G.cur_scope
@@ -627,12 +622,16 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         simurun_block(G, body, G.cur_scope, branches)
         return NodeHandleResult()
 
+    return NodeHandleResult()
+
+    # TODO: find alternative to function registration
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
         # func_decl_id = cur_node_attr['HAVE_FUNC']
         for func_decl_id in registered_func[node_id]:
             handle_node(G, func_decl_id, extra)
     
+    # TODO: TMPRIGHT needs to be removed
     # delete if right node is temperate
     remove_list = G.get_node_by_attr("name", "TMPRIGHT")
     G.remove_nodes_from(remove_list)
@@ -640,6 +639,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
 def simurun_function(G, func_decl_id):
     """
+    deprecated
     bfs run a simurun from a entry id
     """
     print(sty.ef.inverse + sty.fg.green + "FUNCTION {} STARTS, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj) + sty.rs.all)
@@ -687,7 +687,7 @@ def simurun_function_new(G, func_decl_id):
     for child in G.get_descendant_nodes_by_types(func_decl_id, node_types=[]):
         if G.get_node_attr(child).get('type') == 'AST_STMT_LIST':
             return simurun_block(G, child, parent_scope=G.cur_scope)
-    return None, None
+    return [], []
 
 def simurun_block(G, ast_node, parent_scope, branches=[]):
     """
@@ -695,7 +695,7 @@ def simurun_block(G, ast_node, parent_scope, branches=[]):
     A block is a BlockStatement in JavaScript, or an AST_STMT_LIST in PHP.
     """
     returned_objs = set()
-    modified_objs = set()
+    used_objs = set()
     if parent_scope == None:
         parent_scope = G.cur_scope
     if not G.scope_exists_by_ast_node(ast_node, parent_scope, max_depth=1):
@@ -704,15 +704,18 @@ def simurun_block(G, ast_node, parent_scope, branches=[]):
     for stmt in stmts:
         handled_res = handle_node(G, stmt, {'branches': branches})
         if handled_res:
-            used_objs = handled_res.used_objs
-            build_df_by_def_use(G, stmt, used_objs)
+            stmt_used_objs = handled_res.used_objs
+            build_df_by_def_use(G, stmt, stmt_used_objs)
 
         if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
-            _, _, stmt_returned_objs, _, stmt_modified_objs, stmt_used_objs, _, _ = handled_res
-            returned_objs.union(stmt_returned_objs)
-            modified_objs.union(stmt_modified_objs)
+            stmt_returned_objs = handled_res.obj_nodes
+            stmt_used_objs = handled_res.used_objs
+            if stmt_returned_objs:
+                returned_objs.union(stmt_returned_objs)
+            if stmt_used_objs:
+                used_objs.union(stmt_used_objs)
     
-    return returned_objs, modified_objs
+    return returned_objs, used_objs
 
 def merge(G, if_id, num_of_elems):
     '''
