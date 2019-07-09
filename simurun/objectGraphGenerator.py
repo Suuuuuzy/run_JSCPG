@@ -13,7 +13,6 @@ def printcolor(string, color="red"):
     just for testing
     """
     print(sty.ef.inverse + sty.fg.red + str(string) + sty.rs.all)
-    
 
 def get_argids_from_funcallee(node_id):
     """
@@ -222,15 +221,6 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         node_color = sty.fg.black + sty.bg(179)
     print(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id}: {node_color}{cur_type}{sty.rs.all}{' ' + node_name if node_name else ''}, lineno: {cur_node_attr['lineno:int']}")
 
-    added_obj = None
-    added_scope = None
-    now_objs = []
-    now_scope = None
-    node_var_name = None
-    var_name_node = None
-    modified_objs = set()
-    used_objs = set()
-
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
         for func_decl_id in registered_func[node_id]:
@@ -431,13 +421,6 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
         child_name = G.get_name_from_child(child)
 
-        """
-        child_obj = G.get_obj_by_obj_name(child_name, parent_obj = parent_obj)
-        if child_obj == None:
-            # assume the ast node is the root node
-            added_obj = G.add_obj_to_obj(node_id, "OBJ", child_name, parent_obj = parent_obj)
-        """
-
         var_name_node = G.get_name_node_of_obj(child_name, parent_obj = parent_obj)
         node_var_name = child_name
 
@@ -470,7 +453,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
     
     elif cur_type == 'AST_IF':
         # lineno = G.get_node_attr(node_id).get('lineno:int')
-        stmt_id = "If" + G.get_node_attr(node_id).get('lineno:int')
+        stmt_id = "If" + node_id 
         if_elems = G.get_ordered_ast_child_nodes(node_id)
         branches = extra.get('branches', [])
         parent_branch = branches[-1] if branches else None
