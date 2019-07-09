@@ -501,6 +501,7 @@ class Graph:
 
     def set_obj_by_scope_name(self, var_name, obj_id, scope = None, multi = False, branch = None):
         """
+        deprecated
         set a var name point to a obj id in a scope
         if the var name never appeared, add to the current scope
         """
@@ -545,19 +546,19 @@ class Graph:
                     flag = False
                     for key, edge_attr in self.get_edges_between(name_node, obj, 'NAME_TO_OBJ').items():
                         tag = edge_attr.get('branch', BranchTag())
-                        if tag == BranchTag(stmt=branch.stmt, branch=branch.branch, op='A'):
+                        if tag == BranchTag(branch, op='A'):
                             # if addition exists, delete the addition edge
                             self.graph.remove_edge(name_node, obj, key)
                             flag = True
                     if not flag:
                         # if no addition, add a deletion edge
-                        self.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(stmt=branch.stmt, branch=branch.branch, op='D')})
+                        self.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(branch, op='D')})
                 else:
                     self.graph.remove_edge(name_node, obj)
         # add new objects to name node
         for obj in obj_nodes:
             if branch:
-                self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ", "branch": BranchTag(stmt=branch.stmt, branch=branch.branch, op='A')})
+                self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ", "branch": BranchTag(branch, op='A')})
             else:
                 self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ"})
     

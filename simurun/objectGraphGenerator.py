@@ -186,23 +186,29 @@ def handle_assign(G, node_id, extra = {}) -> NodeHandleResult:
     handled_right = handle_node(G, right, dict(extra, side='right'))
     handled_left = handle_node(G, left, dict(extra, side='left'))
 
+    if not handled_left:
+        print(sty.fg.red + "Left side handling error at statement {}, child {}".format(node_id, right) + sty.rs.all, file=sys.stderr)
+        return NodeHandleResult()
+
     if not handled_right:
-        print(sty.fg.red + "RIGHT OBJ NOT FOUND WITH NODE ID {} and right ID {}".format(node_id, right) + sty.rs.all, file=sys.stderr)
+        print(sty.fg.red + "Right side handling error at statement {}, child {}".format(node_id, right) + sty.rs.all, file=sys.stderr)
         return NodeHandleResult()
 
     right_objs = handled_right.obj_nodes
 
-    # if not right_objs:
-    #     print(sty.fg.red + "Right OBJ not found" + sty.rs.all, file=sys.stderr)
-    #     G.set_obj_by_scope_name(left_name, None)
-    #     return NodeHandleResult()
+    if not right_objs:
+        print(sty.fg.red + "Right OBJ not found" + sty.rs.all, file=sys.stderr)
+        # G.set_obj_by_scope_name(left_name, None)
+        # return NodeHandleResult()
 
+    # get branch tags
     branch = None
     if extra.get('branches'):
         branch = extra.get('branches')[-1]
     
+    # do the assignment
     for name_node in handled_left.name_nodes:
-        G.assign_obj_nodes_to_name_node(name_node, right_objs, BranchTag=branch)
+        G.assign_obj_nodes_to_name_node(name_node, right_objs, branch=branch)
 
 def handle_node(G, node_id, extra = {}):
     """
@@ -594,19 +600,21 @@ def handle_node(G, node_id, extra = {}):
         node_var_name = var_name
     
     elif cur_node_attr['type'] == 'AST_IF':
-        lineno = G.get_node_attr(node_id).get('lineno:int')
+        # lineno = G.get_node_attr(node_id).get('lineno:int')
+        stmt_id = "If" + G.get_node_attr(node_id).get('lineno:int')
         if_elems = G.get_ordered_ast_child_nodes(node_id)
-        for if_elem in if_elems:
-            handle_node(G, if_elem, dict(extra, if_id=lineno))
-        merge(G, lineno, len(if_elems))
+        branches = extra.get('branches', [])
+        parent_branch = branches[-1] if branches else None
+        for i, if_elem in enumerate(if_elems):
+            branch_tag = BranchTag(stmt=stmt_id, branch=i)
+            handle_node(G, if_elem, dict(extra, branches=branches+[branch_tag]))
+        merge_new(G, stmt_id, len(if_elems), parent_branch)
 
     elif cur_node_attr['type'] == 'AST_IF_ELEM':
         condition, body = G.get_ordered_ast_child_nodes(node_id)
         handle_node(G, condition)
-        cur_branch = extra.get('branch', '')
-        if_id = extra.get('if_id', None)
-        if_elem_id = G.get_node_attr(node_id).get('childnum:int', None)
-        simurun_block(G, body, G.cur_scope, branch=f'{cur_branch}-If{if_id}#{if_elem_id}')
+        branches = extra.get('branches', [])
+        simurun_block(G, body, G.cur_scope, branches)
 
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
@@ -672,7 +680,7 @@ def simurun_function_new(G, func_decl_id):
             return simurun_block(G, child, parent_scope=G.cur_scope)
     return None, None
 
-def simurun_block(G, ast_node, parent_scope, branch=None):
+def simurun_block(G, ast_node, parent_scope, branches=[]):
     """
     Simurun a block by running its statements one by one.
     A block is a BlockStatement in JavaScript, or an AST_STMT_LIST in PHP.
@@ -685,7 +693,7 @@ def simurun_block(G, ast_node, parent_scope, branch=None):
         G.add_scope('BLOCK_SCOPE', ast_node, f'Block{ast_node}')
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     for stmt in stmts:
-        handled_res = handle_node(G, stmt, {'branch': branch})
+        handled_res = handle_node(G, stmt, {'branches': branches})
         if handled_res != None and len(handled_res) == 8:
             used_objs = handled_res[5]
             build_df_by_def_use(G, stmt, used_objs)
@@ -738,6 +746,59 @@ def merge(G, if_id, num_of_elems):
                     G.graph.remove_edge(u, v, key)
                 if new_branch != '':
                     G.add_edge(u, v, dict(attr, branch = new_branch))
+
+def merge_new(G, stmt, num_of_branches, parent_branch):
+    '''
+    Merge two or more branches.
+    
+    Args:
+        G: graph
+        stmt: AST node ID of the if/switch statement.
+        num_of_branches (int): number of branches.
+        parent_branch (BranchTag): parent branch tag (if this branch is inside another branch statement).
+    '''
+    name_nodes = G.get_node_by_attr('labels:label', 'Name')
+    for u in name_nodes:
+        for v in G.get_child_nodes(u, 'NAME_TO_OBJ'):
+            created = [False] * num_of_branches
+            deleted = [False] * num_of_branches
+            for key, edge_attr in G.graph[u][v].items():
+                branch_tag = edge_attr.get('branch')
+                if branch_tag and branch_tag.stmt == stmt:
+                    if branch_tag.op == 'A':
+                        created[branch_tag.branch] = True
+                    if branch_tag.op == 'D':
+                        deleted[branch_tag.branch] = True
+            flag_created = True
+            for i in created:
+                if i == False:
+                    flag_created = False
+            flag_deleted = True
+            for i in deleted:
+                if i == False:
+                    flag_deleted = False
+            if flag_created:
+                for key, edge_attr in G.graph[u][v].items():
+                    branch_tag = edge_attr.get('branch', [])
+                    if branch_tag.stmt == stmt:
+                        G.graph.remove_edge(u, v, key)
+                if parent_branch:
+                    # add one addition edge with parent if/switch's (upper level's) tags
+                    G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, op='A')})
+                else:
+                    G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ'})
+            if flag_deleted:
+                for key, edge_attr in G.graph[u][v].items():
+                    branch_tag = edge_attr.get('branch', [])
+                    if branch_tag.stmt == stmt:
+                        G.graph.remove_edge(u, v, key)
+                if parent_branch:
+                    # add one deletion edge with parent if/switch's (upper level's) tags
+                    G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, op='D')})
+                else:
+                    # we don't do anything, because the edges have been deleted
+                    pass
+
 
 def generate_obj_graph(G, entry_nodeid):
     """

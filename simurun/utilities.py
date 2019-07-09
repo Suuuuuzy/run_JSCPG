@@ -18,26 +18,38 @@ class NodeHandleResult:
 class BranchTag:
     '''
     Class for tagging branches.
+
+    Args:
+        stmt (str): ID of the if/switch statement
+        branch (str): which condition/case in the statement
+        op (str): operation, 'A' for addition, 'D' for deletion
+        ---
+        s (str/BranchTag): string to create the object directly, or copy the existing object
     '''
 
-    def __init__(self, s: str = None, **kwargs):
+    def __init__(self, s = None, **kwargs):
         '''
         Args:
             stmt (str): ID of the if/switch statement
             branch (str): which condition/case in the statement
             op (str): operation, 'A' for addition, 'D' for deletion
             ---
-            s (str): string to create the object directly
+            s (str/BranchTag): string to create the object directly, or copy the existing object
         '''
-        self.stmt = kwargs.get('stmt')
-        self.branch = kwargs.get('branch')
-        self.op = kwargs.get('op', '')
+        self.stmt = ''
+        self.branch = ''
+        self.op = ''
         if s:
             try:
-                self.stmt, self.branch, self.op = re.match(
-                    r'-?([^#]+)#(\d+)(\w?)', s).groups()
+                self.stmt, self.branch, self.op = re.match(r'-?([^#]+)#(\d+)(\w?)', str(s)).groups()
             except Exception:
                 pass
+        if 'stmt' in kwargs:
+            self.stmt = kwargs['stmt']
+        if 'branch' in kwargs:
+            self.branch = kwargs['branch']
+        if 'op' in kwargs:
+            self.op = kwargs['op']
         # assert self.__bool__()
 
     def __str__(self):
