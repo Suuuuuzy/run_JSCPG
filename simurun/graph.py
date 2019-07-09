@@ -407,6 +407,7 @@ class Graph:
         self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_TO_VAR"})
         self.set_node_attr(new_node_id, ('labels:label', 'Name'))
         self.set_node_attr(new_node_id, ('name', name))
+        return new_node_id
 
     def add_namenode_under_obj(self, var_name, parent_obj = None):
         """
@@ -671,8 +672,7 @@ class Graph:
         return [parent, child, args]
         currently we only support one level property
         """
-        childnum_dict = self._get_childern_by_childnum(node_id)
-        return [childnum_dict['0'], childnum_dict['1'], childnum_dict['2']]
+        return self.get_ordered_ast_child_nodes(node_id)
 
     def get_func_scope_by_name(self, func_name, scope = None):
         """

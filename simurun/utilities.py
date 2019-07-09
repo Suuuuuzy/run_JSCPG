@@ -9,10 +9,11 @@ class NodeHandleResult:
         self.obj_nodes = kwargs.get('obj_nodes')
         self.value = kwargs.get('value')
         self.name = kwargs.get('name')
-        self.name_node = kwargs.get('name_node')
+        self.name_nodes = kwargs.get('name_nodes')
+        self.used_objs = kwargs.get('used_objs')
 
     def __bool__(self):
-        return bool(self.obj_nodes or self.value or self.name or self.name_node)
+        return bool(self.obj_nodes or self.value or self.name or self.name_nodes or self.used_objs)
 
 
 class BranchTag:
@@ -66,6 +67,9 @@ class BranchTag:
 
 
 class BranchTagContainer(list):
+    '''
+    Experimental. 
+    '''
     def match(self, tag: BranchTag = None, stmt=None, branch=None, op=None) -> Tuple[int, BranchTag]:
         '''
         Find a matching BranchTag in the array.
