@@ -240,10 +240,14 @@ class Graph:
         """
         # follow the parent_of edge to research the stmt node
         while True:
-            parent_node = self.get_in_edges(node_id, edge_type = "PARENT_OF")[0]
-            print (parent_node)
-
-
+            parent_edges = self.get_in_edges(node_id, edge_type = "PARENT_OF")
+            if parent_edges is None or len(parent_edges) == 0:
+                return None
+            parent_node = parent_edges[0][0]
+            parent_node_attr = self.get_node_attr(parent_node)
+            if 'type' in parent_node_attr and parent_node_attr['type'] == "AST_STMT_LIST":
+                return node_id 
+            node_id = parent_node
     
     def get_successors(self, node_id):
         return self.graph.successors(node_id)
