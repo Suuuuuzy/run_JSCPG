@@ -8,6 +8,13 @@ import re
 
 registered_func = {}
 
+def printcolor(string, color="red"):
+    """
+    just for testing
+    """
+    print(sty.ef.inverse + sty.fg.red + str(string) + sty.rs.all)
+    
+
 def get_argids_from_funcallee(node_id):
     """
     given a func node id, return a list of para ids
@@ -1018,6 +1025,7 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     Build data flows for objects used in current statement.
     The flow will be from the object's definition to current statement (current node).
     """
+    printcolor(used_objs)
     if not used_objs or cur_stmt == None:
         return
     for obj in used_objs:
