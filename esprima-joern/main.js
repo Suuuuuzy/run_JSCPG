@@ -1627,6 +1627,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     // if it's a member function call, we need to convert it to the PHP format
                     phptype = 'AST_METHOD_CALL';
                     nodeIdCounter++;
+                    relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                     dfs(currentNode.callee.object, nodeIdCounter, currentId, 0, currentFunctionId);
                     // go to the method (member) child node
                     nodeIdCounter++;
