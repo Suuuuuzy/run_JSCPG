@@ -334,8 +334,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         '''
     
     elif cur_type == 'AST_ARRAY':
-        added_obj = G.add_obj_node(node_id, "OBJ_DECL")
-        # added_obj = G.add_obj_to_scope(node_id, "LITERAL", "OBJ_DECL")
+        added_obj = G.add_obj_node(node_id, "OBJ_LITERAL")
 
         ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
         for edge in ast_edges:
@@ -368,7 +367,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
         now_objs = G.get_multi_objs_by_name(var_name)
 
-        name_node = G.get_scope_namenode_by_name(var_name)
+        name_node = G.get_name_node(var_name)
         if not (extra and extra.get('side') == 'right'):
             if name_node == None:
                 if now_objs or cur_node_attr.get('flags:string[]') in ["JS_DECL_VAR", 'JS_DECL_LET', 'JS_DECL_CONST']:
@@ -446,8 +445,12 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             return NodeHandleResult()
 
         added_scope = G.add_scope("FUNCTION_SCOPE", node_id)
-        added_obj = G.add_obj_node(node_id, "OBJ_DECL")
+        added_obj = G.add_obj_node(node_id, "FUNC_DECL")
         G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
+
+        print(sty.fg.red + sty.ef.inverse + f'ast closure {node_id}')
+
+        G.set_node_attr(node_id, ("VISITED", "1"))
 
         return NodeHandleResult(obj_nodes=[added_obj])
 
@@ -493,10 +496,10 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         if new_entry_id == None:
             # we assume it's a built-in function
             print("Built-in: Function {} not found".format(node_name))
-            name_node = G.get_scope_namenode_by_name(node_name)
+            name_node = G.get_name_node(node_name)
             if name_node == None:
                 G.set_obj_by_scope_name(node_name, None, scope=G.BASE_SCOPE)
-                name_node = G.get_scope_namenode_by_name(node_name)
+                name_node = G.get_name_node(node_name)
             cur_obj_node = G.get_obj_by_name(node_name)
 
             # point the current varnode to the blank function
@@ -622,8 +625,6 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         simurun_block(G, body, G.cur_scope, branches)
         return NodeHandleResult()
 
-    return NodeHandleResult()
-
     # TODO: find alternative to function registration
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
@@ -635,7 +636,8 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
     # delete if right node is temperate
     remove_list = G.get_node_by_attr("name", "TMPRIGHT")
     G.remove_nodes_from(remove_list)
-    G.set_node_attr(node_id, ("VISITED", "1"))
+
+    return handle_result
 
 def simurun_function(G, func_decl_id):
     """
@@ -854,12 +856,15 @@ def decl_function(G, node_id, func_name = None, parent_scope = None):
 
     # do a normal add closure
     added_scope = G.add_scope("FUNCTION_SCOPE", node_id)
-    added_obj = G.add_obj_node(node_id, "OBJ_DECL")
+    added_obj = G.add_obj_node(node_id, "FUNC_DECL")
     G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
 
     # for a func decl, should not have local var name
     # should add the name to base scope
     G.set_obj_by_scope_name(node_name, added_obj, scope = parent_scope)
+
+    G.set_node_attr(node_id, ("VISITED", "1"))
+
     return [added_obj, added_scope]
 
 def run_toplevel_file(G, node_id):
@@ -948,7 +953,8 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
 
     # build the related function nodes 
     # TODO: temporary workaround for multi possibilities
-    added_obj = handle_node(G, func_decl_id).obj_nodes[0]
+    handled_decl = handle_node(G, func_decl_id)
+    added_obj = handled_decl.obj_nodes[0] if handled_decl else None
 
     if added_obj != None:
         # add cur obj to parent obj

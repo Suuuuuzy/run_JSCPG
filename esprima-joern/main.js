@@ -1602,23 +1602,23 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             if (currentNode.type == 'NewExpression') phptype = 'AST_NEW';
             else phptype = 'AST_CALL';
             // callee
-            nodeIdCounter++; // virtual Callee node
-            let vCalleeId = nodeIdCounter;
-            relsStream.write([currentId, vCalleeId, parentOf].join(delimiter) + '\n');
-            nodes[vCalleeId] = {
-                label: 'AST_V',
-                type: 'Callee',
-                phptype: 'AST_NAME',
-                phpflag: 'NAME_NOT_FQ',
-                childNum: childNumberCounter,
-                // code: currentNode.callee.name || getCode(currentNode.callee, sourceCode) || '',
-                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
-                colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
-                colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
-            };
             if (outputStyle == 'c') {
+                nodeIdCounter++; // virtual Callee node
+                let vCalleeId = nodeIdCounter;
+                relsStream.write([currentId, vCalleeId, parentOf].join(delimiter) + '\n');
+                nodes[vCalleeId] = {
+                    label: 'AST_V',
+                    type: 'Callee',
+                    phptype: 'AST_NAME',
+                    phpflag: 'NAME_NOT_FQ',
+                    childNum: childNumberCounter,
+                    // code: currentNode.callee.name || getCode(currentNode.callee, sourceCode) || '',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                    funcId: currentFunctionId
+                };
                 nodeIdCounter++; // go to Identifier node
                 relsStream.write([vCalleeId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                 dfs(currentNode.callee, nodeIdCounter, vCalleeId, 0, currentFunctionId, null);
@@ -1626,8 +1626,8 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 if (currentNode.callee.type == 'MemberExpression') {
                     // if it's a member function call, we need to convert it to the PHP format
                     phptype = 'AST_METHOD_CALL';
-                    // overwrite the virtual Callee node
-                    dfs(currentNode.callee.object, vCalleeId, currentId, 0, currentFunctionId);
+                    nodeIdCounter++;
+                    dfs(currentNode.callee.object, nodeIdCounter, currentId, 0, currentFunctionId);
                     // go to the method (member) child node
                     nodeIdCounter++;
                     relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
@@ -1637,16 +1637,10 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     childNumberCounter++;
                 } else {
                     nodeIdCounter++;
-                    relsStream.write([vCalleeId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    nodes[nodeIdCounter] = {
-                        label: 'AST_V',
-                        type: 'Identifier',
-                        phptype: 'string',
-                        childNum: 0,
-                        code: getCode(currentNode.callee, sourceCode),
-                        lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                        funcId: currentFunctionId
-                    };
+                    relsStream.write([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                    dfs(currentNode.callee, nodeIdCounter, currentId, 0, currentFunctionId, {
+                        doNotUseVar: true
+                    });
                 }
             }
             childNumberCounter++;
@@ -1680,7 +1674,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 }
                 vNodeChildNumberCounter++;
             }
-            code = getCode(currentNode, sourceCode).match(/\(([^\)]*)\)/);
+            code = getCode(currentNode, sourceCode).match(/\(([^\)]*)\)[^\(\)]*$/);
             code = code ? code[0] : '';
             // Write the virtual ArgumentList node
             nodes[vNodeId] = {

@@ -304,24 +304,25 @@ class Graph:
 
         return None
 
-    def get_scope_namenode_by_name(self, var_name, scope = None):
+    def get_name_node(self, var_name, scope = None, follow_scope_chain = True):
         """
         helper function, get the namenode of a name based on scope
         """
-        cur_scope = self.cur_scope
-        if scope != None:
-            cur_scope = scope
+        if scope == None:
+            scope = self.cur_scope
 
         while(1):
-            var_edges = self.get_out_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_TO_VAR")
+            var_edges = self.get_out_edges(scope, data = True, keys = True, edge_type = "SCOPE_TO_VAR")
             for cur_edge in var_edges:
                 cur_var_attr = self.get_node_attr(cur_edge[1])
                 if cur_var_attr['name'] == var_name:
                     return cur_edge[1]
-            scope_edges = self.get_in_edges(cur_scope, data = True, keys = True, edge_type = "PARENT_SCOPE_OF")
+            if not follow_scope_chain:
+                break
+            scope_edges = self.get_in_edges(scope, data = True, keys = True, edge_type = "PARENT_SCOPE_OF")
             if len(scope_edges) == 0:
                 break
-            cur_scope = list(scope_edges)[0][0]
+            scope = list(scope_edges)[0][0]
         return None
 
     def get_obj_by_obj_name(self, var_name, parent_obj = None):
@@ -344,7 +345,7 @@ class Graph:
         """
         if var_name == 'this':
             return self.cur_obj
-        namenode = self.get_scope_namenode_by_name(var_name, scope)
+        namenode = self.get_name_node(var_name, scope)
         if namenode == None:
             return None
         out_edges = list(self.get_out_edges(namenode))
@@ -385,7 +386,7 @@ class Graph:
         """
         if var_name == 'this':
             return [self.cur_obj]
-        namenode = self.get_scope_namenode_by_name(var_name, scope)
+        namenode = self.get_name_node(var_name, scope)
         if namenode == None:
             return []
         out_edges = list(self.get_out_edges(namenode))
@@ -473,31 +474,35 @@ class Graph:
         cur_nodeid = str(self._get_new_nodeid())
         self.add_node(cur_nodeid)
         self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
+        self.set_node_attr(cur_nodeid, ('labels:label', 'Object'))
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
         self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_PROP"})
         self.cur_obj = cur_nodeid
 
-    def add_obj_to_scope(self, ast_node, name, var_type, scope = None):
+    def add_obj_to_scope(self, ast_node, var_name, var_type, scope = None):
         """
         add a obj to a scope, if scope is None, add to current scope
         return the added node id
         """
-        cur_scope = self.cur_scope
-        if scope != None:
-            cur_scope = scope 
+        if scope == None:
+            scope = self.cur_scope 
 
-        new_node_id = str(self._get_new_nodeid())
-        self.add_edge(cur_scope, new_node_id, {"type:TYPE": "SCOPE_TO_VAR"})
-        self.set_node_attr(new_node_id, ('labels:label', 'Name'))
-        self.set_node_attr(new_node_id, ('name', name))
+        # check if the name node exists first
+        name_node = self.get_name_node(var_name, scope=scope, follow_scope_chain=False)
+        if name_node == None:
+            print(f'name node for {var_name} exists')
+            name_node = str(self._get_new_nodeid())
+            self.add_edge(scope, name_node, {"type:TYPE": "SCOPE_TO_VAR"})
+            self.set_node_attr(name_node, ('labels:label', 'Name'))
+            self.set_node_attr(name_node, ('name', var_name))
 
         # here we do not add obj to current obj when add to scope
         # we just add a obj to scope
-        obj_node_id = self.add_obj_node(ast_node, "OBJ")
-        self.set_node_attr(obj_node_id, ('labels:label', 'Object'))
+        obj_node = self.add_obj_node(ast_node, "OBJ")
+        self.set_node_attr(obj_node, ('labels:label', 'Object'))
 
-        self.add_edge(new_node_id, obj_node_id, {"type:TYPE": "NAME_TO_OBJ"})
-        return obj_node_id
+        self.add_edge(name_node, obj_node, {"type:TYPE": "NAME_TO_OBJ"})
+        return obj_node
 
     def set_obj_by_scope_name(self, var_name, obj_id, scope = None, multi = False, branch = None):
         """
@@ -505,7 +510,7 @@ class Graph:
         set a var name point to a obj id in a scope
         if the var name never appeared, add to the current scope
         """
-        cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
+        cur_namenode = self.get_name_node(var_name, scope = scope)
         if cur_namenode == None:
             self.add_namenode_to_scope(var_name, scope = scope)
 
@@ -513,7 +518,7 @@ class Graph:
             obj_attr = self.get_node_attr(obj_id) 
             if obj_attr['type'] == 'LITERAL':
                 obj_id = self.add_literal_obj()
-            cur_namenode = self.get_scope_namenode_by_name(var_name, scope = scope)
+            cur_namenode = self.get_name_node(var_name, scope = scope)
             pre_objs = self.get_multi_objs_by_name(var_name, scope = scope)
             if branch:
                 self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ", "branch": branch+"A"})
