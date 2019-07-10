@@ -15,3 +15,7 @@ function test(){
 
 test.prototype.pro = "Proto";
 var ret = res.pro
+
+string = new String;
+String.prototype.s = "str";
+var str = string.s

@@ -594,6 +594,7 @@ class Graph:
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
         self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_PROP"})
         self.cur_obj = cur_nodeid
+        
 
     def add_obj_to_scope(self, ast_node, var_name, var_type, scope = None, tobe_added_obj = None):
         """
