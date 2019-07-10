@@ -11,3 +11,5 @@ function test(){
 (function () {
   var x = "Hello!!";  // I will invoke myself
 })();
+
+test.prototype.pro = "Proto";
