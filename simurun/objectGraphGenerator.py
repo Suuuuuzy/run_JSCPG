@@ -739,6 +739,12 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     """
     if func_name == None:
         func_name = G.find_name_of_call(node_id)
+    # if func_name is still none, this is a self-invoke call
+    # the childnum should always be 0
+    func_decl_id = None
+    if func_name is None:
+        func_decl_id = G.get_self_invoke_node_by_caller(node_id)
+
     if func_name == 'require':
         added_obj, added_scope, module_exports = handle_require(G, node_id)
         if module_exports:
@@ -746,10 +752,12 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         else:
             returned_objs = None
         return added_obj, added_scope, returned_objs, set()
-    if parent_obj == None:
-        func_decl_id = G.get_func_declid_by_function_name(func_name)
-    else:
-        func_decl_id = G.get_func_declid_by_function_obj_name(func_name, parent_obj = parent_obj)
+
+    if func_decl_id is None:
+        if parent_obj == None:
+            func_decl_id = G.get_func_declid_by_function_name(func_name)
+        else:
+            func_decl_id = G.get_func_declid_by_function_obj_name(func_name, parent_obj = parent_obj)
 
     if func_decl_id == None or len(G.get_out_edges(func_decl_id, edge_type = 'ENTRY')) == 0:
         func_decl_id = G.add_blank_func(func_name)

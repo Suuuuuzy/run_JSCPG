@@ -199,7 +199,7 @@ class Graph:
         return nx.dfs_edges(self.graph, source, depth_limit)
 
     def get_out_edges(self, node_id, data = True, keys = True, edge_type = None):
-        if edge_type == None:
+        if edge_type is None:
             return self.graph.out_edges(node_id, data = data, keys = keys)
         edges = self.graph.out_edges(node_id, data = data, keys = keys)
         idx = 1
@@ -864,6 +864,15 @@ class Graph:
         edges = self.get_out_edges(node_id, edge_type = edge_type)
         # return [e[1] for e in edges]
         return set([e[1] for e in edges])
+
+    def get_self_invoke_node_by_caller(self, caller_id):
+        """
+        get the closure of self invoke function by the caller id
+        
+        Args:
+            caller_id: the node id of the caller
+        """
+        return self._get_childern_by_childnum(caller_id)['0']
 
     def get_all_inputs(self, node_id):
         """
