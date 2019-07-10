@@ -251,6 +251,8 @@ def instantiate_obj(G, ast_node, constructor_decl, branches=[]):
     # finally add call edge from caller to callee
     G.add_edge_if_not_exist(ast_node, constructor_decl, {"type:TYPE": "CALLS"})
 
+    G.build_proto(created_obj)
+
     return created_obj
 
 def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
@@ -406,6 +408,8 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         created_objs = []
         constructor_decl_counter = 0
 
+        has_branches = True
+
         for name_node in name_nodes:
             constructor_decls = G.get_func_decls_by_name_node(name_node, branches)
             if not constructor_decls:
@@ -421,6 +425,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
             for decl in constructor_decls:
                 if len(name_nodes) * len(constructor_decls) == 1: # No any branches
+                    has_branches = False
                     created_obj = instantiate_obj(G, node_id, decl)
                 else:
                     created_obj = instantiate_obj(G, node_id, decl, branches+[BranchTag(stmt=stmt_id, branch=constructor_decl_counter)])
@@ -428,7 +433,8 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
                 created_objs.append(created_obj)
                 constructor_decl_counter += 1
             
-        merge(G, stmt_id, constructor_decl_counter, branch)
+        if has_branches:
+            merge(G, stmt_id, constructor_decl_counter, branch)
 
         return NodeHandleResult(obj_nodes=created_objs)
 
@@ -747,6 +753,12 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     """
     if func_name == None:
         func_name = G.find_name_of_call(node_id)
+    # if func_name is still none, this is a self-invoke call
+    # the childnum should always be 0
+    func_decl_id = None
+    if func_name is None:
+        func_decl_id = G.get_self_invoke_node_by_caller(node_id)
+
     if func_name == 'require':
         added_obj, added_scope, module_exports = handle_require(G, node_id)
         if module_exports:
@@ -754,10 +766,12 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         else:
             returned_objs = None
         return added_obj, added_scope, returned_objs, set()
-    if parent_obj == None:
-        func_decl_id = G.get_func_declid_by_function_name(func_name)
-    else:
-        func_decl_id = G.get_func_declid_by_function_obj_name(func_name, parent_obj = parent_obj)
+
+    if func_decl_id is None:
+        if parent_obj == None:
+            func_decl_id = G.get_func_declid_by_function_name(func_name)
+        else:
+            func_decl_id = G.get_func_declid_by_function_obj_name(func_name, parent_obj = parent_obj)
 
     if func_decl_id == None or len(G.get_out_edges(func_decl_id, edge_type = 'ENTRY')) == 0:
         func_decl_id = G.add_blank_func(func_name)
