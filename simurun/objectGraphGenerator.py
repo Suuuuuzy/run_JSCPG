@@ -353,15 +353,15 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
 
     elif cur_type == 'AST_BINARY_OP':
+        left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
         if cur_node_attr.get('flags:string[]') == 'BINARY_BOOL_OR':
-            left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
             left_objs = handle_node(G, left_child, extra).obj_nodes
             right_objs = handle_node(G, right_child, extra).obj_nodes
             now_objs = left_objs + right_objs # TODO: find cause of empty obj_nodes
             return NodeHandleResult(obj_nodes=now_objs)
         else:
-            handled_left = handle_node(G, left_child, extra).obj_nodes
-            handled_right = handle_node(G, right_child, extra).obj_nodes
+            handled_left = handle_node(G, left_child, extra)
+            handled_right = handle_node(G, right_child, extra)
             used_objs = []
             used_objs.extend(handled_left.used_objs)
             used_objs.extend(handled_left.obj_nodes)
@@ -371,14 +371,16 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
 
     elif cur_type == 'AST_NEW':
-        # for now, only support ast call not method call
-        added_objs = [G.add_obj_to_scope(node_id, "TMPRIGHT", "OBJ")]
-        node_name = G.get_name_from_child(node_id)
-        new_func_decl_id = G.get_func_declid_by_function_name(node_name)
-        
-        new_entry_id = G.get_entryid_by_function_name(node_name)
+        # TODO: multiple possibilities (constructor)
 
-        if new_entry_id == None:
+        # for now, only support ast call not method call
+        created_obj = G.add_obj_node(ast_node=node_id, var_type='OBJ')
+        node_name = G.get_name_from_child(node_id)
+        constructor_decl = G.get_func_declid_by_function_name(node_name)
+        
+        constructor_entry = G.get_entryid_by_function_name(node_name)
+
+        if constructor_entry == None:
             # we assume it's a built-in function
             print("Built-in: Function {} not found".format(node_name))
             name_node = G.get_name_node(node_name)
@@ -388,42 +390,39 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             cur_obj_node = G.get_obj_by_name(node_name)
 
             # point the current varnode to the blank function
-            if new_func_decl_id != None:
+            if constructor_decl != None:
                 G.graph.remove_edge(name_node, cur_obj_node)
 
-            new_func_decl_id = G.add_blank_func(node_name, scope = G.BASE_SCOPE)
-            added_objs = handle_node(G, new_func_decl_id, extra).obj_nodes
+            constructor_decl = G.add_blank_func(node_name, scope = G.BASE_SCOPE)
+            added_objs = handle_node(G, constructor_decl, extra).obj_nodes
 
             for obj in added_objs:
                 G.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ'})
-                G.add_edge(obj, new_func_decl_id, {'type:TYPE': 'OBJ_TO_AST'})
+                G.add_edge(obj, constructor_decl, {'type:TYPE': 'OBJ_TO_AST'})
 
             new_entry_id = G.get_entryid_by_function_name(node_name)
         
         # add edge between obj and obj decl
-        for obj in added_objs:
-            G.add_edge(obj, new_func_decl_id, {"type:TYPE": "OBJ_DECL"})
+        G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
 
         backup_scope = G.cur_scope
         backup_obj = G.cur_obj
 
         # update current scope and object
-        for obj in added_objs:
-            G.cur_scope = G.get_scope_by_ast_decl(new_func_decl_id)
-            G.cur_obj = obj 
-            simurun_function(G, new_func_decl_id)
+        G.cur_scope = G.get_scope_by_ast_decl(constructor_decl)
+        G.cur_obj = created_obj 
+        simurun_function(G, constructor_decl)
         
-        # add obj to scope edge
-        for obj in added_objs:
-            G.add_edge(obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
+        # add obj to scope edge?
+        # G.add_edge(obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
         
         G.cur_scope = backup_scope
         G.cur_obj = backup_obj
 
         # finally add call edge from caller to callee
-        G.add_edge_if_not_exist(node_id, new_func_decl_id, {"type:TYPE": "CALLS"})
+        G.add_edge_if_not_exist(node_id, constructor_decl, {"type:TYPE": "CALLS"})
         
-        return NodeHandleResult(obj_nodes=added_objs)
+        return NodeHandleResult(obj_nodes=[created_obj])
 
     elif cur_type == 'integer' or cur_type == 'string':
         added_obj = G.add_literal_obj(node_id)
@@ -862,6 +861,7 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
         def_cpg_node = G.find_nearest_upper_CPG_node(def_ast_node)
+        if def_cpg_node == None: continue
         if def_cpg_node == cur_stmt: continue
         print(sty.fg.li_magenta + sty.ef.b + "OBJ REACHES" + sty.rs.all + " {} -> {}".format(def_cpg_node, cur_stmt))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
