@@ -54,7 +54,7 @@ class BranchTag:
         # assert self.__bool__()
 
     def __str__(self):
-        return f"{self.stmt or ''}#{self.branch or ''}{self.op or ''}"
+        return f"{self.stmt}#{self.branch}{self.op or ''}"
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.__str__()}")'

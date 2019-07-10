@@ -359,39 +359,41 @@ class Graph:
             # initiate a dictionary that records if the object exists in the current branch
             has_obj = {}
             for obj in objs:
-                has_obj[obj] = True
+                has_obj[obj] = False
+            # check edges without branch tag
+            for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
+                tag = attr.get('branch')
+                if tag == None:
+                    has_obj[obj] = True
             # for each branch in branch history
             # we check from the oldest (shallowest) to the most recent (deepest)
             for branch in branches:
                 # check which edge matches the current checking branch
                 for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
-                    tag = attr.get('branch', BranchTag())
-                    if tag.stmt == branch.stmt and tag.branch == branch.branch:
+                    tag = attr.get('branch')
+                    if tag and tag.stmt == branch.stmt and tag.branch == branch.branch:
                         if tag.op == 'A': # if the object is added (assigned) in that branch
                             has_obj[obj] = True
                         elif tag.op == 'D': # if the object is removed in that branch
                             has_obj[obj] = False
-            for obj in objs:
+            for obj in list(objs):
                 if not has_obj[obj]:
                     objs.remove(obj)
             return objs
         else:
             return objs
 
-    def get_multi_objs_by_name(self, var_name, scope = None):
+    def get_multi_objs_by_name(self, var_name, scope = None, branches = []):
         """
         Multiple possibility version of get_obj_by_name
         Returns an array with multiple objects
         """
         if var_name == 'this':
             return [self.cur_obj]
-        namenode = self.get_name_node(var_name, scope)
-        if namenode == None:
+        name_node = self.get_name_node(var_name, scope)
+        if name_node == None:
             return []
-        out_edges = list(self.get_out_edges(namenode))
-        # if not out_edges:
-        #     return None
-        return [edge[1] for edge in out_edges]
+        return self.get_objs_by_name_node(name_node, branches)
     
     def add_namenode_to_scope(self, name, scope = None):
         """
@@ -531,7 +533,7 @@ class Graph:
                     for obj in pre_objs:
                         self.graph.remove_edge(cur_namenode, obj)
     
-    def assign_obj_nodes_to_name_node(self, name_node, obj_nodes, multi = False, branch: BranchTag = None):
+    def assign_obj_nodes_to_name_node(self, name_node, obj_nodes, multi = False, branches: Iterable[BranchTag] = []):
         '''
         Assign (multiple) object nodes to a name node.
         
@@ -539,10 +541,12 @@ class Graph:
             name_node
             obj_nodes
             multi (bool, optional): True: do NOT delete edges. False: delete existing edges. Defaults to False.
-            branch (BranchTag, optional): Current branch tag. Defaults to None.
+            branches (Iterable[BranchTag], optional): List of branch tags. Defaults to [].
         '''
+        branch = branches[-1] if branches else None
         # remove previous objects
-        pre_objs = self.get_objs_by_name_node(name_node)
+        pre_objs = self.get_objs_by_name_node(name_node, branches)
+        print(f'Assigning {obj_nodes} to {name_node}, pre_objs={pre_objs}, branches={branches}')
         if pre_objs and not multi:
             for obj in pre_objs:
                 if branch:
