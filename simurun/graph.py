@@ -352,7 +352,7 @@ class Graph:
             return None
         return out_edges[0][1]
 
-    def get_objs_by_name_node(self, name_node, branches: Iterable = None):
+    def get_objs_by_name_node(self, name_node, branches: Iterable[BranchTag] = None):
         out_edges = self.get_out_edges(name_node, edge_type='NAME_TO_OBJ')
         objs = set([edge[1] for edge in out_edges])
         if branches:
@@ -630,6 +630,16 @@ class Graph:
             tmp_edge = tmp_edge[0]
         func_decl_ast = tmp_edge[1]
         return func_decl_ast
+    
+    def get_func_decls_by_name_node(self, name_node, branches: Iterable[BranchTag] = None):
+        func_objs = self.get_objs_by_name_node(name_node, branches)
+        func_decl_ast_nodes = []
+        for obj in func_objs:
+            edges = self.get_out_edges(obj, data = True, keys = True, edge_type = "OBJ_TO_AST")
+            if edges:
+                for edge in edges:
+                    func_decl_ast_nodes.append(edge[1])
+        return func_decl_ast_nodes
 
     def get_entryid_by_function_name(self, function_name, scope = None):
         """

@@ -228,6 +228,31 @@ def has_else(G, if_ast_node):
             return True
     return False
 
+def instantiate_obj(G, ast_node, constructor_decl, branches=[]):
+    # create the instantiated object
+    created_obj = G.add_obj_node(ast_node=ast_node, var_type='OBJ')
+    # add edge between obj and obj decl
+    G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
+
+    backup_scope = G.cur_scope
+    backup_obj = G.cur_obj
+
+    # update current scope and object
+    G.cur_scope = G.get_scope_by_ast_decl(constructor_decl)
+    G.cur_obj = created_obj
+    simurun_function(G, constructor_decl, branches=branches)
+
+    # add obj to scope edge?
+    # G.add_edge(obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
+    
+    G.cur_scope = backup_scope
+    G.cur_obj = backup_obj
+
+    # finally add call edge from caller to callee
+    G.add_edge_if_not_exist(ast_node, constructor_decl, {"type:TYPE": "CALLS"})
+
+    return created_obj
+
 def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
     """
     for different node type, do different actions to handle this node
@@ -300,7 +325,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         return handle_node(G, node_id, extra)
 
 
-    elif cur_type == 'AST_VAR':
+    elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
         var_name = G.get_name_from_child(node_id)
 
         branches = extra.get('branches', []) if extra else []
@@ -372,57 +397,40 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
     elif cur_type == 'AST_NEW':
         # TODO: multiple possibilities (constructor)
+        branches = extra.get('branches')
+        branch = branches[-1] if branches else None
+        callee = G.get_ordered_ast_child_nodes(node_id)[0]
+        handled_callee = handle_node(G, callee, extra={'branches': extra.get('branches')})
+        name_nodes = handled_callee.name_nodes
+        name = handled_callee.name
+        created_objs = []
+        constructor_decl_counter = 0
 
-        # for now, only support ast call not method call
-        created_obj = G.add_obj_node(ast_node=node_id, var_type='OBJ')
-        node_name = G.get_name_from_child(node_id)
-        constructor_decl = G.get_func_declid_by_function_name(node_name)
-        
-        constructor_entry = G.get_entryid_by_function_name(node_name)
+        for name_node in name_nodes:
+            constructor_decls = G.get_func_decls_by_name_node(name_node, branches)
+            if not constructor_decls:
+                print("Built-in: Function {} not found".format(name))
+                blank_func = G.add_blank_func(name)
+                added_objs = handle_node(G, blank_func, extra).obj_nodes
+                for obj in added_objs:
+                    G.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ'})
+                    G.add_edge(obj, blank_func, {'type:TYPE': 'OBJ_TO_AST'})
+                constructor_decls.append(blank_func)
 
-        if constructor_entry == None:
-            # we assume it's a built-in function
-            print("Built-in: Function {} not found".format(node_name))
-            name_node = G.get_name_node(node_name)
-            if name_node == None:
-                G.set_obj_by_scope_name(node_name, None, scope=G.BASE_SCOPE)
-                name_node = G.get_name_node(node_name)
-            cur_obj_node = G.get_obj_by_name(node_name)
+            stmt_id = 'New' + node_id
 
-            # point the current varnode to the blank function
-            if constructor_decl != None:
-                G.graph.remove_edge(name_node, cur_obj_node)
+            for decl in constructor_decls:
+                if len(name_nodes) * len(constructor_decls) == 1: # No any branches
+                    created_obj = instantiate_obj(G, node_id, decl)
+                else:
+                    created_obj = instantiate_obj(G, node_id, decl, branches+[BranchTag(stmt=stmt_id, branch=constructor_decl_counter)])
 
-            constructor_decl = G.add_blank_func(node_name, scope = G.BASE_SCOPE)
-            added_objs = handle_node(G, constructor_decl, extra).obj_nodes
+                created_objs.append(created_obj)
+                constructor_decl_counter += 1
+            
+        merge(G, stmt_id, constructor_decl_counter, branch)
 
-            for obj in added_objs:
-                G.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ'})
-                G.add_edge(obj, constructor_decl, {'type:TYPE': 'OBJ_TO_AST'})
-
-            new_entry_id = G.get_entryid_by_function_name(node_name)
-        
-        # add edge between obj and obj decl
-        G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
-
-        backup_scope = G.cur_scope
-        backup_obj = G.cur_obj
-
-        # update current scope and object
-        G.cur_scope = G.get_scope_by_ast_decl(constructor_decl)
-        G.cur_obj = created_obj 
-        simurun_function(G, constructor_decl)
-        
-        # add obj to scope edge?
-        # G.add_edge(obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
-        
-        G.cur_scope = backup_scope
-        G.cur_obj = backup_obj
-
-        # finally add call edge from caller to callee
-        G.add_edge_if_not_exist(node_id, constructor_decl, {"type:TYPE": "CALLS"})
-        
-        return NodeHandleResult(obj_nodes=[created_obj])
+        return NodeHandleResult(obj_nodes=created_objs)
 
     elif cur_type == 'integer' or cur_type == 'string':
         added_obj = G.add_literal_obj(node_id)
@@ -494,7 +502,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             branch_tag = BranchTag(stmt=stmt_id, branch=str(i))
             handle_node(G, if_elem, dict(extra, branches=branches+[branch_tag]))
         if has_else(G, node_id):
-            merge_new(G, stmt_id, len(if_elems), parent_branch)
+            merge(G, stmt_id, len(if_elems), parent_branch)
         return NodeHandleResult()
 
     elif cur_type == 'AST_IF_ELEM':
@@ -511,11 +519,11 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
     return NodeHandleResult()
 
-def simurun_function(G, func_decl_id):
+def simurun_function(G, func_decl_id, branches=[]):
     """
     Simurun a function by running its body.
     """
-    print(sty.ef.inverse + sty.fg.green + "FUNCTION {} STARTS, SCOPE ID {}, OBJ ID {}".format(func_decl_id, G.cur_scope, G.cur_obj) + sty.rs.all)
+    print(sty.ef.inverse + sty.fg.green + "FUNCTION {} STARTS, SCOPE ID {}, OBJ ID {}, branches {}".format(func_decl_id, G.cur_scope, G.cur_obj, branches) + sty.rs.all)
     for child in G.get_descendant_nodes_by_types(func_decl_id, node_types=[]):
         if G.get_node_attr(child).get('type') == 'AST_STMT_LIST':
             return simurun_block(G, child, parent_scope=G.cur_scope)
@@ -550,7 +558,7 @@ def simurun_block(G, ast_node, parent_scope, branches=[]):
     
     return returned_objs, used_objs
 
-def merge_new(G, stmt, num_of_branches, parent_branch):
+def merge(G, stmt, num_of_branches, parent_branch):
     '''
     Merge two or more branches.
     
