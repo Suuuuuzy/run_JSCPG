@@ -373,7 +373,6 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
     elif cur_type == 'AST_NEW':
         # TODO: multiple possibilities (constructor)
 
-        # for now, only support ast call not method call
         created_obj = G.add_obj_node(ast_node=node_id, var_type='OBJ')
         node_name = G.get_name_from_child(node_id)
         constructor_decl = G.get_func_declid_by_function_name(node_name)
@@ -421,7 +420,9 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
         # finally add call edge from caller to callee
         G.add_edge_if_not_exist(node_id, constructor_decl, {"type:TYPE": "CALLS"})
-        
+
+        G.build_proto(created_obj)
+
         return NodeHandleResult(obj_nodes=[created_obj])
 
     elif cur_type == 'integer' or cur_type == 'string':

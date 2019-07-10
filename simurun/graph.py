@@ -434,25 +434,30 @@ class Graph:
         if parent_obj == None:
             parent_obj = self.cur_obj
 
+        name_node = None
+
         # check if the name node exists first
         edges = self.get_out_edges(parent_obj, edge_type='OBJ_TO_PROP')
         if edges:
-            name_node = edges[0][1]
-        else:
+            for edge in edges:
+                cur_name_node = edge[1]
+                if self.get_node_attr(cur_name_node)['name'] == var_name:
+                    name_node = cur_nama_node
+                    break
+
+        if name_node is None:
             name_node = str(self._get_new_nodeid())
             self.add_node(name_node)
             self.set_node_attr(name_node, ('labels:label', 'Name'))
             self.set_node_attr(name_node, ('name', var_name))
 
         if tobe_added_obj == None:
-            tobe_added_obj = str(self._get_new_nodeid())
-            self.add_node(tobe_added_obj)
-            self.set_node_attr(tobe_added_obj, ('labels:label', 'Object'))
-            self.set_node_attr(tobe_added_obj, ('type', var_type))
+            tobe_added_obj = self.add_obj_node(ast_node, var_type)
+        else:
+            self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
         self.add_edge(parent_obj, name_node, {"type:TYPE": "OBJ_TO_PROP"})
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
-        self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
         return tobe_added_obj 
 
@@ -461,16 +466,75 @@ class Graph:
         Add an object (existing or new) under a name node.
         name node -> new obj / tobe_added_obj
         """
-        if tobe_added_obj == None:
+        if tobe_added_obj is None:
             tobe_added_obj = str(self._get_new_nodeid())
             self.add_node(tobe_added_obj)
             self.set_node_attr(tobe_added_obj, ('labels:label', 'Object'))
             self.set_node_attr(tobe_added_obj, ('type', var_type))
-            self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+            if ast_node is not None:
+                self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
         return tobe_added_obj 
+
+    def _get_child_nodes(self, node_id, edge_type = None, child_name = None,
+            child_type = None):
+        """
+        return the type of child by type of edge, child name and child type
+        """
+        res = []
+        edges = self.get_out_edges(node_id, edge_type = edge_type)
+        if len(edges) == 0:
+            return None
+        for edge in edges:
+            type_match = True 
+            name_match = True
+            aim_node_attr = self.get_node_attr(edge[1])
+            if child_type is not None:
+                type_match = (aim_node_attr['type'] == child_type)
+            if child_name is not None:
+                name_match = (aim_node_attr['name'] == child_name)
+            if type_match and name_match:
+                res.append(edge[1])
+        return res
+
+    def _get_upper_level_prototype(self, obj_node):
+        """
+        get the upper level of prototype
+        used for a helper function to link __proto__ and prototype
+
+        Args:
+            obj_node: the child obj node
+            relation: obj_node -OBJ_DECL-> AST_FUNC_DECL -OBJ_TO_AST-> 
+            FUNC_DECL -OBJ_TO_PROP-> prototype -NAME_TO_OBJ-> PROTOTYPE
+        """
+        ast_upper_func_node = self._get_child_nodes(obj_node, 
+                edge_type = "OBJ_DECL")[0]
+        edges = self.get_in_edges(ast_upper_func_node,
+                edge_type = "OBJ_TO_AST")
+        for edge in edges:
+            if self.get_node_attr(edge[0])['type'] == "FUNC_DECL":
+                func_decl_obj_node = edge[0]
+                break
+        prototype_name_node = self._get_child_nodes(func_decl_obj_node, 
+                edge_type = "OBJ_TO_PROP", child_name = "prototype")[0]
+        prototype_obj_node = self._get_child_nodes(prototype_name_node,
+                edge_type = "NAME_TO_OBJ", child_type = "PROTOTYPE")[0]
+        return prototype_obj_node
+    
+    def build_proto(self, obj_node):
+        """
+        build the proto strcture of a object node
+
+        Args:
+            obj_node: the obj node need to be build
+        """
+        proto_name_node = self.add_namenode_to_obj("__proto__", 
+                obj = obj_node)
+        upper_level_prototype_obj = self._get_upper_level_prototype(obj_node)
+        self.add_obj_to_name_node(proto_name_node, 
+                tobe_added_obj = upper_level_prototype_obj)
 
     def add_obj_node(self, ast_node, var_type):
         """
@@ -484,11 +548,9 @@ class Graph:
 
         self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
-        # if the var type is "FUNC_DECL", this is a function
-        # we should add a prototype under this node
         if var_type == "FUNC_DECL":
-            self.add_child_node(obj_node_id, "PROTOTYPE", "FUNC_DECL_TO_PROTO",
-                    child_node_label = "BUILT-IN", child_node_name = "prototype")
+            self.add_obj_to_obj(ast_node, "PROTOTYPE", "prototype", 
+                    parent_obj = obj_node_id)
 
         return obj_node_id
 
@@ -762,10 +824,26 @@ class Graph:
             cur_attr = self.get_node_attr(edge[1])
             if cur_attr.get("name") == var_name:
                 return edge[1]
+       
+        if var_name == '__proto__':
+            # __proto__ not found
+            return None
 
-        # if we can not find the property, look for the upper level property
+        # if we can not find the property, look for __proto__
+        __proto__name_node = self.get_name_node_of_obj("__proto__", 
+                parent_obj = parent_obj)
+        
+        if __proto__name_node == None:
+            return None
+        __proto__obj_nodes = self.get_objs_by_name_node(__proto__name_node)
+        
+        if len(__proto__obj_nodes) == 0:
+            return None
 
-        return None
+        # we just return 1 possiable __proto__ instance
+        # assume we only have one __proto__ instance
+        return self.get_name_node_of_obj(var_name, 
+                parent_obj = list(__proto__obj_nodes)[0])
 
     def add_namenode_to_obj(self, name, obj = None):
         """
@@ -780,6 +858,7 @@ class Graph:
         self.add_edge(obj, new_node_id, {"type:TYPE": "OBJ_TO_PROP"})
         self.set_node_attr(new_node_id, ('labels:label', 'Name'))
         self.set_node_attr(new_node_id, ('name', name))
+        return new_node_id
 
     def set_obj_by_obj_name(self, var_name, obj_id, parent_obj = None):
         """

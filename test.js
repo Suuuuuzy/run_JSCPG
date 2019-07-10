@@ -8,8 +8,10 @@ function test(){
   var b = a;
   return b;
 }
+
 (function () {
   var x = "Hello!!";  // I will invoke myself
 })();
 
 test.prototype.pro = "Proto";
+var ret = res.pro
