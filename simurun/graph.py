@@ -483,7 +483,39 @@ class Graph:
         self.set_node_attr(obj_node_id, ('type', var_type))
 
         self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+
+        # if the var type is "FUNC_DECL", this is a function
+        # we should add a prototype under this node
+        if var_type == "FUNC_DECL":
+            self.add_child_node(obj_node_id, "PROTOTYPE", "FUNC_DECL_TO_PROTO",
+                    child_node_label = "BUILT-IN", child_node_name = "prototype")
+
         return obj_node_id
+
+    def add_child_node(self, node_id, child_node_type, 
+            edge_type, child_node_label = None, child_node_name = None):
+        """
+        add a child node to current node
+        
+        Args:
+            node_id: the id of current node
+            child_node_name: the name of adding node
+            child_node_type: the adding node type
+            edge_type: the adding edge type
+
+        Return:
+            the added child node id
+        """
+        child_node_id = str(self._get_new_nodeid())
+        self.add_node(child_node_id)
+        if child_node_label is not None:
+            self.set_node_attr(child_node_id, ('labels:label', child_node_label))
+        if child_node_name is not None:
+            self.set_node_attr(child_node_id, ('name', child_node_name))
+        self.set_node_attr(child_node_id, ('type', child_node_type))
+
+        self.add_edge(node_id, child_node_id, {"type:TYPE": edge_type})
+        return child_node_id
 
     def setup_run(self, entry_nodeid):
         """
@@ -730,6 +762,9 @@ class Graph:
             cur_attr = self.get_node_attr(edge[1])
             if cur_attr.get("name") == var_name:
                 return edge[1]
+
+        # if we can not find the property, look for the upper level property
+
         return None
 
     def add_namenode_to_obj(self, name, obj = None):

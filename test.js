@@ -1,4 +1,4 @@
-var res = test();
+var res = new test();
 console.log(res);
 function test(){
   var a = new console();
