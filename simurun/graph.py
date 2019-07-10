@@ -501,7 +501,7 @@ class Graph:
         self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_PROP"})
         self.cur_obj = cur_nodeid
 
-    def add_obj_to_scope(self, ast_node, var_name, var_type, scope = None):
+    def add_obj_to_scope(self, ast_node, var_name, var_type, scope = None, tobe_added_obj = None):
         """
         add a obj to a scope, if scope is None, add to current scope
         return the added node id
@@ -518,13 +518,14 @@ class Graph:
             self.set_node_attr(name_node, ('labels:label', 'Name'))
             self.set_node_attr(name_node, ('name', var_name))
 
-        # here we do not add obj to current obj when add to scope
-        # we just add a obj to scope
-        obj_node = self.add_obj_node(ast_node, "OBJ")
-        self.set_node_attr(obj_node, ('labels:label', 'Object'))
+        if tobe_added_obj == None:
+            # here we do not add obj to current obj when add to scope
+            # we just add a obj to scope
+            tobe_added_obj = self.add_obj_node(ast_node, "OBJ")
+            self.set_node_attr(tobe_added_obj, ('labels:label', 'Object'))
 
-        self.add_edge(name_node, obj_node, {"type:TYPE": "NAME_TO_OBJ"})
-        return obj_node
+        self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
+        return tobe_added_obj
 
     def set_obj_by_scope_name(self, var_name, obj_id, scope = None, multi = False, branch = None):
         """
@@ -667,7 +668,8 @@ class Graph:
         return AST children of a node in childnum order
         """
         children = sorted(self._get_childern_by_childnum(node_id).items(), key=lambda x: int(x[0]))
-        children = list(zip(*children))[1]
+        if children:
+            children = list(zip(*children))[1]
         return children
 
     def get_descendant_nodes_by_types(self, root_id, max_depth = 1, node_types = [], edge_type = 'PARENT_OF'):
@@ -814,6 +816,7 @@ class Graph:
         self.set_node_attr(namenode_id, ('type', 'string'))
         self.set_node_attr(namenode_id, ('name', func_name))
         self.set_node_attr(namenode_id, ('labels:label', 'Artificial_AST'))
+        self.set_node_attr(namenode_id, ('childnum:int', 0))
 
         entry_id = self._get_new_nodeid()
         self.add_node(entry_id)
@@ -832,6 +835,7 @@ class Graph:
         self.set_node_attr(params_id, ('funcid', cur_id))
         self.set_node_attr(params_id, ('type', 'AST_PARAM_LIST'))
         self.set_node_attr(params_id, ('labels:label', 'Artificial_AST'))
+        self.set_node_attr(params_id, ('childnum:int', 1))
 
         # add edges
         self.add_edge(cur_id, entry_id, {'type:TYPE': "ENTRY"})

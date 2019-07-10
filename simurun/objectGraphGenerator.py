@@ -212,6 +212,9 @@ def handle_assign(G, ast_node, extra = {}) -> NodeHandleResult:
     for name_node in handled_left.name_nodes:
         G.assign_obj_nodes_to_name_node(name_node, right_objs, branches=branches)
 
+    used_objs = handled_right.used_objs
+    return NodeHandleResult(obj_nodes=handled_right.obj_nodes, name_nodes=handled_left.name_nodes, used_objs=used_objs)
+
 def has_else(G, if_ast_node):
     '''
     Check if an if statement has 'else'.
@@ -357,8 +360,15 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             now_objs = left_objs + right_objs # TODO: find cause of empty obj_nodes
             return NodeHandleResult(obj_nodes=now_objs)
         else:
+            handled_left = handle_node(G, left_child, extra).obj_nodes
+            handled_right = handle_node(G, right_child, extra).obj_nodes
+            used_objs = []
+            used_objs.extend(handled_left.used_objs)
+            used_objs.extend(handled_left.obj_nodes)
+            used_objs.extend(handled_right.used_objs)
+            used_objs.extend(handled_right.obj_nodes)
             added_obj = G.add_literal_obj()
-            return NodeHandleResult(obj_nodes=[added_obj])
+            return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
 
     elif cur_type == 'AST_NEW':
         # for now, only support ast call not method call
@@ -450,20 +460,20 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
         # assume the method call will modify the parent object
         # modified_objs.add(parent_obj)
-        _, added_scope, returned_objs, func_modified_objs = ast_call_function(G, node_id, func_name = child_name, parent_obj = parent_obj)
+        _, added_scope, returned_objs, func_used_objs = ast_call_function(G, node_id, func_name = child_name, parent_obj = parent_obj)
         if returned_objs:
             now_objs = list(returned_objs)
             print(sty.fg.green + 'method call return value ' + sty.rs.all + ', '.join(['{}: {}'.format(obj, G.get_node_attr(obj)) for obj in returned_objs]))
         # if func_modified_objs:
         #     modified_objs.update(func_modified_objs)
-        return NodeHandleResult(obj_nodes=returned_objs)
+        return NodeHandleResult(obj_nodes=returned_objs, used_objs=func_used_objs)
 
 
     elif cur_type == 'AST_CALL':
-        _, added_scope, returned_objs, func_modified_objs = ast_call_function(G, node_id)
+        _, added_scope, returned_objs, func_used_objs = ast_call_function(G, node_id)
         if returned_objs:
             print(sty.fg.green + 'function call return value ' + sty.rs.all + ', '.join(['{}: {}'.format(obj, G.get_node_attr(obj)) for obj in returned_objs]))
-            return NodeHandleResult(obj_nodes=returned_objs)
+            return NodeHandleResult(obj_nodes=returned_objs, used_objs=func_used_objs)
         else:
             return NodeHandleResult()
 
@@ -745,6 +755,14 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     if func_decl_id == None or len(G.get_out_edges(func_decl_id, edge_type = 'ENTRY')) == 0:
         func_decl_id = G.add_blank_func(func_name)
 
+    # handle arguments in the call statement
+    arg_objs = [] # note every element in this array is also an array of object nodes
+    arg_list_node = G.get_ordered_ast_child_nodes(node_id)[-1]
+    arg_list = G.get_ordered_ast_child_nodes(arg_list_node)
+    for arg in arg_list:
+        handled_arg = handle_node(G, arg)
+        arg_objs.append(handled_arg.obj_nodes)
+
     # build the related function nodes 
     # TODO: temporary workaround for multi possibilities
     handled_decl = handle_node(G, func_decl_id)
@@ -766,6 +784,16 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         # method call
         func_scope_id = G.get_func_scope_by_obj_name(func_name, parent_obj = parent_obj)
 
+    # handle parameters in the function definition
+    param_list_node = None
+    for child in G.get_ordered_ast_child_nodes(func_decl_id):
+        if G.get_node_attr(child).get('type') == 'AST_PARAM_LIST':
+            param_list_node = child
+            break
+    if param_list_node != None:
+        for i, child in enumerate(G.get_ordered_ast_child_nodes(param_list_node)):
+            handled_param = handle_node(G, child)
+            G.add_obj_to_scope(None, handled_param.name, None, scope=func_scope_id, tobe_added_obj=arg_objs[i])
 
     backup_obj = G.cur_obj
     backup_scope = G.cur_scope
@@ -779,7 +807,7 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         G.cur_obj = parent_obj 
 
 
-    returned_objs, modified_objs = simurun_function(G, func_decl_id)
+    returned_objs, _ = simurun_function(G, func_decl_id)
 
     # add obj to scope edge
     if G.cur_scope == None:
@@ -791,7 +819,13 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     # add call edge
     G.add_edge_if_not_exist(node_id, func_decl_id, {"type:TYPE": "CALLS"})
 
-    return [added_obj, None, returned_objs, modified_objs]
+    used_objs = set()
+    # if it's a built-in function, regard the arguments as used objects
+    if G.get_node_attr(func_decl_id).get('labels:label') == 'Artificial_AST':
+        for objs in arg_objs:
+            used_objs.update(objs)
+
+    return [added_obj, None, returned_objs, used_objs]
 
 def build_df(G, node_id, modified_objs):
     """
@@ -828,6 +862,7 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
         def_cpg_node = G.find_nearest_upper_CPG_node(def_ast_node)
+        if def_cpg_node == cur_stmt: continue
         print(sty.fg.li_magenta + sty.ef.b + "OBJ REACHES" + sty.rs.all + " {} -> {}".format(def_cpg_node, cur_stmt))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
     
