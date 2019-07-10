@@ -129,6 +129,7 @@ def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
     
     parent_name = handled_parent.name
     parent_objs = handled_parent.obj_nodes
+    parent_name_nodes = handled_parent.name_nodes
     if parent_name == "this":
         parent_objs = G.cur_obj
         # parent_scope = G.cur_scope
@@ -136,7 +137,12 @@ def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
         if not (extra and extra.get('side') == 'right'):
             print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, creating object nodes".format(parent_name) + sty.rs.all)
             # we assume this happens when it's a built-in var name
-            parent_objs = [G.add_obj_to_scope(ast_node, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)]
+            if parent_name_nodes:
+                parent_objs = []
+                for name_node in parent_name_nodes:
+                    parent_objs.append(G.add_obj_to_name_node(name_node, ast_node, 'BUILT-IN'))
+            else:
+                parent_objs = [G.add_obj_to_scope(ast_node, parent_name, "BUILT-IN", scope = G.BASE_SCOPE)]
         else:
             print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, return undefined".format(parent_name) + sty.rs.all)
             return NodeHandleResult()
@@ -144,13 +150,14 @@ def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
     prop_objs = set()
     prop_name_nodes = set()
     if parent_objs:
+        branches = extra.get('branches') if extra else None
         for parent_obj in parent_objs:
             prop_name_node = G.get_name_node_of_obj(prop_name, parent_obj)
             if prop_name_node != None:
                 prop_name_nodes.add(prop_name_node)
-            prop_obj_node = G.get_obj_by_obj_name(prop_name, parent_obj = parent_obj)
-            if prop_obj_node != None:
-                prop_objs.add(prop_obj_node)
+                prop_obj_nodes = G.get_objs_by_name_node(prop_name_node, branches=branches)
+                if prop_obj_nodes:
+                    prop_objs.update(prop_obj_nodes)
         # TODO: implement built-in modules (in a database, etc.)
         # this is just a workaround for required modules
         if not prop_objs:

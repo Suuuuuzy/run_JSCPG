@@ -434,10 +434,15 @@ class Graph:
         if parent_obj == None:
             parent_obj = self.cur_obj
 
-        var_name_id = str(self._get_new_nodeid())
-        self.add_node(var_name_id)
-        self.set_node_attr(var_name_id, ('labels:label', 'Name'))
-        self.set_node_attr(var_name_id, ('name', var_name))
+        # check if the name node exists first
+        edges = self.get_out_edges(parent_obj, edge_type='OBJ_TO_PROP')
+        if edges:
+            name_node = edges[0][1]
+        else:
+            name_node = str(self._get_new_nodeid())
+            self.add_node(name_node)
+            self.set_node_attr(name_node, ('labels:label', 'Name'))
+            self.set_node_attr(name_node, ('name', var_name))
 
         if tobe_added_obj == None:
             tobe_added_obj = str(self._get_new_nodeid())
@@ -445,9 +450,25 @@ class Graph:
             self.set_node_attr(tobe_added_obj, ('labels:label', 'Object'))
             self.set_node_attr(tobe_added_obj, ('type', var_type))
 
-        self.add_edge(parent_obj, var_name_id, {"type:TYPE": "OBJ_TO_PROP"})
-        self.add_edge(var_name_id, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
+        self.add_edge(parent_obj, name_node, {"type:TYPE": "OBJ_TO_PROP"})
+        self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
         self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+
+        return tobe_added_obj 
+
+    def add_obj_to_name_node(self, name_node, ast_node = None, var_type = None, tobe_added_obj = None):
+        """
+        Add an object (existing or new) under a name node.
+        name node -> new obj / tobe_added_obj
+        """
+        if tobe_added_obj == None:
+            tobe_added_obj = str(self._get_new_nodeid())
+            self.add_node(tobe_added_obj)
+            self.set_node_attr(tobe_added_obj, ('labels:label', 'Object'))
+            self.set_node_attr(tobe_added_obj, ('type', var_type))
+            self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+
+        self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
         return tobe_added_obj 
 
