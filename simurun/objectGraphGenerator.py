@@ -119,6 +119,52 @@ def register_func(G, node_id):
 
     print(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
 
+def handle_new_node(G, node_id, extra = {}) -> NodeHandleResult:
+    """
+    handle new object related operations
+    """
+    # TODO: multiple possibilities (constructor)
+    branches = extra.get('branches')
+    branch = branches[-1] if branches else None
+
+    callee = G.get_ordered_ast_child_nodes(node_id)[0]
+    handled_callee = handle_node(G, callee, extra={'branches': extra.get('branches')})
+    name_nodes = handled_callee.name_nodes
+    name = handled_callee.name
+    created_objs = []
+    constructor_decl_counter = 0
+
+    has_branches = True
+    ast_node = extra['ast_node'] if 'ast_node' in extra else node_id
+
+    for name_node in name_nodes:
+        constructor_decls = G.get_func_decls_by_name_node(name_node, branches)
+        if not constructor_decls:
+            print("Built-in: Function {} not found".format(name))
+            blank_func = G.add_blank_func(name)
+            added_objs = handle_node(G, blank_func, extra).obj_nodes
+            for obj in added_objs:
+                G.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ'})
+                G.add_edge(obj, blank_func, {'type:TYPE': 'OBJ_TO_AST'})
+            constructor_decls.append(blank_func)
+
+        stmt_id = 'New' + node_id
+
+        for decl in constructor_decls:
+            if len(name_nodes) * len(constructor_decls) == 1: # No any branches
+                has_branches = False
+                created_obj = instantiate_obj(G, ast_node, decl)
+            else:
+                created_obj = instantiate_obj(G, ast_node, decl, branches+[BranchTag(stmt=stmt_id, branch=constructor_decl_counter)])
+
+            created_objs.append(created_obj)
+            constructor_decl_counter += 1
+        
+    if has_branches:
+        merge(G, stmt_id, constructor_decl_counter, branch)
+
+    return NodeHandleResult(obj_nodes=created_objs)
+
 def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
     '''
     Handle property.
@@ -299,13 +345,17 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         return handle_assign(G, node_id, extra)
     
     elif cur_type == 'AST_ARRAY':
-        added_obj = G.add_obj_node(node_id, "OBJ_LITERAL")
+        virtual_root_node = G.generate_virtual_nodes(node_id)
+
+        # added_obj = G.add_obj_node(node_id, "OBJ_LITERAL")
+        extra['ast_node'] = node_id
+        added_obj = handle_new_node(G, virtual_root_node, extra = extra).obj_nodes[0]
 
         ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
         for edge in ast_edges:
             child = edge[1]
             handle_node(G, child, dict(extra, parent_obj=added_obj))
-        
+
         return NodeHandleResult(obj_nodes=[added_obj])
 
     elif cur_type == 'AST_ARRAY_ELEM':
@@ -398,45 +448,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
 
     elif cur_type == 'AST_NEW':
-        # TODO: multiple possibilities (constructor)
-        branches = extra.get('branches')
-        branch = branches[-1] if branches else None
-        callee = G.get_ordered_ast_child_nodes(node_id)[0]
-        handled_callee = handle_node(G, callee, extra={'branches': extra.get('branches')})
-        name_nodes = handled_callee.name_nodes
-        name = handled_callee.name
-        created_objs = []
-        constructor_decl_counter = 0
-
-        has_branches = True
-
-        for name_node in name_nodes:
-            constructor_decls = G.get_func_decls_by_name_node(name_node, branches)
-            if not constructor_decls:
-                print("Built-in: Function {} not found".format(name))
-                blank_func = G.add_blank_func(name)
-                added_objs = handle_node(G, blank_func, extra).obj_nodes
-                for obj in added_objs:
-                    G.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ'})
-                    G.add_edge(obj, blank_func, {'type:TYPE': 'OBJ_TO_AST'})
-                constructor_decls.append(blank_func)
-
-            stmt_id = 'New' + node_id
-
-            for decl in constructor_decls:
-                if len(name_nodes) * len(constructor_decls) == 1: # No any branches
-                    has_branches = False
-                    created_obj = instantiate_obj(G, node_id, decl)
-                else:
-                    created_obj = instantiate_obj(G, node_id, decl, branches+[BranchTag(stmt=stmt_id, branch=constructor_decl_counter)])
-
-                created_objs.append(created_obj)
-                constructor_decl_counter += 1
-            
-        if has_branches:
-            merge(G, stmt_id, constructor_decl_counter, branch)
-
-        return NodeHandleResult(obj_nodes=created_objs)
+        return handle_new_node(G, node_id, extra)
 
     elif cur_type == 'integer' or cur_type == 'string':
         added_obj = G.add_literal_obj(node_id)

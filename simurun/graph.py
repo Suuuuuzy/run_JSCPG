@@ -442,7 +442,7 @@ class Graph:
             for edge in edges:
                 cur_name_node = edge[1]
                 if self.get_node_attr(cur_name_node)['name'] == var_name:
-                    name_node = cur_nama_node
+                    name_node = cur_name_node
                     break
 
         if name_node is None:
@@ -451,7 +451,7 @@ class Graph:
             self.set_node_attr(name_node, ('labels:label', 'Name'))
             self.set_node_attr(name_node, ('name', var_name))
 
-        if tobe_added_obj == None:
+        if tobe_added_obj is None:
             tobe_added_obj = self.add_obj_node(ast_node, var_type)
         else:
             self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
@@ -728,13 +728,13 @@ class Graph:
     
     def get_func_decls_by_name_node(self, name_node, branches: Iterable[BranchTag] = None):
         func_objs = self.get_objs_by_name_node(name_node, branches)
-        func_decl_ast_nodes = []
+        func_decl_ast_nodes = set()
         for obj in func_objs:
             edges = self.get_out_edges(obj, data = True, keys = True, edge_type = "OBJ_TO_AST")
             if edges:
                 for edge in edges:
-                    func_decl_ast_nodes.append(edge[1])
-        return func_decl_ast_nodes
+                    func_decl_ast_nodes.add(edge[1])
+        return list(func_decl_ast_nodes)
 
     def get_entryid_by_function_name(self, function_name, scope = None):
         """
@@ -1114,3 +1114,33 @@ class Graph:
                         if edge[1] == ast_node_id:
                             return True
         return False
+
+    def generate_virtual_nodes(self, node_id, nodes_type = 'new'):
+        """
+        generate a group of virtual nodes with a group type for a node id
+
+        Args:
+            node_id: the node that need to generate
+            nodes_type: the type of group of nodes need to be generated
+        """
+        node_attr = self.get_node_attr(node_id)
+        if nodes_type == 'new':
+            root_node_id = self._get_new_nodeid()
+            self.add_node(root_node_id, {"type": "AST_NEW"})
+            child_id = self.add_child_node(root_node_id, "AST_NAME", "PARENT_OF", 
+                    child_node_label = "VIRTUAL")
+            self.set_node_attr(child_id, ("childnum:int", '0'))
+            child_id = self.add_child_node(child_id, "string", "PARENT_OF", 
+                    child_node_label = "VIRTUAL")
+            self.set_node_attr(child_id, ('code', 'Array'))
+            self.set_node_attr(child_id, ("childnum:int", '0'))
+
+            child_id = self.add_child_node(root_node_id, "AST_ARG_LIST", 
+                    "PARENT_OF", child_node_label = "VIRTUAL")
+            self.set_node_attr(child_id, ("childnum:int", '1'))
+
+            if node_attr['type'] == "AST_ARRAY":
+                pass
+        return root_node_id
+
+
