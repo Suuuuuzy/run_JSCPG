@@ -2,7 +2,7 @@ import networkx as nx
 import sys
 import csv
 import sty
-from utilities import *
+from utilities import BranchTag
 from typing import Iterable
 
 class Graph:
@@ -453,8 +453,8 @@ class Graph:
 
         if tobe_added_obj is None:
             tobe_added_obj = self.add_obj_node(ast_node, var_type)
-        else:
-            self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+        # elif ast_node is not None:
+        #     self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
         self.add_edge(parent_obj, name_node, {"type:TYPE": "OBJ_TO_PROP"})
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
@@ -546,7 +546,8 @@ class Graph:
         self.set_node_attr(obj_node_id, ('labels:label', 'Object'))
         self.set_node_attr(obj_node_id, ('type', var_type))
 
-        self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+        if ast_node is not None:
+            self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
         if var_type == "FUNC_DECL":
             self.add_obj_to_obj(ast_node, "PROTOTYPE", "prototype", 
@@ -594,7 +595,7 @@ class Graph:
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
         self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_PROP"})
         self.cur_obj = cur_nodeid
-        
+
 
     def add_obj_to_scope(self, ast_node, var_name, var_type, scope = None, tobe_added_obj = None):
         """
@@ -905,6 +906,22 @@ class Graph:
         tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_TO_AST")[0]
         func_decl_ast = tmp_edge[1]
         return func_decl_ast
+
+    def add_blank_func_with_og_nodes(self, func_name, scope = None):
+        '''
+        Add a blank function with object graph nodes (name node, function scope,
+        and function declaration object node).
+        
+        Args:
+            func_name (str): function's name.
+            scope (optional): function's parent scope. Defaults to None, referring to the current scope.
+        '''
+        ast_node = self.add_blank_func(func_name, scope)
+        func_scope = self.add_scope("FUNCTION_SCOPE", ast_node)
+        func_decl_obj = self.add_obj_node(ast_node, "FUNC_DECL")
+        self.add_edge(func_decl_obj, func_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
+        self.set_obj_by_scope_name(func_name, func_decl_obj)
+        return func_decl_obj
 
     def add_blank_func(self, func_name, scope = None):
         """

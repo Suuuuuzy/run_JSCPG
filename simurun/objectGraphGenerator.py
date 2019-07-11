@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 from graph import Graph
 from scopeController import ScopeController
-from utilities import *
+from utilities import NodeHandleResult, BranchTag
 import sys
 import sty
 import re
+from modeledJSBuiltIns import setup_js_builtins
 
 registered_func = {}
 
@@ -123,7 +124,6 @@ def handle_new_node(G, node_id, extra = {}) -> NodeHandleResult:
     """
     handle new object related operations
     """
-    # TODO: multiple possibilities (constructor)
     branches = extra.get('branches')
     branch = branches[-1] if branches else None
 
@@ -397,9 +397,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         extra['ast_node'] = node_id
         added_obj = handle_new_node(G, virtual_root_node, extra = extra).obj_nodes[0]
 
-        ast_edges = G.get_out_edges(node_id, data = True, edge_type = "PARENT_OF")
-        for edge in ast_edges:
-            child = edge[1]
+        for child in G.get_ordered_ast_child_nodes(node_id):
             handle_node(G, child, dict(extra, parent_obj=added_obj))
 
         G.remove_nodes_from(G.get_node_by_attr('labels:label', 'VIRTUAL'))
@@ -564,7 +562,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
     
     elif cur_type == 'AST_IF':
         # lineno = G.get_node_attr(node_id).get('lineno:int')
-        stmt_id = "If" + node_id 
+        stmt_id = "If" + node_id
         if_elems = G.get_ordered_ast_child_nodes(node_id)
         branches = extra.get('branches', [])
         parent_branch = branches[-1] if branches else None
@@ -581,6 +579,23 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         branches = extra.get('branches', [])
         simurun_block(G, body, G.cur_scope, branches)
         return NodeHandleResult()
+    
+    elif cur_type == 'AST_SWITCH':
+        condition, switch_list = G.get_ordered_ast_child_nodes(node_id)
+        handle_node(G, condition, extra)
+        handle_node(G, switch_list, extra)
+
+    elif cur_type == 'AST_SWITCH_LIST':
+        stmt_id = "Switch" + node_id
+        branches = extra.get('branches', [])
+        parent_branch = branches[-1] if branches else None
+        cases = G.get_ordered_ast_child_nodes(node_id)
+        for i, case in enumerate(cases):
+            branch_tag = BranchTag(stmt=stmt_id, branch=str(i))
+            test, body = G.get_ordered_ast_child_nodes(case)
+            handle_node(G, test, extra)
+            simurun_block(G, body, G.cur_scope, branches+[branch_tag])
+        merge(G, stmt_id, len(cases), parent_branch)
 
     # TODO: TMPRIGHT needs to be removed
     # delete if right node is temperate
@@ -713,6 +728,7 @@ def generate_obj_graph(G, entry_nodeid):
         G.set_node_attr(node[0], ("VAR_TYPE", "OBJECT"))
 
     G.setup_run(entry_nodeid)
+    setup_js_builtins(G)
     print(sty.fg.green + "RUN" + sty.rs.all + ":", entry_nodeid)
     obj_nodes = G.get_nodes_and_attrs_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
