@@ -873,8 +873,10 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
             break
     if param_list_node != None:
         for i, child in enumerate(G.get_ordered_ast_child_nodes(param_list_node)):
+            if i >= len(arg_objs): break
             handled_param = handle_node(G, child)
-            G.add_obj_to_scope(None, handled_param.name, None, scope=func_scope_id, tobe_added_obj=arg_objs[i])
+            for obj in arg_objs[i]:
+                G.add_obj_to_scope(None, handled_param.name, None, scope=func_scope_id, tobe_added_obj=obj)
 
     backup_obj = G.cur_obj
     backup_scope = G.cur_scope
