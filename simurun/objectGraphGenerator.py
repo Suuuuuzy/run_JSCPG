@@ -219,7 +219,6 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name='
                 print(sty.fg.green + f'Add prop name node {parent_name}.{prop_name} ({parent_obj}->{added_name_node})' + sty.rs.all)
     return prop_name_nodes, prop_obj_nodes
 
-
 def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
     '''
     Handle property.
