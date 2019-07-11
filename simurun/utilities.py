@@ -111,3 +111,4 @@ class BranchTagContainer(list):
 
     def is_empty(self):
         return not bool(self)
+
