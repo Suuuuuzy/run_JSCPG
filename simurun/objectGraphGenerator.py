@@ -119,9 +119,73 @@ def register_func(G, node_id):
 
     print(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
 
+
+def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name='', in_proto=False):
+    '''
+    Recursively find a property under parent_objs and its __proto__.
+    
+    Args:
+        G (Graph): graph.
+        parent_objs (list): parent objects.
+        prop_name (str): property name.
+        branches (Iterable[BranchTag], optional): branch information. Defaults to None.
+        side (str, optional): 'left' or 'right', denoting left side or right side of assignment. Defaults to None.
+        parent_name (str, optional): parent object's name, only used to print log. Defaults to ''.
+        in_proto (bool, optional): whether __proto__ is being searched. Defaults to False.
+    
+    Returns:
+        prop_name_nodes, prop_obj_nodes: two sets containing possible name nodes and object nodes.
+    '''
+    if in_proto:
+        print(sty.fg.green + 'Cannot find "direct" property, going into __proto__...' + sty.rs.all)
+    prop_name_nodes = set()
+    prop_obj_nodes = set()
+    for parent_obj in parent_objs:
+        name_node_found = False # flag of whether any name node with prop_name under this parent object is found
+        # search "direct" properties
+        prop_name_node = G.get_name_node_of_obj(prop_name, parent_obj)
+        if prop_name_node is not None:
+            name_node_found = True
+            prop_name_nodes.add(prop_name_node)
+            prop_objs = G.get_objs_by_name_node(prop_name_node, branches=branches)
+            if prop_objs:
+                prop_obj_nodes.update(prop_objs)
+        elif prop_name != '__proto__':
+            # if name node is not found, search the property under __proto__
+            # note that we cannot search __proto__ under __proto__
+            __proto__name_node = G.get_name_node_of_obj("__proto__", parent_obj = parent_obj)
+            if __proto__name_node is not None:
+                __proto__obj_nodes = G.get_objs_by_name_node(__proto__name_node, branches)
+                if __proto__obj_nodes:
+                    __name_nodes, __obj_nodes = find_prop(G, __proto__obj_nodes, prop_name, branches, in_proto=True)
+                    if __name_nodes:
+                        name_node_found = True
+                        prop_name_nodes.update(__name_nodes)
+                        prop_obj_nodes.update(__obj_nodes)
+        if not name_node_found and not in_proto:
+            # we cannot create name node under __proto__
+            # name nodes are only created under the original parent objects
+            if side == 'right':
+                return [], []
+            else:
+                # only add a name node
+                added_name_node = G.add_namenode_under_obj(prop_name, parent_obj)
+                prop_name_nodes.add(added_name_node)
+                print(sty.fg.green + f'Add prop name node {parent_name}.{prop_name} ({parent_obj}->{added_name_node})' + sty.rs.all)
+    return prop_name_nodes, prop_obj_nodes
+
+
 def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
     '''
     Handle property.
+    
+    Args:
+        G (Graph): graph.
+        ast_node ([type]): the MemberExpression (AST_PROP) AST node.
+        extra (dict, optional): Extra information. Defaults to {}.
+    
+    Returns:
+        NodeHandleResult
     '''
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)
     handled_parent = handle_node(G, parent, extra)
@@ -147,30 +211,12 @@ def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
             print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, return undefined".format(parent_name) + sty.rs.all)
             return NodeHandleResult()
 
-    prop_objs = set()
-    prop_name_nodes = set()
-    if parent_objs:
-        branches = extra.get('branches') if extra else None
-        for parent_obj in parent_objs:
-            prop_name_node = G.get_name_node_of_obj(prop_name, parent_obj)
-            if prop_name_node != None:
-                prop_name_nodes.add(prop_name_node)
-                prop_obj_nodes = G.get_objs_by_name_node(prop_name_node, branches=branches)
-                if prop_obj_nodes:
-                    prop_objs.update(prop_obj_nodes)
-        # TODO: implement built-in modules (in a database, etc.)
-        # this is just a workaround for required modules
-        if not prop_objs:
-            if extra and extra.get('side') == 'right':
-                return NodeHandleResult()
-            else:
-                print('add prop name node {}.{}'.format(parent_name, prop_name))
-                # only add a name node
-                for parent_obj in parent_objs:
-                    prop_name_nodes.add(G.add_namenode_under_obj(prop_name, parent_obj))
+    branches = extra.get('branches')
+    side = extra.get('side')
+    prop_name_nodes, prop_obj_nodes = find_prop(G, parent_objs, prop_name, branches, side, parent_name)
 
-    print(f'{ast_node} handle result: obj_nodes={list(prop_objs)}, name={prop_name}, name_nodes={list(prop_name_nodes)}')
-    return NodeHandleResult(obj_nodes=list(prop_objs), name=prop_name, name_nodes=list(prop_name_nodes))
+    print(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, name={parent_name}.{prop_name}, name_nodes={list(prop_name_nodes)}')
+    return NodeHandleResult(obj_nodes=list(prop_obj_nodes), name=f'{parent_name}.{prop_name}', name_nodes=list(prop_name_nodes))
 
 def handle_assign(G, ast_node, extra = {}) -> NodeHandleResult:
     '''
