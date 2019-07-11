@@ -474,7 +474,11 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
     elif cur_type == 'AST_FUNC_DECL':
         [added_obj, added_scope] = decl_function(G, node_id)
-        return NodeHandleResult(obj_nodes=[added_obj])
+        if added_obj is not None:
+            obj_nodes = [added_obj]
+        else: # the function has been declared
+            obj_nodes = G.get_func_decls_by_ast_node(node_id)
+        return NodeHandleResult(obj_nodes=obj_nodes)
 
 
     elif cur_type == 'AST_BINARY_OP':
