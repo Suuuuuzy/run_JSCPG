@@ -736,6 +736,10 @@ class Graph:
                     func_decl_ast_nodes.add(edge[1])
         return list(func_decl_ast_nodes)
 
+    def get_func_decls_by_ast_node(self, ast_node):
+        edges = self.get_in_edges(ast_node, edge_type='OBJ_TO_AST')
+        return [edge[0] for edge in edges]
+
     def get_entryid_by_function_name(self, function_name, scope = None):
         """
         return the entryid nodeid of a funcion
