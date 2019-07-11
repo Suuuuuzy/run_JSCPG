@@ -23,4 +23,4 @@ var str = string.s
 array = new Array(1,2,3);
 array_small = [1,2,3];
 Array.prototype.arr = "arr"
-array_arr = array_small.arr
+array_arr = [1,2,3].arr
