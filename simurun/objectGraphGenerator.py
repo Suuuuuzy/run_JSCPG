@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-from graph import Graph
-from scopeController import ScopeController
 from utilities import *
+from graph import Graph
 import sys
 import sty
 import re
@@ -362,11 +361,6 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         node_color = sty.fg.black + sty.bg(179)
     print(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id}: {node_color}{cur_type}{sty.rs.all}{' ' + node_name if node_name else ''}, lineno: {cur_node_attr['lineno:int']}")
 
-    # handle registered functions
-    if "HAVE_FUNC" in cur_node_attr:
-        for func_decl_id in registered_func[node_id]:
-            print(sty.ef.inverse + sty.fg.red + "RUN register {}".format(func_decl_id) + sty.rs.all)
-            handle_node(G, func_decl_id, extra)
 
     if cur_type == "AST_PARAM":
         node_name = G.get_name_from_child(node_id)
@@ -472,7 +466,8 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         return NodeHandleResult(obj_nodes=now_objs)
 
     elif cur_type == 'AST_FUNC_DECL':
-        [added_obj, added_scope] = decl_function(G, node_id)
+        [added_obj, added_scope] = decl_function(G, node_id, 
+                parent_scope = G.cur_scope)
         return NodeHandleResult(obj_nodes=[added_obj])
 
 
@@ -538,6 +533,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             print(sty.fg.green + 'method call return value ' + sty.rs.all + ', '.join(['{}: {}'.format(obj, G.get_node_attr(obj)) for obj in returned_objs]))
         # if func_modified_objs:
         #     modified_objs.update(func_modified_objs)
+        func_used_objs.add(parent_obj)
         return NodeHandleResult(obj_nodes=returned_objs, used_objs=func_used_objs)
 
 
@@ -547,7 +543,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             print(sty.fg.green + 'function call return value ' + sty.rs.all + ', '.join(['{}: {}'.format(obj, G.get_node_attr(obj)) for obj in returned_objs]))
             return NodeHandleResult(obj_nodes=returned_objs, used_objs=func_used_objs)
         else:
-            return NodeHandleResult()
+            return NodeHandleResult(used_objs=func_used_objs)
 
     elif cur_type == 'AST_RETURN':
         returned_var = G.get_ordered_ast_child_nodes(node_id)[0]
@@ -576,6 +572,12 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         branches = extra.get('branches', [])
         simurun_block(G, body, G.cur_scope, branches)
         return NodeHandleResult()
+
+    # handle registered functions
+    if "HAVE_FUNC" in cur_node_attr:
+        for func_decl_id in registered_func[node_id]:
+            print(sty.ef.inverse + sty.fg.red + "RUN register {}".format(func_decl_id) + sty.rs.all)
+            handle_node(G, func_decl_id, extra)
 
     # TODO: TMPRIGHT needs to be removed
     # delete if right node is temperate
@@ -837,11 +839,19 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
 
     # handle arguments in the call statement
     arg_objs = [] # note every element in this array is also an array of object nodes
+
+    # TOREMOVE
+    used_arg_objs = set()
+
     arg_list_node = G.get_ordered_ast_child_nodes(node_id)[-1]
     arg_list = G.get_ordered_ast_child_nodes(arg_list_node)
     for arg in arg_list:
         handled_arg = handle_node(G, arg)
         arg_objs.append(handled_arg.obj_nodes)
+
+        # TOREMOVE
+        used_arg_objs.update(handled_arg.used_objs)
+        used_arg_objs.update(handled_arg.obj_nodes)
 
     # build the related function nodes 
     # TODO: temporary workaround for multi possibilities
@@ -904,8 +914,9 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     used_objs = set()
     # if it's a built-in function, regard the arguments as used objects
     if G.get_node_attr(func_decl_id).get('labels:label') == 'Artificial_AST':
-        for objs in arg_objs:
-            used_objs.update(objs)
+        # for objs in arg_objs:
+        # TOREMOVE
+        used_objs.update(used_arg_objs)
 
     return [added_obj, None, returned_objs, used_objs]
 
@@ -952,8 +963,8 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
 
 G = Graph()
 G.import_from_CSV("./nodes.csv", "./rels.csv")
-scopeContorller = ScopeController(G)
 generate_obj_graph(G, '1')
 # add_edges_between_funcs(G)
 # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
 G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
+G.traceback("os-command")

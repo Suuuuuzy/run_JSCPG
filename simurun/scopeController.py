@@ -1,4 +1,5 @@
 from graph import Graph
+
 class ScopeController:
     """
     the class used for control the name scope of the program

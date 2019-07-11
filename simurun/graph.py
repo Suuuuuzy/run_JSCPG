@@ -1124,3 +1124,28 @@ class Graph:
             self.set_node_attr(child_id, ("childnum:int", '1'))
 
         return root_node_id
+
+    def traceback(self, export_type):
+        if export_type == 'os-command':
+            expoit_func_list = [
+                    'exec'
+                    ]
+            func_run_obj_nodes = self.get_node_by_attr('type', 'FUNC_RUN_OBJ')
+            for func_run_obj_node in func_run_obj_nodes:
+                # we assume only one obj_decl edge
+                func_ast_node = list(self.get_child_nodes(func_run_obj_node, 
+                        edge_type = 'OBJ_DECL'))[0]
+                func_name = self.get_name_from_child(func_ast_node)
+                if func_name in expoit_func_list:
+                    caller = list(self.get_child_nodes(func_run_obj_node, 
+                        edge_type = 'OBJ_TO_AST'))[0]
+                    obj_reaches_edges = self.get_in_edges(caller, 
+                            edge_type = 'OBJ_REACHES')
+                    while len(obj_reaches_edges) != 0:
+                        for df_edge in obj_reaches_edges:
+                            node_attr = self.get_node_attr(df_edge[0])
+                            print(df_edge[0], caller, node_attr['lineno:int'], 
+                                    node_attr['type'])
+                            obj_reaches_edges = self.get_in_edges(df_edge[0], 
+                                    edge_type = 'OBJ_REACHES')
+

@@ -16,11 +16,18 @@ function test(){
 test.prototype.pro = "Proto";
 var ret = res.pro
 
-string = new String;
-String.prototype.s = "str";
-var str = string.s
+string = {
+  s: "strr"
+}
 
-array = new Array(1,2,3);
-array_small = [1,2,3];
-Array.prototype.arr = "arr"
-array_arr = [1,2,3].arr
+
+function run(){
+  array = new Array(1,2,3);
+  array_small = [1,2,3];
+  Array.prototype.arr = string.s
+  array_arr = array_small
+  arg = array
+
+  exec(arg.join(' '), array_arr.arr)
+}
+run()
