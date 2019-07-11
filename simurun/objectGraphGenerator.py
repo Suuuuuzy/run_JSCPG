@@ -373,6 +373,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         node_name = G.get_name_from_child(node_id)
         # assume we only have on reaches edge to this node
         now_edge = G.get_in_edges(node_id, edge_type = "REACHES")
+        now_objs = None
         if len(now_edge) != 0:
             from_node = now_edge[0][0]
             now_objs = G.get_multi_objs_by_name(from_node)
