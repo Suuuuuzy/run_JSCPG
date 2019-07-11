@@ -835,26 +835,8 @@ class Graph:
             cur_attr = self.get_node_attr(edge[1])
             if cur_attr.get("name") == var_name:
                 return edge[1]
-       
-        if var_name == '__proto__':
-            # __proto__ not found
-            return None
 
-        # if we can not find the property, look for __proto__
-        __proto__name_node = self.get_name_node_of_obj("__proto__", 
-                parent_obj = parent_obj)
-        
-        if __proto__name_node == None:
-            return None
-        __proto__obj_nodes = self.get_objs_by_name_node(__proto__name_node)
-        
-        if len(__proto__obj_nodes) == 0:
-            return None
-
-        # we just return 1 possiable __proto__ instance
-        # assume we only have one __proto__ instance
-        return self.get_name_node_of_obj(var_name, 
-                parent_obj = list(__proto__obj_nodes)[0])
+        return None
 
     def add_namenode_to_obj(self, name, obj = None):
         """
