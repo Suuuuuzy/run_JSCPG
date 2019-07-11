@@ -489,6 +489,10 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
             added_obj = G.add_literal_obj()
+            used_objs = list(set(used_objs))
+            for obj in used_objs:
+                G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+            print(f'used objs={used_objs}')
             return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
 
     elif cur_type == 'AST_NEW':
@@ -529,18 +533,26 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
         # assume the method call will modify the parent object
         # modified_objs.add(parent_obj)
-        _, added_scope, returned_objs, func_used_objs = ast_call_function(G, node_id, func_name = child_name, parent_obj = parent_obj)
+        _, added_scope, returned_objs, func_used_objs, is_builtin = ast_call_function(G, node_id, func_name = child_name, parent_obj = parent_obj)
         if returned_objs:
             now_objs = list(returned_objs)
             print(sty.fg.green + 'method call return value ' + sty.rs.all + ', '.join(['{}: {}'.format(obj, G.get_node_attr(obj)) for obj in returned_objs]))
         # if func_modified_objs:
         #     modified_objs.update(func_modified_objs)
-        func_used_objs.add(parent_obj)
+        if parent_obj:
+            func_used_objs.append(parent_obj)
+        if is_builtin:
+            if not returned_objs:
+                returned_objs = [G.add_obj_node(node_id, 'OBJ')]
+            for obj1 in returned_objs:
+                for obj2 in func_used_objs:
+                    G.add_edge(obj2, obj1, {'type:TYPE': 'CONTRIBUTES_TO'})
+        
         return NodeHandleResult(obj_nodes=returned_objs, used_objs=func_used_objs)
 
 
     elif cur_type == 'AST_CALL':
-        _, added_scope, returned_objs, func_used_objs = ast_call_function(G, node_id)
+        _, added_scope, returned_objs, func_used_objs, is_builtin = ast_call_function(G, node_id)
         if returned_objs:
             print(sty.fg.green + 'function call return value ' + sty.rs.all + ', '.join(['{}: {}'.format(obj, G.get_node_attr(obj)) for obj in returned_objs]))
             return NodeHandleResult(obj_nodes=returned_objs, used_objs=func_used_objs)
@@ -642,7 +654,7 @@ def simurun_block(G, ast_node, parent_scope, branches=[]):
             if stmt_used_objs:
                 used_objs.update(stmt_used_objs)
     
-    return returned_objs, used_objs
+    return list(returned_objs), list(used_objs)
 
 def merge(G, stmt, num_of_branches, parent_branch):
     '''
@@ -832,6 +844,8 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     """
     run a function start from node id
     """
+    is_builtin = True
+
     if func_name == None:
         func_name = G.find_name_of_call(node_id)
     # if func_name is still none, this is a self-invoke call
@@ -846,16 +860,7 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
             returned_objs = [module_exports]
         else:
             returned_objs = None
-        return added_obj, added_scope, returned_objs, set()
-
-    if func_decl_id is None:
-        if parent_obj == None:
-            func_decl_id = G.get_func_declid_by_function_name(func_name)
-        else:
-            func_decl_id = G.get_func_declid_by_function_obj_name(func_name, parent_obj = parent_obj)
-
-    if func_decl_id == None or len(G.get_out_edges(func_decl_id, edge_type = 'ENTRY')) == 0:
-        func_decl_id = G.add_blank_func(func_name)
+        return added_obj, added_scope, returned_objs, set(), True
 
     # handle arguments in the call statement
     arg_objs = [] # note every element in this array is also an array of object nodes
@@ -872,6 +877,27 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         # TOREMOVE
         used_arg_objs.update(handled_arg.used_objs)
         used_arg_objs.update(handled_arg.obj_nodes)
+
+    func_decl_obj_node = G.get_obj_by_obj_name(func_name, parent_obj)
+    if func_decl_obj_node:
+        python_func = G.get_node_attr(func_decl_obj_node).get('pythonfunc')
+        if python_func:
+            # TODO: multiple possibilities
+            possible_arg_objs = [objs[0] for objs in arg_objs]
+            if parent_obj:
+                handled = python_func(parent_obj, *possible_arg_objs)
+            else:
+                handled = python_func(*possible_arg_objs)
+            return None, None, handled.obj_nodes, list(used_arg_objs), True
+
+    if func_decl_id is None:
+        if parent_obj == None:
+            func_decl_id = G.get_func_declid_by_function_name(func_name)
+        else:
+            func_decl_id = G.get_func_declid_by_function_obj_name(func_name, parent_obj = parent_obj)
+
+    if func_decl_id == None or len(G.get_out_edges(func_decl_id, edge_type = 'ENTRY')) == 0:
+        func_decl_id = G.add_blank_func(func_name)
 
     # build the related function nodes 
     # TODO: temporary workaround for multi possibilities
@@ -931,14 +957,13 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     # add call edge
     G.add_edge_if_not_exist(node_id, func_decl_id, {"type:TYPE": "CALLS"})
 
-    used_objs = set()
-    # if it's a built-in function, regard the arguments as used objects
     if G.get_node_attr(func_decl_id).get('labels:label') == 'Artificial_AST':
-        # for objs in arg_objs:
-        # TOREMOVE
-        used_objs.update(used_arg_objs)
+        used_objs = list(used_arg_objs)
+    else:
+        used_objs = []
+        is_builtin = False
 
-    return [added_obj, None, returned_objs, used_objs]
+    return [added_obj, None, returned_objs, used_objs, is_builtin]
 
 def build_df(G, node_id, modified_objs):
     """
