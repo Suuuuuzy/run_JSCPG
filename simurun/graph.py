@@ -1126,21 +1126,19 @@ class Graph:
         node_attr = self.get_node_attr(node_id)
         if nodes_type == 'new':
             root_node_id = self._get_new_nodeid()
-            self.add_node(root_node_id, {"type": "AST_NEW"})
+            self.add_node(root_node_id, {"type": "AST_NEW", "labels:label": "VIRTUAL"})
             child_id = self.add_child_node(root_node_id, "AST_NAME", "PARENT_OF", 
                     child_node_label = "VIRTUAL")
             self.set_node_attr(child_id, ("childnum:int", '0'))
             child_id = self.add_child_node(child_id, "string", "PARENT_OF", 
                     child_node_label = "VIRTUAL")
-            self.set_node_attr(child_id, ('code', 'Array'))
-            self.set_node_attr(child_id, ("childnum:int", '0'))
+
+            if node_attr['type'] == "AST_ARRAY":
+                self.set_node_attr(child_id, ('code', 'Array'))
+                self.set_node_attr(child_id, ("childnum:int", '0'))
 
             child_id = self.add_child_node(root_node_id, "AST_ARG_LIST", 
                     "PARENT_OF", child_node_label = "VIRTUAL")
             self.set_node_attr(child_id, ("childnum:int", '1'))
 
-            if node_attr['type'] == "AST_ARRAY":
-                pass
         return root_node_id
-
-

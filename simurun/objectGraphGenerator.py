@@ -356,6 +356,8 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             child = edge[1]
             handle_node(G, child, dict(extra, parent_obj=added_obj))
 
+        G.remove_nodes_from(G.get_node_by_attr('labels:label', 'VIRTUAL'))
+
         return NodeHandleResult(obj_nodes=[added_obj])
 
     elif cur_type == 'AST_ARRAY_ELEM':
