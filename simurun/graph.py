@@ -1149,6 +1149,24 @@ class Graph:
             self.set_node_attr(child_id, ("childnum:int", '1'))
 
         return root_node_id
+    
+    def _dfs_upper_by_edge_type(self, node_id, edge_type):
+        """
+        dfs a specific type of edge upper from a node id
+        """
+        upper_edges = self.get_in_edges(node_id, 
+                edge_type = edge_type)
+        parent_nodes = [edge[0] for edge in upper_edges]
+        ret = []
+        
+        for parent_node in parent_nodes:
+            cur_all_upper_pathes = self._dfs_upper_by_edge_type(parent_node, 
+                    edge_type)
+            if len(cur_all_upper_pathes) == 0:
+                ret.append([parent_node])
+            for cur_path in cur_all_upper_pathes:
+                ret.append([parent_node] + cur_path)
+        return  ret
 
     def traceback(self, export_type):
         if export_type == 'os-command':
@@ -1156,6 +1174,7 @@ class Graph:
                     'exec'
                     ]
             func_run_obj_nodes = self.get_node_by_attr('type', 'FUNC_RUN_OBJ')
+            pathes = {}
             for func_run_obj_node in func_run_obj_nodes:
                 # we assume only one obj_decl edge
                 func_ast_node = list(self.get_child_nodes(func_run_obj_node, 
@@ -1164,13 +1183,15 @@ class Graph:
                 if func_name in expoit_func_list:
                     caller = list(self.get_child_nodes(func_run_obj_node, 
                         edge_type = 'OBJ_TO_AST'))[0]
-                    obj_reaches_edges = self.get_in_edges(caller, 
-                            edge_type = 'OBJ_REACHES')
-                    while len(obj_reaches_edges) != 0:
-                        for df_edge in obj_reaches_edges:
-                            node_attr = self.get_node_attr(df_edge[0])
-                            print(df_edge[0], caller, node_attr['lineno:int'], 
-                                    node_attr['type'])
-                            obj_reaches_edges = self.get_in_edges(df_edge[0], 
-                                    edge_type = 'OBJ_REACHES')
+                    pathes = self._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
+
+                for path in pathes:
+                    cur_path_str = ""
+                    path.reverse()
+                    for node in path:
+                        cur_node_attr = self.get_node_attr(node)
+                        cur_path_str += cur_node_attr['lineno:int'] + '->'
+
+                    cur_path_str += self.get_node_attr(caller)['lineno:int']
+                    print(cur_path_str)
 
