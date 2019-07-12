@@ -14,8 +14,6 @@ var myGrowl = function(title, description) {
 };
 
 var parseEvent = function(event) {
-    var that = this;
-    console.log('DEBUG', event.type);
     title = 'Issue #' + event.payload.issue.number;
     title = title + ' - ' + event.payload.issue.title;
     description = description + 'New comment by @' + event.actor.login;
