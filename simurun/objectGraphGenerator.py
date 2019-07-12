@@ -303,6 +303,7 @@ def handle_assign(G, ast_node, extra = {}) -> NodeHandleResult:
         G.assign_obj_nodes_to_name_node(name_node, right_objs, branches=branches)
 
     used_objs = handled_right.used_objs
+    print(f'assign used objs={used_objs}')
     return NodeHandleResult(obj_nodes=handled_right.obj_nodes, name_nodes=handled_left.name_nodes, used_objs=used_objs)
 
 def has_else(G, if_ast_node):
@@ -488,7 +489,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             used_objs.extend(handled_left.obj_nodes)
             used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
-            added_obj = G.add_literal_obj()
+            added_obj = G.add_literal_obj(node_id)
             used_objs = list(set(used_objs))
             for obj in used_objs:
                 G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
