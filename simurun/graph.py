@@ -1224,4 +1224,4 @@ class Graph:
 
                     res_path += "==========================\n"
                     res_path += cur_path_str
-        return res_path
+        return pathes, res_path
