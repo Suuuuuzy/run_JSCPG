@@ -1230,15 +1230,18 @@ class Graph:
                 for path in pathes:
                     cur_path_str = ""
                     path.reverse()
+                    if path[0] != '251':
+                        continue
                     path.append(caller)
-                    for node in path:
+                    for node in path[:2]:
                         cur_node_attr = self.get_node_attr(node)
                         start_lineno = int(cur_node_attr['lineno:int'])
                         end_lineno = int(cur_node_attr['endlineno:int'])
                         content = self.get_node_file_content(node)
                         cur_path_str += "{}\t{}".format(start_lineno,
-                                ''.join(content[start_lineno:end_lineno + 1]))
+                                ''.join(content[start_lineno - 5:end_lineno + 4]))
 
                     res_path += "==========================\n"
                     res_path += cur_path_str
+                    break
         return pathes, res_path
