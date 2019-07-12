@@ -12,6 +12,7 @@ class Graph:
         self.cur_obj = None 
         self.cur_scope = None
         self.cur_id = 0
+        self.file_contents = {}
 
     def _get_new_nodeid(self):
         """
@@ -1168,7 +1169,31 @@ class Graph:
                 ret.append([parent_node] + cur_path)
         return  ret
 
+    def get_node_file_path(self, node_id):
+        # it's a ast so a node only has one parent
+        while True:
+            node_attr = self.get_node_attr(node_id)
+            if node_attr['type'] == "AST_TOPLEVEL":
+                return node_attr['name']
+            node_id = self.get_in_edges(node_id, 
+                    edge_type = "PARENT_OF")[0][0]
+
+    def get_node_file_content(self, node_id):
+        """
+        find the file of a node
+        return the dict with numbers and contents
+        """
+        file_name = self.get_node_file_path(node_id)
+        if file_name not in self.file_contents:
+            content_dict = ['']
+            with open(file_name, 'r') as fp:
+                for file_line in fp:
+                    content_dict.append(file_line)
+            self.file_contents[file_name] = content_dict.copy()
+        return self.file_contents[file_name]
+
     def traceback(self, export_type):
+        res_path = ""
         if export_type == 'os-command':
             expoit_func_list = [
                     'exec'
@@ -1188,10 +1213,15 @@ class Graph:
                 for path in pathes:
                     cur_path_str = ""
                     path.reverse()
+                    path.append(caller)
                     for node in path:
                         cur_node_attr = self.get_node_attr(node)
-                        cur_path_str += cur_node_attr['lineno:int'] + '->'
+                        start_lineno = int(cur_node_attr['lineno:int'])
+                        end_lineno = int(cur_node_attr['endlineno:int'])
+                        content = self.get_node_file_content(node)
+                        cur_path_str += "{}\t{}".format(start_lineno,
+                                ''.join(content[start_lineno:end_lineno + 1]))
 
-                    cur_path_str += self.get_node_attr(caller)['lineno:int']
-                    print(cur_path_str)
-
+                    res_path += "==========================\n"
+                    res_path += cur_path_str
+        return res_path

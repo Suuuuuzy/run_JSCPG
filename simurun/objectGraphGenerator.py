@@ -15,7 +15,7 @@ def printcolor(string, color="red"):
     """
     print(sty.ef.inverse + sty.fg.red + str(string) + sty.rs.all)
 
-def get_argids_from_funcallee(node_id):
+def get_argids_from_funcallee(G, node_id):
     """
     given a func node id, return a list of para ids
     """
@@ -33,7 +33,7 @@ def get_argids_from_funcallee(node_id):
 
     return paras
 
-def get_argnames_from_funcaller(node_id):
+def get_argnames_from_funcaller(G, node_id):
     """
     given a func node id, return a list of para ids
     """
@@ -81,8 +81,8 @@ def add_edges_between_funcs(G):
 
         # add DF edge to PARAM
         # the order of para in paras matters!
-        caller_para_names = get_argnames_from_funcaller(caller_id)
-        callee_paras = get_argids_from_funcallee(callee_id)
+        caller_para_names = get_argnames_from_funcaller(G, caller_id)
+        callee_paras = get_argids_from_funcallee(G, callee_id)
         for idx in range(min(len(callee_paras), len(caller_para_names))):
             print(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, callee_paras[idx]))
             assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
@@ -682,30 +682,21 @@ def merge(G, stmt, num_of_branches, parent_branch):
                         created[int(branch_tag.branch)] = True
                     if branch_tag.op == 'D':
                         deleted[int(branch_tag.branch)] = True
-            print(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
-            # flag_created = True
-            # for i in created:
-            #     if i == False:
-            #         flag_created = False
             flag_deleted = True
             for i in deleted:
                 if i == False:
                     flag_deleted = False
             if True: # We always flatten edges, because the possibilities will still exist in parent branches
-                print(f'add edge {u}->{v}, branch={stmt}')
                 for key, edge_attr in list(G.graph[u][v].items()): # we'll delete edges, so we convert it to list
                     branch_tag = edge_attr.get('branch', BranchTag())
                     if branch_tag.stmt == stmt:
                         G.graph.remove_edge(u, v, key)
                 if parent_branch:
                     # add one addition edge with parent if/switch's (upper level's) tags
-                    print(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='A')}")
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, op='A')})
                 else:
-                    print(f'create edge {u}->{v}')
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ'})
             if flag_deleted:
-                print(f'delete edge {u}->{v}, branch={stmt}')
                 for key, edge_attr in list(G.graph[u][v].items()): # we'll delete edges, so we convert it to list
                     branch_tag = edge_attr.get('branch', BranchTag())
                     if branch_tag.stmt == stmt:
@@ -1010,12 +1001,13 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if def_cpg_node == cur_stmt: continue
         print(sty.fg.li_magenta + sty.ef.b + "OBJ REACHES" + sty.rs.all + " {} -> {}".format(def_cpg_node, cur_stmt))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
-    
 
-G = Graph()
-G.import_from_CSV("./nodes.csv", "./rels.csv")
-generate_obj_graph(G, '1')
+def main():
+    G = Graph()
+    G.import_from_CSV("./nodes.csv", "./rels.csv")
+    generate_obj_graph(G, '1')
 # add_edges_between_funcs(G)
 # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
-G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
-G.traceback("os-command")
+    G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
+    res_path = G.traceback("os-command")
+    return res_path

@@ -19,4 +19,3 @@ function growl(msg, options, fn) {
 var msg = 'Hello';
 var options = {'title': 'Hello world'};
 
-growl(msg, options, function(){});
