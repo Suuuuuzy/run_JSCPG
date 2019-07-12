@@ -404,7 +404,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             print(sty.ef.inverse + sty.fg.red + "AST_ARRAY_ELEM occurs outside AST_ARRAY" + sty.rs.all, file=sys.stderr)
         else:
             value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
-            key = G.get_name_from_child(key_node)
+            key = G.get_name_from_child(key_node).strip("'\"")
             if not key: key = '*' # add wildcard for future use
             child_handle_result = handle_node(G, value_node, extra)
             child_added_objs = child_handle_result.obj_nodes
@@ -578,8 +578,10 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         for i, if_elem in enumerate(if_elems):
             branch_tag = BranchTag(stmt=stmt_id, branch=str(i))
             handle_node(G, if_elem, dict(extra, branches=branches+[branch_tag]))
-        if has_else(G, node_id):
-            merge(G, stmt_id, len(if_elems), parent_branch)
+        num_of_branches = len(if_elems) # which is always 2 for javascript...
+        if not has_else(G, node_id):
+            num_of_branches += 1
+        merge(G, stmt_id, num_of_branches, parent_branch) # We always flatten edges
         return NodeHandleResult()
 
     elif cur_type == 'AST_IF_ELEM':
@@ -681,16 +683,16 @@ def merge(G, stmt, num_of_branches, parent_branch):
                     if branch_tag.op == 'D':
                         deleted[int(branch_tag.branch)] = True
             print(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
-            flag_created = True
-            for i in created:
-                if i == False:
-                    flag_created = False
+            # flag_created = True
+            # for i in created:
+            #     if i == False:
+            #         flag_created = False
             flag_deleted = True
             for i in deleted:
                 if i == False:
                     flag_deleted = False
-            if flag_created:
-                print(f'delete edge {u}->{v}, branch={stmt}')
+            if True: # We always flatten edges, because the possibilities will still exist in parent branches
+                print(f'add edge {u}->{v}, branch={stmt}')
                 for key, edge_attr in list(G.graph[u][v].items()): # we'll delete edges, so we convert it to list
                     branch_tag = edge_attr.get('branch', BranchTag())
                     if branch_tag.stmt == stmt:

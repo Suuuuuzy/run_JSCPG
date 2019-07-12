@@ -1137,8 +1137,12 @@ class Graph:
                     child_node_label = "VIRTUAL")
 
             if node_attr['type'] == "AST_ARRAY":
-                self.set_node_attr(child_id, ('code', 'Array'))
-                self.set_node_attr(child_id, ("childnum:int", '0'))
+                if node_attr['flags:string[]'] == "JS_ARRAY":
+                    self.set_node_attr(child_id, ('code', 'Array'))
+                    self.set_node_attr(child_id, ("childnum:int", '0'))
+                elif node_attr['flags:string[]'] == "JS_OBJECT":
+                    self.set_node_attr(child_id, ('code', 'Object'))
+                    self.set_node_attr(child_id, ("childnum:int", '0'))
 
             child_id = self.add_child_node(root_node_id, "AST_ARG_LIST", 
                     "PARENT_OF", child_node_label = "VIRTUAL")
