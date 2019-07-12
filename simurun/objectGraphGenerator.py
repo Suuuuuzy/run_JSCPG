@@ -547,6 +547,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             for obj1 in returned_objs:
                 for obj2 in func_used_objs:
                     G.add_edge(obj2, obj1, {'type:TYPE': 'CONTRIBUTES_TO'})
+        print(f'func_used_objs={func_used_objs}')
         
         return NodeHandleResult(obj_nodes=returned_objs, used_objs=func_used_objs)
 
@@ -929,10 +930,12 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     if param_list_node != None:
         for i, child in enumerate(G.get_ordered_ast_child_nodes(param_list_node)):
             if i >= len(arg_objs): break
-            handled_param = handle_node(G, child)
+            # handled_param = handle_node(G, child)
+            param_name = G.get_name_from_child(child)
             for obj in arg_objs[i]:
-                G.add_obj_to_scope(None, handled_param.name, None, scope=func_scope_id, tobe_added_obj=obj)
-
+                print(sty.fg.green + f'add {obj}->{param_name} scope={func_scope_id}' + sty.rs.all)
+                G.add_obj_to_scope(None, param_name, None, scope=func_scope_id, tobe_added_obj=obj)
+ 
     backup_obj = G.cur_obj
     backup_scope = G.cur_scope
 
