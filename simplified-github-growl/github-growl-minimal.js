@@ -31,10 +31,9 @@ var monitorEvents = function(options) {
     that.github.events.getFromUser({
         user: options.username
     }, function(err, events) {
-        that.events = events;
+        var event = events[0];
+        parseEvent(event);
     });
-    var event = events[0];
-    parseEvent(event);
 };
 
 module.exports.github = github;
