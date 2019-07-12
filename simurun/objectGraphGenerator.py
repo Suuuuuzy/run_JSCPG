@@ -404,8 +404,11 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             print(sty.ef.inverse + sty.fg.red + "AST_ARRAY_ELEM occurs outside AST_ARRAY" + sty.rs.all, file=sys.stderr)
         else:
             value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
-            key = G.get_name_from_child(key_node).strip("'\"")
-            if not key: key = '*' # add wildcard for future use
+            key = G.get_name_from_child(key_node)
+            if not key:
+                key = '*' # add wildcard for future use
+            else:
+                key = key.strip("'\"")
             child_handle_result = handle_node(G, value_node, extra)
             child_added_objs = child_handle_result.obj_nodes
             now_objs = []
@@ -682,21 +685,30 @@ def merge(G, stmt, num_of_branches, parent_branch):
                         created[int(branch_tag.branch)] = True
                     if branch_tag.op == 'D':
                         deleted[int(branch_tag.branch)] = True
+            # print(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
+            # flag_created = True
+            # for i in created:
+            #     if i == False:
+            #         flag_created = False
             flag_deleted = True
             for i in deleted:
                 if i == False:
                     flag_deleted = False
             if True: # We always flatten edges, because the possibilities will still exist in parent branches
+                # print(f'add edge {u}->{v}, branch={stmt}')
                 for key, edge_attr in list(G.graph[u][v].items()): # we'll delete edges, so we convert it to list
                     branch_tag = edge_attr.get('branch', BranchTag())
                     if branch_tag.stmt == stmt:
                         G.graph.remove_edge(u, v, key)
                 if parent_branch:
                     # add one addition edge with parent if/switch's (upper level's) tags
+                    # print(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='A')}")
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, op='A')})
                 else:
+                    # print(f'create edge {u}->{v}')
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ'})
             if flag_deleted:
+                # print(f'delete edge {u}->{v}, branch={stmt}')
                 for key, edge_attr in list(G.graph[u][v].items()): # we'll delete edges, so we convert it to list
                     branch_tag = edge_attr.get('branch', BranchTag())
                     if branch_tag.stmt == stmt:
@@ -707,19 +719,19 @@ def merge(G, stmt, num_of_branches, parent_branch):
                     for key, edge_attr in list(G.graph[u][v].items()):
                         branch_tag = edge_attr.get('branch', BranchTag())
                         if branch_tag == BranchTag(parent_branch, op='A'):
-                            print(f'delete edge {u}->{v}')
+                            # print(f'delete edge {u}->{v}')
                             G.graph.remove_edge(u, v, key)
                             flag = False
                     # if there is not
                     if flag:
                         # add one deletion edge with parent if/switch's (upper level's) tags
-                        print(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='D')}")
+                        # print(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='D')}")
                         G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, op='D')})
                 else:
                     # find if there is an addition in upper level
                     for key, edge_attr in list(G.graph[u][v].items()):
                         if 'branch' not in edge_attr:
-                            print(f'delete edge {u}->{v}')
+                            # print(f'delete edge {u}->{v}')
                             G.graph.remove_edge(u, v, key)
 
 def generate_obj_graph(G, entry_nodeid):
@@ -743,6 +755,36 @@ def generate_obj_graph(G, entry_nodeid):
         register_func(G, node[0])
     handle_node(G, entry_nodeid)
     add_edges_between_funcs(G)
+
+def call_callback_function(G, caller, func_decl, func_scope):
+    # generate empty object for parameters of the callback function
+    param_list_node = None
+    for child in G.get_ordered_ast_child_nodes(func_decl):
+        if G.get_node_attr(child).get('type') == 'AST_PARAM_LIST':
+            param_list_node = child
+            break
+    if param_list_node is not None:
+        for child in G.get_ordered_ast_child_nodes(param_list_node):
+            # handled_param = handle_node(G, child)
+            param_name = G.get_name_from_child(child)
+            G.add_obj_to_scope(None, param_name, None, scope=func_scope)
+    
+    backup_obj = G.cur_obj
+    backup_scope = G.cur_scope
+
+    # added_obj = G.add_obj_node(caller, "FUNC_RUN_OBJ")
+    # link run obj to func decl
+    # G.add_edge(added_obj, func_decl, {'type:TYPE': 'OBJ_DECL'})
+
+    G.cur_scope = func_scope
+
+    simurun_function(G, func_decl)
+
+    G.cur_scope = backup_scope
+    G.cur_obj = backup_obj
+
+    # add call edge
+    G.add_edge_if_not_exist(caller, func_decl, {"type:TYPE": "CALLS"})
 
 def decl_function(G, node_id, func_name = None, parent_scope = None):
     """
@@ -863,6 +905,8 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     # TOREMOVE
     used_arg_objs = set()
 
+    callback_functions = set()
+
     arg_list_node = G.get_ordered_ast_child_nodes(node_id)[-1]
     arg_list = G.get_ordered_ast_child_nodes(arg_list_node)
     for arg in arg_list:
@@ -872,6 +916,10 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         # TOREMOVE
         used_arg_objs.update(handled_arg.used_objs)
         used_arg_objs.update(handled_arg.obj_nodes)
+
+        for obj in handled_arg.obj_nodes:
+            if G.get_node_attr(obj).get('type') == 'FUNC_DECL':
+                callback_functions.add(obj)
 
     func_decl_obj_node = G.get_obj_by_obj_name(func_name, parent_obj)
     if func_decl_obj_node:
@@ -921,7 +969,7 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         if G.get_node_attr(child).get('type') == 'AST_PARAM_LIST':
             param_list_node = child
             break
-    if param_list_node != None:
+    if param_list_node is not None:
         for i, child in enumerate(G.get_ordered_ast_child_nodes(param_list_node)):
             if i >= len(arg_objs): break
             # handled_param = handle_node(G, child)
@@ -944,7 +992,7 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
 
     returned_objs, _ = simurun_function(G, func_decl_id)
 
-    # add obj to scope edge
+    # add obj to scope edge?
     if G.cur_scope == None:
         G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
 
@@ -953,6 +1001,13 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
 
     # add call edge
     G.add_edge_if_not_exist(node_id, func_decl_id, {"type:TYPE": "CALLS"})
+
+    print(sty.fg.green + sty.ef.inverse + 'callback functions=', callback_functions, sty.rs.all)
+    if callback_functions:
+        for obj in callback_functions:
+            func_decl = G.get_obj_def_ast_node(obj)
+            func_scope = G.get_func_scope_by_obj_node(obj)
+            call_callback_function(G, node_id, func_decl, func_scope)
 
     if G.get_node_attr(func_decl_id).get('labels:label') == 'Artificial_AST':
         used_objs = list(used_arg_objs)

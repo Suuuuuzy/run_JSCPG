@@ -609,7 +609,7 @@ class Graph:
         # check if the name node exists first
         name_node = self.get_name_node(var_name, scope=scope, follow_scope_chain=False)
         if name_node == None:
-            print(f'name node for {var_name} exists')
+            print(f'name node for {var_name} does not exist')
             name_node = str(self._get_new_nodeid())
             self.add_edge(scope, name_node, {"type:TYPE": "SCOPE_TO_VAR"})
             self.set_node_attr(name_node, ('labels:label', 'Name'))
@@ -882,6 +882,12 @@ class Graph:
         if pre_obj_id != None:
             print("remove pre", var_name)
             self.graph.remove_edge(cur_namenode, pre_obj_id)
+
+    def get_func_scope_by_obj_node(self, obj_node):
+        if obj_node == None:
+            return None
+        scope_edge = self.get_out_edges(obj_node, edge_type = "OBJ_TO_SCOPE")[0]
+        return scope_edge[1]
 
     def get_func_scope_by_obj_name(self, func_name, parent_obj = None):
         """
