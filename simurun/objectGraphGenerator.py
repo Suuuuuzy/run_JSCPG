@@ -195,7 +195,7 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name='
             prop_objs = G.get_objs_by_name_node(prop_name_node, branches=branches)
             if prop_objs:
                 prop_obj_nodes.update(prop_objs)
-        elif prop_name != '__proto__':
+        elif prop_name != '__proto__' and prop_name != '*':
             # if name node is not found, search the property under __proto__
             # note that we cannot search __proto__ under __proto__
             __proto__name_node = G.get_name_node_of_obj("__proto__", parent_obj = parent_obj)
@@ -207,7 +207,7 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name='
                         name_node_found = True
                         prop_name_nodes.update(__name_nodes)
                         prop_obj_nodes.update(__obj_nodes)
-        if not name_node_found and not in_proto:
+        if not name_node_found and not in_proto and prop_name != '*':
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
             if side == 'right':
@@ -258,6 +258,10 @@ def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
     branches = extra.get('branches')
     side = extra.get('side')
     prop_name_nodes, prop_obj_nodes = find_prop(G, parent_objs, prop_name, branches, side, parent_name)
+
+    if not prop_name_nodes and not prop_obj_nodes:
+        # try wildcard (*)
+        prop_name_nodes, prop_obj_nodes = find_prop(G, parent_objs, '*', branches, side, parent_name)
 
     print(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, name={parent_name}.{prop_name}, name_nodes={list(prop_name_nodes)}')
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes), name=f'{parent_name}.{prop_name}', name_nodes=list(prop_name_nodes))
@@ -1061,8 +1065,11 @@ def main():
     G = Graph()
     G.import_from_CSV("./nodes.csv", "./rels.csv")
     generate_obj_graph(G, '1')
-# add_edges_between_funcs(G)
-# G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
+    # add_edges_between_funcs(G)
+    # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
     G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
     res_path = G.traceback("os-command")
     return res_path
+
+if __name__ == "__main__":
+    main()
