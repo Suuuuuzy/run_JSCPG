@@ -5,6 +5,8 @@ def send_message(msg):
     print(msg)
 
 path, possiable_pathes = main()
+print(possiable_pathes)
+"""
 print("Sending Result to Human ...")
 time.sleep(2)
 send_message(possiable_pathes)
@@ -13,3 +15,4 @@ print("Regenerating Graphs...")
 time.sleep(2)
 path, possiable_pathes = main()
 print(possiable_pathes)
+"""

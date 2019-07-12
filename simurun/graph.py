@@ -1216,6 +1216,12 @@ class Graph:
                         edge_type = 'OBJ_TO_AST'))[0]
                     pathes = self._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
 
+                # give the end node one more chance, find the parent obj of the ending point
+                for path in pathes:
+                    last_node = path[-1]
+                    upper_nodes = self._dfs_upper_by_edge_type(last_node, 
+                            "OBJ_TO_PROP")
+
                 for path in pathes:
                     cur_path_str = ""
                     path.reverse()
