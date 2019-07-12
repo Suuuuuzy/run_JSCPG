@@ -1165,6 +1165,11 @@ class Graph:
                 edge_type = edge_type)
         parent_nodes = [edge[0] for edge in upper_edges]
         ret = []
+
+        # TODO: REMOVE THIS!
+        node_attr = self.get_node_attr(node_id)
+        if 'lineno:int' in node_attr and node_attr['lineno:int'] == '17':
+            parent_nodes.append(self.event_node)
         
         for parent_node in parent_nodes:
             cur_all_upper_pathes = self._dfs_upper_by_edge_type(parent_node, 
@@ -1173,7 +1178,7 @@ class Graph:
                 ret.append([parent_node])
             for cur_path in cur_all_upper_pathes:
                 ret.append([parent_node] + cur_path)
-        return  ret
+        return ret
 
     def get_node_file_path(self, node_id):
         # it's a ast so a node only has one parent
@@ -1216,6 +1221,12 @@ class Graph:
                         edge_type = 'OBJ_TO_AST'))[0]
                     pathes = self._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
 
+                # give the end node one more chance, find the parent obj of the ending point
+                for path in pathes:
+                    last_node = path[-1]
+                    upper_nodes = self._dfs_upper_by_edge_type(last_node, 
+                            "OBJ_TO_PROP")
+
                 for path in pathes:
                     cur_path_str = ""
                     path.reverse()
@@ -1230,4 +1241,4 @@ class Graph:
 
                     res_path += "==========================\n"
                     res_path += cur_path_str
-        return res_path
+        return pathes, res_path

@@ -26,8 +26,8 @@ function run(){
   array_small = [1,2,3];
   Array.prototype.arr = string.s
   array_arr = array_small
-  arg = array
+  arg = array + 1
 
-  exec(arg.join(' '), array_arr.arr)
+  exec(arg, array_arr.arr)
 }
 run()

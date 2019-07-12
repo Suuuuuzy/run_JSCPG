@@ -278,6 +278,10 @@ def handle_assign(G, ast_node, extra = {}) -> NodeHandleResult:
         # if only have left side
         return handle_node(G, ast_children[0], extra)
     
+    #TODO: REMOVE !
+    if G.get_name_from_child(left) == "event":
+        G.event_node = left
+
     # recursively handle both sides
     handled_right = handle_node(G, right, dict(extra, side='right'))
     handled_left = handle_node(G, left, dict(extra, side='left'))
@@ -445,6 +449,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
                     name_node = G.add_namenode_to_scope(var_name, scope=G.BASE_SCOPE)
         
         print(f'{node_id} handle result: obj_nodes={now_objs}, name={var_name}, name_nodes={[name_node]}')
+
         return NodeHandleResult(obj_nodes=now_objs, name=var_name, name_nodes=[name_node])
 
     elif cur_type == 'AST_PROP':
