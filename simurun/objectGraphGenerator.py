@@ -214,7 +214,7 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name='
                 return [], []
             else:
                 # only add a name node
-                added_name_node = G.add_namenode_under_obj(prop_name, parent_obj)
+                added_name_node = G.add_prop_name_node(prop_name, parent_obj)
                 prop_name_nodes.add(added_name_node)
                 print(sty.fg.green + f'Add prop name node {parent_name}.{prop_name} ({parent_obj}->{added_name_node})' + sty.rs.all)
     return prop_name_nodes, prop_obj_nodes
@@ -379,7 +379,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         now_objs = None
         if len(now_edge) != 0:
             from_node = now_edge[0][0]
-            now_objs = G.get_multi_objs_by_name(from_node)
+            now_objs = G.get_objs_by_name(from_node)
             for obj in now_objs:
                 G.set_obj_by_scope_name(node_name, now_objs)
         
@@ -421,7 +421,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             child_added_objs = child_handle_result.obj_nodes
             now_objs = []
             for obj in child_added_objs:
-                now_objs.append(G.add_obj_to_obj(node_id, None, key, parent_obj = extra['parent_obj'], tobe_added_obj = obj))
+                now_objs.append(G.add_obj_as_prop(node_id, None, key, parent_obj = extra['parent_obj'], tobe_added_obj = obj))
         return NodeHandleResult(obj_nodes=now_objs)
 
     elif cur_type == 'AST_DIM':
@@ -433,7 +433,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         var_name = G.get_name_from_child(node_id)
 
         branches = extra.get('branches', []) if extra else []
-        now_objs = list(set(G.get_multi_objs_by_name(var_name, branches = branches)))
+        now_objs = list(set(G.get_objs_by_name(var_name, branches = branches)))
 
         name_node = G.get_name_node(var_name)
         if not (extra and extra.get('side') == 'right'):
@@ -442,11 +442,11 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
                     # if the variable is defined in current scope or parent scopes,
                     # or undefined but has 'var', 'let' or 'const',
                     # we use the current scope
-                    name_node = G.add_namenode_to_scope(var_name, scope=G.cur_scope)
+                    name_node = G.add_name_node(var_name, scope=G.cur_scope)
                 else:
                     # only if the variable is not defined and doesn't have 'var', 'let' or 'const',
                     # we define it in the global scope
-                    name_node = G.add_namenode_to_scope(var_name, scope=G.BASE_SCOPE)
+                    name_node = G.add_name_node(var_name, scope=G.BASE_SCOPE)
         
         print(f'{node_id} handle result: obj_nodes={now_objs}, name={var_name}, name_nodes={[name_node]}')
 
@@ -576,7 +576,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
     elif cur_type == 'AST_RETURN':
         returned_var = G.get_ordered_ast_child_nodes(node_id)[0]
         var_name = G.get_name_from_child(returned_var)
-        now_objs = G.get_multi_objs_by_name(var_name)
+        now_objs = G.get_objs_by_name(var_name)
         now_scope = G.cur_scope
         node_var_name = var_name
         return NodeHandleResult(obj_nodes=now_objs, name=var_name)
@@ -749,9 +749,9 @@ def generate_obj_graph(G, entry_nodeid):
     """
     # set every function and closure to vartype object
 
-    obj_nodes = G.get_nodes_and_attrs_by_type("AST_CLOSURE")
-    obj_nodes += G.get_nodes_and_attrs_by_type("AST_FUNC_DECL")
-    obj_nodes += G.get_nodes_and_attrs_by_type("AST_NEW")
+    obj_nodes = G.get_nodes_by_type("AST_CLOSURE")
+    obj_nodes += G.get_nodes_by_type("AST_FUNC_DECL")
+    obj_nodes += G.get_nodes_by_type("AST_NEW")
 
     for node in obj_nodes:
         G.set_node_attr(node[0], ("VAR_TYPE", "OBJECT"))
@@ -759,7 +759,7 @@ def generate_obj_graph(G, entry_nodeid):
     G.setup_run(entry_nodeid)
     setup_js_builtins(G)
     print(sty.fg.green + "RUN" + sty.rs.all + ":", entry_nodeid)
-    obj_nodes = G.get_nodes_and_attrs_by_type("AST_FUNC_DECL")
+    obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
         register_func(G, node[0])
     handle_node(G, entry_nodeid)
@@ -847,7 +847,7 @@ def run_toplevel_file(G, node_id):
     # add module object to the current file's scope
     added_module_obj = G.add_obj_to_scope(node_id, "module", "BUILT-IN")
     # add module.exports
-    G.add_obj_to_obj(node_id, "BUILT-IN", "exports", parent_obj = added_module_obj)
+    G.add_obj_as_prop(node_id, "BUILT-IN", "exports", parent_obj = added_module_obj)
     
     simurun_function(G, node_id)
 
