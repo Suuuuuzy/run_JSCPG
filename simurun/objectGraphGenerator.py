@@ -277,10 +277,6 @@ def handle_assign(G, ast_node, extra = {}) -> NodeHandleResult:
     except ValueError:
         # if only have left side
         return handle_node(G, ast_children[0], extra)
-    
-    #TODO: REMOVE !
-    if G.get_name_from_child(left) == "event":
-        G.event_node = left
 
     # recursively handle both sides
     handled_right = handle_node(G, right, dict(extra, side='right'))
@@ -293,6 +289,10 @@ def handle_assign(G, ast_node, extra = {}) -> NodeHandleResult:
     if not handled_right:
         print(sty.fg.red + "Right side handling error at statement {}, child {}".format(ast_node, right) + sty.rs.all, file=sys.stderr)
         return NodeHandleResult()
+
+    # TODO: REMOVE! specific to july demo
+    if handled_left.name == "event":
+        G.event_node = left
 
     right_objs = handled_right.obj_nodes
 
@@ -337,7 +337,7 @@ def instantiate_obj(G, ast_node, constructor_decl, branches=[]):
     backup_obj = G.cur_obj
 
     # update current scope and object
-    G.cur_scope = G.get_scope_by_ast_decl(constructor_decl)
+    G.cur_scope = G.get_scope_by_ast_node(constructor_decl)
     G.cur_obj = created_obj
     simurun_function(G, constructor_decl, branches=branches)
 
@@ -638,9 +638,8 @@ def simurun_function(G, func_decl_id, branches=[]):
     Simurun a function by running its body.
     """
     print(sty.ef.inverse + sty.fg.green + "FUNCTION {} STARTS, SCOPE ID {}, OBJ ID {}, branches {}".format(func_decl_id, G.cur_scope, G.cur_obj, branches) + sty.rs.all)
-    for child in G.get_descendant_nodes_by_types(func_decl_id, node_types=[]):
-        if G.get_node_attr(child).get('type') == 'AST_STMT_LIST':
-            return simurun_block(G, child, parent_scope=G.cur_scope)
+    for child in G.get_child_nodes(func_decl_id, child_type='AST_STMT_LIST'):
+        return simurun_block(G, child, parent_scope=G.cur_scope)
     return [], []
 
 def simurun_block(G, ast_node, parent_scope, branches=[]):

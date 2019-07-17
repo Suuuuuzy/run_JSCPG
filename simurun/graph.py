@@ -13,6 +13,10 @@ class Graph:
         self.cur_scope = None
         self.cur_id = 0
         self.file_contents = {}
+    
+    # Basic graph operations
+
+    # node
 
     def _get_new_nodeid(self):
         """
@@ -21,42 +25,156 @@ class Graph:
         self.cur_id += 1
         return str(self.cur_id - 1)
 
-    def add_scope(self, scope_type, ast_node, scope_name=None):
-        """
-        Add a new scope under current scope.
+    def add_node(self, node_for_adding, attr={}):
+        self.graph.add_node(node_for_adding, **attr)
+        return node_for_adding
 
-        If the scope already exists, return it without adding a new one.
+    def set_node_attr(self, node_id, attr):
         """
-        cur_scope = self.cur_scope
-        if scope_name and scope_type == 'FUNCTION_SCOPE':
-            existing_scope = self.get_func_scope_by_name(scope_name)
-            if existing_scope != None:
-                return existing_scope
-        new_scope_node = str(self._get_new_nodeid())
-        self.add_node(new_scope_node, {'labels:label': 'Scope', 'type': scope_type, 'name': scope_name})
-        # self.set_node_attr(new_scope_node, ('labels:label', 'Scope'))
-        # self.set_node_attr(new_scope_node, ('type', scope_type))
-        # self.set_node_attr(new_scope_node, ('name', scope_name))
-        self.add_edge(new_scope_node, ast_node, {'type:TYPE': 'SCOPE_TO_AST'})
-        if cur_scope != None:
-            self.add_edge(cur_scope, new_scope_node, {'type:TYPE': 'PARENT_SCOPE_OF'})
+        attr should be a tuple like (key, value)
+        will be added to a node id
+        """
+        self.graph.nodes[node_id][attr[0]] = attr[1]
+
+    def get_node_attr(self, node_id):
+        """
+        this function will return a dict with all the attrs and values
+        """
+        return self.graph.nodes[node_id]
+
+    def get_all_nodes(self):
+        """
+        return all nodes in the form of dict
+        """
+        return self.graph.nodes
+
+    def get_nodes_by_type(self, node_type, data=True):
+        """
+        return a list of nodes with a specific node type
+        as tuples of node id and attrs
+        """
+        return [node for node in self.graph.nodes(data=data) if node[1].get('type') == node_type]
+
+    def get_nodes_by_type_and_flag(self, node_type, node_flag, data=True):
+        """
+        return a list of nodes with a specific node type and flag
+        """
+        return [node[0] for node in self.graph.nodes(data=data) if node[1].get('type') == node_type and node[1].get('flags:string[]') == node_flag]
+
+    def get_node_by_attr(self, key, value):
+        """
+        get a list of node by key and value
+        """
+        return [node[0] for node in self.graph.nodes(data = True) if key in node[1] and node[1][key] == value]
+
+    def remove_nodes_from(self, remove_list):
+        """
+        remove a list of nodes from the graph
+        """
+        self.graph.remove_nodes_from(remove_list)
+    
+    # edges
+
+    def add_edge(self, from_ID, to_ID, attr):
+        """
+        insert an edge to graph
+        attr is like {key: value, key: value}
+        """
+        assert from_ID != None, "Failed to add an edge, from_ID is None."
+        assert to_ID != None, "Failed to add an edge, to_ID is None."
+        # self.graph.add_edges_from([(from_ID, to_ID, attr)])
+        self.graph.add_edge(from_ID, to_ID, None, **attr)
+    
+    def add_edge_if_not_exist(self, from_ID, to_ID, attr):
+        """
+        insert an edge to the graph if the graph does not already has the same edge
+        """
+        assert from_ID != None, "Failed to add an edge, from_ID is None."
+        assert to_ID != None, "Failed to add an edge, to_ID is None."
+        if not self.graph.has_edge(from_ID, to_ID):
+            self.add_edge(from_ID, to_ID, attr)
         else:
-            self.cur_scope = new_scope_node
-        return new_scope_node
+            for key, edge_attr in self.graph[from_ID][to_ID].items():
+                if edge_attr == attr:
+                    print(sty.fg.red + "Edge {}->{} exists: {}, {}. Duplicate edge will not be created.".format(from_ID,to_ID,key,edge_attr) + sty.rs.all)
+                    return
+            self.add_edge(from_ID, to_ID, attr)
 
-    def add_literal_obj(self, ast_node=None, value=None):
+    def set_edge_attr(self, from_ID, to_ID, edge_id, attr):
+        self.graph[from_ID][to_ID][attr[0]][edge_id] = attr[1]
+
+    def get_edge_attr(self, from_ID, to_ID, edge_id = None):
+        if edge_id == None:
+            return self.graph.get_edge_data(from_ID, to_ID)
+        return self.graph[from_ID][to_ID][edge_id]
+
+    def add_node_from_list(self, node_list):
+        return self.graph.add_nodes_from(node_list)
+
+    def add_edges_from_list(self, edge_list):
+        return self.graph.add_edges_from(edge_list)
+
+    def add_edges_from_list_if_not_exist(self, edge_list):
+        for e in edge_list:
+            if len(e) != 3:
+                print("Length of the edge tuple {} is not 3".format(e))
+                continue
+            self.add_edge_if_not_exist(*e)
+
+    def get_edges_by_type(self, edge_type):
         """
-        Add a literal object.
+        return the edges with a specific type
         """
-        node_id = self._get_new_nodeid()
-        self.add_node(node_id)
-        self.set_node_attr(node_id, ('labels:label', 'Object'))
-        self.set_node_attr(node_id, ('type', 'LITERAL'))
-        if ast_node is not None:
-            self.add_edge(node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
-        if value is not None:
-            self.set_node_attr(node_id, ('code', value))
-        return node_id
+        subEdges = [edge for edge in self.graph.edges(data = True, keys=True) if edge[3]['type:TYPE'] == edge_type]
+        return subEdges
+
+    def get_edges_between(self, u, v, edge_type = None) -> dict:
+        result = {}
+        for key, edge_attr in self.graph[u][v].items():
+            if not edge_type or edge_attr.get('type:TYPE') == edge_type:
+                result[key] = edge_attr
+        return result
+
+    def get_successors(self, node_id):
+        return self.graph.successors(node_id)
+
+    def get_out_edges(self, node_id, data = True, keys = True, edge_type = None):
+        if edge_type is None:
+            return self.graph.out_edges(node_id, data = data, keys = keys)
+        edges = self.graph.out_edges(node_id, data = data, keys = keys)
+        idx = 1
+        if keys == True:
+            idx += 1
+        if data == True:
+            idx += 1
+        return [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
+
+    def get_in_edges(self, node_id, data = True, keys = True, edge_type = None):
+        if edge_type == None:
+            return self.graph.in_edges(node_id, data = data, keys = keys)
+        edges = self.graph.in_edges(node_id, data = data, keys = keys)
+        idx = 2
+        if keys == True:
+            idx = 3
+        return [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
+
+    def get_sub_graph_by_edge_type(self, edge_type):
+        """
+        only keep edges with specific type
+        return a sub graph
+        """
+        subEdges = self.get_edges_by_type(edge_type)
+        return nx.MultiDiGraph(subEdges)
+
+    # traversal
+
+    def dfs_edges(self, source, depth_limit = None):
+        """
+        Iterate over edges in a depth-first-search (DFS).
+        """
+        return nx.dfs_edges(self.graph, source, depth_limit)
+
+    # import/export
 
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
@@ -115,160 +233,47 @@ class Graph:
 
         print(sty.ef.inverse + sty.fg.white + "Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name) + sty.rs.all)
 
-    def add_node(self, node_for_adding, attr={}):
-        self.graph.add_node(node_for_adding, **attr)
-        return node_for_adding
+    # AST & CPG
 
-    def set_node_attr(self, node_id, attr):
+    def _get_childern_by_childnum(self, node_id):
         """
-        attr should be a tuple like (key, value)
-        will be added to a node id
+        helper function, get the childern nodeid of the node_id
+        return a dict, with {childnum: node_id}
         """
-        self.graph.nodes[node_id][attr[0]] = attr[1]
+        edges = self.get_out_edges(node_id, edge_type = "PARENT_OF")
+        res = {}
+        for edge in edges:
+            node_attr = self.get_node_attr(edge[1])
+            res[node_attr['childnum:int']] = edge[1]
+        return res
 
-    def get_node_attr(self, node_id):
+    def get_ordered_ast_child_nodes(self, node_id):
         """
-        this function will return a dict with all the attrs and values
+        return AST children of a node in childnum order
         """
-        return self.graph.nodes[node_id]
+        children = sorted(self._get_childern_by_childnum(node_id).items(), key=lambda x: int(x[0]))
+        if children:
+            children = list(zip(*children))[1]
+        return children
 
-    def get_all_nodes(self):
+    def get_child_nodes(self, node_id, edge_type=None, child_name=None, child_type=None):
         """
-        return all nodes in the form of dict
+        return the children of node (with a specific edge type, name, or node type)
         """
-        return self.graph.nodes
-
-    def add_edge(self, from_ID, to_ID, attr):
-        """
-        insert an edge to graph
-        attr is like {key: value, key: value}
-        """
-        assert from_ID != None, "Failed to add an edge, from_ID is None."
-        assert to_ID != None, "Failed to add an edge, to_ID is None."
-        # self.graph.add_edges_from([(from_ID, to_ID, attr)])
-        self.graph.add_edge(from_ID, to_ID, None, **attr)
-    
-    def add_edge_if_not_exist(self, from_ID, to_ID, attr):
-        """
-        insert an edge to the graph if the graph does not already has the same edge
-        """
-        assert from_ID != None, "Failed to add an edge, from_ID is None."
-        assert to_ID != None, "Failed to add an edge, to_ID is None."
-        if not self.graph.has_edge(from_ID, to_ID):
-            self.add_edge(from_ID, to_ID, attr)
-        else:
-            for key, edge_attr in self.graph[from_ID][to_ID].items():
-                if edge_attr == attr:
-                    print(sty.fg.red + "Edge {}->{} exists: {}, {}. Duplicate edge will not be created.".format(from_ID,to_ID,key,edge_attr) + sty.rs.all)
-                    return
-            self.add_edge(from_ID, to_ID, attr)
-
-    def set_edge_attr(self, from_ID, to_ID, edge_id, attr):
-        self.graph[from_ID][to_ID][attr[0]][edge_id] = attr[1]
-
-    def get_edge_attr(self, from_ID, to_ID, edge_id = None):
-        if edge_id == None:
-            return self.graph.get_edge_data(from_ID, to_ID)
-        return self.graph[from_ID][to_ID][edge_id]
-
-    def add_node_from_list(self, node_list):
-        return self.graph.add_nodes_from(node_list)
-
-    def add_edges_from_list(self, edge_list):
-        return self.graph.add_edges_from(edge_list)
-
-    def add_edges_from_list_if_not_exist(self, edge_list):
-        for e in edge_list:
-            if len(e) != 3:
-                print("Length of the edge tuple {} is not 3".format(e))
-                continue
-            u, v, attr = e
-            existing_edges = self.graph.get_edge_data(u, v)
-            if existing_edges:
-                flag = True
-                for _, d in existing_edges.items():
-                    if d == attr:
-                        flag = False
-                        break
-                if flag:
-                    self.add_edge(u, v, attr)
-            else:
-                self.add_edge(u, v, attr)
-
-    def dfs_edges(self, source, depth_limit = None):
-        """
-        Iterate over edges in a depth-first-search (DFS).
-        """
-        return nx.dfs_edges(self.graph, source, depth_limit)
-
-    def get_out_edges(self, node_id, data = True, keys = True, edge_type = None):
-        if edge_type is None:
-            return self.graph.out_edges(node_id, data = data, keys = keys)
-        edges = self.graph.out_edges(node_id, data = data, keys = keys)
-        idx = 1
-        if keys == True:
-            idx += 1
-        if data == True:
-            idx += 1
-        return [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
-
-    def get_in_edges(self, node_id, data = True, keys = True, edge_type = None):
-        if edge_type == None:
-            return self.graph.in_edges(node_id, data = data, keys = keys)
-        edges = self.graph.in_edges(node_id, data = data, keys = keys)
-        idx = 2
-        if keys == True:
-            idx = 3
-        return [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
-
-    def get_sub_graph_by_edge_type(self, edge_type):
-        """
-        only keep edges with specific type
-        return a sub graph
-        """
-        subEdges = self.get_edges_by_type(edge_type)
-        return nx.MultiDiGraph(subEdges)
-    
-    def get_edges_by_type(self, edge_type):
-        """
-        return the edges with a specific type
-        """
-        subEdges = [edge for edge in self.graph.edges(data = True, keys=True) if edge[3]['type:TYPE'] == edge_type]
-        return subEdges
-
-    def find_nearest_upper_CPG_node(self, node_id):
-        """
-        Return the nearest upper CPG node of the input node.
-        
-        A CPG node is defined as a child of a block node
-        (AST_STMT_LIST).
-        """
-        # follow the parent_of edge to research the stmt node
-        while True:
-            parent_edges = self.get_in_edges(node_id, edge_type = "PARENT_OF")
-            if parent_edges is None or len(parent_edges) == 0:
-                return None
-            parent_node = parent_edges[0][0]
-            parent_node_attr = self.get_node_attr(parent_node)
-            if 'type' in parent_node_attr and parent_node_attr['type'] == "AST_STMT_LIST":
-                return node_id 
-            node_id = parent_node
-    
-    def get_successors(self, node_id):
-        return self.graph.successors(node_id)
-    
-    def get_nodes_by_type(self, node_type, data=True):
-        """
-        return a list of nodes with a specific node type
-        as tuples of node id and attrs
-        """
-        return [node for node in self.graph.nodes(data=data) if node[1].get('type') == node_type]
-
-    def get_nodes_by_type_and_flag(self, node_type, node_flag, data=True):
-        """
-        return a list of nodes with a specific node type and flag
-        """
-        return [node[0] for node in self.graph.nodes(data=data) if node[1].get('type') == node_type and node[1].get('flags:string[]') == node_flag]
+        if edge_type is None and child_name is None and child_type is None:
+            return self.get_successors(node_id)
+        res = set()
+        edges = self.get_out_edges(node_id, edge_type=edge_type)
+        for edge in edges:
+            flag = True
+            aim_node_attr = self.get_node_attr(edge[1])
+            if child_type is not None and aim_node_attr.get('type') != child_type:
+                flag = False
+            if child_name is not None and aim_node_attr.get('name') != child_name:
+                flag = False
+            if flag:
+                res.add(edge[1])
+        return list(res)
 
     def get_name_from_child(self, nodeid, max_depth = None):
         """
@@ -305,93 +310,55 @@ class Graph:
 
         return None
 
-    def get_name_node(self, var_name, scope = None, follow_scope_chain = True):
+    def find_nearest_upper_CPG_node(self, node_id):
         """
-        helper function, get the namenode of a name based on scope
-        """
-        if scope == None:
-            scope = self.cur_scope
-
-        while(1):
-            var_edges = self.get_out_edges(scope, data = True, keys = True, edge_type = "SCOPE_TO_VAR")
-            for cur_edge in var_edges:
-                cur_var_attr = self.get_node_attr(cur_edge[1])
-                if cur_var_attr['name'] == var_name:
-                    return cur_edge[1]
-            if not follow_scope_chain:
-                break
-            scope_edges = self.get_in_edges(scope, data = True, keys = True, edge_type = "PARENT_SCOPE_OF")
-            if len(scope_edges) == 0:
-                break
-            scope = list(scope_edges)[0][0]
-        return None
-
-    def get_obj_by_obj_name(self, var_name, parent_obj = None):
-        """
-        deprecated
-        get the sub obj of a parent obj based on the name
-        """
-        obj_nodes = self.get_prop_obj_nodes(parent_obj, var_name)
-        return obj_nodes[0] if obj_nodes else None
-
-    def get_obj_by_name(self, var_name, scope = None):
-        """
-        deprecated
-        get the obj of a name based on the scope
-        if the scope is not specified, starts from the current scope
-        we assume that one node only has one parent
-        """
-        obj_nodes = self.get_objs_by_name(var_name, scope)
-        return obj_nodes[0] if obj_nodes else None
-
-    def get_objs_by_name_node(self, name_node, branches: List[BranchTag] = None):
-        out_edges = self.get_out_edges(name_node, edge_type='NAME_TO_OBJ')
-        objs = set([edge[1] for edge in out_edges])
-        if branches:
-            # initiate a dictionary that records if the object exists in the current branch
-            has_obj = {}
-            for obj in objs:
-                has_obj[obj] = False
-            # check edges without branch tag
-            for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
-                tag = attr.get('branch')
-                if tag == None:
-                    has_obj[obj] = True
-            # for each branch in branch history
-            # we check from the oldest (shallowest) to the most recent (deepest)
-            for branch in branches:
-                # check which edge matches the current checking branch
-                for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
-                    tag = attr.get('branch')
-                    if tag and tag.stmt == branch.stmt and tag.branch == branch.branch:
-                        if tag.op == 'A': # if the object is added (assigned) in that branch
-                            has_obj[obj] = True
-                        elif tag.op == 'D': # if the object is removed in that branch
-                            has_obj[obj] = False
-            return list(filter(lambda x: has_obj[x], objs))
-        else:
-            return list(objs)
-
-    def get_objs_by_name(self, var_name, scope = None, branches = []):
-        '''
-        Get object nodes by a variable name.
+        Return the nearest upper CPG node of the input node.
         
-        Args:
-            var_name (str): variable name.
-            scope (optional): scope to find the variable in. Defaults to
-                current scope.
-            branches (list, optional): branch information.
-        
-        Returns:
-            list: list of object nodes.
-        '''
-        if var_name == 'this':
-            return [self.cur_obj]
-        name_node = self.get_name_node(var_name, scope)
-        if name_node == None:
-            return []
-        return self.get_objs_by_name_node(name_node, branches)
-    
+        A CPG node is defined as a child of a block node
+        (AST_STMT_LIST).
+        """
+        # follow the parent_of edge to research the stmt node
+        while True:
+            parent_edges = self.get_in_edges(node_id, edge_type = "PARENT_OF")
+            if parent_edges is None or len(parent_edges) == 0:
+                return None
+            parent_node = parent_edges[0][0]
+            parent_node_attr = self.get_node_attr(parent_node)
+            if 'type' in parent_node_attr and parent_node_attr['type'] == "AST_STMT_LIST":
+                return node_id 
+            node_id = parent_node
+
+    def handle_property(self, node_id):
+        """deprecated"""
+        return self.get_ordered_ast_child_nodes(node_id)
+
+    def handle_method_call(self, node_id):
+        """deprecated"""
+        return self.get_ordered_ast_child_nodes(node_id)
+
+    # Object graph
+
+    # name nodes and object nodes
+
+    def add_obj_node(self, ast_node, var_type):
+        """
+        add a obj node with var type
+        return the added obj
+        """
+        obj_node_id = str(self._get_new_nodeid())
+        self.add_node(obj_node_id)
+        self.set_node_attr(obj_node_id, ('labels:label', 'Object'))
+        self.set_node_attr(obj_node_id, ('type', var_type))
+
+        if ast_node is not None:
+            self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+
+        if var_type == "FUNC_DECL":
+            self.add_obj_as_prop(ast_node, "PROTOTYPE", "prototype", 
+                    parent_obj = obj_node_id)
+
+        return obj_node_id
+
     def add_name_node(self, name, scope = None):
         """
         helper function
@@ -474,104 +441,265 @@ class Graph:
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
-        return tobe_added_obj 
+        return tobe_added_obj
 
-    def _get_upper_level_prototype(self, obj_node):
+    def add_literal_obj(self, ast_node=None, value=None):
         """
-        get the upper level of prototype
-        used for a helper function to link __proto__ and prototype
-
-        Args:
-            obj_node: the child obj node
-            relation: obj_node -OBJ_DECL-> AST_FUNC_DECL -OBJ_TO_AST-> 
-            FUNC_DECL -OBJ_TO_PROP-> prototype -NAME_TO_OBJ-> PROTOTYPE
+        Add a literal object.
         """
-        ast_upper_func_node = self.get_child_nodes(obj_node, 
-                edge_type = "OBJ_DECL")[0]
-        edges = self.get_in_edges(ast_upper_func_node,
-                edge_type = "OBJ_TO_AST")
-        for edge in edges:
-            if self.get_node_attr(edge[0])['type'] == "FUNC_DECL":
-                func_decl_obj_node = edge[0]
-                break
-        prototype_name_node = self.get_child_nodes(func_decl_obj_node, 
-                edge_type = "OBJ_TO_PROP", child_name = "prototype")[0]
-        prototype_obj_node = self.get_child_nodes(prototype_name_node,
-                edge_type = "NAME_TO_OBJ", child_type = "PROTOTYPE")[0]
-        return prototype_obj_node
-    
-    def build_proto(self, obj_node):
-        """
-        build the proto strcture of a object node
-
-        Args:
-            obj_node: the obj node need to be build
-        """
-        proto_name_node = self.add_prop_name_node("__proto__", obj_node)
-        upper_level_prototype_obj = self._get_upper_level_prototype(obj_node)
-        self.add_obj_to_name_node(proto_name_node, 
-                tobe_added_obj = upper_level_prototype_obj)
-
-    def add_obj_node(self, ast_node, var_type):
-        """
-        add a obj node with var type
-        return the added obj
-        """
-        obj_node_id = str(self._get_new_nodeid())
-        self.add_node(obj_node_id)
-        self.set_node_attr(obj_node_id, ('labels:label', 'Object'))
-        self.set_node_attr(obj_node_id, ('type', var_type))
-
+        node_id = self._get_new_nodeid()
+        self.add_node(node_id)
+        self.set_node_attr(node_id, ('labels:label', 'Object'))
+        self.set_node_attr(node_id, ('type', 'LITERAL'))
         if ast_node is not None:
-            self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+            self.add_edge(node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+        if value is not None:
+            self.set_node_attr(node_id, ('code', value))
+        return node_id
 
-        if var_type == "FUNC_DECL":
-            self.add_obj_as_prop(ast_node, "PROTOTYPE", "prototype", 
-                    parent_obj = obj_node_id)
-
-        return obj_node_id
-
-    def add_child_node(self, node_id, child_node_type, 
-            edge_type, child_node_label = None, child_node_name = None):
+    def get_name_node(self, var_name, scope = None, follow_scope_chain = True):
         """
-        add a child node to current node
+        Get the name node of a name based on scope.
+        """
+        if scope == None:
+            scope = self.cur_scope
+
+        while(1):
+            var_edges = self.get_out_edges(scope, data = True, keys = True, edge_type = "SCOPE_TO_VAR")
+            for cur_edge in var_edges:
+                cur_var_attr = self.get_node_attr(cur_edge[1])
+                if cur_var_attr['name'] == var_name:
+                    return cur_edge[1]
+            if not follow_scope_chain:
+                break
+            scope_edges = self.get_in_edges(scope, data = True, keys = True, edge_type = "PARENT_SCOPE_OF")
+            if len(scope_edges) == 0:
+                break
+            scope = list(scope_edges)[0][0]
+        return None
+
+    def get_objs_by_name_node(self, name_node, branches: List[BranchTag]=[]):
+        '''
+        Get corresponding object nodes of a name node.
         
         Args:
-            node_id: the id of current node
-            child_node_name: the name of adding node
-            child_node_type: the adding node type
-            edge_type: the adding edge type
+            name_node: the name node.
+            branches (List[BranchTag], optional): branch information.
+                Default to [].
+        
+        Returns:
+            list: list of object nodes.
+        '''
+        out_edges = self.get_out_edges(name_node, edge_type='NAME_TO_OBJ')
+        objs = set([edge[1] for edge in out_edges])
+        if branches:
+            # initiate a dictionary that records if the object exists in the current branch
+            has_obj = {}
+            for obj in objs:
+                has_obj[obj] = False
+            # check edges without branch tag
+            for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
+                tag = attr.get('branch')
+                if tag == None:
+                    has_obj[obj] = True
+            # for each branch in branch history
+            # we check from the oldest (shallowest) to the most recent (deepest)
+            for branch in branches:
+                # check which edge matches the current checking branch
+                for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
+                    tag = attr.get('branch')
+                    if tag and tag.stmt == branch.stmt and tag.branch == branch.branch:
+                        if tag.op == 'A': # if the object is added (assigned) in that branch
+                            has_obj[obj] = True
+                        elif tag.op == 'D': # if the object is removed in that branch
+                            has_obj[obj] = False
+            return list(filter(lambda x: has_obj[x], objs))
+        else:
+            return list(objs)
 
-        Return:
-            the added child node id
+    get_obj_nodes = get_objs_by_name_node
+
+    def get_objs_by_name(self, var_name, scope = None, branches = []):
+        '''
+        Get object nodes by a variable name.
+        
+        Args:
+            var_name (str): variable name.
+            scope (optional): scope to find the variable in. Defaults to
+                current scope.
+            branches (list, optional): branch information.
+        
+        Returns:
+            list: list of object nodes.
+        '''
+        if var_name == 'this':
+            return [self.cur_obj]
+        name_node = self.get_name_node(var_name, scope)
+        if name_node == None:
+            return []
+        return self.get_objs_by_name_node(name_node, branches)
+
+    def get_prop_names(self, parent_obj=None):
+        if parent_obj is None:
+            parent_obj = self.cur_obj
+        s = set()
+        for name_node in self.get_prop_name_nodes(parent_obj):
+            name = self.get_node_attr(name_node).get('name')
+            if name is not None:
+                s.add(name)
+        return list(s)
+
+    get_keys = get_prop_names
+
+    def get_prop_name_nodes(self, parent_obj=None):
+        return self.get_child_nodes(parent_obj, edge_type='OBJ_TO_PROP')
+
+    def get_prop_name_node(self, parent_obj=None, prop_name=None):
+        for name_node in self.get_prop_name_nodes(parent_obj):
+            if self.get_node_attr(name_node).get('name') == prop_name:
+                return name_node
+        return None
+
+    def get_prop_obj_nodes(self, parent_obj=None, prop_name=None, branches: List[BranchTag]=[]):
+        if parent_obj is None:
+            parent_obj = self.cur_obj
+        if prop_name is None: # this caused inconsistent run results
+            return self.get_obj_nodes(self.get_prop_name_node(parent_obj, prop_name), branches)
+        else:
+            s = set()
+            for name_node in self.get_prop_name_nodes(parent_obj):
+                s.update(self.get_obj_nodes(name_node), branches)
+            return list(s)
+
+    def assign_obj_nodes_to_name_node(self, name_node, obj_nodes, multi = False, branches: List[BranchTag] = []):
+        '''
+        Assign (multiple) object nodes to a name node.
+        
+        Args:
+            name_node: where to put the objects.
+            obj_nodes: objects to be assigned.
+            multi (bool, optional):
+                True: do NOT delete edges.
+                False: delete existing edges.
+                Defaults to False.
+            branches (List[BranchTag], optional):
+                List of branch tags. Defaults to [].
+        '''
+        branch = branches[-1] if branches else None
+        # remove previous objects
+        pre_objs = self.get_objs_by_name_node(name_node, branches)
+        print(f'Assigning {obj_nodes} to {name_node}, pre_objs={pre_objs}, branches={branches}')
+        if pre_objs and not multi:
+            for obj in pre_objs:
+                if branch:
+                    # check if any addition (assignment) exists in current branch
+                    flag = False
+                    for key, edge_attr in self.get_edges_between(name_node, obj, 'NAME_TO_OBJ').items():
+                        tag = edge_attr.get('branch', BranchTag())
+                        if tag == BranchTag(branch, op='A'):
+                            # if addition exists, delete the addition edge
+                            self.graph.remove_edge(name_node, obj, key)
+                            flag = True
+                    if not flag:
+                        # if no addition, add a deletion edge
+                        self.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(branch, op='D')})
+                else:
+                    self.graph.remove_edge(name_node, obj)
+        # add new objects to name node
+        for obj in obj_nodes:
+            if branch:
+                self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ", "branch": BranchTag(branch, op='A')})
+            else:
+                self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ"})
+
+    def get_obj_def_ast_node(self, obj_node):
         """
-        child_node_id = str(self._get_new_nodeid())
-        self.add_node(child_node_id)
-        if child_node_label is not None:
-            self.set_node_attr(child_node_id, ('labels:label', child_node_label))
-        if child_node_name is not None:
-            self.set_node_attr(child_node_id, ('name', child_node_name))
-        self.set_node_attr(child_node_id, ('type', child_node_type))
-
-        self.add_edge(node_id, child_node_id, {"type:TYPE": edge_type})
-        return child_node_id
-
-    def setup_run(self, entry_nodeid):
+        Find where in the AST an object is defined.
+        The AST node is the successor of the object node via the OBJ_TO_AST edge.
         """
-        the init function of setup a run
+        tmp_edge = self.get_out_edges(obj_node, data = True, keys = True, edge_type = "OBJ_TO_AST")
+        if not tmp_edge:
+            return None
+        else:
+            tmp_edge = tmp_edge[0]
+        def_ast_node = tmp_edge[1]
+        return def_ast_node
+
+    def get_obj_by_obj_name(self, var_name, parent_obj = None):
         """
-        # init cur_id here!!
-        self.cur_id = self.graph.number_of_nodes()
+        deprecated
+        get the sub obj of a parent obj based on the name
+        """
+        obj_nodes = self.get_prop_obj_nodes(parent_obj, var_name)
+        return obj_nodes[0] if obj_nodes else None
 
-        self.BASE_SCOPE = self.add_scope("BASE_SCOPE", entry_nodeid)
-        cur_nodeid = str(self._get_new_nodeid())
-        self.add_node(cur_nodeid)
-        self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
-        self.set_node_attr(cur_nodeid, ('labels:label', 'Object'))
-        self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
-        self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_PROP"})
-        self.cur_obj = cur_nodeid
+    def get_obj_by_name(self, var_name, scope = None):
+        """
+        deprecated
+        get the obj of a name based on the scope
+        if the scope is not specified, starts from the current scope
+        we assume that one node only has one parent
+        """
+        obj_nodes = self.get_objs_by_name(var_name, scope)
+        return obj_nodes[0] if obj_nodes else None
 
+    def get_name_node_of_obj(self, var_name, parent_obj = None):
+        """
+        deprecated
+        get the name node of a child of obj 
+        return the name node
+        """
+        return self.get_prop_name_node(parent_obj, var_name)
+
+    def set_obj_by_obj_name(self, var_name, obj_id, parent_obj = None):
+        """
+        deprecated
+        set a var name point to a obj id in a obj 
+        if the var name never appeared, add to the current obj 
+        """
+        if parent_obj == None:
+            parent_obj = self.cur_obj
+
+        obj_attr = self.get_node_attr(obj_id) 
+        if obj_attr['type'] == 'LITERAL':
+            obj_id = self.add_literal_obj()
+
+        cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
+
+        if cur_namenode == None:
+            self.add_prop_name_node(var_name, parent_obj)
+
+        cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
+        pre_obj_id = self.get_obj_by_obj_name(var_name, parent_obj = parent_obj)
+        self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ"})
+        if pre_obj_id != None:
+            print("remove pre", var_name)
+            self.graph.remove_edge(cur_namenode, pre_obj_id)
+
+    # scopes
+
+    def add_scope(self, scope_type, ast_node, scope_name=None):
+        """
+        Add a new scope under current scope.
+
+        If the scope already exists, return it without adding a new one.
+        """
+        cur_scope = self.cur_scope
+        if scope_name and scope_type == 'FUNCTION_SCOPE':
+            existing_scope = self.get_func_scope_by_name(scope_name)
+            if existing_scope != None:
+                return existing_scope
+        new_scope_node = str(self._get_new_nodeid())
+        self.add_node(new_scope_node, {'labels:label': 'Scope', 'type': scope_type, 'name': scope_name})
+        # self.set_node_attr(new_scope_node, ('labels:label', 'Scope'))
+        # self.set_node_attr(new_scope_node, ('type', scope_type))
+        # self.set_node_attr(new_scope_node, ('name', scope_name))
+        self.add_edge(new_scope_node, ast_node, {'type:TYPE': 'SCOPE_TO_AST'})
+        if cur_scope != None:
+            self.add_edge(cur_scope, new_scope_node, {'type:TYPE': 'PARENT_SCOPE_OF'})
+        else:
+            self.cur_scope = new_scope_node
+        return new_scope_node
 
     def add_obj_to_scope(self, ast_node, var_name, var_type, scope = None, tobe_added_obj = None):
         """
@@ -626,66 +754,31 @@ class Graph:
                 else:
                     for obj in pre_objs:
                         self.graph.remove_edge(cur_namenode, obj)
-    
-    def assign_obj_nodes_to_name_node(self, name_node, obj_nodes, multi = False, branches: List[BranchTag] = []):
-        '''
-        Assign (multiple) object nodes to a name node.
-        
-        Args:
-            name_node: where to put the objects.
-            obj_nodes: objects to be assigned.
-            multi (bool, optional):
-                True: do NOT delete edges.
-                False: delete existing edges.
-                Defaults to False.
-            branches (List[BranchTag], optional):
-                List of branch tags. Defaults to [].
-        '''
-        branch = branches[-1] if branches else None
-        # remove previous objects
-        pre_objs = self.get_objs_by_name_node(name_node, branches)
-        print(f'Assigning {obj_nodes} to {name_node}, pre_objs={pre_objs}, branches={branches}')
-        if pre_objs and not multi:
-            for obj in pre_objs:
-                if branch:
-                    # check if any addition (assignment) exists in current branch
-                    flag = False
-                    for key, edge_attr in self.get_edges_between(name_node, obj, 'NAME_TO_OBJ').items():
-                        tag = edge_attr.get('branch', BranchTag())
-                        if tag == BranchTag(branch, op='A'):
-                            # if addition exists, delete the addition edge
-                            self.graph.remove_edge(name_node, obj, key)
-                            flag = True
-                    if not flag:
-                        # if no addition, add a deletion edge
-                        self.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(branch, op='D')})
-                else:
-                    self.graph.remove_edge(name_node, obj)
-        # add new objects to name node
-        for obj in obj_nodes:
-            if branch:
-                self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ", "branch": BranchTag(branch, op='A')})
+
+    def scope_exists_by_ast_node(self, ast_node_id, parent_scope = None, max_depth = 1):
+        if parent_scope == None:
+            parent_scope = self.BASE_SCOPE
+        if max_depth == None:
+            max_depth = sys.maxsize
+        for depth in range(max_depth):
+            children = self.get_child_nodes(parent_scope, 'PARENT_SCOPE_OF')
+            if not children:
+                return False
             else:
-                self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ"})
-    
-    def get_edges_between(self, u, v, edge_type = None) -> dict:
-        result = {}
-        for key, edge_attr in self.graph[u][v].items():
-            if not edge_type or edge_attr.get('type:TYPE') == edge_type:
-                result[key] = edge_attr
-        return result
+                for child in self.get_child_nodes(parent_scope, 'PARENT_SCOPE_OF'):
+                    out_edges = self.get_out_edges(child, data = True, keys = True, edge_type = 'SCOPE_TO_AST')
+                    for edge in out_edges:
+                        if edge[1] == ast_node_id:
+                            return True
+        return False
 
-    def get_node_by_attr(self, key, value):
+    def get_scope_by_ast_node(self, ast_node):
         """
-        get a list of node by key and value
+        Get a scope by its corresponding AST node.
         """
-        return [node[0] for node in self.graph.nodes(data = True) if key in node[1] and node[1][key] == value]
+        return self.get_in_edges(ast_node, data = True, keys = True, edge_type = "SCOPE_TO_AST")[0][0]
 
-    def remove_nodes_from(self, remove_list):
-        """
-        remove a list of nodes from the graph
-        """
-        self.graph.remove_nodes_from(remove_list)
+    # functions and calls
 
     def get_func_declid_by_function_name(self, function_name, scope = None):
         """
@@ -735,65 +828,6 @@ class Graph:
             tmp_edge = tmp_edge[0]
         return tmp_edge[1]
 
-    def get_scope_by_ast_decl(self, func_id):
-        """
-        return the scope id by the ast node
-        """
-        return self.get_in_edges(func_id, data = True, keys = True, edge_type = "SCOPE_TO_AST")[0][0]
-
-    def _get_childern_by_childnum(self, node_id):
-        """
-        helper function, get the childern nodeid of the node_id
-        return a dict, with {childnum: node_id}
-        """
-        edges = self.get_out_edges(node_id, edge_type = "PARENT_OF")
-        res = {}
-        for edge in edges:
-            node_attr = self.get_node_attr(edge[1])
-            res[node_attr['childnum:int']] = edge[1]
-        return res
-
-    def get_ordered_ast_child_nodes(self, node_id):
-        """
-        return AST children of a node in childnum order
-        """
-        children = sorted(self._get_childern_by_childnum(node_id).items(), key=lambda x: int(x[0]))
-        if children:
-            children = list(zip(*children))[1]
-        return children
-
-    def get_descendant_nodes_by_types(self, root_id, max_depth = 1, node_types = [], edge_type = 'PARENT_OF'):
-        bfs_queue = [(root_id, 0)]
-        returned_nodes = []
-        if max_depth == None:
-            max_depth = sys.maxsize
-        while bfs_queue:
-            cur_node, cur_depth = bfs_queue.pop(0)
-            if max_depth and cur_depth > max_depth: break
-            edges = self.get_out_edges(cur_node, edge_type = edge_type)
-            for edge in edges:
-                child_node = edge[1]
-                if not node_types or self.graph[child_node].get('type') in node_types:
-                    returned_nodes.append(edge[1])
-                bfs_queue.append((edge[1], cur_depth+1))
-        return returned_nodes
-
-    def handle_property(self, node_id):
-        """
-        input the node_id, return the parent and child
-        return [parent, child]
-        currently we only support one level property
-        """
-        return self.get_ordered_ast_child_nodes(node_id)
-
-    def handle_method_call(self, node_id):
-        """
-        input the node_id, return the parent and child
-        return [parent, child, args]
-        currently we only support one level property
-        """
-        return self.get_ordered_ast_child_nodes(node_id)
-
     def get_func_scope_by_name(self, func_name, scope = None):
         """
         get a func scope by name, get func obj first, return the OBJ_TO_SCOPE node
@@ -806,38 +840,6 @@ class Graph:
         if len(scope_edge) == 0:
             return None
         return scope_edge[0][1]
-
-    def get_name_node_of_obj(self, var_name, parent_obj = None):
-        """
-        deprecated
-        get the name node of a child of obj 
-        return the name node
-        """
-        return self.get_prop_name_node(parent_obj, var_name)
-
-    def set_obj_by_obj_name(self, var_name, obj_id, parent_obj = None):
-        """
-        set a var name point to a obj id in a obj 
-        if the var name never appeared, add to the current obj 
-        """
-        if parent_obj == None:
-            parent_obj = self.cur_obj
-
-        obj_attr = self.get_node_attr(obj_id) 
-        if obj_attr['type'] == 'LITERAL':
-            obj_id = self.add_literal_obj()
-
-        cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
-
-        if cur_namenode == None:
-            self.add_prop_name_node(var_name, parent_obj)
-
-        cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
-        pre_obj_id = self.get_obj_by_obj_name(var_name, parent_obj = parent_obj)
-        self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ"})
-        if pre_obj_id != None:
-            print("remove pre", var_name)
-            self.graph.remove_edge(cur_namenode, pre_obj_id)
 
     def get_func_scope_by_obj_node(self, obj_node):
         if obj_node == None:
@@ -949,61 +951,6 @@ class Graph:
             if cur_attr['type'] == 'AST_NAME':
                 return self.get_name_from_child(edge[1])
 
-    def get_child_nodes(self, node_id, edge_type=None, child_name=None, child_type=None):
-        """
-        return the children of node (with a specific edge type, name, or node type)
-        """
-        res = set()
-        edges = self.get_out_edges(node_id, edge_type=edge_type)
-        if len(edges) == 0:
-            return []
-        for edge in edges:
-            flag = True
-            aim_node_attr = self.get_node_attr(edge[1])
-            if child_type is not None and aim_node_attr.get('type') != child_type:
-                flag = False
-            if child_name is not None and aim_node_attr.get('name') != child_name:
-                flag = False
-            if flag:
-                res.add(edge[1])
-        return list(res)
-
-    def get_obj_nodes(self, name_node):
-        return self.get_child_nodes(name_node, edge_type='NAME_TO_OBJ')
-
-    def get_prop_names(self, parent_obj=None):
-        if parent_obj is None:
-            parent_obj = self.cur_obj
-        s = set()
-        for name_node in self.get_prop_name_nodes(parent_obj):
-            name = self.get_node_attr(name_node).get('name')
-            if name is not None:
-                s.add(name)
-        return list(s)
-
-    # get_keys = get_prop_names
-
-    def get_prop_name_nodes(self, parent_obj=None):
-        return self.get_child_nodes(parent_obj, edge_type='OBJ_TO_PROP')
-
-    def get_prop_name_node(self, parent_obj=None, prop_name=None):
-        for name_node in self.get_prop_name_nodes(parent_obj):
-            if self.get_node_attr(name_node).get('name') == prop_name:
-                return name_node
-        return None
-
-    def get_prop_obj_nodes(self, parent_obj=None, prop_name=None):
-        if parent_obj is None:
-            parent_obj = self.cur_obj
-        if prop_name is None: # this caused inconsistent run results
-            return self.get_obj_nodes(self.get_prop_name_node(parent_obj, prop_name))
-        else:
-            s = set()
-            for name_node in self.get_prop_name_nodes(parent_obj):
-                s.update(self.get_obj_nodes(name_node))
-            return list(s)
-
-
     def get_self_invoke_node_by_caller(self, caller_id):
         """
         get the closure of self invoke function by the caller id
@@ -1012,6 +959,120 @@ class Graph:
             caller_id: the node id of the caller
         """
         return self._get_childern_by_childnum(caller_id)['0']
+
+
+    # prototype
+
+    def _get_upper_level_prototype(self, obj_node):
+        """
+        get the upper level of prototype
+        used for a helper function to link __proto__ and prototype
+
+        Args:
+            obj_node: the child obj node
+            relation: obj_node -OBJ_DECL-> AST_FUNC_DECL -OBJ_TO_AST-> 
+            FUNC_DECL -OBJ_TO_PROP-> prototype -NAME_TO_OBJ-> PROTOTYPE
+        """
+        ast_upper_func_node = self.get_child_nodes(obj_node, 
+                edge_type = "OBJ_DECL")[0]
+        edges = self.get_in_edges(ast_upper_func_node,
+                edge_type = "OBJ_TO_AST")
+        for edge in edges:
+            if self.get_node_attr(edge[0])['type'] == "FUNC_DECL":
+                func_decl_obj_node = edge[0]
+                break
+        prototype_name_node = self.get_child_nodes(func_decl_obj_node, 
+                edge_type = "OBJ_TO_PROP", child_name = "prototype")[0]
+        prototype_obj_node = self.get_child_nodes(prototype_name_node,
+                edge_type = "NAME_TO_OBJ", child_type = "PROTOTYPE")[0]
+        return prototype_obj_node
+    
+    def build_proto(self, obj_node):
+        """
+        build the proto strcture of a object node
+
+        Args:
+            obj_node: the obj node need to be build
+        """
+        proto_name_node = self.add_prop_name_node("__proto__", obj_node)
+        upper_level_prototype_obj = self._get_upper_level_prototype(obj_node)
+        self.add_obj_to_name_node(proto_name_node, 
+                tobe_added_obj = upper_level_prototype_obj)
+
+    def add_child_node(self, node_id, child_node_type, 
+            edge_type, child_node_label = None, child_node_name = None):
+        """
+        add a child node to current node
+        
+        Args:
+            node_id: the id of current node
+            child_node_name: the name of adding node
+            child_node_type: the adding node type
+            edge_type: the adding edge type
+
+        Return:
+            the added child node id
+        """
+        child_node_id = str(self._get_new_nodeid())
+        self.add_node(child_node_id)
+        if child_node_label is not None:
+            self.set_node_attr(child_node_id, ('labels:label', child_node_label))
+        if child_node_name is not None:
+            self.set_node_attr(child_node_id, ('name', child_node_name))
+        self.set_node_attr(child_node_id, ('type', child_node_type))
+
+        self.add_edge(node_id, child_node_id, {"type:TYPE": edge_type})
+        return child_node_id
+
+    def generate_virtual_nodes(self, node_id, nodes_type = 'new'):
+        """
+        generate a group of virtual nodes with a group type for a node id
+
+        Args:
+            node_id: the node that need to generate
+            nodes_type: the type of group of nodes need to be generated
+        """
+        node_attr = self.get_node_attr(node_id)
+        if nodes_type == 'new':
+            root_node_id = self._get_new_nodeid()
+            self.add_node(root_node_id, {"type": "AST_NEW", "labels:label": "VIRTUAL"})
+            child_id = self.add_child_node(root_node_id, "AST_NAME", "PARENT_OF", 
+                    child_node_label = "VIRTUAL")
+            self.set_node_attr(child_id, ("childnum:int", '0'))
+            child_id = self.add_child_node(child_id, "string", "PARENT_OF", 
+                    child_node_label = "VIRTUAL")
+
+            if node_attr['type'] == "AST_ARRAY":
+                if node_attr['flags:string[]'] == "JS_ARRAY":
+                    self.set_node_attr(child_id, ('code', 'Array'))
+                    self.set_node_attr(child_id, ("childnum:int", '0'))
+                elif node_attr['flags:string[]'] == "JS_OBJECT":
+                    self.set_node_attr(child_id, ('code', 'Object'))
+                    self.set_node_attr(child_id, ("childnum:int", '0'))
+
+            child_id = self.add_child_node(root_node_id, "AST_ARG_LIST", 
+                    "PARENT_OF", child_node_label = "VIRTUAL")
+            self.set_node_attr(child_id, ("childnum:int", '1'))
+
+        return root_node_id
+
+    # Misc
+
+    def setup_run(self, entry_nodeid):
+        """
+        the init function of setup a run
+        """
+        # init cur_id here!!
+        self.cur_id = self.graph.number_of_nodes()
+
+        self.BASE_SCOPE = self.add_scope("BASE_SCOPE", entry_nodeid)
+        cur_nodeid = str(self._get_new_nodeid())
+        self.add_node(cur_nodeid)
+        self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
+        self.set_node_attr(cur_nodeid, ('labels:label', 'Object'))
+        self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
+        self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_PROP"})
+        self.cur_obj = cur_nodeid
 
     def get_all_inputs(self, node_id):
         """
@@ -1065,9 +1126,10 @@ class Graph:
             res.append(func_name_id)
 
         return res
-    
+
     def get_obj_by_node_id(self, node_id):
         """
+        deprecated
         return the obj of a node id
         assume a node id only have one obj
         """
@@ -1100,68 +1162,8 @@ class Graph:
 
         return res
 
-    def get_obj_def_ast_node(self, obj_node_id):
-        """
-        Find where in the AST an object is defined.
-        The AST node is the successor of the object node via the OBJ_TO_AST edge.
-        """
-        tmp_edge = self.get_out_edges(obj_node_id, data = True, keys = True, edge_type = "OBJ_TO_AST")
-        if not tmp_edge:
-            return None
-        else:
-            tmp_edge = tmp_edge[0]
-        def_ast_node = tmp_edge[1]
-        return def_ast_node
+    # Analysis
 
-    def scope_exists_by_ast_node(self, ast_node_id, parent_scope = None, max_depth = 1):
-        if parent_scope == None:
-            parent_scope = self.BASE_SCOPE
-        if max_depth == None:
-            max_depth = sys.maxsize
-        for depth in range(max_depth):
-            children = self.get_child_nodes(parent_scope, 'PARENT_SCOPE_OF')
-            if not children:
-                return False
-            else:
-                for child in self.get_child_nodes(parent_scope, 'PARENT_SCOPE_OF'):
-                    out_edges = self.get_out_edges(child, data = True, keys = True, edge_type = 'SCOPE_TO_AST')
-                    for edge in out_edges:
-                        if edge[1] == ast_node_id:
-                            return True
-        return False
-
-    def generate_virtual_nodes(self, node_id, nodes_type = 'new'):
-        """
-        generate a group of virtual nodes with a group type for a node id
-
-        Args:
-            node_id: the node that need to generate
-            nodes_type: the type of group of nodes need to be generated
-        """
-        node_attr = self.get_node_attr(node_id)
-        if nodes_type == 'new':
-            root_node_id = self._get_new_nodeid()
-            self.add_node(root_node_id, {"type": "AST_NEW", "labels:label": "VIRTUAL"})
-            child_id = self.add_child_node(root_node_id, "AST_NAME", "PARENT_OF", 
-                    child_node_label = "VIRTUAL")
-            self.set_node_attr(child_id, ("childnum:int", '0'))
-            child_id = self.add_child_node(child_id, "string", "PARENT_OF", 
-                    child_node_label = "VIRTUAL")
-
-            if node_attr['type'] == "AST_ARRAY":
-                if node_attr['flags:string[]'] == "JS_ARRAY":
-                    self.set_node_attr(child_id, ('code', 'Array'))
-                    self.set_node_attr(child_id, ("childnum:int", '0'))
-                elif node_attr['flags:string[]'] == "JS_OBJECT":
-                    self.set_node_attr(child_id, ('code', 'Object'))
-                    self.set_node_attr(child_id, ("childnum:int", '0'))
-
-            child_id = self.add_child_node(root_node_id, "AST_ARG_LIST", 
-                    "PARENT_OF", child_node_label = "VIRTUAL")
-            self.set_node_attr(child_id, ("childnum:int", '1'))
-
-        return root_node_id
-    
     def _dfs_upper_by_edge_type(self, node_id, edge_type):
         """
         dfs a specific type of edge upper from a node id
@@ -1171,11 +1173,11 @@ class Graph:
         parent_nodes = [edge[0] for edge in upper_edges]
         ret = []
 
-        # TODO: REMOVE THIS!
+        # TODO: REMOVE! specific to july demo
         node_attr = self.get_node_attr(node_id)
         if 'lineno:int' in node_attr and node_attr['lineno:int'] == '17':
             parent_nodes.append(self.event_node)
-        
+
         for parent_node in parent_nodes:
             cur_all_upper_pathes = self._dfs_upper_by_edge_type(parent_node, 
                     edge_type)
