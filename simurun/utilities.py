@@ -15,6 +15,14 @@ class NodeHandleResult:
     def __bool__(self):
         return bool(self.obj_nodes or self.value or self.name or self.name_nodes or self.used_objs)
 
+    def __repr__(self):
+        s = []
+        for key in dir(self):
+            if not key.startswith("__"):
+                s.append(f'{key}={repr(getattr(self, key))}')
+        args = ', '.join(s)
+        return f'{self.__class__.__name__}({args})'
+
 
 class BranchTag:
     '''

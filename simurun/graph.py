@@ -3,7 +3,7 @@ import sys
 import csv
 import sty
 from utilities import BranchTag
-from typing import List
+from typing import List, Callable
 
 class Graph:
 
@@ -376,9 +376,13 @@ class Graph:
 
     def add_prop_name_node(self, name, parent_obj = None):
         """
-        add an empty name node (without a corresponding obj) as a property of another obj
+        Add an empty name node (without a corresponding object) as a
+        property of another object.
+
         obj -> name node
-        for left side of an assignment (such that no dummy obj node is created)
+
+        For left side of an assignment (such that no dummy object node
+        is created).
         """
         if parent_obj == None:
             parent_obj = self.cur_obj
@@ -386,7 +390,8 @@ class Graph:
         self.add_node(new_name_node)
         self.set_node_attr(new_name_node, ('labels:label', 'Name'))
         self.set_node_attr(new_name_node, ('name', name))
-        self.add_edge(parent_obj, new_name_node, {"type:TYPE": "OBJ_TO_PROP"})
+        self.add_edge_if_not_exist(parent_obj, new_name_node,
+            {"type:TYPE": "OBJ_TO_PROP"})
         return new_name_node
 
     def add_obj_as_prop(self, ast_node, var_type, var_name, parent_obj = None, tobe_added_obj = None):
@@ -398,34 +403,25 @@ class Graph:
         if parent_obj == None:
             parent_obj = self.cur_obj
 
-        name_node = None
-
-        # check if the name node exists first
-        edges = self.get_out_edges(parent_obj, edge_type='OBJ_TO_PROP')
-        if edges:
-            for edge in edges:
-                cur_name_node = edge[1]
-                if self.get_node_attr(cur_name_node)['name'] == var_name:
-                    name_node = cur_name_node
-                    break
+        name_node = self.get_prop_name_node(var_name, parent_obj)
 
         if name_node is None:
-            name_node = str(self._get_new_nodeid())
-            self.add_node(name_node)
-            self.set_node_attr(name_node, ('labels:label', 'Name'))
-            self.set_node_attr(name_node, ('name', var_name))
+            name_node = self.add_prop_name_node(var_name, parent_obj)
 
         if tobe_added_obj is None:
             tobe_added_obj = self.add_obj_node(ast_node, var_type)
-        # elif ast_node is not None:
-        #     self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
-        self.add_edge(parent_obj, name_node, {"type:TYPE": "OBJ_TO_PROP"})
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
-        return tobe_added_obj 
+        return tobe_added_obj
 
-    def add_obj_to_name_node(self, name_node, ast_node = None, var_type = None, tobe_added_obj = None):
+    def add_obj_to_name(self, name, scope=None, ast_node=None, var_type = None, tobe_added_obj=None):
+        name_node = self.add_name_node(name, scope)
+        obj_node = self.add_obj_to_name_node(name_node, ast_node, var_type,
+                                             tobe_added_obj)
+        return obj_node
+
+    def add_obj_to_name_node(self, name_node, ast_node=None, var_type=None, tobe_added_obj=None):
         """
         Add a new object (or put a existing object) under a name node.
 
@@ -554,22 +550,45 @@ class Graph:
     def get_prop_name_nodes(self, parent_obj=None):
         return self.get_child_nodes(parent_obj, edge_type='OBJ_TO_PROP')
 
-    def get_prop_name_node(self, parent_obj=None, prop_name=None):
+    def get_prop_name_node(self, prop_name, parent_obj=None):
         for name_node in self.get_prop_name_nodes(parent_obj):
             if self.get_node_attr(name_node).get('name') == prop_name:
                 return name_node
         return None
 
-    def get_prop_obj_nodes(self, parent_obj=None, prop_name=None, branches: List[BranchTag]=[]):
+    def get_prop_obj_nodes(self, parent_obj=None, prop_name=None, branches: List[BranchTag]=[], exclude_proto=True):
+        '''
+        Get object nodes of an object's property.
+        
+        Args:
+            parent_obj (optional): Defaults to None (current object).
+            prop_name (str, optional): Property name. Defaults to None,
+                which means get all properties' object nodes.
+            branches (List[BranchTag], optional): branch information.
+                Defaults to [].
+            exclude_proto (bool, optional): Whether exclude prototype
+                and __proto__ when getting all properties.
+                Defaults to True.
+        
+        Returns:
+            list: object nodes.
+        '''
         if parent_obj is None:
             parent_obj = self.cur_obj
+        s = set()
         if prop_name is None: # this caused inconsistent run results
-            return self.get_obj_nodes(self.get_prop_name_node(parent_obj, prop_name), branches)
+            name_nodes = self.get_prop_name_nodes(parent_obj)
+            if exclude_proto:
+                name_nodes = filter(
+                    lambda x: self.get_node_attr(x).get('name') not in
+                        ['prototype', '__proto__'],
+                    name_nodes)
+            for name_node in name_nodes:
+                s.update(self.get_obj_nodes(name_node, branches))
         else:
-            s = set()
             for name_node in self.get_prop_name_nodes(parent_obj):
                 s.update(self.get_obj_nodes(name_node), branches)
-            return list(s)
+        return list(s)
 
     def assign_obj_nodes_to_name_node(self, name_node, obj_nodes, multi = False, branches: List[BranchTag] = []):
         '''
@@ -621,9 +640,7 @@ class Graph:
         if not tmp_edge:
             return None
         else:
-            tmp_edge = tmp_edge[0]
-        def_ast_node = tmp_edge[1]
-        return def_ast_node
+            return tmp_edge[0][1]
 
     def get_obj_by_obj_name(self, var_name, parent_obj = None):
         """
@@ -649,7 +666,7 @@ class Graph:
         get the name node of a child of obj 
         return the name node
         """
-        return self.get_prop_name_node(parent_obj, var_name)
+        return self.get_prop_name_node(var_name, parent_obj)
 
     def set_obj_by_obj_name(self, var_name, obj_id, parent_obj = None):
         """
@@ -691,10 +708,8 @@ class Graph:
                 return existing_scope
         new_scope_node = str(self._get_new_nodeid())
         self.add_node(new_scope_node, {'labels:label': 'Scope', 'type': scope_type, 'name': scope_name})
-        # self.set_node_attr(new_scope_node, ('labels:label', 'Scope'))
-        # self.set_node_attr(new_scope_node, ('type', scope_type))
-        # self.set_node_attr(new_scope_node, ('name', scope_name))
-        self.add_edge(new_scope_node, ast_node, {'type:TYPE': 'SCOPE_TO_AST'})
+        if ast_node is not None:
+            self.add_edge(new_scope_node, ast_node, {'type:TYPE': 'SCOPE_TO_AST'})
         if cur_scope != None:
             self.add_edge(cur_scope, new_scope_node, {'type:TYPE': 'PARENT_SCOPE_OF'})
         else:
@@ -872,37 +887,69 @@ class Graph:
         func_decl_ast = tmp_edge[1]
         return func_decl_ast
 
-    def add_blank_func_with_og_nodes(self, func_name, scope = None):
+    def add_blank_func_to_scope(self, func_name, scope=None, python_func:Callable=None):
+        '''
+        Add a blank function with object graph nodes to a scope.
+        
+        Args:
+            func_name (str): function's name.
+            scope (optional): where to add the function. Defaults to
+                None, referring to the current scope.
+            python_func (optional): a special Python function in lieu of
+                the blank JS AST function. Defaults to None.
+        '''
+        func_obj = self.add_blank_func_with_og_nodes(func_name)
+        self.add_obj_to_name(func_name, scope, tobe_added_obj=func_obj)
+        if python_func is not None:
+            self.set_node_attr(func_obj, ('pythonfunc', python_func))
+        return func_obj
+
+    def add_blank_func_as_prop(self, func_name, parent_obj=None, python_func:Callable=None):
+        '''
+        Add a blank function with object graph nodes as a property of
+        another object.
+        
+        Args:
+            func_name (str): function's name.
+            parent_obj (optional): function's parent object. Defaults to
+                None, referring to the current object.
+            python_func (optional): a special Python function in lieu of
+                the blank JS AST function. Defaults to None.
+        '''
+        func_obj = self.add_blank_func_with_og_nodes(func_name)
+        self.add_obj_as_prop(None, None, func_name, parent_obj, func_obj)
+        if python_func is not None:
+            self.set_node_attr(func_obj, ('pythonfunc', python_func))
+        return func_obj
+
+    def add_blank_func_with_og_nodes(self, func_name):
         '''
         Add a blank function with object graph nodes (name node, function
         scope, and function declaration object node).
         
         Args:
             func_name (str): function's name.
-            scope (optional): function's parent scope. Defaults to None,
-                referring to the current scope.
         '''
-        ast_node = self.add_blank_func(func_name, scope)
+        ast_node = self.add_blank_func(func_name)
         func_scope = self.add_scope("FUNCTION_SCOPE", ast_node)
-        func_decl_obj = self.add_obj_node(ast_node, "FUNC_DECL")
-        self.add_edge(func_decl_obj, func_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
-        self.set_obj_by_scope_name(func_name, func_decl_obj)
-        return func_decl_obj
+        func_obj = self.add_obj_node(ast_node, "FUNC_DECL")
+        self.add_edge(func_obj, func_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
+        return func_obj
 
-    def add_blank_func(self, func_name, scope = None):
+    def add_blank_func(self, func_name):
         """
         add a blank func
         used for built-in functions
         we need to run the function after the define
         """
-        print(sty.ef.inverse + sty.fg(179) + "add_blank_func" + sty.rs.all + " func_name:{} scope:{}".format(func_name, scope))
+        print(sty.ef.inverse + sty.fg(179) + "add_blank_func" + sty.rs.all + " func_name: {}".format(func_name))
 
         # add a function decl node first
-        cur_id = self._get_new_nodeid()
-        self.add_node(cur_id)
-        self.set_node_attr(cur_id, ('funcid', cur_id))
-        self.set_node_attr(cur_id, ('type', "AST_CLOSURE"))
-        self.set_node_attr(cur_id, ('labels:label', 'Artificial_AST'))
+        func_ast = self._get_new_nodeid()
+        self.add_node(func_ast)
+        # self.set_node_attr(func_ast, ('funcid', func_ast))
+        self.set_node_attr(func_ast, ('type', "AST_CLOSURE"))
+        self.set_node_attr(func_ast, ('labels:label', 'Artificial_AST'))
 
         # add a node as the name of the function
         namenode_id = self._get_new_nodeid()
@@ -914,32 +961,32 @@ class Graph:
 
         entry_id = self._get_new_nodeid()
         self.add_node(entry_id)
-        self.set_node_attr(entry_id, ('funcid', cur_id))
+        self.set_node_attr(entry_id, ('funcid', func_ast))
         self.set_node_attr(entry_id, ('type', 'CFG_FUNC_ENTRY'))
         self.set_node_attr(entry_id, ('labels:label', 'Artificial'))
 
         exit_id = self._get_new_nodeid()
         self.add_node(exit_id)
-        self.set_node_attr(exit_id, ('funcid', cur_id))
+        self.set_node_attr(exit_id, ('funcid', func_ast))
         self.set_node_attr(exit_id, ('type', 'CFG_FUNC_EXIT'))
         self.set_node_attr(exit_id, ('labels:label', 'Artificial'))
 
         params_id = self._get_new_nodeid()
         self.add_node(params_id)
-        self.set_node_attr(params_id, ('funcid', cur_id))
+        self.set_node_attr(params_id, ('funcid', func_ast))
         self.set_node_attr(params_id, ('type', 'AST_PARAM_LIST'))
         self.set_node_attr(params_id, ('labels:label', 'Artificial_AST'))
         self.set_node_attr(params_id, ('childnum:int', 1))
 
         # add edges
-        self.add_edge(cur_id, entry_id, {'type:TYPE': "ENTRY"})
-        self.add_edge(cur_id, exit_id, {'type:TYPE': "EXIT"})
-        self.add_edge(cur_id, namenode_id, {'type:TYPE': "PARENT_OF"})
-        self.add_edge(cur_id, params_id, {'type:TYPE': "PARENT_OF"})
+        self.add_edge(func_ast, entry_id, {'type:TYPE': "ENTRY"})
+        self.add_edge(func_ast, exit_id, {'type:TYPE': "EXIT"})
+        self.add_edge(func_ast, namenode_id, {'type:TYPE': "PARENT_OF"})
+        self.add_edge(func_ast, params_id, {'type:TYPE': "PARENT_OF"})
         self.add_edge(entry_id, exit_id, {'type:TYPE': "FLOWS_TO"})
 
         # we need to run the function 
-        return cur_id
+        return func_ast
 
     def find_name_of_call(self, node_id):
         """
@@ -985,6 +1032,7 @@ class Graph:
                 edge_type = "OBJ_TO_PROP", child_name = "prototype")[0]
         prototype_obj_node = self.get_child_nodes(prototype_name_node,
                 edge_type = "NAME_TO_OBJ", child_type = "PROTOTYPE")[0]
+        print(f'prototype obj node is {prototype_obj_node}')
         return prototype_obj_node
     
     def build_proto(self, obj_node):
@@ -994,10 +1042,9 @@ class Graph:
         Args:
             obj_node: the obj node need to be build
         """
-        proto_name_node = self.add_prop_name_node("__proto__", obj_node)
         upper_level_prototype_obj = self._get_upper_level_prototype(obj_node)
-        self.add_obj_to_name_node(proto_name_node, 
-                tobe_added_obj = upper_level_prototype_obj)
+        self.add_obj_as_prop(None, None, '__proto__', parent_obj=obj_node,
+                             tobe_added_obj=upper_level_prototype_obj)
 
     def add_child_node(self, node_id, child_node_type, 
             edge_type, child_node_label = None, child_node_name = None):
@@ -1058,20 +1105,20 @@ class Graph:
 
     # Misc
 
-    def setup_run(self, entry_nodeid):
+    def setup_run(self):
         """
         the init function of setup a run
         """
         # init cur_id here!!
         self.cur_id = self.graph.number_of_nodes()
-
-        self.BASE_SCOPE = self.add_scope("BASE_SCOPE", entry_nodeid)
+        # base scope is not related to any file
+        self.BASE_SCOPE = self.add_scope("BASE_SCOPE", None)
         cur_nodeid = str(self._get_new_nodeid())
         self.add_node(cur_nodeid)
         self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
         self.set_node_attr(cur_nodeid, ('labels:label', 'Object'))
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
-        self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_PROP"})
+        self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_SCOPE"})
         self.cur_obj = cur_nodeid
 
     def get_all_inputs(self, node_id):
