@@ -341,7 +341,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=[]):
         obj_node: the created object.
     '''
     # create the instantiated object
-    created_obj = G.add_obj_node(ast_node=exp_ast_node, var_type='OBJ')
+    created_obj = G.add_obj_node(ast_node=exp_ast_node, js_type='object')
     # add edge between obj and obj decl
     G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
 
@@ -452,17 +452,18 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         now_objs = list(set(G.get_objs_by_name(var_name, branches = branches)))
 
         name_node = G.get_name_node(var_name)
-        if not (extra and extra.get('side') == 'right'):
-            if name_node == None:
-                if now_objs or cur_node_attr.get('flags:string[]') in ["JS_DECL_VAR", 'JS_DECL_LET', 'JS_DECL_CONST']:
-                    # if the variable is defined in current scope or parent scopes,
-                    # or undefined but has 'var', 'let' or 'const',
-                    # we use the current scope
-                    name_node = G.add_name_node(var_name, scope=G.cur_scope)
-                else:
-                    # only if the variable is not defined and doesn't have 'var', 'let' or 'const',
-                    # we define it in the global scope
-                    name_node = G.add_name_node(var_name, scope=G.BASE_SCOPE)
+        if name_node is None and not (extra and extra.get('side') == 'right'):
+            if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
+                # we use the function scope
+                name_node = G.add_name_node(var_name,
+                                      scope=G.find_func_scope_from_cur_scope())
+            elif cur_node_attr.get('flags:string[]') in ['JS_DECL_LET', 'JS_DECL_CONST']:
+                # we use the block scope                
+                name_node = G.add_name_node(var_name, scope=G.cur_scope)
+            else:
+                # only if the variable is not defined and doesn't have 'var', 'let' or 'const',
+                # we define it in the global scope
+                name_node = G.add_name_node(var_name, scope=G.BASE_SCOPE)
         
         print(f'{node_id} handle result: obj_nodes={now_objs}, name={var_name}, name_nodes={[name_node]}')
 
@@ -479,7 +480,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             return NodeHandleResult()
 
         added_scope = G.add_scope("FUNCTION_SCOPE", node_id)
-        added_obj = G.add_obj_node(node_id, "FUNC_DECL")
+        added_obj = G.add_obj_node(node_id, "function")
         G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
 
         G.set_node_attr(node_id, ("VISITED", "1"))
@@ -517,17 +518,17 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             used_objs.extend(handled_left.obj_nodes)
             used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
-            added_obj = G.add_literal_obj(node_id)
+            added_obj = G.add_obj_node(node_id)
             used_objs = list(set(used_objs))
             for obj in used_objs:
                 G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
             print(f'used objs={used_objs}')
             return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
 
-    elif cur_type == 'integer' or cur_type == 'string':
-        added_obj = G.add_literal_obj(node_id)
+    elif cur_type in ['integer', 'double', 'string']:
+        js_type = 'string' if cur_type == 'string' else 'number'
         code = G.get_node_attr(node_id).get('code')
-        G.set_node_attr(added_obj, ('code', code))
+        added_obj = G.add_obj_node(node_id, js_type, code)
         # modified_objs.add(added_obj)
         print(f'{node_id} handle result: obj_nodes={[added_obj]}, value={code}')
         return NodeHandleResult(obj_nodes=[added_obj], value=code)
@@ -581,7 +582,8 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             branch_tag = BranchTag(stmt=stmt_id, branch=str(i))
             test, body = G.get_ordered_ast_child_nodes(case)
             handle_node(G, test, extra)
-            simurun_block(G, body, G.cur_scope, branches+[branch_tag])
+            simurun_block(G, body, G.cur_scope, branches+[branch_tag],
+                          block_scope=False)
         merge(G, stmt_id, len(cases), parent_branch)
 
     # handle registered functions
@@ -607,18 +609,40 @@ def simurun_function(G, func_decl_ast_node, branches=[]):
         return simurun_block(G, child, parent_scope=G.cur_scope)
     return [], []
 
-def simurun_block(G, ast_node, parent_scope, branches=[]):
+def simurun_block(G, ast_node, parent_scope, branches=[], block_scope=True):
     """
     Simurun a block by running its statements one by one.
-    A block is a BlockStatement in JavaScript, or an AST_STMT_LIST in PHP.
+    A block is a BlockStatement in JavaScript,
+    or an AST_STMT_LIST in PHP.
     """
     returned_objs = set()
     used_objs = set()
     if parent_scope == None:
         parent_scope = G.cur_scope
-    if not G.scope_exists_by_ast_node(ast_node, parent_scope, max_depth=1):
-        G.add_scope('BLOCK_SCOPE', ast_node, f'Block{ast_node}')
+    if block_scope:
+        if G.scope_exists_by_ast_node(ast_node, parent_scope, max_depth=1):
+            G.cur_scope = G.get_scope_by_ast_node(ast_node)
+        else:
+            G.cur_scope = \
+                G.add_scope('BLOCK_SCOPE', ast_node, f'Block{ast_node}')
     stmts = G.get_ordered_ast_child_nodes(ast_node)
+    # pre-declare variables
+    # TODO: multiple possibilities
+    func_scope = G.find_func_scope_from_cur_scope()
+    for stmt in stmts:
+        if G.get_node_attr(stmt)['type'] == 'AST_VAR' and \
+            G.get_node_attr(stmt)['flags:string[]'] == 'JS_DECL_VAR':
+            name = G.get_name_from_child(stmt)
+            G.add_obj_to_scope(name=name, scope=func_scope,
+                               tobe_added_obj=G.undefined_obj)
+        elif G.get_node_attr(stmt)['type'] == 'AST_ASSIGN':
+            children = G.get_ordered_ast_child_nodes(stmt)
+            if G.get_node_attr(children[0])['type'] == 'AST_VAR' and \
+                G.get_node_attr(children[0])['flags:string[]'] == 'JS_DECL_VAR':
+                name = G.get_name_from_child(children[0])
+                G.add_obj_to_scope(var_name=name, scope=func_scope,
+                                   tobe_added_obj=G.undefined_obj)
+    # simulate statements
     for stmt in stmts:
         handled_res = handle_node(G, stmt, {'branches': branches})
 
@@ -633,6 +657,8 @@ def simurun_block(G, ast_node, parent_scope, branches=[]):
                 returned_objs.update(stmt_returned_objs)
             if stmt_used_objs:
                 used_objs.update(stmt_used_objs)
+    if block_scope:
+        G.cur_scope = parent_scope
     
     return list(returned_objs), list(used_objs)
 
@@ -777,7 +803,7 @@ def decl_function(G, node_id, func_name = None, parent_scope = None):
 
     # do a normal add closure
     added_scope = G.add_scope("FUNCTION_SCOPE", node_id)
-    added_obj = G.add_obj_node(node_id, "FUNC_DECL")
+    added_obj = G.add_obj_node(node_id, "function")
     G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
 
     # for a func decl, should not have local var name
@@ -911,7 +937,7 @@ def call_function(G, ast_node, extra):
         args_used_objs.update(handled_arg.obj_nodes)
         # add callback functions
         for obj in handled_arg.obj_nodes:
-            if G.get_node_attr(obj).get('type') == 'FUNC_DECL':
+            if G.get_node_attr(obj).get('type') == 'function':
                 callback_functions.add(obj)
 
     returned_objs = set()
@@ -958,7 +984,7 @@ def call_function(G, ast_node, extra):
                     branch_used_objs.extend(h.obj_nodes)
                     branch_used_objs.extend(h.used_objs)
                 # add a blank object as return objects
-                returned_obj = G.add_obj_node(ast_node, "OBJ")
+                returned_obj = G.add_obj_node(ast_node, "VIRTUAL_RETURNED_OBJ")
                 for obj in branch_used_objs:
                     G.add_edge(obj, returned_obj,
                         {'type:TYPE': 'CONTRIBUTES_TO'})
@@ -984,6 +1010,7 @@ def call_function(G, ast_node, extra):
 
 def ast_call_function(G, node_id, func_name = None, parent_obj = None):
     """
+    deprecated
     run a function start from node id
     """
     is_builtin = True
@@ -1023,7 +1050,7 @@ def ast_call_function(G, node_id, func_name = None, parent_obj = None):
         used_arg_objs.update(handled_arg.obj_nodes)
 
         for obj in handled_arg.obj_nodes:
-            if G.get_node_attr(obj).get('type') == 'FUNC_DECL':
+            if G.get_node_attr(obj).get('type') == 'function':
                 callback_functions.add(obj)
 
     func_decl_obj_node = G.get_obj_by_obj_name(func_name, parent_obj)

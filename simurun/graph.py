@@ -340,22 +340,43 @@ class Graph:
 
     # name nodes and object nodes
 
-    def add_obj_node(self, ast_node, var_type):
-        """
-        add a obj node with var type
-        return the added obj
-        """
+    def add_obj_node(self, ast_node=None, js_type='object', value=None):
+        '''
+        Add an object node (including literal).
+        
+        Args:
+            ast_node (optional): The corresponding AST node.
+                Defaults to None.
+            js_type (str, optional): JavaScript type. Defaults to None.
+            value (str, optional): Value of a literal, represented by
+                JavaScript code. Defaults to None.
+        
+        Returns:
+            Added object node's node id.
+        '''
         obj_node_id = str(self._get_new_nodeid())
         self.add_node(obj_node_id)
         self.set_node_attr(obj_node_id, ('labels:label', 'Object'))
-        self.set_node_attr(obj_node_id, ('type', var_type))
+        self.set_node_attr(obj_node_id, ('type', js_type))
 
         if ast_node is not None:
             self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
-        if var_type == "FUNC_DECL":
+        if js_type == "function":
             self.add_obj_as_prop(ast_node, "PROTOTYPE", "prototype", 
-                    parent_obj = obj_node_id)
+                    parent_obj=obj_node_id)
+            if self.function_prototype is not None:
+                # prevent setting __proto__ before setup_object_and_function runs
+                self.add_obj_as_prop(var_name="__proto__",
+                parent_obj=obj_node_id, tobe_added_obj=self.function_prototype)
+        elif js_type == "object":
+            if self.object_prototype is not None:
+                # prevent setting __proto__ before setup_object_and_function runs
+                self.add_obj_as_prop(var_name="__proto__",
+                parent_obj=obj_node_id, tobe_added_obj=self.object_prototype)
+
+        if value is not None:
+            self.set_node_attr(obj_node_id, ('code', value))
 
         return obj_node_id
 
@@ -394,7 +415,7 @@ class Graph:
             {"type:TYPE": "OBJ_TO_PROP"})
         return new_name_node
 
-    def add_obj_as_prop(self, ast_node, var_type, var_name, parent_obj = None, tobe_added_obj = None):
+    def add_obj_as_prop(self, ast_node=None, var_type=None, var_name=None, parent_obj=None, tobe_added_obj=None):
         """
         add (or put) an obj as a property of another obj
         parent_obj -> name node -> new obj / tobe_added_obj
@@ -415,10 +436,9 @@ class Graph:
 
         return tobe_added_obj
 
-    def add_obj_to_name(self, name, scope=None, ast_node=None, var_type = None, tobe_added_obj=None):
+    def add_obj_to_name(self, name, scope=None, ast_node=None, var_type=None, tobe_added_obj=None):
         name_node = self.add_name_node(name, scope)
-        obj_node = self.add_obj_to_name_node(name_node, ast_node, var_type,
-                                             tobe_added_obj)
+        obj_node = self.add_obj_to_name_node(name_node, ast_node, var_type, tobe_added_obj)
         return obj_node
 
     def add_obj_to_name_node(self, name_node, ast_node=None, var_type=None, tobe_added_obj=None):
@@ -428,30 +448,11 @@ class Graph:
         name node -> new obj / tobe_added_obj
         """
         if tobe_added_obj is None:
-            tobe_added_obj = str(self._get_new_nodeid())
-            self.add_node(tobe_added_obj)
-            self.set_node_attr(tobe_added_obj, ('labels:label', 'Object'))
-            self.set_node_attr(tobe_added_obj, ('type', var_type))
-            if ast_node is not None:
-                self.add_edge(tobe_added_obj, ast_node, {"type:TYPE": "OBJ_TO_AST"})
+            tobe_added_obj = self.add_obj_node(ast_node, 'object')
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
         return tobe_added_obj
-
-    def add_literal_obj(self, ast_node=None, value=None):
-        """
-        Add a literal object.
-        """
-        node_id = self._get_new_nodeid()
-        self.add_node(node_id)
-        self.set_node_attr(node_id, ('labels:label', 'Object'))
-        self.set_node_attr(node_id, ('type', 'LITERAL'))
-        if ast_node is not None:
-            self.add_edge(node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
-        if value is not None:
-            self.set_node_attr(node_id, ('code', value))
-        return node_id
 
     def get_name_node(self, var_name, scope = None, follow_scope_chain = True):
         """
@@ -679,7 +680,7 @@ class Graph:
 
         obj_attr = self.get_node_attr(obj_id) 
         if obj_attr['type'] == 'LITERAL':
-            obj_id = self.add_literal_obj()
+            obj_id = self.add_obj_node()
 
         cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
 
@@ -716,7 +717,8 @@ class Graph:
             self.cur_scope = new_scope_node
         return new_scope_node
 
-    def add_obj_to_scope(self, ast_node, var_name, var_type, scope = None, tobe_added_obj = None):
+    def add_obj_to_scope(self, ast_node=None, var_name=None, var_type=None,
+        scope=None, tobe_added_obj=None):
         """
         add a obj to a scope, if scope is None, add to current scope
         return the added node id
@@ -736,8 +738,7 @@ class Graph:
         if tobe_added_obj == None:
             # here we do not add obj to current obj when add to scope
             # we just add a obj to scope
-            tobe_added_obj = self.add_obj_node(ast_node, "OBJ")
-            self.set_node_attr(tobe_added_obj, ('labels:label', 'Object'))
+            tobe_added_obj = self.add_obj_node(ast_node, 'object')
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
         return tobe_added_obj
@@ -755,7 +756,7 @@ class Graph:
         if obj_id != None:
             obj_attr = self.get_node_attr(obj_id) 
             if obj_attr['type'] == 'LITERAL':
-                obj_id = self.add_literal_obj()
+                obj_id = self.add_obj_node()
             cur_namenode = self.get_name_node(var_name, scope = scope)
             pre_objs = self.get_objs_by_name(var_name, scope = scope)
             if branch:
@@ -792,6 +793,21 @@ class Graph:
         Get a scope by its corresponding AST node.
         """
         return self.get_in_edges(ast_node, data = True, keys = True, edge_type = "SCOPE_TO_AST")[0][0]
+
+    def find_func_scope_from_cur_scope(self, cur_scope=None):
+        '''
+        Find function scope from the current (block) scope.
+        '''
+        if cur_scope is None:
+            cur_scope = self.cur_scope
+        while True:
+            if self.get_node_attr(cur_scope).get('type') == 'FUNCTION_SCOPE':
+                return cur_scope
+            edges = self.get_in_edges(cur_scope, edge_type='PARENT_SCOPE_OF')
+            if edges:
+                cur_scope = edges[0][0]
+            else:
+                return None
 
     # functions and calls
 
@@ -932,7 +948,7 @@ class Graph:
         '''
         ast_node = self.add_blank_func(func_name)
         func_scope = self.add_scope("FUNCTION_SCOPE", ast_node)
-        func_obj = self.add_obj_node(ast_node, "FUNC_DECL")
+        func_obj = self.add_obj_node(ast_node, "function")
         self.add_edge(func_obj, func_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
         return func_obj
 
@@ -1025,7 +1041,7 @@ class Graph:
         edges = self.get_in_edges(ast_upper_func_node,
                 edge_type = "OBJ_TO_AST")
         for edge in edges:
-            if self.get_node_attr(edge[0])['type'] == "FUNC_DECL":
+            if self.get_node_attr(edge[0])['type'] == "function":
                 func_decl_obj_node = edge[0]
                 break
         prototype_name_node = self.get_child_nodes(func_decl_obj_node, 
@@ -1111,15 +1127,42 @@ class Graph:
         """
         # init cur_id here!!
         self.cur_id = self.graph.number_of_nodes()
+
         # base scope is not related to any file
         self.BASE_SCOPE = self.add_scope("BASE_SCOPE", None)
+
+        # what is base object?
         cur_nodeid = str(self._get_new_nodeid())
         self.add_node(cur_nodeid)
-        self.set_node_attr(cur_nodeid, ('type', 'OBJ'))
+        self.set_node_attr(cur_nodeid, ('type', 'object'))
         self.set_node_attr(cur_nodeid, ('labels:label', 'Object'))
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
         self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_SCOPE"})
         self.cur_obj = cur_nodeid
+
+        # reserved values
+        self.function_prototype = None
+        self.object_prototype = None
+
+        # setup JavaScript built-in values
+        self.null_obj = self.add_obj_node(None, 'object', value='null')
+        self.undefined_obj = self.add_obj_node(None, 'undefined',
+                                                value='undefined')
+        self.add_obj_to_name('undefined', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.undefined_obj)
+        self.infinity_obj = self.add_obj_node(None, 'number', 'Infinity')
+        self.add_obj_to_name('Infinity', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.infinity_obj)
+        # self.negative_infinity_obj = self.add_obj_node(None, 'number', '-Infinity')
+        self.nan_obj = self.add_obj_node(None, 'number', 'NaN')
+        self.add_obj_to_name('NaN', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.nan_obj)
+        self.true_obj = self.add_obj_node(None, 'boolean', 'true')
+        self.add_obj_to_name('true', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.true_obj)
+        self.false_obj = self.add_obj_node(None, 'boolean', 'false')
+        self.add_obj_to_name('false', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.false_obj)
 
     def get_all_inputs(self, node_id):
         """

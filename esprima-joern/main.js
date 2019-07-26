@@ -500,6 +500,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     label: 'AST',
                     type: currentNode.type,
                     phptype: 'AST_CALL',
+                    phpflag: 'JS_TYPEOF',
                     code: currentNode.operator || null,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: childNum,
