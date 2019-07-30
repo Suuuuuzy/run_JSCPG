@@ -5,7 +5,7 @@ from utilities import NodeHandleResult, BranchTag
 import sys
 import sty
 import re
-from modeledJSBuiltIns import setup_js_builtins
+import modeledJSBuiltIns
 
 registered_func = {}
 
@@ -341,7 +341,8 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=[]):
         obj_node: the created object.
     '''
     # create the instantiated object
-    created_obj = G.add_obj_node(ast_node=exp_ast_node, js_type='object')
+    # js_type=None: avoid automatically adding prototype
+    created_obj = G.add_obj_node(ast_node=exp_ast_node, js_type=None)
     # add edge between obj and obj decl
     G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
 
@@ -362,6 +363,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=[]):
     # finally add call edge from caller to callee
     G.add_edge_if_not_exist(exp_ast_node, constructor_decl, {"type:TYPE": "CALLS"})
 
+    # build the prototype chain
     G.build_proto(created_obj)
 
     return created_obj
@@ -410,11 +412,10 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         return handle_assign(G, node_id, extra)
     
     elif cur_type == 'AST_ARRAY':
-        virtual_root_node = G.generate_virtual_nodes(node_id)
-
-        # added_obj = G.add_obj_node(node_id, "OBJ_LITERAL")
-        extra['ast_node'] = node_id
-        added_obj = handle_new_node(G, virtual_root_node, extra = extra).obj_nodes[0]
+        if G.get_node_attr(node_id).get('flags:string[]') == 'JS_OBJECT':
+            added_obj = G.add_obj_node(node_id, "object")
+        else:
+            added_obj = G.add_obj_node(node_id, "array")
 
         for child in G.get_ordered_ast_child_nodes(node_id):
             handle_node(G, child, dict(extra, parent_obj=added_obj))
@@ -746,8 +747,9 @@ def generate_obj_graph(G, entry_nodeid):
     for node in obj_nodes:
         G.set_node_attr(node[0], ("VAR_TYPE", "OBJECT"))
 
-    G.setup_run()
-    setup_js_builtins(G)
+    G.setup1()
+    modeledJSBuiltIns.setup_js_builtins(G)
+    G.setup2()
     print(sty.fg.green + "RUN" + sty.rs.all + ":", entry_nodeid)
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
@@ -755,7 +757,8 @@ def generate_obj_graph(G, entry_nodeid):
     handle_node(G, entry_nodeid)
     add_edges_between_funcs(G)
 
-def call_callback_function(G, caller, func_decl, func_scope):
+def call_callback_function(G, caller, func_decl, func_scope, args=None,
+    branches=[]):
     # generate empty object for parameters of the callback function
     param_list_node = None
     for child in G.get_ordered_ast_child_nodes(func_decl):
@@ -763,10 +766,18 @@ def call_callback_function(G, caller, func_decl, func_scope):
             param_list_node = child
             break
     if param_list_node is not None:
-        for child in G.get_ordered_ast_child_nodes(param_list_node):
+        for i, child in enumerate(
+            G.get_ordered_ast_child_nodes(param_list_node)):
             # handled_param = handle_node(G, child)
             param_name = G.get_name_from_child(child)
-            G.add_obj_to_scope(None, param_name, None, scope=func_scope)
+            if not args:
+                G.add_obj_to_scope(None, param_name, None, scope=func_scope)
+            else:
+                if i >= len(args):
+                    break
+                for obj in args[i].obj_nodes:
+                    G.add_obj_to_scope(None, param_name, None,
+                        scope=func_scope, tobe_added_obj=obj)
     
     backup_obj = G.cur_obj
     backup_scope = G.cur_scope
@@ -960,6 +971,7 @@ def call_function(G, ast_node, extra):
                 continue
             else:
                 print(sty.fg.green + sty.ef.bold + f'Running Python function {python_func}...' + sty.rs.all)
+                # TODO: add branches info
                 h = python_func(G, ast_node, *handled_args)
                 branch_returned_objs = h.obj_nodes
                 branch_used_objs = h.used_objs

@@ -347,7 +347,9 @@ class Graph:
         Args:
             ast_node (optional): The corresponding AST node.
                 Defaults to None.
-            js_type (str, optional): JavaScript type. Defaults to None.
+            js_type (str, optional): JavaScript type. Use None to avoid
+                adding prototype (but type is still set to 'object').
+                Defaults to 'object'.
             value (str, optional): Value of a literal, represented by
                 JavaScript code. Defaults to None.
         
@@ -357,23 +359,30 @@ class Graph:
         obj_node_id = str(self._get_new_nodeid())
         self.add_node(obj_node_id)
         self.set_node_attr(obj_node_id, ('labels:label', 'Object'))
-        self.set_node_attr(obj_node_id, ('type', js_type))
+        self.set_node_attr(obj_node_id, ('type', js_type or 'object'))
 
         if ast_node is not None:
             self.add_edge(obj_node_id, ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
+        # Literals' constructors are immutable.
+        # Even if you assigned another function to the constructors
+        # (e.g. Object = function(){}), objects are still created with
+        # original constructors (and prototypes).
         if js_type == "function":
             self.add_obj_as_prop(ast_node, "PROTOTYPE", "prototype", 
                     parent_obj=obj_node_id)
             if self.function_prototype is not None:
                 # prevent setting __proto__ before setup_object_and_function runs
-                self.add_obj_as_prop(var_name="__proto__",
-                parent_obj=obj_node_id, tobe_added_obj=self.function_prototype)
+                self.add_obj_as_prop(name="__proto__", parent_obj=obj_node_id,
+                tobe_added_obj=self.function_prototype)
         elif js_type == "object":
             if self.object_prototype is not None:
                 # prevent setting __proto__ before setup_object_and_function runs
-                self.add_obj_as_prop(var_name="__proto__",
-                parent_obj=obj_node_id, tobe_added_obj=self.object_prototype)
+                self.add_obj_as_prop(name="__proto__", parent_obj=obj_node_id,
+                tobe_added_obj=self.object_prototype)
+        elif js_type == "array":
+            self.add_obj_as_prop(name="__proto__", parent_obj=obj_node_id,
+            tobe_added_obj=self.array_prototype)
 
         if value is not None:
             self.set_node_attr(obj_node_id, ('code', value))
@@ -415,7 +424,8 @@ class Graph:
             {"type:TYPE": "OBJ_TO_PROP"})
         return new_name_node
 
-    def add_obj_as_prop(self, ast_node=None, var_type=None, var_name=None, parent_obj=None, tobe_added_obj=None):
+    def add_obj_as_prop(self, ast_node=None, js_type='object', name=None,
+        parent_obj=None, tobe_added_obj=None):
         """
         add (or put) an obj as a property of another obj
         parent_obj -> name node -> new obj / tobe_added_obj
@@ -424,31 +434,33 @@ class Graph:
         if parent_obj == None:
             parent_obj = self.cur_obj
 
-        name_node = self.get_prop_name_node(var_name, parent_obj)
+        name_node = self.get_prop_name_node(name, parent_obj)
 
         if name_node is None:
-            name_node = self.add_prop_name_node(var_name, parent_obj)
+            name_node = self.add_prop_name_node(name, parent_obj)
 
         if tobe_added_obj is None:
-            tobe_added_obj = self.add_obj_node(ast_node, var_type)
+            tobe_added_obj = self.add_obj_node(ast_node, js_type)
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
         return tobe_added_obj
 
-    def add_obj_to_name(self, name, scope=None, ast_node=None, var_type=None, tobe_added_obj=None):
+    def add_obj_to_name(self, name, scope=None, ast_node=None,
+        js_type='object', tobe_added_obj=None):
         name_node = self.add_name_node(name, scope)
-        obj_node = self.add_obj_to_name_node(name_node, ast_node, var_type, tobe_added_obj)
+        obj_node = self.add_obj_to_name_node(name_node, ast_node, js_type, tobe_added_obj)
         return obj_node
 
-    def add_obj_to_name_node(self, name_node, ast_node=None, var_type=None, tobe_added_obj=None):
+    def add_obj_to_name_node(self, name_node, ast_node=None, js_type='object',
+        tobe_added_obj=None):
         """
         Add a new object (or put a existing object) under a name node.
 
         name node -> new obj / tobe_added_obj
         """
         if tobe_added_obj is None:
-            tobe_added_obj = self.add_obj_node(ast_node, 'object')
+            tobe_added_obj = self.add_obj_node(ast_node, js_type)
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
@@ -717,7 +729,7 @@ class Graph:
             self.cur_scope = new_scope_node
         return new_scope_node
 
-    def add_obj_to_scope(self, ast_node=None, var_name=None, var_type=None,
+    def add_obj_to_scope(self, ast_node=None, var_name=None, js_type='object',
         scope=None, tobe_added_obj=None):
         """
         add a obj to a scope, if scope is None, add to current scope
@@ -738,7 +750,7 @@ class Graph:
         if tobe_added_obj == None:
             # here we do not add obj to current obj when add to scope
             # we just add a obj to scope
-            tobe_added_obj = self.add_obj_node(ast_node, 'object')
+            tobe_added_obj = self.add_obj_node(ast_node, js_type)
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
         return tobe_added_obj
@@ -1062,66 +1074,9 @@ class Graph:
         self.add_obj_as_prop(None, None, '__proto__', parent_obj=obj_node,
                              tobe_added_obj=upper_level_prototype_obj)
 
-    def add_child_node(self, node_id, child_node_type, 
-            edge_type, child_node_label = None, child_node_name = None):
-        """
-        add a child node to current node
-        
-        Args:
-            node_id: the id of current node
-            child_node_name: the name of adding node
-            child_node_type: the adding node type
-            edge_type: the adding edge type
-
-        Return:
-            the added child node id
-        """
-        child_node_id = str(self._get_new_nodeid())
-        self.add_node(child_node_id)
-        if child_node_label is not None:
-            self.set_node_attr(child_node_id, ('labels:label', child_node_label))
-        if child_node_name is not None:
-            self.set_node_attr(child_node_id, ('name', child_node_name))
-        self.set_node_attr(child_node_id, ('type', child_node_type))
-
-        self.add_edge(node_id, child_node_id, {"type:TYPE": edge_type})
-        return child_node_id
-
-    def generate_virtual_nodes(self, node_id, nodes_type = 'new'):
-        """
-        generate a group of virtual nodes with a group type for a node id
-
-        Args:
-            node_id: the node that need to generate
-            nodes_type: the type of group of nodes need to be generated
-        """
-        node_attr = self.get_node_attr(node_id)
-        if nodes_type == 'new':
-            root_node_id = self._get_new_nodeid()
-            self.add_node(root_node_id, {"type": "AST_NEW", "labels:label": "VIRTUAL"})
-            child_id = self.add_child_node(root_node_id, "AST_NAME", "PARENT_OF", 
-                    child_node_label = "VIRTUAL")
-            self.set_node_attr(child_id, ("childnum:int", '0'))
-            child_id = self.add_child_node(child_id, "string", "PARENT_OF", 
-                    child_node_label = "VIRTUAL")
-
-            if node_attr['type'] == "AST_ARRAY":
-                if node_attr['flags:string[]'] == "JS_ARRAY":
-                    self.set_node_attr(child_id, ('code', 'Array'))
-                    self.set_node_attr(child_id, ("childnum:int", '0'))
-                elif node_attr['flags:string[]'] == "JS_OBJECT":
-                    self.set_node_attr(child_id, ('code', 'Object'))
-                    self.set_node_attr(child_id, ("childnum:int", '0'))
-
-            child_id = self.add_child_node(root_node_id, "AST_ARG_LIST", 
-                    "PARENT_OF", child_node_label = "VIRTUAL")
-            self.set_node_attr(child_id, ("childnum:int", '1'))
-
-        return root_node_id
-
     # Misc
 
-    def setup_run(self):
+    def setup1(self):
         """
         the init function of setup a run
         """
@@ -1143,9 +1098,15 @@ class Graph:
         # reserved values
         self.function_prototype = None
         self.object_prototype = None
+        self.array_prototype = None
+        self.number_prototype = None
+        self.boolean_prototype = None
 
         # setup JavaScript built-in values
         self.null_obj = self.add_obj_node(None, 'object', value='null')
+
+    def setup2(self):
+        # setup JavaScript built-in values
         self.undefined_obj = self.add_obj_node(None, 'undefined',
                                                 value='undefined')
         self.add_obj_to_name('undefined', scope=self.BASE_SCOPE,

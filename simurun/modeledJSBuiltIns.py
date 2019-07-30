@@ -1,5 +1,6 @@
 from graph import Graph
 from utilities import NodeHandleResult
+import objectGraphGenerator
 
 
 def setup_js_builtins(G: Graph):
@@ -64,19 +65,15 @@ def setup_global_functions(G: Graph):
 
 
 def array_for_each(G: Graph, caller_ast, array: NodeHandleResult, callback: NodeHandleResult):
-    pass
-#     # TODO: need to call the callback function
-#     obj_nodes = []
-#     edges1 = G.get_out_edges(array_obj_node, edge_type='OBJ_TO_PROP')
-#     for edge in edges1:
-#         name_node = edge[1]
-#         if G.get_node_attr(name_node).get('name') in ['prototype', '__proto__']:
-#             continue
-#         edges2 = G.get_out_edges(name_node, edge_type='NAME_TO_OBJ')
-#         for e in edges2:
-#             obj_nodes.append(e[1])
-#     return NodeHandleResult(obj_nodes=obj_nodes)
-
+    # TODO: add multiple possibilities
+    for arr in array.obj_nodes:
+        elements = G.get_prop_obj_nodes(arr)
+        for elem in elements:
+            for func in callback.obj_nodes:
+                func_decl = G.get_obj_def_ast_node(func)
+                func_scope = G.get_func_scope_by_obj_node(func)
+                objectGraphGenerator.call_callback_function(G, caller_ast,
+                    func_decl, func_scope, NodeHandleResult(obj_nodes=[elem]))
 
 def array_push(G: Graph, caller_ast, array: NodeHandleResult, added_obj: NodeHandleResult):
     for arr in array.obj_nodes:
