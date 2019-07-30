@@ -183,7 +183,7 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name='
         prop_name_nodes, prop_obj_nodes: two sets containing possible name nodes and object nodes.
     '''
     if in_proto:
-        print(sty.fg.green + 'Cannot find "direct" property, going into __proto__...' + sty.rs.all)
+        print('Cannot find "direct" property, going into __proto__...')
     prop_name_nodes = set()
     prop_obj_nodes = set()
     for parent_obj in parent_objs:
@@ -430,10 +430,15 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         else:
             value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
             key = G.get_name_from_child(key_node)
-            if not key:
-                key = '*' # add wildcard for future use
-            else:
+            if key:
                 key = key.strip("'\"")
+            else:
+                try:
+                    key = int(G.get_node_attr(node_id).get('childnum:int'))
+                except ValueError:
+                    pass
+            if not key:
+                key = '*'
             child_handle_result = handle_node(G, value_node, extra)
             child_added_objs = child_handle_result.obj_nodes
             now_objs = []
