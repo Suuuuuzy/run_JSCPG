@@ -1,7 +1,6 @@
 import re
 from typing import List, Tuple, TypeVar, NoReturn
-
-NodeID = str
+from enum import Enum
 
 
 class NodeHandleResult:
@@ -13,7 +12,9 @@ class NodeHandleResult:
         self.used_objs = kwargs.get('used_objs', [])
 
     def __bool__(self):
-        return bool(self.obj_nodes or self.value or self.name or self.name_nodes or self.used_objs)
+        return bool(self.obj_nodes or (self.value is not None)
+            or (self.name is not None) or self.name_nodes or
+            self.used_objs)
 
     def __repr__(self):
         s = []
@@ -33,24 +34,18 @@ class BranchTag:
         branch (str): which condition/case in the statement
         op (str): operation, 'A' for addition, 'D' for deletion
         ---
-        s (str/BranchTag): string to create the object directly, or copy the existing object
+        s (str/BranchTag): string to create the object directly, or copy
+            the existing object
     '''
 
     def __init__(self, s = None, **kwargs):
-        '''
-        Args:
-            stmt (str): ID of the if/switch statement
-            branch (str): which condition/case in the statement
-            op (str): operation, 'A' for addition, 'D' for deletion
-            ---
-            s (str/BranchTag): string to create the object directly, or copy the existing object
-        '''
         self.stmt = ''
         self.branch = ''
         self.op = ''
         if s:
             try:
-                self.stmt, self.branch, self.op = re.match(r'-?([^#]+)#(\d+)(\w?)', str(s)).groups()
+                self.stmt, self.branch, self.op = re.match(
+                    r'-?([^#]+)#(\d+)(\w?)', str(s)).groups()
             except Exception:
                 pass
         if 'stmt' in kwargs:
@@ -120,3 +115,35 @@ class BranchTagContainer(list):
     def is_empty(self):
         return not bool(self)
 
+
+class ExtraInfo:
+    def __init__(self, original=None, **kwargs):
+        self.branches = []
+        self.side = None
+        self.parent_obj = None
+        self.ast_node = None
+        if original is not None:
+            self.branches = original.branches
+            self.side = original.side
+            self.parent_obj = original.parent_obj
+            self.ast_node = original.ast_node
+        if 'branches' in kwargs:
+            self.branches = kwargs.get('branches')
+        if 'side' in kwargs:
+            self.side = kwargs.get('side')
+        if 'parent_obj' in kwargs:
+            self.parent_obj = kwargs.get('parent_obj')
+        if 'ast_node' in kwargs:
+            self.ast_node = kwargs.get('ast_node')
+
+    def __bool__(self):
+        return bool(self.branches or (self.side is not None) or
+            (self.parent_obj is not None) or (self.ast_node is not None))
+
+    def __repr__(self):
+        s = []
+        for key in dir(self):
+            if not key.startswith("__"):
+                s.append(f'{key}={repr(getattr(self, key))}')
+        args = ', '.join(s)
+        return f'{self.__class__.__name__}({args})'

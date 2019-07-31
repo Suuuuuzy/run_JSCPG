@@ -119,10 +119,10 @@ def setup_global_functions(G: Graph):
     unescape = G.add_blank_func_to_scope('unescape', G.BASE_SCOPE, string_returning_func)
 
 
-def array_for_each(G: Graph, caller_ast, array: NodeHandleResult, callback: NodeHandleResult):
-    # TODO: add multiple possibilities
+def array_for_each(G: Graph, caller_ast, extra, array: NodeHandleResult, callback: NodeHandleResult):
+    branches = extra.branches
     for arr in array.obj_nodes:
-        elements = G.get_prop_obj_nodes(arr)
+        elements = G.get_prop_obj_nodes(arr, branches=branches)
         print(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {elements}.' + sty.rs.all)
         for elem in elements:
             for func in callback.obj_nodes:
@@ -130,27 +130,28 @@ def array_for_each(G: Graph, caller_ast, array: NodeHandleResult, callback: Node
                 func_scope = G.get_func_scope_by_obj_node(func)
                 objectGraphGenerator.call_callback_function(G, caller_ast,
                     func_decl, func_scope,
-                    args=[NodeHandleResult(obj_nodes=[elem])])
+                    args=[NodeHandleResult(obj_nodes=[elem])],
+                    branches=extra.branches)
     return NodeHandleResult()
 
 
-def array_push(G: Graph, caller_ast, array: NodeHandleResult, added_obj: NodeHandleResult):
+def array_push(G: Graph, caller_ast, extra, array: NodeHandleResult, added_obj: NodeHandleResult):
     for arr in array.obj_nodes:
         for obj in added_obj.obj_nodes:
             G.add_obj_as_prop(None, None, name='*', parent_obj=arr, tobe_added_obj=obj)
     return NodeHandleResult(used_objs=added_obj.obj_nodes)
 
 
-def array_pop(G: Graph, caller_ast, array: NodeHandleResult):
-    # TODO: add multiple possibilities
+def array_pop(G: Graph, caller_ast, extra, array: NodeHandleResult):
+    branches = extra.branches
     returned_objs = set()
     for arr in array.obj_nodes:
-        elements = G.get_prop_obj_nodes(arr)
+        elements = G.get_prop_obj_nodes(arr, branches=branches)
         returned_objs.update(elements)
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
-def array_join(G: Graph, caller_ast, array: NodeHandleResult, sep: NodeHandleResult):
+def array_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep: NodeHandleResult):
     returned_objs = []
     used_objs = set()
     for arr in array.obj_nodes:
@@ -163,7 +164,7 @@ def array_join(G: Graph, caller_ast, array: NodeHandleResult, sep: NodeHandleRes
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
 
 
-def object_keys(G: Graph, caller_ast, arg: NodeHandleResult, for_array=False):
+def object_keys(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
         arr = G.add_obj_node(None, 'array')
@@ -177,7 +178,7 @@ def object_keys(G: Graph, caller_ast, arg: NodeHandleResult, for_array=False):
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def object_values(G: Graph, caller_ast, arg: NodeHandleResult, for_array=False):
+def object_values(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
         arr = G.add_obj_node(None, 'array')
@@ -192,7 +193,7 @@ def object_values(G: Graph, caller_ast, arg: NodeHandleResult, for_array=False):
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def object_entries(G: Graph, caller_ast, arg: NodeHandleResult, for_array=False):
+def object_entries(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
         arr = G.add_obj_node(None, 'array')
@@ -213,19 +214,19 @@ def object_entries(G: Graph, caller_ast, arg: NodeHandleResult, for_array=False)
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def array_keys(G: Graph, caller_ast, this: NodeHandleResult, for_array=False):
-    return object_keys(G, caller_ast, this, True)
+def array_keys(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
+    return object_keys(G, caller_ast, extra, this, True)
 
 
-def array_values(G: Graph, caller_ast, this: NodeHandleResult, for_array=False):
-    return object_values(G, caller_ast, this, True)
+def array_values(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
+    return object_values(G, caller_ast, extra, this, True)
 
 
-def array_entries(G: Graph, caller_ast, this: NodeHandleResult, for_array=False):
-    return object_entries(G, caller_ast, this, True)
+def array_entries(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
+    return object_entries(G, caller_ast, extra, this, True)
 
 
-def object_to_string(G: Graph, caller_ast, this: NodeHandleResult):
+def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult):
     returned_objs = []
     for obj in this.obj_nodes:
         string = G.add_obj_node(None, 'string')
@@ -234,11 +235,11 @@ def object_to_string(G: Graph, caller_ast, this: NodeHandleResult):
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def object_value_of(G: Graph, caller_ast, this: NodeHandleResult):
+def object_value_of(G: Graph, caller_ast, extra, this: NodeHandleResult):
     return this
 
 
-def parse_number(G: Graph, caller_ast, s: NodeHandleResult, rad=None):
+def parse_number(G: Graph, caller_ast, extra, s: NodeHandleResult, rad=None):
     returned_objs = []
     for obj in s.obj_nodes:
         new_literal = G.add_obj_node(caller_ast, 'number')
@@ -247,7 +248,7 @@ def parse_number(G: Graph, caller_ast, s: NodeHandleResult, rad=None):
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=s.obj_nodes)
 
 
-def string_returning_func(G: Graph, caller_ast, *args):
+def string_returning_func(G: Graph, caller_ast, extra, *args):
     returned_string = G.add_obj_node(caller_ast, 'string')
     used_objs = set()
     for arg in args:
@@ -257,5 +258,5 @@ def string_returning_func(G: Graph, caller_ast, *args):
     return NodeHandleResult(obj_nodes=[returned_string], used_objs=list(used_objs))
 
 
-def boolean_returning_func(G: Graph, caller_ast, *args):
+def boolean_returning_func(G: Graph, caller_ast, extra, *args):
     return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj])

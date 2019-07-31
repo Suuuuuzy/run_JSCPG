@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from graph import Graph
 from scopeController import ScopeController
-from utilities import NodeHandleResult, BranchTag
+from utilities import NodeHandleResult, BranchTag, ExtraInfo
 import sys
 import sty
 import re
@@ -120,23 +120,25 @@ def register_func(G, node_id):
 
     print(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
 
-def handle_new_node(G, node_id, extra = {}) -> NodeHandleResult:
+def handle_new_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     """
     deprecated
     handle new object related operations
     """
-    branches = extra.get('branches')
+    branches = extra.branches
     branch = branches[-1] if branches else None
 
     callee = G.get_ordered_ast_child_nodes(node_id)[0]
-    handled_callee = handle_node(G, callee, extra={'branches': extra.get('branches')})
+    handled_callee = handle_node(G, callee, extra=ExtraInfo(branches=extra.branches))
     name_nodes = handled_callee.name_nodes
     name = handled_callee.name
     created_objs = []
     constructor_decl_counter = 0
 
     has_branches = True
-    ast_node = extra['ast_node'] if 'ast_node' in extra else node_id
+    ast_node = extra.ast_node
+    if ast_node is None:
+        ast_node = node_id
 
     for name_node in name_nodes:
         constructor_decls = G.get_func_decls_by_name_node(name_node, branches)
@@ -220,14 +222,14 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name='
                 print(sty.fg.green + f'Add prop name node {parent_name}.{prop_name} ({parent_obj}->{added_name_node})' + sty.rs.all)
     return prop_name_nodes, prop_obj_nodes
 
-def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
+def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     '''
     Handle property.
     
     Args:
         G (Graph): graph.
         ast_node ([type]): the MemberExpression (AST_PROP) AST node.
-        extra (dict, optional): Extra information. Defaults to {}.
+        extra (ExtraInfo, optional): Extra information. Defaults to {}.
     
     Returns:
         NodeHandleResult
@@ -243,7 +245,7 @@ def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
         parent_objs = G.cur_obj
         # parent_scope = G.cur_scope
     elif not parent_objs:
-        if not (extra and extra.get('side') == 'right'):
+        if not (extra and extra.side == 'right'):
             print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, creating object nodes".format(parent_name) + sty.rs.all)
             # we assume this happens when it's a built-in var name
             if parent_name_nodes:
@@ -256,8 +258,8 @@ def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
             print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, return undefined".format(parent_name) + sty.rs.all)
             return NodeHandleResult()
 
-    branches = extra.get('branches')
-    side = extra.get('side')
+    branches = extra.branches
+    side = extra.side
     prop_name_nodes, prop_obj_nodes = find_prop(G, parent_objs, prop_name, branches, side, parent_name)
 
     if not prop_name_nodes and not prop_obj_nodes:
@@ -267,7 +269,7 @@ def handle_prop(G, ast_node, extra = {}) -> NodeHandleResult:
     print(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, name={parent_name}.{prop_name}, name_nodes={list(prop_name_nodes)}')
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes), name=f'{parent_name}.{prop_name}', name_nodes=list(prop_name_nodes))
 
-def handle_assign(G, ast_node, extra = {}) -> NodeHandleResult:
+def handle_assign(G, ast_node, extra=ExtraInfo()) -> NodeHandleResult:
     '''
     Handle assignment statement.
     '''
@@ -280,8 +282,8 @@ def handle_assign(G, ast_node, extra = {}) -> NodeHandleResult:
         return handle_node(G, ast_children[0], extra)
 
     # recursively handle both sides
-    handled_right = handle_node(G, right, dict(extra, side='right'))
-    handled_left = handle_node(G, left, dict(extra, side='left'))
+    handled_right = handle_node(G, right, ExtraInfo(extra, side='right'))
+    handled_left = handle_node(G, left, ExtraInfo(extra, side='left'))
 
     if not handled_left:
         print(sty.fg.red + "Left side handling error at statement {}, child {}".format(ast_node, right) + sty.rs.all, file=sys.stderr)
@@ -301,9 +303,7 @@ def handle_assign(G, ast_node, extra = {}) -> NodeHandleResult:
         print(sty.fg.red + "Right OBJ not found" + sty.rs.all, file=sys.stderr)
 
     # get branch tags
-    branches = []
-    if extra and extra.get('branches'):
-        branches = extra.get('branches')
+    branches = extra.branches if extra else []
     
     # do the assignment
     for name_node in handled_left.name_nodes:
@@ -368,7 +368,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=[]):
 
     return created_obj
 
-def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
+def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     """
     for different node type, do different actions to handle this node
     return [added_obj, added_scope, cur_obj, cur_scope, modified_objs, var_name, var_name_node]
@@ -387,8 +387,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
     # remove side information
     # because assignment's side affects its direct children
-    extra = dict(extra)
-    extra.pop('side', None)
+    extra = ExtraInfo(extra, side=None)
 
     if cur_type == "AST_PARAM":
         node_name = G.get_name_from_child(node_id)
@@ -418,14 +417,14 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             added_obj = G.add_obj_node(node_id, "array")
 
         for child in G.get_ordered_ast_child_nodes(node_id):
-            handle_node(G, child, dict(extra, parent_obj=added_obj))
+            handle_node(G, child, ExtraInfo(extra, parent_obj=added_obj))
 
         G.remove_nodes_from(G.get_node_by_attr('labels:label', 'VIRTUAL'))
 
         return NodeHandleResult(obj_nodes=[added_obj])
 
     elif cur_type == 'AST_ARRAY_ELEM':
-        if not (extra and 'parent_obj' in extra):
+        if not (extra and extra.parent_obj is not None):
             print(sty.ef.inverse + sty.fg.red + "AST_ARRAY_ELEM occurs outside AST_ARRAY" + sty.rs.all, file=sys.stderr)
         else:
             value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
@@ -443,7 +442,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
             child_added_objs = child_handle_result.obj_nodes
             now_objs = []
             for obj in child_added_objs:
-                now_objs.append(G.add_obj_as_prop(node_id, None, key, parent_obj = extra['parent_obj'], tobe_added_obj = obj))
+                now_objs.append(G.add_obj_as_prop(node_id, None, key, parent_obj=extra.parent_obj, tobe_added_obj=obj))
         return NodeHandleResult(obj_nodes=now_objs)
 
     elif cur_type == 'AST_DIM':
@@ -454,11 +453,11 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
         var_name = G.get_name_from_child(node_id)
 
-        branches = extra.get('branches', []) if extra else []
+        branches = extra.branches if extra else []
         now_objs = list(set(G.get_objs_by_name(var_name, branches = branches)))
 
         name_node = G.get_name_node(var_name)
-        if name_node is None and not (extra and extra.get('side') == 'right'):
+        if name_node is None and not (extra and extra.side == 'right'):
             if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
                 # we use the function scope
                 name_node = G.add_name_node(var_name,
@@ -556,11 +555,11 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
         # lineno = G.get_node_attr(node_id).get('lineno:int')
         stmt_id = "If" + node_id
         if_elems = G.get_ordered_ast_child_nodes(node_id)
-        branches = extra.get('branches', [])
+        branches = extra.branches
         parent_branch = branches[-1] if branches else None
         for i, if_elem in enumerate(if_elems):
             branch_tag = BranchTag(stmt=stmt_id, branch=str(i))
-            handle_node(G, if_elem, dict(extra, branches=branches+[branch_tag]))
+            handle_node(G, if_elem, ExtraInfo(extra, branches=branches+[branch_tag]))
         num_of_branches = len(if_elems) # which is always 2 for javascript...
         if not has_else(G, node_id):
             num_of_branches += 1
@@ -570,7 +569,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
     elif cur_type == 'AST_IF_ELEM':
         condition, body = G.get_ordered_ast_child_nodes(node_id)
         handle_node(G, condition)
-        branches = extra.get('branches', [])
+        branches = extra.branches
         simurun_block(G, body, G.cur_scope, branches)
         return NodeHandleResult()
     
@@ -581,7 +580,7 @@ def handle_node(G, node_id, extra = {}) -> NodeHandleResult:
 
     elif cur_type == 'AST_SWITCH_LIST':
         stmt_id = "Switch" + node_id
-        branches = extra.get('branches', [])
+        branches = extra.branches
         parent_branch = branches[-1] if branches else None
         cases = G.get_ordered_ast_child_nodes(node_id)
         for i, case in enumerate(cases):
@@ -650,7 +649,7 @@ def simurun_block(G, ast_node, parent_scope, branches=[], block_scope=True):
                                    tobe_added_obj=G.undefined_obj)
     # simulate statements
     for stmt in stmts:
-        handled_res = handle_node(G, stmt, {'branches': branches})
+        handled_res = handle_node(G, stmt, ExtraInfo(branches=branches))
 
         if handled_res:
             stmt_used_objs = handled_res.used_objs
@@ -899,7 +898,7 @@ def call_function(G, ast_node, extra):
     Args:
         G (Graph): graph
         ast_node: the Call/New expression's AST node.
-        extra (dict): extra information.
+        extra (ExtraInfo): extra information.
     '''
     # handle the callee
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
@@ -921,7 +920,7 @@ def call_function(G, ast_node, extra):
         else:
             print(sty.fg.red + sty.ef.inverse + f'Function call error: Name node not found for {func_name}!')
 
-    branches = extra.get('branches')
+    branches = extra.branches
     parent_branch = branches[-1] if branches else None
 
     # if the function declaration has multiple possibilities,
@@ -977,7 +976,7 @@ def call_function(G, ast_node, extra):
             else:
                 print(sty.fg.green + sty.ef.bold + f'Running Python function {python_func}...' + sty.rs.all)
                 # TODO: add branches info
-                h = python_func(G, ast_node, *handled_args)
+                h = python_func(G, ast_node, extra, *handled_args)
                 branch_returned_objs = h.obj_nodes
                 branch_used_objs = h.used_objs
         else: # JS function in AST
@@ -1001,7 +1000,7 @@ def call_function(G, ast_node, extra):
                     branch_used_objs.extend(h.obj_nodes)
                     branch_used_objs.extend(h.used_objs)
                 # add a blank object as return objects
-                returned_obj = G.add_obj_node(ast_node, "VIRTUAL_RETURNED_OBJ")
+                returned_obj = G.add_obj_node(ast_node, "object")
                 for obj in branch_used_objs:
                     G.add_edge(obj, returned_obj,
                         {'type:TYPE': 'CONTRIBUTES_TO'})
