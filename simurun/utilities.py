@@ -1,12 +1,13 @@
 import re
 from typing import List, Tuple, TypeVar, NoReturn
 from enum import Enum
+import math
 
 
 class NodeHandleResult:
     def __init__(self, **kwargs):
         self.obj_nodes = kwargs.get('obj_nodes', [])
-        self.value = kwargs.get('value')
+        self.values = kwargs.get('values')
         self.name = kwargs.get('name')
         self.name_nodes = kwargs.get('name_nodes', [])
         self.used_objs = kwargs.get('used_objs', [])
@@ -121,24 +122,24 @@ class ExtraInfo:
         self.branches = []
         self.side = None
         self.parent_obj = None
-        self.ast_node = None
+        self.caller_ast = None
         if original is not None:
             self.branches = original.branches
             self.side = original.side
             self.parent_obj = original.parent_obj
-            self.ast_node = original.ast_node
+            self.caller_ast = original.caller_ast
         if 'branches' in kwargs:
             self.branches = kwargs.get('branches')
         if 'side' in kwargs:
             self.side = kwargs.get('side')
         if 'parent_obj' in kwargs:
             self.parent_obj = kwargs.get('parent_obj')
-        if 'ast_node' in kwargs:
-            self.ast_node = kwargs.get('ast_node')
+        if 'caller_ast' in kwargs:
+            self.caller_ast = kwargs.get('caller_ast')
 
     def __bool__(self):
         return bool(self.branches or (self.side is not None) or
-            (self.parent_obj is not None) or (self.ast_node is not None))
+            (self.parent_obj is not None) or (self.caller_ast is not None))
 
     def __repr__(self):
         s = []
@@ -147,3 +148,10 @@ class ExtraInfo:
                 s.append(f'{key}={repr(getattr(self, key))}')
         args = ', '.join(s)
         return f'{self.__class__.__name__}({args})'
+
+
+class ValueRange:
+    def __init__(self, original=None, **kwargs):
+        self.min = kwargs.get('min', -math.inf)
+        self.max = kwargs.get('max', math.inf)
+        self.type = kwargs.get('type', 'float')

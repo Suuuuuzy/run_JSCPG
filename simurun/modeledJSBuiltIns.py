@@ -46,6 +46,9 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('keys', array_prototype, array_keys)
     G.add_blank_func_as_prop('values', array_prototype, array_values)
     G.add_blank_func_as_prop('entries', array_prototype, array_entries)
+    G.add_blank_func_as_prop('slice', array_prototype, this_returning_func)
+    G.add_blank_func_as_prop('filter', array_prototype, this_returning_func)
+
 
 
 def setup_boolean(G: Graph):
@@ -105,7 +108,7 @@ def setup_object_and_function(G: Graph):
 
     G.add_blank_func_as_prop('toString', object_prototype, object_to_string)
     G.add_blank_func_as_prop('toLocaleString', object_prototype, object_to_string)
-    G.add_blank_func_as_prop('valueOf', object_prototype, object_value_of)
+    G.add_blank_func_as_prop('valueOf', object_prototype, this_returning_func)
 
 
 def setup_global_functions(G: Graph):
@@ -132,6 +135,23 @@ def array_for_each(G: Graph, caller_ast, extra, array: NodeHandleResult, callbac
                     func_decl, func_scope,
                     args=[NodeHandleResult(obj_nodes=[elem])],
                     branches=extra.branches)
+    return NodeHandleResult()
+
+
+def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, callback: NodeHandleResult):
+    branches = extra.branches
+    objs = set()
+    for arr in array.obj_nodes:
+        elements = G.get_prop_obj_nodes(arr, branches=branches)
+        for elem in elements:
+            objs.add(elem)
+    print(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
+    for func in callback.obj_nodes:
+        func_decl = G.get_obj_def_ast_node(func)
+        func_scope = G.get_func_scope_by_obj_node(func)
+        objectGraphGenerator.call_callback_function(G, caller_ast, func_decl,
+            func_scope, args=[NodeHandleResult(obj_nodes=objs)],
+            branches=extra.branches)
     return NodeHandleResult()
 
 
@@ -235,8 +255,59 @@ def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult):
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def object_value_of(G: Graph, caller_ast, extra, this: NodeHandleResult):
-    return this
+def object_create(G: Graph, caller_ast, extra, proto: NodeHandleResult):
+    returned_objs = []
+    for p in proto:
+        new_obj = G.add_obj_node(caller_ast, None)
+        G.add_obj_as_prop(name='__proto__', parent_obj=new_obj, tobe_added_obj=p)
+        returned_objs.append(new_obj)
+    return NodeHandleResult(obj_nodes=returned_objs)
+
+
+def object_is(G: Graph, caller_ast, extra, value1: NodeHandleResult, value2: NodeHandleResult):
+    if value1.obj_nodes == value2.obj_nodes:
+        return NodeHandleResult(obj_nodes=G.true_obj)
+    else:
+        return NodeHandleResult(obj_nodes=G.false_obj)
+
+
+def function_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, *args):
+    objectGraphGenerator.call_function(func.obj_nodes, args, this, extra,
+        caller_ast, False, stmt_id=f'Call{caller_ast}')
+
+
+def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, arg_array=None):
+    args = []
+    if arg_array is not None:
+        for array in arg_array.obj_nodes: # for every possible argument array
+            i = 0 # argument counter
+            while True:
+                objs = G.get_prop_obj_nodes(parent_obj=array, prop_name=str(i),
+                    branches=extra.branches)
+                if objs:
+                    # if the counter exceeds the length of the args array,
+                    # expand it
+                    if i >= len(args):
+                        args.append([])
+                    # extend possible objects with objects in the array
+                    args[i].extend(objs)
+                else: # the array is finished (index is larger than its length)
+                    break
+    args = [NodeHandleResult(obj_nodes=i) for i in args]
+    return function_call(G, caller_ast, extra, func, this, *args)
+
+
+def function_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, *args):
+    returned_objs = []
+    for f in func.obj_nodes:
+        for t in this.obj_nodes:
+            new_func = G.add_obj_node(caller_ast, 'function')
+            G.set_node_attr(new_func, ('target_func', f))
+            G.set_node_attr(new_func, ('bound_this', t))
+            if args:
+                G.set_node_attr(new_func, ('bound_args', args))
+            returned_objs.append(new_func)
+    return NodeHandleResult(obj_nodes=returned_objs)
 
 
 def parse_number(G: Graph, caller_ast, extra, s: NodeHandleResult, rad=None):
@@ -246,6 +317,10 @@ def parse_number(G: Graph, caller_ast, extra, s: NodeHandleResult, rad=None):
         returned_objs.append(new_literal)
         G.add_edge(obj, new_literal, {'type:TYPE': 'CONTRIBUTES_TO'})
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=s.obj_nodes)
+
+
+def this_returning_func(G: Graph, caller_ast, extra, this: NodeHandleResult):
+    return this
 
 
 def string_returning_func(G: Graph, caller_ast, extra, *args):
