@@ -82,7 +82,7 @@ def setup_object_and_function(G: Graph):
     # add Object (function)
     object_cons = G.add_blank_func_to_scope('Object', scope=G.BASE_SCOPE)
     # get Object.prototype
-    object_prototype =  G.get_prop_obj_nodes(prop_name='prototype', parent_obj=object_cons)[0]
+    object_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=object_cons)[0]
     G.set_node_attr(object_prototype, ('code', 'Object.prototype'))
     # add Object.prototype.__proto__
     G.add_obj_as_prop(None, None, '__proto__', parent_obj=object_prototype, tobe_added_obj=G.null_obj)

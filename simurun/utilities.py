@@ -13,7 +13,7 @@ class NodeHandleResult:
         self.used_objs = kwargs.get('used_objs', [])
 
     def __bool__(self):
-        return bool(self.obj_nodes or (self.value is not None)
+        return bool(self.obj_nodes or (self.values is not None)
             or (self.name is not None) or self.name_nodes or
             self.used_objs)
 
