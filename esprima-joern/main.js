@@ -40,6 +40,8 @@ var requiredModules = new Set(),
     analyzedModules = [];
 const builtInModules = require('module').builtinModules;
 
+var stdoutMode = dirname == '-' || process.argv[process.argv.length - 1] == '-';
+
 // write csv headers
 
 var csvHead1PHP = `id:ID\tlabels:label\ttype\tflags:string[]\tlineno:int\tcode\tchildnum:int\tfuncid:int\tclassname\tnamespace\tendlineno:int\tname\tdoccomment\n`.replace(/\t/g, delimiter);
@@ -48,7 +50,7 @@ var csvHead2PHP = `start:START_ID\tend:END_ID\ttype:TYPE\n`.replace(/\t/g, delim
 var csvHead2C = `start\tend\ttype\tvar\n`.replace(/\t/g, delimiter);
 var nodesStream = new Readable();
 var relsStream = new Readable();
-if (dirname == '-' || process.argv[process.argv.length - 1] == '-'){
+if (stdoutMode){
     // output to stdout
     var nodesString = '', relsString = '';
     nodesStream.on('data', (chunk) => {
@@ -2805,7 +2807,7 @@ function analyze(filePath, parentNodeId) {
     } catch (e) {
         console.log(e);
     }
-    if (filePath){
+    if (!stdoutMode){
         console.dir(root);
     }
     // console.log(JSON.stringify(root, null, 2));

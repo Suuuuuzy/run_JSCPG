@@ -1187,32 +1187,60 @@ def eval_value(G, s, return_result=False, ast_node=None):
         return evaluated, js_type
 
 def analyze_files(G, path, start_node_id=0):
-    output = subprocess.check_output(['../esprima-joern/main.js',
-        str(start_node_id), '-'])
+    output = subprocess.check_output(['../esprima-joern/main.js', path,
+        str(start_node_id), '-'], text=True)
     G.import_from_string(output)
-    generate_obj_graph(G, '0')
+    generate_obj_graph(G, str(start_node_id + 1))
 
-def analyze_string(G, source_code, start_node_id=0, toplevel=False,
-    extra=None):
+def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     #        ↓ ignore this error if your editor shows
     proc = subprocess.Popen(['../esprima-joern/main.js', '-',
         str(start_node_id)], text=True, stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = proc.communicate(source_code)
-    print(stderr)
+        stdout=subprocess.PIPE)
+    stdout, _ = proc.communicate(source_code)
     G.import_from_string(stdout)
     if toplevel:
         generate_obj_graph(G, str(start_node_id + 1))
+
+def analyze_json(G, json_str, start_node_id=0, extra=None):
+    # This function is almost the same as analyze_string,
+    # but it is too dirty. I don't want to put them in one function.
+
+    # because esprima cannot directly parse JSON, we add a previx
+    # the real JSON object starts at 8 if the File node is at node 0
+    # so we pass a "start_node_id - 8" to make the JSON object starts
+    # at "start_node_id"
+    json_str = 'var a = ' + json_str.strip()
+    #        ↓ ignore this error if your editor shows
+    proc = subprocess.Popen(['../esprima-joern/main.js', '-',
+        str(start_node_id - 8)], text=True, stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE)
+    stdout, _ = proc.communicate(json_str)
+    # remove all nodes and edges before the JSON object
+    def filter_func(line):
+        try:
+            if int(line.split('\t')[0]) < start_node_id:
+                return False
+            return True
+        except ValueError:
+            pass
+        return True
+    stdout = '\n'.join(filter(filter_func, stdout.split('\n')))
+    G.import_from_string(stdout)
+    return handle_node(G, str(start_node_id), extra)
 
 def main():
     G = Graph()
     if len(sys.argv) > 1:
         if sys.argv[1] == '-':
+            # analyze from stdin
             source = sys.stdin.read()
             analyze_string(G, source, toplevel=True)
         else:
+            # analyze from JS source code files
             analyze_files(G, sys.argv[1])
     else:
+        # analyze from CSVs
         G.import_from_CSV("./nodes.csv", "./rels.csv")
         generate_obj_graph(G, '1')
     # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)

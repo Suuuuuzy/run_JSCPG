@@ -15,6 +15,13 @@ class Graph:
         self.cur_id = 0
         self.file_contents = {}
 
+        # reserved values
+        self.function_prototype = None
+        self.object_prototype = None
+        self.array_prototype = None
+        self.number_prototype = None
+        self.boolean_prototype = None
+
     # Basic graph operations
 
     # node
@@ -1012,13 +1019,6 @@ class Graph:
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
         self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_SCOPE"})
         # self.cur_obj = cur_nodeid    # this is incorrect
-
-        # reserved values
-        self.function_prototype = None
-        self.object_prototype = None
-        self.array_prototype = None
-        self.number_prototype = None
-        self.boolean_prototype = None
 
         # setup JavaScript built-in values
         self.null_obj = self.add_obj_node(None, 'object', value='null')
