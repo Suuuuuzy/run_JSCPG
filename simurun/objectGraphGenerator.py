@@ -122,54 +122,6 @@ def register_func(G, node_id):
 
     print(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
 
-def handle_new_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
-    """
-    abandoned
-    handle new object related operations
-    """
-    branches = extra.branches
-    branch = branches[-1] if branches else None
-
-    callee = G.get_ordered_ast_child_nodes(node_id)[0]
-    handled_callee = handle_node(G, callee, extra=ExtraInfo(branches=extra.branches))
-    name_nodes = handled_callee.name_nodes
-    name = handled_callee.name
-    created_objs = []
-    constructor_decl_counter = 0
-
-    has_branches = True
-    ast_node = extra.ast_node
-    if ast_node is None:
-        ast_node = node_id
-
-    for name_node in name_nodes:
-        constructor_decls = G.get_func_decls_by_name_node(name_node, branches)
-        if not constructor_decls:
-            print("Built-in: Function {} not found".format(name))
-            blank_func = G.add_blank_func(name)
-            added_objs = handle_node(G, blank_func, extra).obj_nodes
-            for obj in added_objs:
-                G.add_edge(name_node, obj, {'type:TYPE': 'NAME_TO_OBJ'})
-                G.add_edge(obj, blank_func, {'type:TYPE': 'OBJ_TO_AST'})
-            constructor_decls.append(blank_func)
-
-        stmt_id = 'New' + node_id
-
-        for decl in constructor_decls:
-            if len(name_nodes) * len(constructor_decls) == 1: # No any branches
-                has_branches = False
-                created_obj = instantiate_obj(G, ast_node, decl)
-            else:
-                created_obj = instantiate_obj(G, ast_node, decl, branches+[BranchTag(stmt=stmt_id, branch=constructor_decl_counter)])
-
-            created_objs.append(created_obj)
-            constructor_decl_counter += 1
-        
-    if has_branches:
-        merge(G, stmt_id, constructor_decl_counter, branch)
-
-    return NodeHandleResult(obj_nodes=created_objs)
-
 def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
     'Unknown', in_proto=False):
     '''
@@ -203,7 +155,7 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
         # object is found
         name_node_found = False
         # search "direct" properties
-        prop_name_node = G.get_name_node_of_obj(prop_name, parent_obj)
+        prop_name_node = G.get_prop_name_node(prop_name, parent_obj)
         if prop_name_node is not None:
             name_node_found = True
             prop_name_nodes.add(prop_name_node)
@@ -214,7 +166,7 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
         elif prop_name != '__proto__' and prop_name != '*':
             # if name node is not found, search the property under __proto__
             # note that we cannot search __proto__ under __proto__
-            __proto__name_node = G.get_name_node_of_obj("__proto__",
+            __proto__name_node = G.get_prop_name_node("__proto__",
                 parent_obj=parent_obj)
             if __proto__name_node is not None:
                 __proto__obj_nodes = G.get_objs_by_name_node(__proto__name_node,
@@ -899,9 +851,8 @@ def run_toplevel_file(G, node_id):
     # add scope and obj first
     func_name = G.get_node_attr(node_id)['name']
     print(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(func_name) + sty.rs.all)
-    [func_decl_id, func_scope_id] = decl_function(G, node_id, func_name = func_name, parent_scope=G.BASE_SCOPE)
+    func_decl_id, func_scope_id = decl_function(G, node_id, func_name = func_name, parent_scope=G.BASE_SCOPE)
     # simurun the file
-    func_scope_id = G.get_func_scope_by_name(func_name)
     backup_obj = G.cur_obj
     backup_scope = G.cur_scope
 
@@ -927,7 +878,7 @@ def run_toplevel_file(G, node_id):
     # get current module.exports
     # because module.exports may be assigned to another object
     # TODO: test if module is assignable
-    module_obj = G.get_obj_by_name('module')
+    module_obj = G.get_objs_by_name('module')[0]
     module_exports_objs = G.get_prop_obj_nodes(parent_obj=module_obj,
         prop_name='exports')
 
@@ -1028,6 +979,24 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
     is_new=False, stmt_id='Unknown', func_name='{anonymous}'):
     '''
     Directly call a function.
+    
+    Args:
+        G (Graph): Graph.
+        func_objs: List of function declaration objects.
+        args (List[NodeHandleResult]): List of handled arguments.
+        this (NodeHandleResult): Handled override "this" object.
+        extra (ExtraInfo, optional): Extra information. Defaults to
+            empty ExtraInfo.
+        caller_ast (optional): The caller's AST node. Defaults to None.
+        is_new (bool, optional): If the caller is a "new" statement.
+            Defaults to False.
+        stmt_id (str, optional): Caller's statement ID, for branching
+            use only. Defaults to 'Unknown'.
+        func_name (str, optional): The function's name, for adding blank
+            functions only. Defaults to '{anonymous}'.
+    
+    Returns:
+        List, List: Lists of returned objects and used objects.
     '''
     if stmt_id == 'Unknown' and caller_ast is not None:
         stmt_id = caller_ast
@@ -1145,32 +1114,6 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
         merge(G, stmt_id, len(func_objs), parent_branch)
 
     return list(returned_objs), list(used_objs)
-
-def build_df(G, node_id, modified_objs):
-    """
-    abandoned
-    build the df of current node id
-    """
-    input_objs = set()
-    inputs = G.get_all_inputs(node_id)
-
-    for cur_input in inputs:
-        cur_obj = G.get_obj_by_node_id(cur_input)
-        var_name = G.get_name_from_child(cur_input)
-        if cur_obj != None:
-            input_objs = input_objs.add(cur_obj)
-
-    for cur_obj in input_objs:
-        if cur_obj == None:
-            continue
-        edges = G.get_in_edges(cur_obj, edge_type = 'LAST_MODIFIED')
-        # TODO: name error, should be parent or child name
-        for edge in edges:
-            print(sty.fg.li_magenta + sty.ef.b + "OBJ REACHES" + sty.rs.all + " {} -> {}".format(edge[0], node_id))
-            G.add_edge(edge[0], node_id, {'type:TYPE': 'OBJ_REACHES', 'var': cur_obj})
-
-    if modified_objs != None:
-        G.update_modified_edges(node_id, modified_objs)
 
 def build_df_by_def_use(G, cur_stmt, used_objs):
     """

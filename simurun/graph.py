@@ -700,57 +700,6 @@ class Graph:
         else:
             return tmp_edge[0][1]
 
-    def get_obj_by_obj_name(self, var_name, parent_obj = None):
-        """
-        deprecated
-        get the sub obj of a parent obj based on the name
-        """
-        obj_nodes = self.get_prop_obj_nodes(parent_obj, var_name)
-        return obj_nodes[0] if obj_nodes else None
-
-    def get_obj_by_name(self, var_name, scope = None):
-        """
-        deprecated
-        get the obj of a name based on the scope
-        if the scope is not specified, starts from the current scope
-        we assume that one node only has one parent
-        """
-        obj_nodes = self.get_objs_by_name(var_name, scope)
-        return obj_nodes[0] if obj_nodes else None
-
-    def get_name_node_of_obj(self, var_name, parent_obj = None):
-        """
-        deprecated
-        get the name node of a child of obj 
-        return the name node
-        """
-        return self.get_prop_name_node(var_name, parent_obj)
-
-    def set_obj_by_obj_name(self, var_name, obj_id, parent_obj = None):
-        """
-        deprecated
-        set a var name point to a obj id in a obj 
-        if the var name never appeared, add to the current obj 
-        """
-        if parent_obj == None:
-            parent_obj = self.cur_obj
-
-        obj_attr = self.get_node_attr(obj_id) 
-        if obj_attr['type'] == 'LITERAL':
-            obj_id = self.add_obj_node()
-
-        cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
-
-        if cur_namenode == None:
-            self.add_prop_name_node(var_name, parent_obj)
-
-        cur_namenode = self.get_name_node_of_obj(var_name, parent_obj = parent_obj)
-        pre_obj_id = self.get_obj_by_obj_name(var_name, parent_obj = parent_obj)
-        self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ"})
-        if pre_obj_id != None:
-            print("remove pre", var_name)
-            self.graph.remove_edge(cur_namenode, pre_obj_id)
-
     # scopes
 
     def add_scope(self, scope_type, ast_node, scope_name=None):
@@ -803,34 +752,6 @@ class Graph:
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
         return tobe_added_obj
 
-    def set_obj_by_scope_name(self, var_name, obj_id, scope = None, multi = False, branch = None):
-        """
-        deprecated
-        set a var name point to a obj id in a scope
-        if the var name never appeared, add to the current scope
-        """
-        cur_namenode = self.get_name_node(var_name, scope = scope)
-        if cur_namenode == None:
-            self.add_name_node(var_name, scope = scope)
-
-        if obj_id != None:
-            obj_attr = self.get_node_attr(obj_id) 
-            if obj_attr['type'] == 'LITERAL':
-                obj_id = self.add_obj_node()
-            cur_namenode = self.get_name_node(var_name, scope = scope)
-            pre_objs = self.get_objs_by_name(var_name, scope = scope)
-            if branch:
-                self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ", "branch": branch+"A"})
-            else:
-                self.add_edge(cur_namenode, obj_id, {"type:TYPE": "NAME_TO_OBJ"})
-            if pre_objs and not multi:
-                if branch:
-                    for obj in pre_objs:
-                        self.set_node_attr(obj, {"branch": branch+"D"})
-                else:
-                    for obj in pre_objs:
-                        self.graph.remove_edge(cur_namenode, obj)
-
     def scope_exists_by_ast_node(self, ast_node_id, parent_scope = None, max_depth = 1):
         if parent_scope == None:
             parent_scope = self.BASE_SCOPE
@@ -871,40 +792,6 @@ class Graph:
 
     # functions and calls
 
-    def get_func_declid_by_function_name(self, function_name, scope = None):
-        """
-        abandoned
-        return the function decl ast nodeid of a funcion
-        """
-        if scope == None:
-            scope = self.cur_scope
-
-        func_obj = self.get_obj_by_name(function_name, scope = scope)
-        if func_obj == None:
-            print(sty.ef.b + sty.fg(179) + 'FUNCTION {} NOT FOUND'.format(function_name) + sty.rs.all)
-            return func_obj 
-
-        tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_TO_AST")
-        if len(tmp_edge) == 0:
-            return None
-        else:
-            tmp_edge = tmp_edge[0]
-        func_decl_ast = tmp_edge[1]
-        return func_decl_ast
-    
-    def get_func_decls_by_name_node(self, name_node, branches: List[BranchTag] = None):
-        '''
-        abandoned
-        '''
-        func_objs = self.get_objs_by_name_node(name_node, branches)
-        func_decl_ast_nodes = set()
-        for obj in func_objs:
-            edges = self.get_out_edges(obj, data = True, keys = True, edge_type = "OBJ_TO_AST")
-            if edges:
-                for edge in edges:
-                    func_decl_ast_nodes.add(edge[1])
-        return list(func_decl_ast_nodes)
-
     def get_func_decl_objs_by_ast_node(self, ast_node):
         objs = []
         edges = self.get_in_edges(ast_node, edge_type='OBJ_TO_AST')
@@ -914,67 +801,11 @@ class Graph:
                 objs.append(edge[0])
         return objs
 
-    def get_entryid_by_function_name(self, function_name, scope = None):
-        """
-        abandoned
-        return the entryid nodeid of a funcion
-        """
-        func_decl_ast = self.get_func_declid_by_function_name(function_name, scope)
-        if func_decl_ast == None:
-            return None
-        tmp_edge = self.get_out_edges(func_decl_ast, data = True, keys = True, edge_type = "ENTRY")
-        if len(tmp_edge) == 0:
-            return None
-        else:
-            tmp_edge = tmp_edge[0]
-        return tmp_edge[1]
-
-    def get_func_scope_by_name(self, func_name, scope = None):
-        """
-        abandoned
-        get a func scope by name, get func obj first, return the OBJ_TO_SCOPE node
-        """
-        obj_node_id = self.get_obj_by_name(func_name, scope = scope)
-        # print(obj_node_id, func_name)
-        if obj_node_id == None:
-            return None
-        scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_TO_SCOPE")
-        if len(scope_edge) == 0:
-            return None
-        return scope_edge[0][1]
-
     def get_func_scope_by_obj_node(self, obj_node):
         if obj_node == None:
             return None
         scope_edge = self.get_out_edges(obj_node, edge_type = "OBJ_TO_SCOPE")[0]
         return scope_edge[1]
-
-    def get_func_scope_by_obj_name(self, func_name, parent_obj = None):
-        """
-        abandoned
-        get a func scope by name, get func obj first, return the OBJ_TO_SCOPE node
-        """
-        obj_node_id = self.get_obj_by_obj_name(func_name, parent_obj = parent_obj)
-        if obj_node_id == None:
-            return None
-        scope_edge = self.get_out_edges(obj_node_id, edge_type = "OBJ_TO_SCOPE")[0]
-        return scope_edge[1]
-
-    def get_func_declid_by_function_obj_name(self, function_name, parent_obj = None):
-        """
-        abandoned
-        return the function decl nodeid of a funcion
-        """
-        if parent_obj == None:
-            parent_obj = self.cur_obj
-
-        func_obj = self.get_obj_by_obj_name(function_name, parent_obj = parent_obj)
-        if func_obj == None:
-            print(sty.ef.b + sty.fg(179) + 'FUNCTION {} NOT FOUND'.format(function_name) + sty.rs.all)
-            return func_obj 
-        tmp_edge = self.get_out_edges(func_obj, data = True, keys = True, edge_type = "OBJ_TO_AST")[0]
-        func_decl_ast = tmp_edge[1]
-        return func_decl_ast
 
     def add_blank_func_to_scope(self, func_name, scope=None, python_func:Callable=None):
         '''
@@ -1216,94 +1047,6 @@ class Graph:
         print(f'undefined_obj: {self.undefined_obj}, infinity_obj: {self.infinity_obj}, '
         f'negative_infinity_obj: {self.negative_infinity_obj}, nan_obj:{self.nan_obj}, '
         f'true_obj: {self.true_obj}, false_obj: {self.false_obj}')
-
-    def get_all_inputs(self, node_id):
-        """
-        deprecated
-        input a node
-        return the input of this node and it's sub nodes
-        """
-        node_attr = self.get_node_attr(node_id)
-        node_type = node_attr['type'] 
-        res = []
-        if node_type == "AST_ASSIGN":
-            childern = self._get_childern_by_childnum(node_id)
-            # only define no assign
-            if len(childern) == 1:
-                res = []
-            else:
-                right = childern['1']
-                res += self.get_all_inputs(right)
-        elif node_type == 'AST_ARRAY':
-            elem_list_node = self._get_childern_by_childnum(node_id)
-            if '0' in elem_list_node:
-                elem_list_node = elem_list_node['0']
-                elems = self.get_child_nodes(elem_list_node, edge_type = 'PARENT_OF')
-                for elem in elems:
-                    res += self.get_all_inputs(elem)
-
-        elif node_type == 'AST_PROP':
-            res = [node_id]
-
-        elif node_type == 'AST_VAR':
-            res = [node_id]
-
-        elif node_type == 'AST_CALL':
-            arg_list_node = self._get_childern_by_childnum(node_id)['1']
-            args = self.get_child_nodes(arg_list_node, edge_type = 'PARENT_OF')
-            for arg in args:
-                res += self.get_all_inputs(arg)
-
-        elif node_type == 'AST_BINARY_OP':
-            args = self._get_childern_by_childnum(node_id)
-            for arg in args:
-                res += self.get_all_inputs(args[arg])
-        elif node_type == 'AST_METHOD_CALL':
-            args = self.get_child_nodes(node_id)
-            for arg in args:
-                cur_attr = self.get_node_attr(arg)
-                if cur_attr['type'] == 'AST_ARG_LIST':
-                    arg_list = arg
-            res += self.get_child_nodes(arg_list, edge_type = 'PARENT_OF')
-            func_name_id = self._get_childern_by_childnum(node_id)['0']
-            res.append(func_name_id)
-
-        return res
-
-    def get_obj_by_node_id(self, node_id):
-        """
-        abandoned
-        return the obj of a node id
-        assume a node id only have one obj
-        """
-        node_attr = self.get_node_attr(node_id)
-        node_type = node_attr['type'] 
-        res = set() 
-        if node_type == 'AST_VAR':
-            var_name = self.get_name_from_child(node_id)
-            if var_name == 'this':
-                res.add(self.cur_obj)
-            else:
-                res.add(self.get_obj_by_name(var_name))
-        elif node_type == 'AST_PROP':
-            [parent, child] = self.handle_property(node_id)
-            child_name = self.get_name_from_child(child)
-            parent_name = self.get_name_from_child(parent)
-
-            parent_obj = self.get_obj_by_name(parent_name)
-            child_obj = self.get_obj_by_obj_name(child_name, parent_obj = parent_obj)
-            
-            res.add(child_obj)
-            res.add(parent_obj)
-
-        elif node_type == 'AST_METHOD_CALL':
-            [parent, child] = self.handle_property(node_id)
-            parent_name = self.get_name_from_child(parent)
-            parent_obj = self.get_obj_by_name(parent_name)
-
-            res.add(parent_obj)
-
-        return res
 
     # Analysis
 
