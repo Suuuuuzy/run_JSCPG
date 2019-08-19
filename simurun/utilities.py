@@ -7,13 +7,13 @@ import math
 class NodeHandleResult:
     def __init__(self, **kwargs):
         self.obj_nodes = kwargs.get('obj_nodes', [])
-        self.values = kwargs.get('values')
+        self.values = kwargs.get('values', [])
         self.name = kwargs.get('name')
         self.name_nodes = kwargs.get('name_nodes', [])
         self.used_objs = kwargs.get('used_objs', [])
 
     def __bool__(self):
-        return bool(self.obj_nodes or (self.values is not None)
+        return bool(self.obj_nodes or self.values
             or (self.name is not None) or self.name_nodes or
             self.used_objs)
 

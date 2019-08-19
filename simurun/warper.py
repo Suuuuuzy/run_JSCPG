@@ -30,7 +30,7 @@ os.system(esprima_path + ' "../simplified-github-growl/github-growl-minimal-new.
 
 print("Regenerating Graphs...")
 path, possiable_pathes = main()
-source_lineno =  16
+source_lineno = 16
 sink_lineno = 32
 
 result = 'Successfully find a path from source {} to sink {}.'.format(source_lineno, sink_lineno)

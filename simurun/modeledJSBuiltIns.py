@@ -42,7 +42,7 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('unshift', array_prototype, array_push)
     G.add_blank_func_as_prop('shift', array_prototype, array_pop)
     G.add_blank_func_as_prop('join', array_prototype, array_join)
-    G.add_blank_func_as_prop('forEach', array_prototype, array_for_each)
+    G.add_blank_func_as_prop('forEach', array_prototype, array_for_each_static)
     G.add_blank_func_as_prop('keys', array_prototype, array_keys)
     G.add_blank_func_as_prop('values', array_prototype, array_values)
     G.add_blank_func_as_prop('entries', array_prototype, array_entries)
@@ -120,6 +120,10 @@ def setup_global_functions(G: Graph):
     encode_uri_component = G.add_blank_func_to_scope('encodeURIComponent', G.BASE_SCOPE, string_returning_func)
     escape = G.add_blank_func_to_scope('escape', G.BASE_SCOPE, string_returning_func)
     unescape = G.add_blank_func_to_scope('unescape', G.BASE_SCOPE, string_returning_func)
+    set_timeout = G.add_blank_func_to_scope('setTimeout', G.BASE_SCOPE, blank_func)
+    clear_timeout = G.add_blank_func_to_scope('clearTimeout', G.BASE_SCOPE, blank_func)
+    set_interval = G.add_blank_func_to_scope('setInterval', G.BASE_SCOPE, blank_func)
+    clear_interval = G.add_blank_func_to_scope('clearInterval', G.BASE_SCOPE, blank_func)
 
 
 def array_for_each(G: Graph, caller_ast, extra, array: NodeHandleResult, callback: NodeHandleResult):
@@ -155,10 +159,11 @@ def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, 
     return NodeHandleResult()
 
 
-def array_push(G: Graph, caller_ast, extra, array: NodeHandleResult, added_obj: NodeHandleResult):
+def array_push(G: Graph, caller_ast, extra, array: NodeHandleResult, *added_objs: NodeHandleResult):
     for arr in array.obj_nodes:
-        for obj in added_obj.obj_nodes:
-            G.add_obj_as_prop(None, None, name='*', parent_obj=arr, tobe_added_obj=obj)
+        for added_obj in added_objs:
+            for obj in added_obj.obj_nodes:
+                G.add_obj_as_prop(prop_name='*', parent_obj=arr, tobe_added_obj=obj)
     return NodeHandleResult(used_objs=added_obj.obj_nodes)
 
 
@@ -319,7 +324,11 @@ def parse_number(G: Graph, caller_ast, extra, s: NodeHandleResult, rad=None):
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=s.obj_nodes)
 
 
-def this_returning_func(G: Graph, caller_ast, extra, this: NodeHandleResult):
+def blank_func(G: Graph, caller_ast, extra, *args):
+    return NodeHandleResult()
+
+
+def this_returning_func(G: Graph, caller_ast, extra, this: NodeHandleResult, *args):
     return this
 
 

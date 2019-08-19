@@ -40,6 +40,7 @@ class Graph:
         """
         this function will return a dict with all the attrs and values
         """
+        assert node_id is not None
         return self.graph.nodes[node_id]
 
     def get_all_nodes(self):
@@ -134,6 +135,10 @@ class Graph:
             if not edge_type or edge_attr.get('type:TYPE') == edge_type:
                 result[key] = edge_attr
         return result
+
+    def remove_all_edges_between(self, u, v):
+        while self.graph.has_edge(u, v):
+            self.graph.remove_edge(u, v)
 
     def get_successors(self, node_id):
         return self.graph.successors(node_id)
@@ -415,6 +420,7 @@ class Graph:
         is created).
         """
         if parent_obj == None:
+            assert self.cur_obj is not None
             parent_obj = self.cur_obj
         new_name_node = str(self._get_new_nodeid())
         self.add_node(new_name_node)
@@ -432,6 +438,7 @@ class Graph:
         add edge from ast node to obj generation node
         """
         if parent_obj == None:
+            assert self.cur_obj is not None
             parent_obj = self.cur_obj
 
         name_node = self.get_prop_name_node(prop_name, parent_obj)
@@ -541,8 +548,8 @@ class Graph:
         Returns:
             list: list of object nodes.
         '''
-        if var_name == 'this':
-            return [self.cur_obj]
+        # if var_name == 'this':    # "this" will be handled in handle_node
+        #     return [self.cur_obj]
         name_node = self.get_name_node(var_name, scope)
         if name_node == None:
             return []
@@ -550,6 +557,7 @@ class Graph:
 
     def get_prop_names(self, parent_obj=None):
         if parent_obj is None:
+            assert self.cur_obj is not None
             parent_obj = self.cur_obj
         s = set()
         for name_node in self.get_prop_name_nodes(parent_obj):
@@ -587,6 +595,7 @@ class Graph:
             list: object nodes.
         '''
         if parent_obj is None:
+            assert self.cur_obj is not None
             parent_obj = self.cur_obj
         s = set()
         if prop_name is None: # this caused inconsistent run results
@@ -621,8 +630,8 @@ class Graph:
         branch = branches[-1] if branches else None
         # remove previous objects
         pre_objs = self.get_objs_by_name_node(name_node, branches)
-        print(f'Assigning {obj_nodes} to {name_node}, pre_objs={pre_objs},' \
-            branches={branches}')
+        print(f'Assigning {obj_nodes} to {name_node}, pre_objs={pre_objs}, ' \
+            f'branches={branches}')
         if pre_objs and not multi:
             for obj in pre_objs:
                 if branch:
@@ -641,7 +650,9 @@ class Graph:
                         self.add_edge(name_node, obj,{'type:TYPE':
                         'NAME_TO_OBJ', 'branch': BranchTag(branch, op='D')})
                 else:
-                    self.graph.remove_edge(name_node, obj)
+                    # do not use "remove_edge", which cannot remove all edges
+                    self.remove_all_edges_between(name_node, obj)
+                    print('  Remove ' + obj)
         # add new objects to name node
         for obj in obj_nodes:
             if branch:
@@ -870,9 +881,14 @@ class Graph:
                     func_decl_ast_nodes.add(edge[1])
         return list(func_decl_ast_nodes)
 
-    def get_func_decls_by_ast_node(self, ast_node):
+    def get_func_decl_objs_by_ast_node(self, ast_node):
+        objs = []
         edges = self.get_in_edges(ast_node, edge_type='OBJ_TO_AST')
-        return [edge[0] for edge in edges]
+        for edge in edges:
+            # avoid function run objects
+            if self.get_node_attr(edge[0]).get('type') == 'function':
+                objs.append(edge[0])
+        return objs
 
     def get_entryid_by_function_name(self, function_name, scope = None):
         """
@@ -1140,7 +1156,7 @@ class Graph:
         self.set_node_attr(cur_nodeid, ('labels:label', 'Object'))
         self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
         self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_SCOPE"})
-        self.cur_obj = cur_nodeid
+        # self.cur_obj = cur_nodeid    # this is incorrect
 
         # reserved values
         self.function_prototype = None
@@ -1267,23 +1283,26 @@ class Graph:
 
     # Analysis
 
-    def _dfs_upper_by_edge_type(self, node_id, edge_type):
+    def _dfs_upper_by_edge_type(self, node_id, edge_types):
         """
         dfs a specific type of edge upper from a node id
         """
-        upper_edges = self.get_in_edges(node_id, 
-                edge_type = edge_type)
-        parent_nodes = [edge[0] for edge in upper_edges]
+        print('dfs: ' + node_id + ' at ' + self.get_node_attr(node_id).get('lineno:int'))
+        upper_edges = []
+        for t in edge_types:
+            upper_edges.extend(self.get_in_edges(node_id, edge_type=t))
+        parent_nodes = set([edge[0] for edge in upper_edges])
         ret = []
+        print('  parent_nodes: ' + str(parent_nodes))
 
         # TODO: REMOVE! specific to july demo
-        node_attr = self.get_node_attr(node_id)
-        if 'lineno:int' in node_attr and node_attr['lineno:int'] == '17':
-            parent_nodes.append(self.event_node)
+        # node_attr = self.get_node_attr(node_id)
+        # if 'lineno:int' in node_attr and node_attr['lineno:int'] == '17':
+        #     parent_nodes.append(self.event_node)
 
         for parent_node in parent_nodes:
             cur_all_upper_pathes = self._dfs_upper_by_edge_type(parent_node, 
-                    edge_type)
+                    edge_types)
             if len(cur_all_upper_pathes) == 0:
                 ret.append([parent_node])
             for cur_path in cur_all_upper_pathes:
@@ -1329,29 +1348,33 @@ class Graph:
                 if func_name in expoit_func_list:
                     caller = list(self.get_child_nodes(func_run_obj_node, 
                         edge_type = 'OBJ_TO_AST'))[0]
-                    pathes = self._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
+                    pathes = self._dfs_upper_by_edge_type(caller, [
+                        "OBJ_REACHES", "CONTRIBUTES_TO"
+                    ])
+                    print('Paths:')
 
-                # give the end node one more chance, find the parent obj of the ending point
-                for path in pathes:
-                    last_node = path[-1]
-                    upper_nodes = self._dfs_upper_by_edge_type(last_node, 
-                            "OBJ_TO_PROP")
+                    # give the end node one more chance, find the parent obj of the ending point
+                    for path in pathes:
+                        last_node = path[-1]
+                        upper_nodes = self._dfs_upper_by_edge_type(last_node, 
+                                ["OBJ_TO_PROP"])
 
-                for path in pathes:
-                    cur_path_str = ""
-                    path.reverse()
-                    if path[0] != '251':
-                        continue
-                    path.append(caller)
-                    for node in path[:2]:
-                        cur_node_attr = self.get_node_attr(node)
-                        start_lineno = int(cur_node_attr['lineno:int'])
-                        end_lineno = int(cur_node_attr['endlineno:int'])
-                        content = self.get_node_file_content(node)
-                        cur_path_str += "{}\t{}".format(start_lineno,
-                                ''.join(content[start_lineno - 5:end_lineno + 4]))
+                    for path in pathes:
+                        cur_path_str1 = ""
+                        cur_path_str2 = ""
+                        path.reverse()
+                        path.append(caller)
+                        for node in path:
+                            cur_node_attr = self.get_node_attr(node)
+                            cur_path_str1 += cur_node_attr['lineno:int'] + '->'
+                            start_lineno = int(cur_node_attr['lineno:int'])
+                            end_lineno = int(cur_node_attr['endlineno:int'])
+                            content = self.get_node_file_content(node)
+                            cur_path_str2 += "{}\t{}".format(start_lineno,
+                                    ''.join(content[start_lineno:end_lineno + 1]))
+                        cur_path_str1 += self.get_node_attr(caller)['lineno:int']
+                        print(cur_path_str1)
 
-                    res_path += "==========================\n"
-                    res_path += cur_path_str
-                    break
+                        res_path += "==========================\n"
+                        res_path += cur_path_str2
         return pathes, res_path
