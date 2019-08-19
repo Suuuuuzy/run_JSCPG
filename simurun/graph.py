@@ -1311,13 +1311,11 @@ class Graph:
         """
         dfs a specific type of edge upper from a node id
         """
-        print('dfs: ' + node_id + ' at ' + self.get_node_attr(node_id).get('lineno:int'))
         upper_edges = []
         for t in edge_types:
             upper_edges.extend(self.get_in_edges(node_id, edge_type=t))
         parent_nodes = set([edge[0] for edge in upper_edges])
         ret = []
-        print('  parent_nodes: ' + str(parent_nodes))
 
         # TODO: REMOVE! specific to july demo
         # node_attr = self.get_node_attr(node_id)

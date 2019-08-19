@@ -340,7 +340,7 @@ def handle_assign(G, ast_node, extra=ExtraInfo()) -> NodeHandleResult:
         G.assign_obj_nodes_to_name_node(name_node, right_objs, branches=branches)
 
     used_objs = handled_right.used_objs
-    print(f'assign used objs={used_objs}')
+    print(f'  assign used objs={used_objs}')
     return NodeHandleResult(obj_nodes=handled_right.obj_nodes, name_nodes=handled_left.name_nodes, used_objs=used_objs)
 
 def has_else(G, if_ast_node):
@@ -551,7 +551,6 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         else: # the function has been declared
             obj_nodes = G.get_func_decl_objs_by_ast_node(node_id)
         print(f'Declared function obj nodes: {obj_nodes}')
-        for i in obj_nodes: print(G.graph.nodes[i])
         return NodeHandleResult(obj_nodes=obj_nodes)
 
 
@@ -884,8 +883,9 @@ def decl_function(G, node_id, func_name=None, parent_scope=None):
 
     # for a func decl, should not have local var name
     # should add the name to base scope
-    G.add_obj_to_scope(name=func_name, scope=parent_scope,
-        tobe_added_obj=added_obj)
+    if func_name is not None and func_name != '{closure}':
+        G.add_obj_to_scope(name=func_name, scope=parent_scope,
+            tobe_added_obj=added_obj)
 
     G.set_node_attr(node_id, ("VISITED", "1"))
 
@@ -1263,7 +1263,7 @@ def analyze_string(G, source_code, start_node_id=0, toplevel=False,
 
 def main():
     G = Graph()
-    if len(sys.argv) > 0:
+    if len(sys.argv) > 1:
         if sys.argv[1] == '-':
             source = sys.stdin.read()
             analyze_string(G, source, toplevel=True)
