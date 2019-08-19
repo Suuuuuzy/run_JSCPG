@@ -6,6 +6,7 @@ import sys
 import sty
 import re
 import math
+import subprocess
 import modeledJSBuiltIns
 
 registered_func = {}
@@ -1242,11 +1243,35 @@ def eval_value(G, s, return_result=False, ast_node=None):
     else:
         return evaluated, js_type
 
+def analyze_files(G, path, start_node_id=0):
+    output = subprocess.check_output(['../esprima-joern/main.js',
+        str(start_node_id), '-'])
+    G.import_from_string(output)
+    generate_obj_graph(G, '0')
+
+def analyze_string(G, source_code, start_node_id=0, toplevel=False,
+    extra=None):
+    #        ↓ ignore this error if your editor shows
+    proc = subprocess.Popen(['../esprima-joern/main.js', '-',
+        str(start_node_id)], text=True, stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = proc.communicate(source_code)
+    print(stderr)
+    G.import_from_string(stdout)
+    if toplevel:
+        generate_obj_graph(G, str(start_node_id + 1))
+
 def main():
     G = Graph()
-    G.import_from_CSV("./nodes.csv", "./rels.csv")
-    generate_obj_graph(G, '1')
-    # add_edges_between_funcs(G)
+    if len(sys.argv) > 0:
+        if sys.argv[1] == '-':
+            source = sys.stdin.read()
+            analyze_string(G, source, toplevel=True)
+        else:
+            analyze_files(G, sys.argv[1])
+    else:
+        G.import_from_CSV("./nodes.csv", "./rels.csv")
+        generate_obj_graph(G, '1')
     # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
     G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
     res_path = G.traceback("os-command")

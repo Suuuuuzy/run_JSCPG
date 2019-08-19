@@ -2,6 +2,7 @@ import networkx as nx
 import sys
 import csv
 import sty
+import io
 from utilities import BranchTag
 from typing import List, Callable
 
@@ -13,7 +14,7 @@ class Graph:
         self.cur_scope = None
         self.cur_id = 0
         self.file_contents = {}
-    
+
     # Basic graph operations
 
     # node
@@ -180,6 +181,29 @@ class Graph:
         return nx.dfs_edges(self.graph, source, depth_limit)
 
     # import/export
+
+    def import_from_string(self, string):
+        nodes, rels = string.split('\n\n')[:2]
+
+        with io.StringIO(nodes) as fp:
+            reader = csv.DictReader(fp, delimiter='\t')
+            for row in reader:
+                cur_id = row['id:ID']
+                self.add_node(cur_id)
+                for attr, val in row.items():
+                    if attr == 'id:ID': continue
+                    self.set_node_attr(cur_id, (attr, val))
+
+        with io.StringIO(rels) as fp:
+            reader = csv.DictReader(fp, delimiter='\t')
+            edge_list = []
+            for row in reader:
+                attrs = dict(row)
+                del attrs['start:START_ID']
+                del attrs['end:END_ID']
+                edge_list.append((row['start:START_ID'], row['end:END_ID'], attrs))
+            self.add_edges_from_list(edge_list)
+        print(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
 
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
