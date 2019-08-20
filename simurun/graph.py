@@ -405,7 +405,7 @@ class Graph:
         # (e.g. Object = function(){}), objects are still created with
         # original constructors (and prototypes).
         if js_type == "function":
-            self.add_obj_as_prop(ast_node, "object", "prototype", 
+            self.add_obj_as_prop("prototype", ast_node, "object",
                     parent_obj=obj_node)
             if self.function_prototype is not None:
                 # prevent setting __proto__ before setup_object_and_function runs
@@ -461,7 +461,7 @@ class Graph:
             {"type:TYPE": "OBJ_TO_PROP"})
         return new_name_node
 
-    def add_obj_as_prop(self, ast_node=None, js_type='object', prop_name=None,
+    def add_obj_as_prop(self, prop_name=None, ast_node=None, js_type='object', 
         parent_obj=None, tobe_added_obj=None):
         """
         add (or put) an obj as a property of another obj
@@ -484,11 +484,34 @@ class Graph:
 
         return tobe_added_obj
 
-    def add_obj_to_name(self, name, scope=None, ast_node=None,
-        js_type='object', tobe_added_obj=None):
-        name_node = self.add_name_node(name, scope)
-        obj_node = self.add_obj_to_name_node(name_node, ast_node, js_type, tobe_added_obj)
-        return obj_node
+
+    def add_obj_to_scope(self, name=None, ast_node=None, js_type='object',
+        scope=None, tobe_added_obj=None):
+        """
+        add a obj to a scope, if scope is None, add to current scope
+        return the added node id
+        """
+        if scope == None:
+            scope = self.cur_scope 
+
+        # check if the name node exists first
+        name_node = self.get_name_node(name, scope=scope, follow_scope_chain=False)
+        if name_node == None:
+            print(f'name node for {name} does not exist')
+            name_node = str(self._get_new_nodeid())
+            self.add_edge(scope, name_node, {"type:TYPE": "SCOPE_TO_VAR"})
+            self.set_node_attr(name_node, ('labels:label', 'Name'))
+            self.set_node_attr(name_node, ('name', name))
+
+        if tobe_added_obj == None:
+            # here we do not add obj to current obj when add to scope
+            # we just add a obj to scope
+            tobe_added_obj = self.add_obj_node(ast_node, js_type)
+
+        self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
+        return tobe_added_obj
+
+    add_obj_to_name = add_obj_to_scope
 
     def add_obj_to_name_node(self, name_node, ast_node=None, js_type='object',
         tobe_added_obj=None):
@@ -735,32 +758,6 @@ class Graph:
             self.cur_scope = new_scope_node
         return new_scope_node
 
-    def add_obj_to_scope(self, ast_node=None, name=None, js_type='object',
-        scope=None, tobe_added_obj=None):
-        """
-        add a obj to a scope, if scope is None, add to current scope
-        return the added node id
-        """
-        if scope == None:
-            scope = self.cur_scope 
-
-        # check if the name node exists first
-        name_node = self.get_name_node(name, scope=scope, follow_scope_chain=False)
-        if name_node == None:
-            print(f'name node for {name} does not exist')
-            name_node = str(self._get_new_nodeid())
-            self.add_edge(scope, name_node, {"type:TYPE": "SCOPE_TO_VAR"})
-            self.set_node_attr(name_node, ('labels:label', 'Name'))
-            self.set_node_attr(name_node, ('name', name))
-
-        if tobe_added_obj == None:
-            # here we do not add obj to current obj when add to scope
-            # we just add a obj to scope
-            tobe_added_obj = self.add_obj_node(ast_node, js_type)
-
-        self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
-        return tobe_added_obj
-
     def scope_exists_by_ast_node(self, ast_node_id, parent_scope = None, max_depth = 1):
         if parent_scope == None:
             parent_scope = self.BASE_SCOPE
@@ -828,7 +825,7 @@ class Graph:
                 the blank JS AST function. Defaults to None.
         '''
         func_obj = self.add_blank_func_with_og_nodes(func_name)
-        self.add_obj_to_name(func_name, scope, tobe_added_obj=func_obj)
+        self.add_obj_to_name(func_name, scope=scope, tobe_added_obj=func_obj)
         if python_func is not None:
             self.set_node_attr(func_obj, ('pythonfunc', python_func))
         return func_obj
@@ -846,7 +843,8 @@ class Graph:
                 the blank JS AST function. Defaults to None.
         '''
         func_obj = self.add_blank_func_with_og_nodes(func_name)
-        self.add_obj_as_prop(None, None, func_name, parent_obj, func_obj)
+        self.add_obj_as_prop(func_name, parent_obj=parent_obj,
+                             tobe_added_obj=func_obj)
         if python_func is not None:
             self.set_node_attr(func_obj, ('pythonfunc', python_func))
         return func_obj
@@ -863,7 +861,7 @@ class Graph:
         assert obj != self.undefined_obj
         assert obj != self.null_obj
         self.set_node_attr(obj, ('type', 'function'))
-        self.add_obj_as_prop(func_ast, "object", "prototype", 
+        self.add_obj_as_prop("prototype", func_ast, "object", 
                 parent_obj=obj)
         if self.function_prototype is not None:
             # prevent setting __proto__ before setup_object_and_function runs
@@ -998,7 +996,7 @@ class Graph:
         """
         upper_level_prototype_objs = self._get_upper_level_prototype(obj_node)
         for obj in upper_level_prototype_objs:
-            self.add_obj_as_prop(None, None, '__proto__', parent_obj=obj_node,
+            self.add_obj_as_prop('__proto__', parent_obj=obj_node,
                                  tobe_added_obj=obj)
 
     # Misc

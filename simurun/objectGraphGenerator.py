@@ -229,7 +229,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
                 for name_node in parent_name_nodes:
                     parent_objs.append(G.add_obj_to_name_node(name_node, ast_node, 'BUILT-IN'))
             else:
-                parent_objs = [G.add_obj_to_scope(ast_node, parent_name, "BUILT-IN", scope=G.BASE_SCOPE)]
+                parent_objs = [G.add_obj_to_scope(parent_name, ast_node, "BUILT-IN", scope=G.BASE_SCOPE)]
         else:
             print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, return undefined".format(parent_name) + sty.rs.all)
             return NodeHandleResult()
@@ -393,7 +393,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         
         if not now_objs:
             # for now, just add a new obj.
-            added_obj = G.add_obj_to_scope(node_id, node_name, "PARAM_OBJ")
+            added_obj = G.add_obj_to_scope(node_name, node_id, "PARAM_OBJ")
             now_objs = [added_obj]
 
         return NodeHandleResult(obj_nodes=now_objs)
@@ -440,7 +440,8 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             now_objs = []
             used_objs = list(set(handled_value.used_objs))
             for obj in value_objs:
-                now_objs.append(G.add_obj_as_prop(node_id, None, key, parent_obj=extra.parent_obj, tobe_added_obj=obj))
+                now_objs.append(G.add_obj_as_prop(key, node_id,
+                parent_obj=extra.parent_obj, tobe_added_obj=obj))
         return NodeHandleResult(obj_nodes=now_objs, used_objs=used_objs)
 
     elif cur_type == 'AST_DIM':
@@ -715,7 +716,8 @@ def merge(G, stmt, num_of_branches, parent_branch):
         G: graph
         stmt: AST node ID of the if/switch statement.
         num_of_branches (int): number of branches.
-        parent_branch (BranchTag): parent branch tag (if this branch is inside another branch statement).
+        parent_branch (BranchTag): parent branch tag (if this branch is
+            inside another branch statement).
     '''
     name_nodes = G.get_node_by_attr('labels:label', 'Name')
     for u in name_nodes:
@@ -730,17 +732,31 @@ def merge(G, stmt, num_of_branches, parent_branch):
                     if branch_tag.op == 'D':
                         deleted[int(branch_tag.branch)] = True
             # print(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
-            # flag_created = True
-            # for i in created:
-            #     if i == False:
-            #         flag_created = False
+
+            # We flatten Addition edges if they exist in any branch, because
+            # the possibilities will continue to exist in parent branches.
+            # We ignore those edges without tags related to current
+            # statement.
+            flag_created = False
+            for i in created:
+                if i == True:
+                    flag_created = True
+            # We always delete Deletion edges because they are useless in
+            # parent branches.
+            # If they exist in all current branches, the Addition edge in the
+            # parent branch will be deleted (or maked by a Deletion edge).
             flag_deleted = True
             for i in deleted:
                 if i == False:
                     flag_deleted = False
-            if True: # We always flatten edges, because the possibilities will still exist in parent branches
+
+            # flatten Addition edges
+            if flag_created:
                 # print(f'add edge {u}->{v}, branch={stmt}')
-                for key, edge_attr in list(G.graph[u][v].items()): # we'll delete edges, so we convert it to list
+                # we'll delete edges, so we save them in a list
+                # otherwise the graph is changed and Python will raise an error
+                edges = list(G.graph[u][v].items())
+                for key, edge_attr in edges:
                     branch_tag = edge_attr.get('branch', BranchTag())
                     if branch_tag.stmt == stmt:
                         G.graph.remove_edge(u, v, key)
@@ -751,12 +767,17 @@ def merge(G, stmt, num_of_branches, parent_branch):
                 else:
                     # print(f'create edge {u}->{v}')
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ'})
+
+            # delete Addition edges
+            # print(f'delete edge {u}->{v}, branch={stmt}')
+            # we'll delete edges, so we save them in a list
+            # otherwise the graph is changed and Python will raise an error
+            edges = list(G.graph[u][v].items())
+            for key, edge_attr in edges:
+                branch_tag = edge_attr.get('branch', BranchTag())
+                if branch_tag.stmt == stmt:
+                    G.graph.remove_edge(u, v, key)
             if flag_deleted:
-                # print(f'delete edge {u}->{v}, branch={stmt}')
-                for key, edge_attr in list(G.graph[u][v].items()): # we'll delete edges, so we convert it to list
-                    branch_tag = edge_attr.get('branch', BranchTag())
-                    if branch_tag.stmt == stmt:
-                        G.graph.remove_edge(u, v, key)
                 if parent_branch:
                     # find if there is an addition in parent if/switch (upper level)
                     flag = True
@@ -815,13 +836,13 @@ def call_callback_function(G, caller, func_decl, func_scope, args=None,
             # handled_param = handle_node(G, child)
             param_name = G.get_name_from_child(child)
             if not args:
-                G.add_obj_to_scope(None, param_name, None, scope=func_scope)
+                G.add_obj_to_scope(param_name, scope=func_scope)
             else:
                 if i >= len(args):
                     break
                 for obj in args[i].obj_nodes:
-                    G.add_obj_to_scope(None, param_name, None,
-                        scope=func_scope, tobe_added_obj=obj)
+                    G.add_obj_to_scope(param_name, scope=func_scope,
+                        tobe_added_obj=obj)
     
     backup_obj = G.cur_obj
     backup_scope = G.cur_scope
@@ -890,9 +911,9 @@ def run_toplevel_file(G, node_id):
     # G.cur_obj = added_obj     # this is incorrect
 
     # add module object to the current file's scope
-    added_module_obj = G.add_obj_to_scope(node_id, "module")
+    added_module_obj = G.add_obj_to_scope("module", node_id)
     # add module.exports
-    added_module_exports = G.add_obj_as_prop(node_id, prop_name="exports",
+    added_module_exports = G.add_obj_as_prop("exports", node_id,
         parent_obj=added_module_obj)
     # add module.exports as exports
     G.add_obj_to_scope(name="exports", tobe_added_obj=added_module_exports)
