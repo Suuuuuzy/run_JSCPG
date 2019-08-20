@@ -1850,7 +1850,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             for (c of currentNode.consequent) {
                 nodeIdCounter++;
                 blockExtra = {
-                    childNumberCounter: childNumberCounter
+                    childNumberCounter: vNodeChildNumberCounter
                 };
                 relsStream.push([vNodeId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                 dfs(c, nodeIdCounter, vNodeId, vNodeChildNumberCounter, currentFunctionId, blockExtra);

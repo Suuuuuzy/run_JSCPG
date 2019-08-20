@@ -164,7 +164,8 @@ def array_push(G: Graph, caller_ast, extra, array: NodeHandleResult, *added_objs
         for added_obj in added_objs:
             for obj in added_obj.obj_nodes:
                 G.add_obj_as_prop(prop_name='*', parent_obj=arr, tobe_added_obj=obj)
-    return NodeHandleResult(used_objs=added_obj.obj_nodes)
+    used_objs = list(set(added_obj.obj_nodes + added_obj.used_objs))
+    return NodeHandleResult(used_objs=used_objs)
 
 
 def array_pop(G: Graph, caller_ast, extra, array: NodeHandleResult):
@@ -321,7 +322,8 @@ def parse_number(G: Graph, caller_ast, extra, s: NodeHandleResult, rad=None):
         new_literal = G.add_obj_node(caller_ast, 'number')
         returned_objs.append(new_literal)
         G.add_edge(obj, new_literal, {'type:TYPE': 'CONTRIBUTES_TO'})
-    return NodeHandleResult(obj_nodes=returned_objs, used_objs=s.obj_nodes)
+    used_objs = list(set(s.obj_nodes + s.used_objs))
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
 
 
 def blank_func(G: Graph, caller_ast, extra, *args):
@@ -337,6 +339,7 @@ def string_returning_func(G: Graph, caller_ast, extra, *args):
     used_objs = set()
     for arg in args:
         used_objs.update(arg.obj_nodes)
+        used_objs.update(arg.used_objs)
         for obj in arg.obj_nodes:
             G.add_edge(obj, returned_string, {'type:TYPE': 'CONTRIBUTES_TO'})
     return NodeHandleResult(obj_nodes=[returned_string], used_objs=list(used_objs))

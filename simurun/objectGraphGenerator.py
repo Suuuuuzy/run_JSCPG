@@ -245,7 +245,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     print(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, name={parent_name}.{prop_name}, name_nodes={list(prop_name_nodes)}')
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes), name=f'{parent_name}.{prop_name}', name_nodes=list(prop_name_nodes))
 
-def handle_assign(G, ast_node, extra=ExtraInfo()) -> NodeHandleResult:
+def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     '''
     Handle assignment statement.
     '''
@@ -258,7 +258,10 @@ def handle_assign(G, ast_node, extra=ExtraInfo()) -> NodeHandleResult:
         return handle_node(G, ast_children[0], extra)
 
     # recursively handle both sides
-    handled_right = handle_node(G, right, ExtraInfo(extra, side='right'))
+    if right_override is None:
+        handled_right = handle_node(G, right, ExtraInfo(extra, side='right'))
+    else:
+        handled_right = right_override
     handled_left = handle_node(G, left, ExtraInfo(extra, side='left'))
 
     if not handled_left:
@@ -275,10 +278,11 @@ def handle_assign(G, ast_node, extra=ExtraInfo()) -> NodeHandleResult:
 
     right_objs = list(handled_right.obj_nodes)
 
-    if handled_right.values:
-        for value in handled_right.values:
-            right_objs.append(eval_value(G, value, return_result=True,
-                ast_node=ast_node))
+    # experimental
+    # if handled_right.values:
+    #     for value in handled_right.values:
+    #         right_objs.append(eval_value(G, value, return_result=True,
+    #             ast_node=ast_node))
 
     if not right_objs:
         print(sty.fg.red + "Right OBJ not found" + sty.rs.all, file=sys.stderr)
@@ -376,6 +380,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     extra = ExtraInfo(extra, side=None)
 
     if cur_type == "AST_PARAM":
+        '''
         node_name = G.get_name_from_child(node_id)
         # assume we only have on reaches edge to this node
         now_edge = G.get_in_edges(node_id, edge_type = "REACHES")
@@ -392,6 +397,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             now_objs = [added_obj]
 
         return NodeHandleResult(obj_nodes=now_objs)
+        '''
 
     elif cur_type == "AST_ASSIGN":
         return handle_assign(G, node_id, extra)
@@ -402,12 +408,17 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         else:
             added_obj = G.add_obj_node(node_id, "array")
 
+        used_objs = set()
+
         for child in G.get_ordered_ast_child_nodes(node_id):
-            handle_node(G, child, ExtraInfo(extra, parent_obj=added_obj))
+            result = handle_node(G, child, ExtraInfo(extra,
+                parent_obj=added_obj))
+            used_objs.update(result.used_objs)
 
         G.remove_nodes_from(G.get_node_by_attr('labels:label', 'VIRTUAL'))
 
-        return NodeHandleResult(obj_nodes=[added_obj])
+        return NodeHandleResult(obj_nodes=[added_obj],
+                                used_objs=list(used_objs))
 
     elif cur_type == 'AST_ARRAY_ELEM':
         if not (extra and extra.parent_obj is not None):
@@ -427,9 +438,10 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             handled_value = handle_node(G, value_node, extra)
             value_objs = handled_value.obj_nodes
             now_objs = []
+            used_objs = list(set(handled_value.used_objs))
             for obj in value_objs:
                 now_objs.append(G.add_obj_as_prop(node_id, None, key, parent_obj=extra.parent_obj, tobe_added_obj=obj))
-        return NodeHandleResult(obj_nodes=now_objs)
+        return NodeHandleResult(obj_nodes=now_objs, used_objs=used_objs)
 
     elif cur_type == 'AST_DIM':
         G.set_node_attr(node_id, ('type', 'AST_PROP'))
@@ -443,12 +455,15 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             now_objs = [G.cur_obj]
             name_node = None
         else:
+            now_objs = []
             branches = extra.branches if extra else []
-            now_objs = list(
-                set(G.get_objs_by_name(var_name, branches=branches)))
 
             name_node = G.get_name_node(var_name)
-            if name_node is None and not (extra and extra.side == 'right'):
+            if name_node is not None:
+                now_objs = list(
+                    set(G.get_objs_by_name(var_name, branches=branches)))
+            elif not (extra and extra.side == 'right'):
+                print(sty.fg.green + f'Name node {var_name} not found,  name node')
                 if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
                     # we use the function scope
                     name_node = G.add_name_node(var_name,
@@ -527,6 +542,22 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
                 G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
             return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
 
+    elif cur_type == 'AST_ASSIGN_OP':
+        left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
+        handled_left = handle_node(G, left_child, extra)
+        handled_right = handle_node(G, right_child, extra)
+        used_objs = []
+        used_objs.extend(handled_left.used_objs)
+        used_objs.extend(handled_left.obj_nodes)
+        used_objs.extend(handled_right.used_objs)
+        used_objs.extend(handled_right.obj_nodes)
+        added_obj = G.add_obj_node(node_id)
+        used_objs = list(set(used_objs))
+        for obj in used_objs:
+            G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+        right_override = NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
+        return handle_assign(G, node_id, extra, right_override)
+
     elif cur_type in ['integer', 'double', 'string']:
         js_type = 'string' if cur_type == 'string' else 'number'
         code = G.get_node_attr(node_id).get('code')
@@ -541,13 +572,8 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
 
     elif cur_type == 'AST_RETURN':
-        returned_var = G.get_ordered_ast_child_nodes(node_id)[0]
-        # var_name = G.get_name_from_child(returned_var)
-        # now_objs = G.get_objs_by_name(var_name)
-        # now_scope = G.cur_scope
-        # node_var_name = var_name
-        # return NodeHandleResult(obj_nodes=now_objs, name=var_name)
-        return handle_node(G, returned_var, extra)
+        returned_exp = G.get_ordered_ast_child_nodes(node_id)[0]
+        return handle_node(G, returned_exp, extra)
     
     elif cur_type == 'AST_IF':
         # lineno = G.get_node_attr(node_id).get('lineno:int')
@@ -649,6 +675,7 @@ def simurun_block(G, ast_node, parent_scope, branches=[], block_scope=True):
     A block is a BlockStatement in JavaScript,
     or an AST_STMT_LIST in PHP.
     """
+    print('BLOCK {} STARTS'.format(ast_node))
     returned_objs = set()
     used_objs = set()
     if parent_scope == None:
@@ -967,7 +994,8 @@ def ast_call_function(G, ast_node, extra):
     arg_list_node = G.get_ordered_ast_child_nodes(ast_node)[-1]
     arg_list = G.get_ordered_ast_child_nodes(arg_list_node)
     for arg in arg_list:
-        handled_arg = handle_node(G, arg)
+        handled_arg = handle_node(G, arg, extra)
+        print('2nd')
         handled_args.append(handled_arg)
 
     return call_function(G, func_decl_objs, handled_args, handled_parent,
@@ -1052,11 +1080,12 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 child_type='AST_PARAM_LIST')
             params = G.get_ordered_ast_child_nodes(param_list)
             # add "arguments" array
-            arguments_obj = G.add_obj_to_scope(name='arguments')
+            arguments_obj = G.add_obj_to_scope(name='arguments',
+                                               scope=func_scope)
             for i, param in enumerate(params):
                 if i >= len(args): break
                 param_name = G.get_name_from_child(param)
-                print(f'add arg {param_name} <- {args[i]}')
+                print(f'add arg {param_name} <- {args[i]}, scope {func_scope}')
                 for obj in args[i].obj_nodes:
                     G.add_obj_to_scope(name=param_name, scope=func_scope,
                         tobe_added_obj=obj)
@@ -1187,12 +1216,15 @@ def eval_value(G, s, return_result=False, ast_node=None):
         return evaluated, js_type
 
 def analyze_files(G, path, start_node_id=0):
+    # use "universal_newlines" instead of "text" if you're using Python <3.7
+    #        ↓ ignore this error if your editor shows
     output = subprocess.check_output(['../esprima-joern/main.js', path,
         str(start_node_id), '-'], text=True)
     G.import_from_string(output)
     generate_obj_graph(G, str(start_node_id + 1))
 
 def analyze_string(G, source_code, start_node_id=0, toplevel=False):
+    # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
     proc = subprocess.Popen(['../esprima-joern/main.js', '-',
         str(start_node_id)], text=True, stdin=subprocess.PIPE,

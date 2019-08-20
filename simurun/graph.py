@@ -511,7 +511,7 @@ class Graph:
         if scope == None:
             scope = self.cur_scope
 
-        while(1):
+        while True:
             var_edges = self.get_out_edges(scope, data = True, keys = True, edge_type = "SCOPE_TO_VAR")
             for cur_edge in var_edges:
                 cur_var_attr = self.get_node_attr(cur_edge[1])
@@ -537,6 +537,8 @@ class Graph:
         Returns:
             list: list of object nodes.
         '''
+        if name_node is None:
+            return []
         out_edges = self.get_out_edges(name_node, edge_type='NAME_TO_OBJ')
         objs = set([edge[1] for edge in out_edges])
         if branches:
@@ -1114,15 +1116,15 @@ class Graph:
                     caller = list(self.get_child_nodes(func_run_obj_node, 
                         edge_type = 'OBJ_TO_AST'))[0]
                     pathes = self._dfs_upper_by_edge_type(caller, [
-                        "OBJ_REACHES", "CONTRIBUTES_TO"
+                        "OBJ_REACHES"
                     ])
                     print('Paths:')
 
                     # give the end node one more chance, find the parent obj of the ending point
-                    for path in pathes:
-                        last_node = path[-1]
-                        upper_nodes = self._dfs_upper_by_edge_type(last_node, 
-                                ["OBJ_TO_PROP"])
+                    # for path in pathes:
+                    #     last_node = path[-1]
+                    #     upper_nodes = self._dfs_upper_by_edge_type(last_node, 
+                    #             ["OBJ_TO_PROP"])
 
                     for path in pathes:
                         cur_path_str1 = ""
@@ -1131,6 +1133,8 @@ class Graph:
                         path.append(caller)
                         for node in path:
                             cur_node_attr = self.get_node_attr(node)
+                            if cur_node_attr.get('lineno:int') is None:
+                                continue
                             cur_path_str1 += cur_node_attr['lineno:int'] + '->'
                             start_lineno = int(cur_node_attr['lineno:int'])
                             end_lineno = int(cur_node_attr['endlineno:int'])
