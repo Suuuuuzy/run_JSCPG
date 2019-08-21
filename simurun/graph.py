@@ -3,6 +3,7 @@ import sys
 import csv
 import sty
 import io
+import logging
 from utilities import BranchTag
 from typing import List, Callable
 
@@ -105,7 +106,7 @@ class Graph:
         else:
             for key, edge_attr in self.graph[from_ID][to_ID].items():
                 if edge_attr == attr:
-                    print(sty.fg.red + "Edge {}->{} exists: {}, {}. Duplicate edge will not be created.".format(from_ID,to_ID,key,edge_attr) + sty.rs.all)
+                    logging.info(sty.fg.red + "Edge {}->{} exists: {}, {}. Duplicate edge will not be created.".format(from_ID,to_ID,key,edge_attr) + sty.rs.all)
                     return
             self.add_edge(from_ID, to_ID, attr)
 
@@ -126,7 +127,7 @@ class Graph:
     def add_edges_from_list_if_not_exist(self, edge_list):
         for e in edge_list:
             if len(e) != 3:
-                print("Length of the edge tuple {} is not 3".format(e))
+                logging.info("Length of the edge tuple {} is not 3".format(e))
                 continue
             self.add_edge_if_not_exist(*e)
 
@@ -210,7 +211,7 @@ class Graph:
                 del attrs['end:END_ID']
                 edge_list.append((row['start:START_ID'], row['end:END_ID'], attrs))
             self.add_edges_from_list(edge_list)
-        print(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
+        logging.info(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
 
     def import_from_CSV(self, nodes_file_name, rels_file_name):
         with open(nodes_file_name) as fp:
@@ -231,7 +232,7 @@ class Graph:
                 del attrs['end:END_ID']
                 edge_list.append((row['start:START_ID'], row['end:END_ID'], attrs))
             self.add_edges_from_list(edge_list)
-        print(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
+        logging.info(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
 
     def export_to_CSV(self, nodes_file_name, rels_file_name, light = False):
         """
@@ -267,7 +268,7 @@ class Graph:
                 row['end:END_ID'] = edge_to
                 writer.writerow(row)
 
-        print(sty.ef.inverse + sty.fg.white + "Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name) + sty.rs.all)
+        logging.info(sty.ef.inverse + sty.fg.white + "Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name) + sty.rs.all)
 
     # AST & CPG
 
@@ -497,7 +498,7 @@ class Graph:
         # check if the name node exists first
         name_node = self.get_name_node(name, scope=scope, follow_scope_chain=False)
         if name_node == None:
-            print(f'name node for {name} does not exist')
+            logging.info(f'name node for {name} does not exist')
             name_node = str(self._get_new_nodeid())
             self.add_edge(scope, name_node, {"type:TYPE": "SCOPE_TO_VAR"})
             self.set_node_attr(name_node, ('labels:label', 'Name'))
@@ -686,7 +687,7 @@ class Graph:
         branch = branches[-1] if branches else None
         # remove previous objects
         pre_objs = self.get_objs_by_name_node(name_node, branches)
-        print(f'Assigning {obj_nodes} to {name_node}, pre_objs={pre_objs}, ' \
+        logging.info(f'Assigning {obj_nodes} to {name_node}, pre_objs={pre_objs}, ' \
             f'branches={branches}')
         if pre_objs and not multi:
             for obj in pre_objs:
@@ -708,7 +709,7 @@ class Graph:
                 else:
                     # do not use "remove_edge", which cannot remove all edges
                     self.remove_all_edges_between(name_node, obj)
-                    print('  Remove ' + obj)
+                    logging.info('  Remove ' + obj)
         # add new objects to name node
         for obj in obj_nodes:
             if branch:
@@ -896,7 +897,7 @@ class Graph:
         used for built-in functions
         we need to run the function after the define
         """
-        print(sty.ef.inverse + sty.fg(179) + "add_blank_func" + sty.rs.all + " func_name: {}".format(func_name))
+        logging.info(sty.ef.inverse + sty.fg(179) + "add_blank_func" + sty.rs.all + " func_name: {}".format(func_name))
 
         # add a function decl node first
         func_ast = self._get_new_nodeid()
@@ -984,7 +985,7 @@ class Graph:
                 break
         prototype_obj_nodes = self.get_prop_obj_nodes(
             parent_obj=func_decl_obj_node, prop_name='prototype')
-        print(f'prototype obj node is {prototype_obj_nodes}')
+        logging.info(f'prototype obj node is {prototype_obj_nodes}')
         return prototype_obj_nodes
     
     def build_proto(self, obj_node):
@@ -1043,8 +1044,8 @@ class Graph:
         self.false_obj = self.add_obj_node(None, 'boolean', 'false')
         self.add_obj_to_name('false', scope=self.BASE_SCOPE,
                              tobe_added_obj=self.false_obj)
-        print('Internal objects')
-        print(f'undefined_obj: {self.undefined_obj}, infinity_obj: {self.infinity_obj}, '
+        logging.info('Internal objects')
+        logging.info(f'undefined_obj: {self.undefined_obj}, infinity_obj: {self.infinity_obj}, '
         f'negative_infinity_obj: {self.negative_infinity_obj}, nan_obj:{self.nan_obj}, '
         f'true_obj: {self.true_obj}, false_obj: {self.false_obj}')
 
@@ -1116,7 +1117,7 @@ class Graph:
                     pathes = self._dfs_upper_by_edge_type(caller, [
                         "OBJ_REACHES"
                     ])
-                    print('Paths:')
+                    logging.info('Paths:')
 
                     # give the end node one more chance, find the parent obj of the ending point
                     # for path in pathes:
@@ -1140,7 +1141,7 @@ class Graph:
                             cur_path_str2 += "{}\t{}".format(start_lineno,
                                     ''.join(content[start_lineno:end_lineno + 1]))
                         cur_path_str1 += self.get_node_attr(caller)['lineno:int']
-                        print(cur_path_str1)
+                        logging.info(cur_path_str1)
 
                         res_path += "==========================\n"
                         res_path += cur_path_str2

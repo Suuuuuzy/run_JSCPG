@@ -8,14 +8,10 @@ import re
 import math
 import subprocess
 import modeledJSBuiltIns
+import logging
 
 registered_func = {}
-
-def printcolor(string, color="red"):
-    """
-    just for testing
-    """
-    print(sty.ef.inverse + sty.fg.red + str(string) + sty.rs.all)
+logging.basicConfig(filename="run_log.log", level=logging.INFO)
 
 def get_argids_from_funcallee(G, node_id):
     """
@@ -76,7 +72,7 @@ def add_edges_between_funcs(G):
         CPG_caller_id = G.find_nearest_upper_CPG_node(caller_id)
         entry_edge = G.get_out_edges(callee_id, data = True, edge_type = 'ENTRY')[0]
         # add CFG edge to ENTRY
-        print(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, entry_edge[1]))
+        logging.info('Add CFG edge {} -> {}'.format(CPG_caller_id, entry_edge[1]))
         # assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
         # assert entry_edge[1] != None, "Failed to add CFG edge. Callee ENTRY is None."
         added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
@@ -86,7 +82,7 @@ def add_edges_between_funcs(G):
         caller_para_names = get_argnames_from_funcaller(G, caller_id)
         callee_paras = get_argids_from_funcallee(G, callee_id)
         for idx in range(min(len(callee_paras), len(caller_para_names))):
-            print(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, callee_paras[idx]))
+            logging.info('Add INTER_FUNC_REACHE {} -> {}'.format(CPG_caller_id, callee_paras[idx]))
             assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
             assert callee_paras[idx] != None, f"Failed to add CFG edge. callee_paras[{idx}] is None."
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
@@ -96,7 +92,7 @@ def add_edges_between_funcs(G):
             if G.get_node_attr(child)['type'] == 'AST_STMT_LIST':
                 for stmt in G.get_child_nodes(child, 'PARENT_OF'):
                     if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
-                        print(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {}'.format(stmt, CPG_caller_id))
+                        logging.info('Add return value data flow {} -> {}'.format(stmt, CPG_caller_id))
                         assert stmt != None, "Failed to add CFG edge. Statement ID is None."
                         assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
                         added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
@@ -120,7 +116,7 @@ def register_func(G, node_id):
         registered_func[parent_func_nodeid] = set()
     registered_func[parent_func_nodeid].add(node_id)
 
-    print(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
+    logging.info("REGISTER {} to {}".format(node_id, parent_func_nodeid))
 
 def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
     'Unknown', in_proto=False):
@@ -136,7 +132,7 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
         side (str, optional): 'left' or 'right', denoting left side or
             right side of assignment. Defaults to None.
         parent_name (str, optional): parent object's name, only used to
-            print log. Defaults to ''.
+            logging.info log. Defaults to ''.
         in_proto (bool, optional): whether __proto__ is being searched.
             Defaults to False.
     
@@ -145,9 +141,9 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
             name nodes and object nodes.
     '''
     if in_proto:
-        print('Cannot find "direct" property, going into __proto__ ' \
+        logging.info('Cannot find "direct" property, going into __proto__ ' \
             f'{parent_objs}...')
-        print(f'  {parent_name}.{prop_name}')
+        logging.info(f'  {parent_name}.{prop_name}')
     prop_name_nodes = set()
     prop_obj_nodes = set()
     for parent_obj in parent_objs:
@@ -172,10 +168,9 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
                 __proto__obj_nodes = G.get_objs_by_name_node(__proto__name_node,
                     branches)
                 if set(__proto__obj_nodes) & set(parent_objs):
-                    print(sty.fg.red + sty.ef.bold + '__proto__ '
+                    logging.error('__proto__ ' + 
                         f'{__proto__obj_nodes} and parent {parent_objs} ' \
-                        'object nodes have intersection'+ sty.rs.all,
-                        file=sys.stderr)
+                        'object nodes have intersection')
                     __proto__obj_nodes = list(set(__proto__obj_nodes) -
                         set(parent_objs))
                 if __proto__obj_nodes:
@@ -195,9 +190,8 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
                 # only add a name node
                 added_name_node = G.add_prop_name_node(prop_name, parent_obj)
                 prop_name_nodes.add(added_name_node)
-                print(sty.fg.green + f'Add prop name node ' \
-                f'{parent_name}.{prop_name} ({parent_obj}->{added_name_node})'
-                + sty.rs.all)
+                logging.info(f'Add prop name node ' \
+                f'{parent_name}.{prop_name} ({parent_obj}->{added_name_node})')
     return prop_name_nodes, prop_obj_nodes
 
 def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
@@ -222,7 +216,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     parent_name_nodes = handled_parent.name_nodes
     if not parent_objs:
         if not (extra and extra.side == 'right'):
-            print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, creating object nodes".format(parent_name) + sty.rs.all)
+            logging.info("PARENT OBJ {} NOT DEFINED, creating object nodes".format(parent_name))
             # we assume this happens when it's a built-in var name
             if parent_name_nodes:
                 parent_objs = []
@@ -231,7 +225,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
             else:
                 parent_objs = [G.add_obj_to_scope(parent_name, ast_node, "BUILT-IN", scope=G.BASE_SCOPE)]
         else:
-            print(sty.ef.b + sty.fg.green + "PARENT OBJ {} NOT DEFINED, return undefined".format(parent_name) + sty.rs.all)
+            logging.info("PARENT OBJ {} NOT DEFINED, return undefined".format(parent_name))
             return NodeHandleResult()
 
     branches = extra.branches
@@ -242,7 +236,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
         # try wildcard (*)
         prop_name_nodes, prop_obj_nodes = find_prop(G, parent_objs, '*', branches, side, parent_name)
 
-    print(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, name={parent_name}.{prop_name}, name_nodes={list(prop_name_nodes)}')
+    logging.info(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, name={parent_name}.{prop_name}, name_nodes={list(prop_name_nodes)}')
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes), name=f'{parent_name}.{prop_name}', name_nodes=list(prop_name_nodes))
 
 def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
@@ -265,11 +259,11 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     handled_left = handle_node(G, left, ExtraInfo(extra, side='left'))
 
     if not handled_left:
-        print(sty.fg.red + "Left side handling error at statement {}, child {}".format(ast_node, right) + sty.rs.all, file=sys.stderr)
+        logging.error("Left side handling error at statement {}, child {}".format(ast_node, right))
         return NodeHandleResult()
 
     if not handled_right:
-        print(sty.fg.red + "Right side handling error at statement {}, child {}".format(ast_node, right) + sty.rs.all, file=sys.stderr)
+        logging.error("Right side handling error at statement {}, child {}".format(ast_node, right))
         return NodeHandleResult()
 
     # TODO: REMOVE! specific to july demo
@@ -285,7 +279,7 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     #             ast_node=ast_node))
 
     if not right_objs:
-        print(sty.fg.red + "Right OBJ not found" + sty.rs.all, file=sys.stderr)
+        logging.info("Right OBJ not found")
         right_objs = [G.undefined_obj]
 
     # get branch tags
@@ -296,7 +290,7 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
         G.assign_obj_nodes_to_name_node(name_node, right_objs, branches=branches)
 
     used_objs = handled_right.used_objs
-    print(f'  assign used objs={used_objs}')
+    logging.info(f'  assign used objs={used_objs}')
     return NodeHandleResult(obj_nodes=handled_right.obj_nodes, name_nodes=handled_left.name_nodes, used_objs=used_objs)
 
 def has_else(G, if_ast_node):
@@ -371,7 +365,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         node_color = sty.fg.black + sty.bg(179)
     node_code = G.get_node_attr(node_id).get('code')
     if len(node_code) > 100: node_code = ''
-    print(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id} "
+    logging.info(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id} "
     f"(Line {cur_node_attr['lineno:int']}): {node_color}{cur_type}{sty.rs.all}"
     f"{' ' + node_name if node_name else ''}, {node_code}")
 
@@ -422,7 +416,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
     elif cur_type == 'AST_ARRAY_ELEM':
         if not (extra and extra.parent_obj is not None):
-            print(sty.ef.inverse + sty.fg.red + "AST_ARRAY_ELEM occurs outside AST_ARRAY" + sty.rs.all, file=sys.stderr)
+            logging.error("AST_ARRAY_ELEM occurs outside AST_ARRAY")
         else:
             value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
             key = G.get_name_from_child(key_node)
@@ -464,7 +458,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
                 now_objs = list(
                     set(G.get_objs_by_name(var_name, branches=branches)))
             elif not (extra and extra.side == 'right'):
-                print(sty.fg.green + f'Name node {var_name} not found,  name node')
+                logging.info(f'Name node {var_name} not found,  name node')
                 if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
                     # we use the function scope
                     name_node = G.add_name_node(var_name,
@@ -480,7 +474,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
         name_nodes = [name_node] if name_node is not None else []
 
-        print(f'{node_id} handle result: obj_nodes={now_objs}, name={var_name}, name_nodes={name_nodes}')
+        logging.info(f'{node_id} handle result: obj_nodes={now_objs}, name={var_name}, name_nodes={name_nodes}')
 
         assert None not in now_objs
 
@@ -518,7 +512,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             obj_nodes = [added_obj]
         else: # the function has been declared
             obj_nodes = G.get_func_decl_objs_by_ast_node(node_id)
-        print(f'Declared function obj nodes: {obj_nodes}')
+        logging.info(f'Declared function obj nodes: {obj_nodes}')
         return NodeHandleResult(obj_nodes=obj_nodes)
 
 
@@ -564,12 +558,12 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         code = G.get_node_attr(node_id).get('code')
         added_obj = G.add_obj_node(node_id, js_type, code)
         # modified_objs.add(added_obj)
-        print(f'{node_id} handle result: obj_nodes={[added_obj]}, value={code}')
+        logging.info(f'{node_id} handle result: obj_nodes={[added_obj]}, value={code}')
         return NodeHandleResult(obj_nodes=[added_obj], value=code)
 
     elif cur_type in ['AST_CALL', 'AST_METHOD_CALL', 'AST_NEW']:
         returned_objs, used_objs = ast_call_function(G, node_id, extra)
-        print(f'{node_id}: function returned_objs={returned_objs}, used_objs={used_objs}')
+        logging.info(f'{node_id}: function returned_objs={returned_objs}, used_objs={used_objs}')
         return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
 
     elif cur_type == 'AST_RETURN':
@@ -619,7 +613,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
         for func_decl_id in registered_func[node_id]:
-            print(sty.ef.inverse + sty.fg.red + "RUN register {}".format(func_decl_id) + sty.rs.all)
+            logging.info("RUN register {}".format(func_decl_id))
             handle_node(G, func_decl_id, extra)
 
     return NodeHandleResult()
@@ -661,11 +655,11 @@ def simurun_function(G, func_decl_ast_node, branches=[]):
     """
     func_name = G.get_name_from_child(func_decl_ast_node)
     decl_vars_and_funcs(G, func_decl_ast_node)
-    print(sty.ef.inverse + sty.fg.green +
+    logging.info(
         "FUNCTION {} {} STARTS, SCOPE {}, DECL OBJ {}, this OBJ {}, branches {}"
         .format(func_decl_ast_node, func_name, G.cur_scope,
         G.get_func_decl_objs_by_ast_node(func_decl_ast_node)[0], G.cur_obj,
-        branches) + sty.rs.all)
+        branches))
     for child in G.get_child_nodes(func_decl_ast_node, child_type='AST_STMT_LIST'):
         return simurun_block(G, child, parent_scope=G.cur_scope)
     return [], []
@@ -676,7 +670,7 @@ def simurun_block(G, ast_node, parent_scope, branches=[], block_scope=True):
     A block is a BlockStatement in JavaScript,
     or an AST_STMT_LIST in PHP.
     """
-    print('BLOCK {} STARTS'.format(ast_node))
+    logging.info('BLOCK {} STARTS'.format(ast_node))
     returned_objs = set()
     used_objs = set()
     if parent_scope == None:
@@ -731,7 +725,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
                         created[int(branch_tag.branch)] = True
                     if branch_tag.op == 'D':
                         deleted[int(branch_tag.branch)] = True
-            # print(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
+            # logging.info(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
 
             # We flatten Addition edges if they exist in any branch, because
             # the possibilities will continue to exist in parent branches.
@@ -752,7 +746,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
 
             # flatten Addition edges
             if flag_created:
-                # print(f'add edge {u}->{v}, branch={stmt}')
+                # logging.info(f'add edge {u}->{v}, branch={stmt}')
                 # we'll delete edges, so we save them in a list
                 # otherwise the graph is changed and Python will raise an error
                 edges = list(G.graph[u][v].items())
@@ -762,14 +756,14 @@ def merge(G, stmt, num_of_branches, parent_branch):
                         G.graph.remove_edge(u, v, key)
                 if parent_branch:
                     # add one addition edge with parent if/switch's (upper level's) tags
-                    # print(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='A')}")
+                    # logging.info(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='A')}")
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, op='A')})
                 else:
-                    # print(f'create edge {u}->{v}')
+                    # logging.info(f'create edge {u}->{v}')
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ'})
 
             # delete Addition edges
-            # print(f'delete edge {u}->{v}, branch={stmt}')
+            # logging.info(f'delete edge {u}->{v}, branch={stmt}')
             # we'll delete edges, so we save them in a list
             # otherwise the graph is changed and Python will raise an error
             edges = list(G.graph[u][v].items())
@@ -784,19 +778,19 @@ def merge(G, stmt, num_of_branches, parent_branch):
                     for key, edge_attr in list(G.graph[u][v].items()):
                         branch_tag = edge_attr.get('branch', BranchTag())
                         if branch_tag == BranchTag(parent_branch, op='A'):
-                            # print(f'delete edge {u}->{v}')
+                            # logging.info(f'delete edge {u}->{v}')
                             G.graph.remove_edge(u, v, key)
                             flag = False
                     # if there is not
                     if flag:
                         # add one deletion edge with parent if/switch's (upper level's) tags
-                        # print(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='D')}")
+                        # logging.info(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='D')}")
                         G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, op='D')})
                 else:
                     # find if there is an addition in upper level
                     for key, edge_attr in list(G.graph[u][v].items()):
                         if 'branch' not in edge_attr:
-                            # print(f'delete edge {u}->{v}')
+                            # logging.info(f'delete edge {u}->{v}')
                             G.graph.remove_edge(u, v, key)
 
 def generate_obj_graph(G, entry_nodeid):
@@ -815,7 +809,7 @@ def generate_obj_graph(G, entry_nodeid):
     G.setup1()
     modeledJSBuiltIns.setup_js_builtins(G)
     G.setup2()
-    print(sty.fg.green + "RUN" + sty.rs.all + ":", entry_nodeid)
+    logging.info("RUN :".format(entry_nodeid))
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
         register_func(G, node[0])
@@ -898,7 +892,7 @@ def run_toplevel_file(G, node_id):
     """
     # add scope and obj first
     func_name = G.get_node_attr(node_id)['name']
-    print(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(func_name) + sty.rs.all)
+    logging.info('FILE {} BEGINS'.format(func_name))
     func_decl_id, func_scope_id = decl_function(G, node_id, func_name = func_name, parent_scope=G.BASE_SCOPE)
     # simurun the file
     backup_obj = G.cur_obj
@@ -957,7 +951,7 @@ def handle_require(G, node_id):
                 _, _, module_exports_objs = run_toplevel_file(G, node)
                 break
     if not found:
-        print(sty.fg.red + sty.ef.bold + "Required module {} at {} not found!".format(module_name, file_name) + sty.rs.all, file=sys.stderr)
+        logging.error("Required module {} at {} not found!".format(module_name, file_name))
     # returned_objs = [module_exports] if module_exports is not None else []
     return module_exports_objs, []
 
@@ -993,7 +987,7 @@ def ast_call_function(G, ast_node, extra):
                 G.add_obj_to_name_node(name_node, tobe_added_obj=func_decl_obj)
                 func_decl_objs.append(func_decl_obj)
         else:
-            print(sty.fg.red + sty.ef.inverse + f'Function call error: Name node not found for {func_name}!')
+            logging.error(f'Function call error: Name node not found for {func_name}!')
 
     # if the function call is creating a new object
     is_new = False
@@ -1016,13 +1010,12 @@ def ast_call_function(G, ast_node, extra):
     arg_list = G.get_ordered_ast_child_nodes(arg_list_node)
     for arg in arg_list:
         handled_arg = handle_node(G, arg, extra)
-        print('2nd')
+        logging.info('2nd')
         handled_args.append(handled_arg)
 
     return call_function(G, func_decl_objs, handled_args, handled_parent,
         extra, caller_ast=ast_node, is_new=is_new, stmt_id=stmt_id,
         func_name=func_name)
-
 
 def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
     is_new=False, stmt_id='Unknown', func_name='{anonymous}'):
@@ -1078,10 +1071,10 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 # add parent object (this) as an argument
                 args.insert(0, this)
             if is_new:
-                print(sty.fg.red + sty.ef.bold + f'Error: try to new Python function {python_func}...' + sty.rs.all, file=sys.stderr)
+                logging.info(f'Error: try to new Python function {python_func}...')
                 continue
             else:
-                print(sty.fg.green + sty.ef.bold + f'Running Python function {python_func}...' + sty.rs.all)
+                logging.info(f'Running Python function {python_func}...')
                 # TODO: add branches info
                 h = python_func(G, caller_ast, extra, *args)
                 branch_returned_objs = h.obj_nodes
@@ -1106,7 +1099,7 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
             for i, param in enumerate(params):
                 if i >= len(args): break
                 param_name = G.get_name_from_child(param)
-                print(f'add arg {param_name} <- {args[i]}, scope {func_scope}')
+                logging.info(f'add arg {param_name} <- {args[i]}, scope {func_scope}')
                 for obj in args[i].obj_nodes:
                     G.add_obj_to_scope(name=param_name, scope=func_scope,
                         tobe_added_obj=obj)
@@ -1135,7 +1128,7 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
             # if it's an unmodeled built-in function
             if G.get_node_attr(func_ast).get('labels:label') \
                 == 'Artificial_AST':
-                # print(sty.fg.green + sty.ef.inverse + func_ast + ' is unmodeled built-in function.' + sty.rs.all)
+                # logging.info(sty.fg.green + sty.ef.inverse + func_ast + ' is unmodeled built-in function.' + sty.rs.all)
                 # add arguments as used objects
                 for h in args:
                     branch_used_objs.extend(h.obj_nodes)
@@ -1146,7 +1139,7 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                     G.add_edge(obj, returned_obj,
                         {'type:TYPE': 'CONTRIBUTES_TO'})
                 # call all callback functions
-                print(sty.fg.green + sty.ef.inverse + 'callback functions =', callback_functions, sty.rs.all)
+                logging.info('callback functions ='.format(callback_functions))
                 if callback_functions:
                     for obj in callback_functions:
                         func_ast = G.get_obj_def_ast_node(obj)
@@ -1179,7 +1172,7 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if def_cpg_node == None: continue
         if def_cpg_node == cur_stmt: continue
         def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')
-        print(sty.fg.li_magenta + sty.ef.b + "OBJ REACHES" + sty.rs.all +
+        logging.info("OBJ REACHES" + 
         " {} (Line {}) -> {} (Line {})".format(def_cpg_node, def_lineno,
         cur_stmt, cur_lineno))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
@@ -1299,10 +1292,10 @@ def main():
     # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
     G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
     res_path = G.traceback("os-command")
-    print('ResPath0:')
-    print(res_path[0])
-    print('ResPath1:')
-    print(res_path[1])
+    logging.info('ResPath0:')
+    logging.info(res_path[0])
+    logging.info('ResPath1:')
+    logging.info(res_path[1])
     return res_path
 
 if __name__ == "__main__":
