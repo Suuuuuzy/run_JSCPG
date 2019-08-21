@@ -1,10 +1,12 @@
 import unittest
 import sys
+import networkx as nx
+import json
 sys.path.append("../simurun/")
 from objectGraphGenerator import *
 from networkx import *
 
-def run_unittest(file_path, standard_graph):
+def run_unittest(file_path, standard_graph_path):
     """
     load from the testing JS file
 
@@ -15,19 +17,24 @@ def run_unittest(file_path, standard_graph):
         G: the graph 
     """
     G = unittest_main(file_path)
-    print(G.graph)
-    G.export_to_xml("vul_demo_graph.xml")
-    diff = difference(G.graph, G.graph)
+    # G.export_graph("vul_demo_graph.pickle")
+
+    standard_dict_graph = nx.readwrite.read_gpickle(standard_graph_path)
+    standard_graph = nx.Graph(standard_dict_graph)
+
+    diff = difference(G.graph, standard_dict_graph)
     # if diff is empty, the two graphs same to each other
-    if not is_empty(diff):
+    res = is_empty(diff)
+    if not res:
         # if not, check if these two graphs are isomorphic
-        diff = is_isomorphic(G.graph, G.graph)
-        self.assertTrue(diff)
+        print(diff)
+        res = is_isomorphic(G.graph, standard_dict_graph)
+    return res 
 
 class TestStringMethods(unittest.TestCase):
 
     def test_vul_demo(self):
-        run_unittest("../test/vul_demo.js", "./vul_demo_graph.json")
+        run_unittest("./tests/growl.js", "./vul_demo_graph.pickle")
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestStringMethods)

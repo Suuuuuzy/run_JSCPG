@@ -4,6 +4,7 @@ import csv
 import sty
 import io
 import logging
+import json
 from utilities import BranchTag
 from typing import List, Callable
 
@@ -268,7 +269,29 @@ class Graph:
                 row['end:END_ID'] = edge_to
                 writer.writerow(row)
 
-        logging.info(sty.ef.inverse + sty.fg.white + "Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name) + sty.rs.all)
+        logging.info("Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name))
+        
+    def export_graph(self, file_path):
+        """
+        export graph to xml format
+        """
+        nx.readwrite.write_gpickle(self.graph, file_path)
+        """
+        dict_graph = nx.readwrite.json_graph.node_link_data(self.graph)
+        with open(file_path, 'w') as fp:
+            json_str = json.dumps(dict_graph, default=lambda o: f"<<non-serializable: {type(o).__qualname__}>>")
+            fp.write(json_str)
+        """
+
+    def import_graph(self, file_path):
+        """
+        import a graph from a exported file
+        """
+        with open(file_path, 'r') as fp:
+            dict_graph = json.load(fp)
+            
+        self.graph = nx.Graph(dict_graph)
+        print(str(self.graph))
 
     # AST & CPG
 

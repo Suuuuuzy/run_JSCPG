@@ -1275,6 +1275,15 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     G.import_from_string(stdout)
     return handle_node(G, str(start_node_id), extra)
 
+def unittest_main(file_path):
+    """
+    main function for uniitest 
+    """
+    G = Graph()
+    analyze_files(G, file_path)
+    return G
+
+
 def main():
     G = Graph()
     if len(sys.argv) > 1:
