@@ -44,14 +44,13 @@ def node_match_equal(n1, n2):
     """
     this is a node match function, return true if n1 == n2
     """
-    return str(n1) == str(n2)
+    key = 'labels:label'
+    return n1[key] == n2[key]
 
 def edge_match_equal(e1, e2):
     e1_vals = set([str(v) for v in e1.values()])
     e2_vals = set([str(v) for v in e2.values()])
-    if (len(e1_vals - e2_vals) != 0):
-        print(e1_vals, e2_vals)
-    return len(e1_vals - e2_vals) == 0
+    return e1_vals == e2_vals
 
 def run_unittest(file_path, standard_graph_path):
     """
@@ -109,8 +108,13 @@ class TestObjectGraphGeneration(unittest.TestCase):
         res = run_unittest("./tests/growl.js", "./stardards/growl.pickle")
         self.assertTrue(res)
 
+    def test_grammer(self):
+        res = run_unittest("./tests/grammer.js", "./stardards/grammer.pickle")
+        self.assertTrue(res)
+
 if __name__ == '__main__':
     # add_unittest("growl", "./tests/growl.js")
     # add_unittest("vul_demo", "./tests/vul_demo.js")
+    # add_unittest("grammer", "./tests/grammer.js")
     suite = unittest.TestLoader().loadTestsFromTestCase(TestObjectGraphGeneration)
     unittest.TextTestRunner(verbosity=2).run(suite)
