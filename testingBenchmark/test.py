@@ -28,8 +28,9 @@ def graph_diff(g1, g2):
             if str(g1_nodes_data[i]) != str(g2_nodes_data[i]):
                 res += "\nNode detail diff: \n\t{}\n\t{}".format(g1_nodes_data[i], g2_nodes_data[i])
 
-    g1_edges_data = list(g2.edges.data())
+    g1_edges_data = list(g1.edges.data())
     g2_edges_data = list(g2.edges.data())
+
     if len(g1_edges_data) != len(g2_edges_data):
         res += "\nEdges number diff: G1 has {} edges and G2 has {} edges".format(len(g1_edges_data), len(g2_edges_data))
     else:
@@ -43,7 +44,14 @@ def node_match_equal(n1, n2):
     """
     this is a node match function, return true if n1 == n2
     """
-    return str(n1[1]) == str(n2[1])
+    return str(n1) == str(n2)
+
+def edge_match_equal(e1, e2):
+    e1_vals = set([str(v) for v in e1.values()])
+    e2_vals = set([str(v) for v in e2.values()])
+    if (len(e1_vals - e2_vals) != 0):
+        print(e1_vals, e2_vals)
+    return len(e1_vals - e2_vals) == 0
 
 def run_unittest(file_path, standard_graph_path):
     """
@@ -60,6 +68,7 @@ def run_unittest(file_path, standard_graph_path):
     standard_dict_graph = nx.readwrite.read_gpickle(standard_graph_path)
     standard_graph = nx.Graph(standard_dict_graph)
 
+    """
     diff = nx.difference(G.graph, standard_dict_graph)
     # if diff is empty, the two graphs same to each other
     res = nx.is_empty(diff)
@@ -68,14 +77,14 @@ def run_unittest(file_path, standard_graph_path):
     # self defined compare
     diff = graph_diff(G.graph, standard_dict_graph)
     res = len(diff) == 0
-    """
 
     if not res:
         # if not, check if these two graphs are isomorphic
-        testing_logger.info("\nGRAPH DIFF: \n\t{}\n".format(diff.edges))
+        testing_logger.info("\nGRAPH DIFF: \n\t{}\n".format(diff))
         # checking isomorphic will take a very long time
         # for now, disable this function
-        res = nx.is_isomorphic(G.graph, standard_dict_graph, node_match = node_match_equal)
+        res = nx.is_isomorphic(G.graph, standard_dict_graph, node_match = node_match_equal, edge_match=edge_match_equal)
+
     return res 
 
 def add_unittest(test_name, file_path):
