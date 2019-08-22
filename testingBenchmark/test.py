@@ -2,9 +2,12 @@ import unittest
 import sys
 import networkx as nx
 import json
-sys.path.append("../simurun/")
+sys.path.append("../simurun")
 from objectGraphGenerator import *
 from networkx import *
+from logger import *
+
+testing_logger = create_logger("testing", output_type="console")
 
 def run_unittest(file_path, standard_graph_path):
     """
@@ -27,15 +30,20 @@ def run_unittest(file_path, standard_graph_path):
     res = is_empty(diff)
     if not res:
         # if not, check if these two graphs are isomorphic
-        print(diff)
+        testing_logger.info(diff)
         res = is_isomorphic(G.graph, standard_dict_graph)
     return res 
 
-class TestStringMethods(unittest.TestCase):
+class TestObjectGraphGeneration(unittest.TestCase):
 
     def test_vul_demo(self):
-        run_unittest("./tests/vul_demo.js", "./vul_demo_graph.pickle")
+        res = run_unittest("./tests/vul_demo.js", "./stardards/vul_demo_graph.pickle")
+        self.assertTrue(res)
+
+    def test_growl(self):
+        run_unittest("./tests/growl.js", "./stardards/vul_demo_graph.pickle")
+        self.assertTrue(res)
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestStringMethods)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestObjectGraphGeneration)
     unittest.TextTestRunner(verbosity=2).run(suite)

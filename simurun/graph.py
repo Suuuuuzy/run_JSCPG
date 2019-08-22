@@ -17,7 +17,7 @@ class Graph:
         self.cur_scope = None
         self.cur_id = 0
         self.file_contents = {}
-        self.logger = create_logger("Graph", log_type="file")
+        self.logger = create_logger("Graph", output_type="file")
 
         # reserved values
         self.function_prototype = None

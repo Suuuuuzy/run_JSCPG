@@ -11,7 +11,7 @@ import modeledJSBuiltIns
 from logger import * 
 
 registered_func = {}
-logger = create_logger("main_logger", log_type="console")
+logger = create_logger("main_logger", output_type="file")
 
 def get_argids_from_funcallee(G, node_id):
     """
