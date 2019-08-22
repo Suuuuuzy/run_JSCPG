@@ -107,7 +107,8 @@ class Graph:
         else:
             for key, edge_attr in self.graph[from_ID][to_ID].items():
                 if edge_attr == attr:
-                    logging.info(sty.fg.red + "Edge {}->{} exists: {}, {}. Duplicate edge will not be created.".format(from_ID,to_ID,key,edge_attr) + sty.rs.all)
+                    logging.warning("Edge {}->{} exists: {}, {}. Duplicate edge "
+                    "will not be created.".format(from_ID,to_ID,key,edge_attr))
                     return
             self.add_edge(from_ID, to_ID, attr)
 
@@ -128,7 +129,7 @@ class Graph:
     def add_edges_from_list_if_not_exist(self, edge_list):
         for e in edge_list:
             if len(e) != 3:
-                logging.info("Length of the edge tuple {} is not 3".format(e))
+                logging.error("Length of the edge tuple {} is not 3".format(e))
                 continue
             self.add_edge_if_not_exist(*e)
 
@@ -521,7 +522,7 @@ class Graph:
         # check if the name node exists first
         name_node = self.get_name_node(name, scope=scope, follow_scope_chain=False)
         if name_node == None:
-            logging.info(f'name node for {name} does not exist')
+            logging.debug(f'name node for {name} does not exist')
             name_node = str(self._get_new_nodeid())
             self.add_edge(scope, name_node, {"type:TYPE": "SCOPE_TO_VAR"})
             self.set_node_attr(name_node, ('labels:label', 'Name'))
@@ -710,8 +711,8 @@ class Graph:
         branch = branches[-1] if branches else None
         # remove previous objects
         pre_objs = self.get_objs_by_name_node(name_node, branches)
-        logging.info(f'Assigning {obj_nodes} to {name_node}, pre_objs={pre_objs}, ' \
-            f'branches={branches}')
+        logging.debug(f'Assigning {obj_nodes} to {name_node}, ' \
+            f'pre_objs={pre_objs}, branches={branches}')
         if pre_objs and not multi:
             for obj in pre_objs:
                 if branch:
@@ -732,7 +733,7 @@ class Graph:
                 else:
                     # do not use "remove_edge", which cannot remove all edges
                     self.remove_all_edges_between(name_node, obj)
-                    logging.info('  Remove ' + obj)
+                    logging.debug('  Remove ' + obj)
         # add new objects to name node
         for obj in obj_nodes:
             if branch:
@@ -920,7 +921,7 @@ class Graph:
         used for built-in functions
         we need to run the function after the define
         """
-        logging.info(sty.ef.inverse + sty.fg(179) + "add_blank_func" + sty.rs.all + " func_name: {}".format(func_name))
+        logging.debug(sty.ef.inverse + sty.fg(179) + "add_blank_func" + sty.rs.all + " func_name: {}".format(func_name))
 
         # add a function decl node first
         func_ast = self._get_new_nodeid()
@@ -1008,7 +1009,7 @@ class Graph:
                 break
         prototype_obj_nodes = self.get_prop_obj_nodes(
             parent_obj=func_decl_obj_node, prop_name='prototype')
-        logging.info(f'prototype obj node is {prototype_obj_nodes}')
+        logging.debug(f'prototype obj node is {prototype_obj_nodes}')
         return prototype_obj_nodes
     
     def build_proto(self, obj_node):
@@ -1067,8 +1068,8 @@ class Graph:
         self.false_obj = self.add_obj_node(None, 'boolean', 'false')
         self.add_obj_to_name('false', scope=self.BASE_SCOPE,
                              tobe_added_obj=self.false_obj)
-        logging.info('Internal objects')
-        logging.info(f'undefined_obj: {self.undefined_obj}, infinity_obj: {self.infinity_obj}, '
+        logging.debug(sty.ef.inverse + 'Internal objects' + sty.rs.all)
+        logging.debug(f'undefined_obj: {self.undefined_obj}, infinity_obj: {self.infinity_obj}, '
         f'negative_infinity_obj: {self.negative_infinity_obj}, nan_obj:{self.nan_obj}, '
         f'true_obj: {self.true_obj}, false_obj: {self.false_obj}')
 
@@ -1140,7 +1141,7 @@ class Graph:
                     pathes = self._dfs_upper_by_edge_type(caller, [
                         "OBJ_REACHES"
                     ])
-                    logging.info('Paths:')
+                    logging.debug('Paths:')
 
                     # give the end node one more chance, find the parent obj of the ending point
                     # for path in pathes:
@@ -1164,7 +1165,7 @@ class Graph:
                             cur_path_str2 += "{}\t{}".format(start_lineno,
                                     ''.join(content[start_lineno:end_lineno + 1]))
                         cur_path_str1 += self.get_node_attr(caller)['lineno:int']
-                        logging.info(cur_path_str1)
+                        logging.debug(cur_path_str1)
 
                         res_path += "==========================\n"
                         res_path += cur_path_str2
