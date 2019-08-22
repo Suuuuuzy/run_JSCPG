@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from graph import Graph
 from scopeController import ScopeController
 from utilities import NodeHandleResult, BranchTag, ExtraInfo
@@ -7,10 +6,11 @@ import sty
 import re
 import math
 import subprocess
-import modeledJSBuiltIns
-from logger import * 
+from logger import *
+from setup import setup
 
 registered_func = {}
+
 logger = create_logger("main_logger", output_type="file")
 
 def get_argids_from_funcallee(G, node_id):
@@ -797,28 +797,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
                             # logger.debug(f'delete edge {u}->{v}')
                             G.graph.remove_edge(u, v, key)
 
-def generate_obj_graph(G, entry_nodeid):
-    """
-    generate the obj graph of a specific object
-    """
-    # set every function and closure to vartype object
 
-    obj_nodes = G.get_nodes_by_type("AST_CLOSURE")
-    obj_nodes += G.get_nodes_by_type("AST_FUNC_DECL")
-    obj_nodes += G.get_nodes_by_type("AST_NEW")
-
-    for node in obj_nodes:
-        G.set_node_attr(node[0], ("VAR_TYPE", "OBJECT"))
-
-    G.setup1()
-    modeledJSBuiltIns.setup_js_builtins(G)
-    G.setup2()
-    logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
-    obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
-    for node in obj_nodes:
-        register_func(G, node[0])
-    handle_node(G, entry_nodeid)
-    add_edges_between_funcs(G)
 
 def call_callback_function(G, caller, func_decl, func_scope, args=None,
     branches=[]):
@@ -1233,24 +1212,44 @@ def eval_value(G, s, return_result=False, ast_node=None):
     else:
         return evaluated, js_type
 
+
+def generate_obj_graph(G, entry_nodeid):
+    """
+    generate the object graph of a program
+    """
+    setup(G)
+    logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
+    obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
+    for node in obj_nodes:
+        register_func(G, node[0])
+    handle_node(G, entry_nodeid)
+    add_edges_between_funcs(G)
+
+
 def analyze_files(G, path, start_node_id=0):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
-    output = subprocess.check_output(['../esprima-joern/main.js', path,
-        str(start_node_id), '-'], text=True)
-    G.import_from_string(output)
+    proc = subprocess.Popen(['../esprima-joern/main.js', path,
+        str(start_node_id), '-'], text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    logger.info(stderr)
+    G.import_from_string(stdout)
     generate_obj_graph(G, str(start_node_id + 1))
+
 
 def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
     proc = subprocess.Popen(['../esprima-joern/main.js', '-',
         str(start_node_id)], text=True, stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE)
-    stdout, _ = proc.communicate(source_code)
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = proc.communicate(source_code)
+    logger.info(stderr)
     G.import_from_string(stdout)
     if toplevel:
         generate_obj_graph(G, str(start_node_id + 1))
+
 
 def analyze_json(G, json_str, start_node_id=0, extra=None):
     # This function is almost the same as analyze_string,
@@ -1278,38 +1277,3 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     stdout = '\n'.join(filter(filter_func, stdout.split('\n')))
     G.import_from_string(stdout)
     return handle_node(G, str(start_node_id), extra)
-
-def unittest_main(file_path):
-    """
-    main function for uniitest 
-    """
-    G = Graph()
-    analyze_files(G, file_path)
-    return G
-
-
-def main():
-    G = Graph()
-    if len(sys.argv) > 1:
-        if sys.argv[1] == '-':
-            # analyze from stdin
-            source = sys.stdin.read()
-            analyze_string(G, source, toplevel=True)
-        else:
-            # analyze from JS source code files
-            analyze_files(G, sys.argv[1])
-    else:
-        # analyze from CSVs
-        G.import_from_CSV("./nodes.csv", "./rels.csv")
-        generate_obj_graph(G, '1')
-    # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
-    G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
-    res_path = G.traceback("os-command")
-    logger.debug('ResPath0:')
-    logger.debug(res_path[0])
-    logger.debug('ResPath1:')
-    logger.debug(res_path[1])
-    return res_path
-
-if __name__ == "__main__":
-    main()
