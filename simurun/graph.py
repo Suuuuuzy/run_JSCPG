@@ -217,7 +217,10 @@ class Graph:
             self.add_edges_from_list(edge_list)
         self.logger.info(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
 
-    def import_from_CSV(self, nodes_file_name, rels_file_name):
+        # reset cur_id
+        self.cur_id = self.graph.number_of_nodes()
+
+    def import_from_CSV(self, nodes_file_name, rels_file_name, offset=0):
         with open(nodes_file_name) as fp:
             reader = csv.DictReader(fp, delimiter='\t')
             for row in reader:
@@ -237,6 +240,9 @@ class Graph:
                 edge_list.append((row['start:START_ID'], row['end:END_ID'], attrs))
             self.add_edges_from_list(edge_list)
         self.logger.info(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
+
+        # reset cur_id
+        self.cur_id = self.graph.number_of_nodes()
 
     def export_to_CSV(self, nodes_file_name, rels_file_name, light = False):
         """
@@ -295,6 +301,13 @@ class Graph:
             
         self.graph = nx.Graph(dict_graph)
         print(str(self.graph))
+
+    def recount_cur_id(self):
+        self.cur_id = 0
+        for node in self.graph.nodes:
+            node_id = int(G.get_node_attr(node).get('id:ID'))
+            if node_id >= self.cur_id:
+                self.cur_id = node_id + 1
 
     # AST & CPG
 
@@ -1036,9 +1049,6 @@ class Graph:
         """
         the init function of setup a run
         """
-        # init cur_id here!!
-        self.cur_id = self.graph.number_of_nodes()
-
         # base scope is not related to any file
         self.BASE_SCOPE = self.add_scope("BASE_SCOPE", None)
 

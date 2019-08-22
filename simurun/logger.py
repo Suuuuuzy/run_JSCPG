@@ -34,9 +34,8 @@ def create_logger(name, output_type="console", level=logging.DEBUG):
     """
     logger = logging.getLogger(name)
 
-    if len(logger.handlers) != 0:
-        # already generated
-        return logger
+    for handler in list(logger.handlers):
+        logger.removeHandler(handler)
 
     file_handler = logging.FileHandler(filename="run_log.log")
     file_handler.setFormatter(NoColorFormatter())

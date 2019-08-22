@@ -214,7 +214,7 @@ function searchModule(moduleName, requiredBy) {
 
 function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extra) {
     if (currentNode == null) return "";
-    // console.log(`Current node: ${currentId.toString().green.bright} ${currentNode.type.toString().bgDarkGray.white} (line: ${currentNode.loc ? currentNode.loc.start.line : '?'}, parent: ${parentId}, funcid: ${currentFunctionId})`);
+    console.log(`Current node: ${currentId.toString().green.bright} ${currentNode.type.toString().bgDarkGray.white} (line: ${currentNode.loc ? currentNode.loc.start.line : '?'}, parent: ${parentId}, funcid: ${currentFunctionId})`);
     let childNumberCounter = 0;
     let vNodeId, vNodeName, vNodeChildNumberCounter = 0;
     let ctype, phptype, phpflag;
@@ -248,7 +248,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     name: filename,
                     funcId: currentFunctionId
                 };
-                // console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_ENTRY'.lightRed.bright} Artificial node`);
+                console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_ENTRY'.lightRed.bright} Artificial node`);
                 // make CFG_FUNC_EXIT artificial node
                 nodeIdCounter++;
                 let vCFGFuncExitId = nodeIdCounter;
@@ -259,7 +259,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     name: filename,
                     funcId: currentFunctionId
                 };
-                // console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_EXIT'.lightRed.bright} Artificial node`);
+                console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_EXIT'.lightRed.bright} Artificial node`);
                 // make AST_STMT_LIST virtual node
                 nodeIdCounter++;
                 let vASTStmtListId = nodeIdCounter;
@@ -916,7 +916,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     type: 'CFG_FUNC_ENTRY',
                     funcId: currentFunctionId
                 };
-                // console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_ENTRY'.lightRed.bright} Artificial node`);
+                console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_ENTRY'.lightRed.bright} Artificial node`);
                 // make CFG_FUNC_EXIT artificial node
                 nodeIdCounter++;
                 let vCFGFuncExitId = nodeIdCounter;
@@ -926,7 +926,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     type: 'CFG_FUNC_EXIT',
                     funcId: currentFunctionId
                 };
-                // console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_EXIT'.lightRed.bright} Artificial node`);
+                console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_EXIT'.lightRed.bright} Artificial node`);
                 // id, childnum = 0
                 if (currentNode.id) {
                     nodeIdCounter++;
@@ -1130,7 +1130,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     type: 'CFG_FUNC_ENTRY',
                     funcId: currentFunctionId
                 };
-                // console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_ENTRY'.lightRed.bright} Artificial node`);
+                console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_ENTRY'.lightRed.bright} Artificial node`);
                 // make CFG_FUNC_EXIT artificial node
                 nodeIdCounter++;
                 let vCFGFuncExitId = nodeIdCounter;
@@ -1140,7 +1140,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     type: 'CFG_FUNC_EXIT',
                     funcId: currentFunctionId
                 };
-                // console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_EXIT'.lightRed.bright} Artificial node`);
+                console.log(`Make ${nodeIdCounter.toString().green.bright} ${'CFG_FUNC_EXIT'.lightRed.bright} Artificial node`);
                 // reserve a node id for AST_STMT_LIST
                 nodeIdCounter++;
                 let classBodyId = nodeIdCounter;
@@ -2769,7 +2769,7 @@ function walkDir(dir, parentNodeId, callback) {
 function analyze(filePath, parentNodeId) {
     // read the file
     filename = filePath || 'stdin';
-    // console.log(("Analyzing " + filename).green.inverse);
+    console.log(("Analyzing " + filename).green.inverse);
     if (filePath == null){
         // read from stdin
         filePath = 0;
