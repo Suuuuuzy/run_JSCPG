@@ -3,7 +3,7 @@ import sys
 import networkx as nx
 import json
 sys.path.append("../simurun")
-from objectGraphGenerator import *
+from launcher import *
 from logger import *
 
 testing_logger = create_logger("testing", output_type="console")
@@ -113,8 +113,8 @@ class TestObjectGraphGeneration(unittest.TestCase):
         self.assertTrue(res)
 
 if __name__ == '__main__':
-    # add_unittest("growl", "./tests/growl.js")
-    # add_unittest("vul_demo", "./tests/vul_demo.js")
-    # add_unittest("grammer", "./tests/grammer.js")
+    add_unittest("growl", "./tests/growl.js")
+    add_unittest("vul_demo", "./tests/vul_demo.js")
+    add_unittest("grammer", "./tests/grammer.js")
     suite = unittest.TestLoader().loadTestsFromTestCase(TestObjectGraphGeneration)
     unittest.TextTestRunner(verbosity=2).run(suite)

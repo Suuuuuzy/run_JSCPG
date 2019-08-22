@@ -1,5 +1,5 @@
 from graph import Graph
-from modeledJSBuiltins import setup_js_builtins
+from modeledJSBuiltIns import setup_js_builtins
 
 def setup(G: Graph):
     G.setup1()
