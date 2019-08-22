@@ -1119,7 +1119,8 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 branch_used_objs = h.used_objs
         else: # JS function in AST
             # if AST cannot be found, create AST
-            if func_ast is None:
+            if func_ast is None or G.get_node_attr(func_ast).get('type') \
+            not in ['AST_FUNC_DECL', 'AST_CLOSURE']:
                 G.add_blank_func_with_og_nodes(func_name, func_obj)
                 func_ast = G.get_obj_def_ast_node(func_obj)
             # add "function run object"

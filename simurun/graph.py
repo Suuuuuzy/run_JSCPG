@@ -893,6 +893,10 @@ class Graph:
             self.add_obj_as_prop(prop_name="__proto__", parent_obj=obj,
             tobe_added_obj=self.function_prototype)
         if func_ast is not None:
+            # remove old OBJ_TO_AST edges
+            edges = self.get_out_edges(obj, edge_type="OBJ_TO_AST")
+            for edge in edges:
+                self.graph.remove_edge(edge[0], edge[1])
             self.add_edge(obj, func_ast, {"type:TYPE": "OBJ_TO_AST"})
 
     def add_blank_func_with_og_nodes(self, func_name, func_obj=None):
