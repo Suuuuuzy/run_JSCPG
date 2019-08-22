@@ -34,7 +34,7 @@ def run_unittest(file_path, standard_graph_path):
 class TestStringMethods(unittest.TestCase):
 
     def test_vul_demo(self):
-        run_unittest("./tests/growl.js", "./vul_demo_graph.pickle")
+        run_unittest("./tests/vul_demo.js", "./vul_demo_graph.pickle")
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestStringMethods)
