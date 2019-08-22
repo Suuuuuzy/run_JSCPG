@@ -1,6 +1,6 @@
 from graph import Graph
 from utilities import NodeHandleResult
-import objectGraphGenerator
+#import objectGraphGenerator
 import sty
 import re
 
