@@ -32,13 +32,17 @@ def create_logger(name, output_type="console", level=logging.DEBUG):
     Return:
         the created logger
     """
+    logger = logging.getLogger(name)
+
+    if len(logger.handlers) != 0:
+        # already generated
+        return logger
 
     file_handler = logging.FileHandler(filename="run_log.log")
     file_handler.setFormatter(NoColorFormatter())
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(ColorFormatter())
 
-    logger = logging.getLogger(name)
     logger.setLevel(level)
 
     if output_type == "file":
