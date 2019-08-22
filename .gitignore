@@ -1,5 +1,6 @@
 
 *.pyc
+*.log
 .testDB/
 testreport/
 
