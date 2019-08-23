@@ -2,15 +2,16 @@ import logging
 import re
 import sty
 
+ATTENTION = 15
+
 class ColorFormatter(logging.Formatter):
-    ATTENTION = 15
     def format(self, record):
         res = super(ColorFormatter, self).format(record)
         if record.levelno >= logging.ERROR:
             res = sty.fg.red + sty.ef.bold + res + sty.rs.all
         elif record.levelno == logging.WARNING:
             res = sty.fg.yellow + res + sty.rs.all
-        elif record.levelno == ColorFormatter.ATTENTION:
+        elif record.levelno == ATTENTION:
             res = sty.fg.green + sty.ef.bold + res + sty.rs.all
         return res
 

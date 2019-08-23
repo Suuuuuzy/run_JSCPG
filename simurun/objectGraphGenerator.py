@@ -1,13 +1,14 @@
-from graph import Graph
-from scopeController import ScopeController
-from utilities import NodeHandleResult, BranchTag, ExtraInfo
+from .graph import Graph
+from .scopeController import ScopeController
+from .utilities import NodeHandleResult, BranchTag, ExtraInfo
 import sys
+import os
 import sty
 import re
 import math
 import subprocess
-from logger import *
-from setup import setup
+from .logger import *
+from . import modeledJSBuiltIns
 
 registered_func = {}
 
@@ -190,7 +191,7 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
                 # only add a name node
                 added_name_node = G.add_prop_name_node(prop_name, parent_obj)
                 prop_name_nodes.add(added_name_node)
-                logger.log(ColorFormatter.ATTENTION, f'Add prop name node ' \
+                logger.log(ATTENTION, f'Add prop name node ' \
                 f'{parent_name}.{prop_name} ({parent_obj}->{added_name_node})')
     return prop_name_nodes, prop_obj_nodes
 
@@ -462,7 +463,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
                 now_objs = list(
                     set(G.get_objs_by_name(var_name, branches=branches)))
             elif not (extra and extra.side == 'right'):
-                logger.log(ColorFormatter.ATTENTION, f'Name node {var_name} not found, create name node')
+                logger.log(ATTENTION, f'Name node {var_name} not found, create name node')
                 if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
                     # we use the function scope
                     name_node = G.add_name_node(var_name,
@@ -1056,7 +1057,7 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 logger.error(f'Error: try to new Python function {python_func}...')
                 continue
             else:
-                logger.log(ColorFormatter.ATTENTION, f'Running Python function {python_func}...')
+                logger.log(ATTENTION, f'Running Python function {python_func}...')
                 # TODO: add branches info
                 h = python_func(G, caller_ast, extra, *args)
                 branch_returned_objs = h.obj_nodes
@@ -1217,7 +1218,9 @@ def generate_obj_graph(G, entry_nodeid):
     """
     generate the object graph of a program
     """
-    setup(G)
+    G.setup1()
+    modeledJSBuiltIns.setup_js_builtins(G)
+    G.setup2()
     logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
@@ -1226,10 +1229,14 @@ def generate_obj_graph(G, entry_nodeid):
     add_edges_between_funcs(G)
 
 
+esprima_path = os.path.realpath(os.path.join(__file__,
+                                '../../esprima-joern/main.js'))
+
+
 def analyze_files(G, path, start_node_id=0):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen(['../esprima-joern/main.js', path,
+    proc = subprocess.Popen([esprima_path, path,
         str(start_node_id), '-'], text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
@@ -1241,7 +1248,7 @@ def analyze_files(G, path, start_node_id=0):
 def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen(['../esprima-joern/main.js', '-',
+    proc = subprocess.Popen([esprima_path, '-',
         str(start_node_id)], text=True, stdin=subprocess.PIPE,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate(source_code)
@@ -1261,7 +1268,7 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     # at "start_node_id"
     json_str = 'var a = ' + json_str.strip()
     #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen(['../esprima-joern/main.js', '-',
+    proc = subprocess.Popen([esprima_path, '-',
         str(start_node_id - 8)], text=True, stdin=subprocess.PIPE,
         stdout=subprocess.PIPE)
     stdout, _ = proc.communicate(json_str)

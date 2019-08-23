@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
 import argparse
 import sys
 import sty
-from graph import Graph
-from logger import *
-from objectGraphGenerator import register_func, handle_node, \
+from .graph import Graph
+from .logger import *
+from .objectGraphGenerator import register_func, handle_node, \
     add_edges_between_funcs, analyze_files, analyze_string, generate_obj_graph
 
 def unittest_main(file_path):
@@ -32,7 +31,7 @@ def main():
     if args.print:
         logger = create_logger("main_logger", output_type="console",
             level=logging.DEBUG)
-        logger = create_logger("Graph", output_type="console",
+        logger = create_logger("graph_logger", output_type="console",
             level=logging.DEBUG)
     if args.input_file:
         if args.input_file == '-':
