@@ -1079,26 +1079,45 @@ class Graph:
     def _dfs_upper_by_edge_type(self, node_id, edge_types):
         """
         dfs a specific type of edge upper from a node id
+
+        Args:
+            node_id: the start node id
+            edge_types: we only consider some types of edge types
+        Return:
+            nodes: list, nodes on the pathes
+            objs: dict, {str(from_to): [obj numbers]} 
         """
         upper_edges = []
         for t in edge_types:
             upper_edges.extend(self.get_in_edges(node_id, edge_type=t))
-        parent_nodes = set([edge[0] for edge in upper_edges])
-        ret = []
 
-        # TODO: REMOVE! specific to july demo
-        # node_attr = self.get_node_attr(node_id)
-        # if 'lineno:int' in node_attr and node_attr['lineno:int'] == '17':
-        #     parent_nodes.append(self.event_node)
+        tmp_parent_obj_map = {}
+        for edge in upper_edges:
+            if edge[0] not in tmp_parent_obj_map:
+                tmp_parent_obj_map[edge[0]] = []
+            else:
+                tmp_parent_obj_map[edge[0]].append(edge[3]['obj'])
+
+        parent_nodes = tmp_parent_obj_map.keys()
+
+        ret = []
+        ret_objs = {}
 
         for parent_node in parent_nodes:
-            cur_all_upper_pathes = self._dfs_upper_by_edge_type(parent_node, 
+            cur_all_upper_pathes, cur_upper_maps = self._dfs_upper_by_edge_type(parent_node, 
                     edge_types)
             if len(cur_all_upper_pathes) == 0:
                 ret.append([parent_node])
             for cur_path in cur_all_upper_pathes:
                 ret.append([parent_node] + cur_path)
-        return ret
+
+            for cur_key in cur_upper_maps:
+                if cur_key not in ret_objs:
+                    ret_objs[cur_key] = cur_upper_maps[cur_key]
+
+            ret_objs["{}_{}".format(parent_node, node_id)] = tmp_parent_obj_map[parent_node]
+
+        return ret, ret_objs
 
     def get_node_file_path(self, node_id):
         # it's a ast so a node only has one parent
@@ -1137,22 +1156,22 @@ class Graph:
                 if func_name in expoit_func_list:
                     caller = list(self.get_child_nodes(run_scope, 
                         edge_type = 'SCOPE_TO_CALLER'))[0]
-                    pathes = self._dfs_upper_by_edge_type(caller, [
+                    pathes, obj_num_map = self._dfs_upper_by_edge_type(caller, [
                         "OBJ_REACHES"
                     ])
                     self.logger.debug('Paths:')
 
                     # give the end node one more chance, find the parent obj of the ending point
-                    # for path in pathes:
-                    #     last_node = path[-1]
-                    #     upper_nodes = self._dfs_upper_by_edge_type(last_node, 
-                    #             ["OBJ_TO_PROP"])
+                    for path in pathes:
+                        last_node = path[-1]
+                        upper_nodes = self._dfs_upper_by_edge_type(last_node, 
+                                ["OBJ_TO_PROP"])
 
                     for path in pathes:
                         cur_path_str1 = ""
                         cur_path_str2 = ""
                         path.reverse()
-                        path.append(caller)
+                        # path.append(caller)
                         for node in path:
                             cur_node_attr = self.get_node_attr(node)
                             if cur_node_attr.get('lineno:int') is None:
