@@ -17,7 +17,7 @@ class Graph:
         self.cur_scope = None
         self.cur_id = 0
         self.file_contents = {}
-        self.logger = create_logger("Graph", output_type="file")
+        self.logger = create_logger("graph_logger", output_type="file")
 
         # reserved values
         self.function_prototype = None
@@ -305,7 +305,7 @@ class Graph:
     def recount_cur_id(self):
         self.cur_id = 0
         for node in self.graph.nodes:
-            node_id = int(G.get_node_attr(node).get('id:ID'))
+            node_id = int(self.get_node_attr(node).get('id:ID'))
             if node_id >= self.cur_id:
                 self.cur_id = node_id + 1
 
