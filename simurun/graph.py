@@ -1111,21 +1111,21 @@ class Graph:
             if edge[0] not in tmp_parent_obj_map:
                 tmp_parent_obj_map[edge[0]] = []
             else:
-                tmp_parent_obj_map[edge[0]].append(edge[1]['obj'])
+                tmp_parent_obj_map[edge[0]].append(edge[3]['obj'])
 
         parent_nodes = tmp_parent_obj_map.keys()
 
         ret = []
-        ret_objs = []
+        ret_objs = {}
 
         for parent_node in parent_nodes:
             cur_all_upper_pathes, cur_upper_maps = self._dfs_upper_by_edge_type(parent_node, 
                     edge_types)
             if len(cur_all_upper_pathes) == 0:
-                ret_objs.append()
                 ret.append([parent_node])
             for cur_path in cur_all_upper_pathes:
                 ret.append([parent_node] + cur_path)
+
             for cur_key in cur_upper_maps:
                 if cur_key not in ret_objs:
                     ret_objs[cur_key] = cur_upper_maps[cur_key]
@@ -1173,7 +1173,7 @@ class Graph:
                 if func_name in expoit_func_list:
                     caller = list(self.get_child_nodes(func_run_obj_node, 
                         edge_type = 'OBJ_TO_AST'))[0]
-                    pathes = self._dfs_upper_by_edge_type(caller, [
+                    pathes, obj_num_map = self._dfs_upper_by_edge_type(caller, [
                         "OBJ_REACHES"
                     ])
                     self.logger.debug('Paths:')
@@ -1188,7 +1188,7 @@ class Graph:
                         cur_path_str1 = ""
                         cur_path_str2 = ""
                         path.reverse()
-                        path.append(caller)
+                        # path.append(caller)
                         for node in path:
                             cur_node_attr = self.get_node_attr(node)
                             if cur_node_attr.get('lineno:int') is None:
