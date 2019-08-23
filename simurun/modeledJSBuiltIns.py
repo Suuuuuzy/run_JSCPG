@@ -1,8 +1,12 @@
-from graph import Graph
-from utilities import NodeHandleResult
-import objectGraphGenerator
+from .graph import Graph
+from .utilities import NodeHandleResult
+from . import objectGraphGenerator
 import sty
 import re
+from .logger import *
+
+
+logger = create_logger("main_logger", output_type="file")
 
 
 def setup_js_builtins(G: Graph):
@@ -130,7 +134,7 @@ def array_for_each(G: Graph, caller_ast, extra, array: NodeHandleResult, callbac
     branches = extra.branches
     for arr in array.obj_nodes:
         elements = G.get_prop_obj_nodes(arr, branches=branches)
-        print(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {elements}.' + sty.rs.all)
+        logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {elements}.' + sty.rs.all)
         for elem in elements:
             for func in callback.obj_nodes:
                 func_decl = G.get_obj_def_ast_node(func)
@@ -149,7 +153,7 @@ def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, 
         elements = G.get_prop_obj_nodes(arr, branches=branches)
         for elem in elements:
             objs.add(elem)
-    print(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
+    logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
     for func in callback.obj_nodes:
         func_decl = G.get_obj_def_ast_node(func)
         func_scope = G.get_func_scope_by_obj_node(func)

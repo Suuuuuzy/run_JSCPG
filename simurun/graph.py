@@ -5,9 +5,9 @@ import sty
 import io
 import logging
 import json
-from utilities import BranchTag
 from typing import List, Callable
-from logger import *
+from .utilities import BranchTag
+from .logger import *
 
 class Graph:
 

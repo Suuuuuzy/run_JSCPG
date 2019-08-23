@@ -2,9 +2,8 @@ import unittest
 import sys
 import networkx as nx
 import json
-sys.path.append("../simurun")
-from launcher import *
-from logger import *
+from ..simurun.launcher import *
+from ..simurun.logger import *
 
 testing_logger = create_logger("testing", output_type="console")
 

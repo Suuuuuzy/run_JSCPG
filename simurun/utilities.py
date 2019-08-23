@@ -74,14 +74,16 @@ class BranchTagContainer(list):
     '''
     Experimental. 
     '''
-    def match(self, tag: BranchTag = None, stmt=None, branch=None, op=None) -> Tuple[int, BranchTag]:
+    def match(self, tag: BranchTag = None, stmt=None, branch=None, op=None) \
+        -> Tuple[int, BranchTag]:
         '''
         Find a matching BranchTag in the array.
 
         Use either a BranchTag or three strings as argument.
 
         Returns:
-            Tuple[int, BranchTag]: index and the value of the matching BranchTag.
+            Tuple[int, BranchTag]: index and the value of the matching
+            BranchTag.
         '''
         if tag:
             stmt = tag.stmt
@@ -99,7 +101,8 @@ class BranchTagContainer(list):
         elif stmt != None and branch != None:
             self.append(BranchTag(stmt=stmt, branch=branch, op=op))
 
-    def remove(self, tag: BranchTag = None, stmt=None, branch=None, op=None) -> NoReturn:
+    def remove(self, tag: BranchTag = None, stmt=None, branch=None, op=None) \
+        -> NoReturn:
         '''
         Remove a matching BranchTag in the array.
         '''
