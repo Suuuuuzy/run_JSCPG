@@ -332,18 +332,13 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=[]):
     # add edge between obj and obj decl
     G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
 
-    backup_scope = G.cur_scope
     backup_obj = G.cur_obj
 
-    # update current scope and object
-    G.cur_scope = G.get_scope_by_ast_node(constructor_decl)
+    # update current object (this)
     G.cur_obj = created_obj
+
     simurun_function(G, constructor_decl, branches=branches)
 
-    # add obj to scope edge?
-    # G.add_edge(obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
-    
-    G.cur_scope = backup_scope
     G.cur_obj = backup_obj
 
     # finally add call edge from caller to callee
@@ -489,32 +484,17 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type == 'AST_PROP':
         return handle_prop(G, node_id, extra)
 
-    # elif cur_type == 'AST_CLOSURE':
-    #     # for a CLOSURE, we treat it as a function defination. add a obj to obj graph
-    #     # for now, we do not assign the name of the scope node 
-    #     # if visited, return
-    #     if "VISITED" in G.get_node_attr(node_id):
-    #         return NodeHandleResult()
-
-    #     added_scope = G.add_scope("FUNCTION_SCOPE", node_id)
-    #     added_obj = G.add_obj_node(node_id, "function")
-    #     G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
-
-    #     G.set_node_attr(node_id, ("VISITED", "1"))
-
-    #     return NodeHandleResult(obj_nodes=[added_obj])
-
 
     elif cur_type == 'AST_TOPLEVEL':
-        added_obj, added_scope, module_exports_objs = \
+        added_scope, module_exports_objs = \
             run_toplevel_file(G, node_id)
 
         return NodeHandleResult(obj_nodes=module_exports_objs)
 
     elif cur_type in ['AST_FUNC_DECL', 'AST_CLOSURE']:
-        [added_obj, added_scope] = decl_function(G, node_id)
-        if added_obj is not None:
-            obj_nodes = [added_obj]
+        func_obj = decl_function(G, node_id)
+        if func_obj is not None:
+            obj_nodes = [func_obj]
         else: # the function has been declared
             obj_nodes = G.get_func_decl_objs_by_ast_node(node_id)
         logger.debug(f'Declared function obj nodes: {obj_nodes}')
@@ -681,11 +661,9 @@ def simurun_block(G, ast_node, parent_scope, branches=[], block_scope=True):
     if parent_scope == None:
         parent_scope = G.cur_scope
     if block_scope:
-        if G.scope_exists_by_ast_node(ast_node, parent_scope, max_depth=1):
-            G.cur_scope = G.get_scope_by_ast_node(ast_node)
-        else:
-            G.cur_scope = \
-                G.add_scope('BLOCK_SCOPE', ast_node, f'Block{ast_node}')
+        G.cur_scope = \
+            G.add_scope('BLOCK_SCOPE', ast_node,
+                        G.call_counter.gets(f'Block{ast_node}'))
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     # simulate statements
     for stmt in stmts:
@@ -840,34 +818,43 @@ def call_callback_function(G, caller, func_decl, func_scope, args=None,
     G.add_edge_if_not_exist(caller, func_decl, {"type:TYPE": "CALLS"})
 
 def decl_function(G, node_id, func_name=None, parent_scope=None):
-    """
-    decl a function based on the node_id on current SCOPE
-    func_name is designed for top level nodes only
-    """
+    '''
+    Declare a function as an object node.
+    
+    Args:
+        G (Graph): Graph.
+        node_id: The function's AST node (AST_FUNC_DECL).
+        func_name (str, optional): The function's name. Defaults to
+            None, which means getting name from its AST children.
+        parent_scope (optional): The parent scope of the function's
+            prospective scope(s). Defaults to current scope.
+    
+    Returns:
+        added_obj: The function's object node.
+    '''
     # for a function decl, if already visited, return
     if "VISITED" in G.get_node_attr(node_id):
-        return None, None
+        return None
+
     if parent_scope is None:
-        # parent_scope = G.BASE_SCOPE
-        parent_scope = G.find_func_scope_from_cur_scope()
-    # for a function decl, we add an obj and scope
+        parent_scope = G.cur_scope
     if func_name is None:
         func_name = G.get_name_from_child(node_id)
 
-    # do a normal add closure
-    added_scope = G.add_scope("FUNCTION_SCOPE", node_id)
+    # add function declaration object
     added_obj = G.add_obj_node(node_id, "function")
-    G.add_edge(added_obj, added_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
+    # record its parent scope
+    # when the function is called, we add scopes under this "parent scope",
+    # instead of current scope (which is where the function is called)
+    G.set_node_attr(added_obj, ('parent_scope', parent_scope))
 
-    # for a func decl, should not have local var name
-    # should add the name to base scope
     if func_name is not None and func_name != '{closure}':
         G.add_obj_to_scope(name=func_name, scope=parent_scope,
             tobe_added_obj=added_obj)
 
     G.set_node_attr(node_id, ("VISITED", "1"))
 
-    return added_obj, added_scope
+    return added_obj
 
 def run_toplevel_file(G, node_id):
     """
@@ -877,16 +864,16 @@ def run_toplevel_file(G, node_id):
     # add scope and obj first
     func_name = G.get_node_attr(node_id)['name']
     logger.info(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(func_name) + sty.rs.all)
-    func_decl_id, func_scope_id = decl_function(G, node_id, func_name = func_name, parent_scope=G.BASE_SCOPE)
+    func_decl_obj = decl_function(G, node_id, func_name = func_name, parent_scope=G.BASE_SCOPE)
     # simurun the file
     backup_obj = G.cur_obj
     backup_scope = G.cur_scope
 
-    added_obj = G.add_obj_node(node_id, "FUNC_RUN_OBJ")
-    G.add_edge(added_obj, func_decl_id, {'type:TYPE': 'OBJ_DECL'})
+    func_scope = G.add_scope('FUNC_SCOPE', node_id,
+        G.call_counter.gets(f'File{node_id}'),
+        func_decl_obj, None, func_name, parent_scope=G.BASE_SCOPE)
 
-    G.cur_scope = func_scope_id
-    # G.cur_obj = added_obj     # this is incorrect
+    G.cur_scope = func_scope
 
     # add module object to the current file's scope
     added_module_obj = G.add_obj_to_scope("module", node_id)
@@ -908,13 +895,9 @@ def run_toplevel_file(G, node_id):
     module_exports_objs = G.get_prop_obj_nodes(parent_obj=module_obj,
         prop_name='exports')
 
-    # add obj to scope edge
-    G.add_edge(added_obj, G.cur_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
-
     G.cur_scope = backup_scope
-    G.cur_obj = backup_obj
 
-    return added_obj, func_scope_id, module_exports_objs
+    return func_scope, module_exports_objs
 
 def handle_require(G, node_id):
     arg_list = G.get_ordered_ast_child_nodes(node_id)[1]
@@ -932,7 +915,7 @@ def handle_require(G, node_id):
             #     break
             if G.get_node_attr(node).get('name') == file_name:
                 found = True
-                _, _, module_exports_objs = run_toplevel_file(G, node)
+                _, module_exports_objs = run_toplevel_file(G, node)
                 break
     if not found:
         logger.error("Required module {} at {} not found!".format(module_name, file_name))
@@ -1068,11 +1051,11 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
             not in ['AST_FUNC_DECL', 'AST_CLOSURE']:
                 G.add_blank_func_with_og_nodes(func_name, func_obj)
                 func_ast = G.get_obj_def_ast_node(func_obj)
-            # add "function run object"
-            func_run_obj = G.add_obj_node(caller_ast, "FUNC_RUN_OBJ")
-            G.add_edge(func_run_obj, func_ast, {'type:TYPE': 'OBJ_DECL'})
-            # get function scope
-            func_scope = G.get_func_scope_by_obj_node(func_obj)
+            # add function scope
+            parent_scope = G.get_node_attr(func_obj).get('parent_scope')
+            func_scope = G.add_scope('FUNC_SCOPE', func_ast,
+                f'Function{func_ast}:{caller_ast}', func_obj,
+                caller_ast, func_name, parent_scope=parent_scope)
             # make arguments available in the function
             param_list = G.get_child_nodes(func_ast, edge_type='PARENT_OF',
                 child_type='AST_PARAM_LIST')
@@ -1097,18 +1080,18 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 next_branches = branches+[BranchTag(stmt=stmt_id, branch=i)]
             else:
                 next_branches = branches
+            # switch scopes ("new" will swtich scopes and object by itself)
+            backup_scope = G.cur_scope
+            G.cur_scope = func_scope
             # run simulation -- create the object, or call the function
             if is_new:
                 branch_returned_objs = [instantiate_obj(G, caller_ast,
                     func_ast, branches=next_branches)]
             else:
-                # switch scopes ("new" will swtich scopes and object by itself)
-                backup_scope = G.cur_scope
-                G.cur_scope = func_scope
                 branch_returned_objs, branch_used_objs = simurun_function(
                     G, func_ast, branches=next_branches)
-                # switch back scopes
-                G.cur_scope = backup_scope
+            # switch back scopes
+            G.cur_scope = backup_scope
             # if it's an unmodeled built-in function
             if G.get_node_attr(func_ast).get('labels:label') \
                 == 'Artificial_AST':
@@ -1127,7 +1110,12 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 if callback_functions:
                     for obj in callback_functions:
                         func_ast = G.get_obj_def_ast_node(obj)
-                        func_scope = G.get_func_scope_by_obj_node(obj)
+                        func_name = G.get_name_from_child(func_ast)
+                        parent_scope = G.get_node_attr(func_obj) \
+                                        .get('parent_scope')
+                        func_scope = G.add_scope('FUNC_SCOPE', func_ast,
+                            f'Function{func_ast}:{caller_ast}', obj,
+                            caller_ast, func_name, parent_scope=parent_scope)
                         call_callback_function(G, caller_ast, func_ast,
                             func_scope)
         assert type(branch_returned_objs) is list

@@ -138,7 +138,8 @@ def array_for_each(G: Graph, caller_ast, extra, array: NodeHandleResult, callbac
         for elem in elements:
             for func in callback.obj_nodes:
                 func_decl = G.get_obj_def_ast_node(func)
-                func_scope = G.get_func_scope_by_obj_node(func)
+                func_name = G.get_name_from_child(func_decl)
+                func_scope = G.add_scope('FUNC_SCOPE', func, f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
                 objectGraphGenerator.call_callback_function(G, caller_ast,
                     func_decl, func_scope,
                     args=[NodeHandleResult(obj_nodes=[elem])],
@@ -156,7 +157,8 @@ def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, 
     logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
     for func in callback.obj_nodes:
         func_decl = G.get_obj_def_ast_node(func)
-        func_scope = G.get_func_scope_by_obj_node(func)
+        func_name = G.get_name_from_child(func_decl)
+        func_scope = G.add_scope('FUNC_SCOPE', func, f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
         objectGraphGenerator.call_callback_function(G, caller_ast, func_decl,
             func_scope, args=[NodeHandleResult(obj_nodes=objs)],
             branches=extra.branches)

@@ -6,7 +6,7 @@ import io
 import logging
 import json
 from typing import List, Callable
-from .utilities import BranchTag
+from .utilities import BranchTag, DictCounter
 from .logger import *
 
 class Graph:
@@ -25,6 +25,8 @@ class Graph:
         self.array_prototype = None
         self.number_prototype = None
         self.boolean_prototype = None
+
+        self.call_counter = DictCounter()
 
     # Basic graph operations
 
@@ -774,52 +776,37 @@ class Graph:
 
     # scopes
 
-    def add_scope(self, scope_type, ast_node, scope_name=None):
+    def add_scope(self, scope_type, decl_ast=None, scope_name=None,
+        decl_obj=None, caller_ast=None, func_name=None, parent_scope=None):
         """
         Add a new scope under current scope.
 
         If the scope already exists, return it without adding a new one.
         """
-        cur_scope = self.cur_scope
-        if scope_name and scope_type == 'FUNCTION_SCOPE':
-            existing_scope = self.get_scope_by_ast_node(ast_node)
-            if existing_scope != None:
-                return existing_scope
         new_scope_node = str(self._get_new_nodeid())
         self.add_node(new_scope_node, {'labels:label': 'Scope',
             'type': scope_type, 'name': scope_name})
-        if ast_node is not None:
-            self.add_edge(new_scope_node, ast_node,
+        if decl_ast is not None:
+            self.add_edge(new_scope_node, decl_ast,
                 {'type:TYPE': 'SCOPE_TO_AST'})
-        if cur_scope != None:
-            self.add_edge(cur_scope, new_scope_node,
-                {'type:TYPE': 'PARENT_SCOPE_OF'})
-        else:
-            self.cur_scope = new_scope_node
-        return new_scope_node
-
-    def scope_exists_by_ast_node(self, ast_node_id, parent_scope = None, max_depth = 1):
-        if parent_scope == None:
-            parent_scope = self.BASE_SCOPE
-        if max_depth == None:
-            max_depth = sys.maxsize
-        for depth in range(max_depth):
-            children = self.get_child_nodes(parent_scope, 'PARENT_SCOPE_OF')
-            if not children:
-                return False
+        if parent_scope is None:
+            if self.cur_scope is not None:
+                self.add_edge(self.cur_scope, new_scope_node,
+                    {'type:TYPE': 'PARENT_SCOPE_OF'})
             else:
-                for child in self.get_child_nodes(parent_scope, 'PARENT_SCOPE_OF'):
-                    out_edges = self.get_out_edges(child, data = True, keys = True, edge_type = 'SCOPE_TO_AST')
-                    for edge in out_edges:
-                        if edge[1] == ast_node_id:
-                            return True
-        return False
-
-    def get_scope_by_ast_node(self, ast_node):
-        """
-        Get a scope by its corresponding AST node.
-        """
-        return self.get_in_edges(ast_node, data = True, keys = True, edge_type = "SCOPE_TO_AST")[0][0]
+                self.cur_scope = new_scope_node
+        else:
+            self.add_edge(parent_scope, new_scope_node,
+                {'type:TYPE': 'PARENT_SCOPE_OF'})
+        if decl_obj is not None:
+            self.add_edge(decl_obj, new_scope_node,
+                {'type:TYPE': 'OBJ_TO_SCOPE'})
+        if caller_ast is not None:
+            self.add_edge(new_scope_node, caller_ast,
+                {'type:TYPE': 'SCOPE_TO_CALLER'})
+        if func_name is not None:
+            self.set_node_attr(new_scope_node, ('func_name', func_name))
+        return new_scope_node
 
     def find_func_scope_from_cur_scope(self, cur_scope=None):
         '''
@@ -828,7 +815,7 @@ class Graph:
         if cur_scope is None:
             cur_scope = self.cur_scope
         while True:
-            if self.get_node_attr(cur_scope).get('type') == 'FUNCTION_SCOPE':
+            if self.get_node_attr(cur_scope).get('type') == 'FUNC_SCOPE':
                 return cur_scope
             edges = self.get_in_edges(cur_scope, edge_type='PARENT_SCOPE_OF')
             if edges:
@@ -847,11 +834,11 @@ class Graph:
                 objs.append(edge[0])
         return objs
 
-    def get_func_scope_by_obj_node(self, obj_node):
+    def get_func_scopes_by_obj_node(self, obj_node):
         if obj_node == None:
             return None
-        scope_edge = self.get_out_edges(obj_node, edge_type = "OBJ_TO_SCOPE")[0]
-        return scope_edge[1]
+        scope_edges = self.get_out_edges(obj_node, edge_type = "OBJ_TO_SCOPE")
+        return [edge[1] for edge in scope_edges]
 
     def add_blank_func_to_scope(self, func_name, scope=None, python_func:Callable=None):
         '''
@@ -926,12 +913,10 @@ class Graph:
                 Default to None.
         '''
         ast_node = self.add_blank_func(func_name)
-        func_scope = self.add_scope("FUNCTION_SCOPE", ast_node)
         if func_obj is None:
             func_obj = self.add_obj_node(ast_node, "function")
         else:
             self.convert_obj_node_type_to_function(func_obj, ast_node)
-        self.add_edge(func_obj, func_scope, {"type:TYPE": "OBJ_TO_SCOPE"})
         return func_obj
 
     def add_blank_func(self, func_name):
@@ -1050,7 +1035,7 @@ class Graph:
         the init function of setup a run
         """
         # base scope is not related to any file
-        self.BASE_SCOPE = self.add_scope("BASE_SCOPE", None)
+        self.BASE_SCOPE = self.add_scope("BASE_SCOPE")
 
         # what is base object?
         cur_nodeid = str(self._get_new_nodeid())
@@ -1144,16 +1129,14 @@ class Graph:
             expoit_func_list = [
                     'exec'
                     ]
-            func_run_obj_nodes = self.get_node_by_attr('type', 'FUNC_RUN_OBJ')
+            func_run_scopes = self.get_node_by_attr('type', 'FUNC_SCOPE')
             pathes = {}
-            for func_run_obj_node in func_run_obj_nodes:
+            for run_scope in func_run_scopes:
                 # we assume only one obj_decl edge
-                func_ast_node = list(self.get_child_nodes(func_run_obj_node, 
-                        edge_type = 'OBJ_DECL'))[0]
-                func_name = self.get_name_from_child(func_ast_node)
+                func_name = self.get_node_attr(run_scope).get('func_name')
                 if func_name in expoit_func_list:
-                    caller = list(self.get_child_nodes(func_run_obj_node, 
-                        edge_type = 'OBJ_TO_AST'))[0]
+                    caller = list(self.get_child_nodes(run_scope, 
+                        edge_type = 'SCOPE_TO_CALLER'))[0]
                     pathes = self._dfs_upper_by_edge_type(caller, [
                         "OBJ_REACHES"
                     ])

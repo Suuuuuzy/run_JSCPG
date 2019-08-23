@@ -2,6 +2,7 @@ import re
 from typing import List, Tuple, TypeVar, NoReturn
 from enum import Enum
 import math
+import secrets
 
 
 class NodeHandleResult:
@@ -158,3 +159,23 @@ class ValueRange:
         self.min = kwargs.get('min', -math.inf)
         self.max = kwargs.get('max', math.inf)
         self.type = kwargs.get('type', 'float')
+
+
+class DictCounter:
+    def __init__(self):
+        self.d = dict()
+    def get(self, key):
+        if key in self.d:
+            self.d[key] = self.d[key] + 1
+        else:
+            self.d[key] = 0
+        return self.d[key]
+    def gets(self, key, val=None):
+        if val is not None:
+            return f'{key}:{val}'
+        else:
+            return f'{key}:{self.get(key)}'
+
+
+def get_random_hex(length=6):
+    return secrets.token_hex(length // 2)
