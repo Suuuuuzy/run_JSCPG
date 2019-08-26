@@ -1074,6 +1074,32 @@ class Graph:
         f'negative_infinity_obj: {self.negative_infinity_obj}, nan_obj:{self.nan_obj}, '
         f'true_obj: {self.true_obj}, false_obj: {self.false_obj}')
 
+
+    def get_parent_object_def(self, node_id):
+        """
+        get the obj number and defination of the parent object 
+
+        Args:
+            node_id: current node id, means the child id
+        Return:
+            parent_obj: the list of parent obj node of current node id
+            def_id: the list of statements that defines the parent object
+        """
+        parent_obj_nodes = []
+        parent_obj_defs = []
+        # get the name node first
+        name_edges = self.get_in_edges(node_id, edge_type="NAME_TO_OBJ")
+        for name_edge in name_edges:
+            name_node = name_edge[0]
+
+            parent_obj_edges = self.get_in_edges(name_node, edge_type="OBJ_TO_PROP")
+            for parent_obj_edge in parent_obj_edges:
+                parent_obj_nodes.append(parent_obj_edge[0])
+
+        for node in parent_obj_nodes:
+            parent_obj_defs.append(self.get_out_edges(node, edge_type="OBJ_TO_AST")[0][1])
+        return parent_obj_nodes, parent_obj_defs
+
     # Analysis
 
     def _dfs_upper_by_edge_type(self, node_id, edge_types):
@@ -1087,6 +1113,7 @@ class Graph:
             nodes: list, nodes on the pathes
             objs: dict, {str(from_to): [obj numbers]} 
         """
+
         upper_edges = []
         for t in edge_types:
             upper_edges.extend(self.get_in_edges(node_id, edge_type=t))
@@ -1100,10 +1127,23 @@ class Graph:
 
         parent_nodes = tmp_parent_obj_map.keys()
 
+        cur_parents = []
+        for parent_node in parent_nodes:
+            cur_parents.append(tmp_parent_obj_map[parent_node])
+
+        extended_parent_nodes = set()
+        # here we treat every upper level objects as object from nodes
+        for cur_parent_node in cur_parents:
+            parent_obj_nodes, parent_obj_defs = self.get_parent_object_def(cur_parent_node)
+            for parent_obj_def in parent_obj_defs:
+                extended_parent_nodes.add(parent_obj_def)
+
+        extended_parent_nodes = list(extended_parent_nodes) + list(parent_nodes)
+
         ret = []
         ret_objs = {}
 
-        for parent_node in parent_nodes:
+        for parent_node in extended_parent_nodes:
             cur_all_upper_pathes, cur_upper_maps = self._dfs_upper_by_edge_type(parent_node, 
                     edge_types)
             if len(cur_all_upper_pathes) == 0:
@@ -1115,7 +1155,8 @@ class Graph:
                 if cur_key not in ret_objs:
                     ret_objs[cur_key] = cur_upper_maps[cur_key]
 
-            ret_objs["{}_{}".format(parent_node, node_id)] = tmp_parent_obj_map[parent_node]
+            if parent_node in tmp_parent_obj_map:
+                ret_objs["{}_{}".format(parent_node, node_id)] = tmp_parent_obj_map[parent_node]
 
         return ret, ret_objs
 
