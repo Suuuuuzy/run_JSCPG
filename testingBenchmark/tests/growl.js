@@ -232,5 +232,3 @@ function growl(msg, options, fn) {
   // execute
   exec(args.join(' '), fn);
 };
-
-growl("test", "", "");

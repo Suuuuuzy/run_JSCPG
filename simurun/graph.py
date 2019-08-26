@@ -1094,10 +1094,16 @@ class Graph:
 
             parent_obj_edges = self.get_in_edges(name_node, edge_type="OBJ_TO_PROP")
             for parent_obj_edge in parent_obj_edges:
-                parent_obj_nodes.append(parent_obj_edge[0])
+                def_edges = self.get_out_edges(parent_obj_edge[0], edge_type="OBJ_TO_AST")
+                if len(def_edges) == 0:
+                    continue
 
-        for node in parent_obj_nodes:
-            parent_obj_defs.append(self.get_out_edges(node, edge_type="OBJ_TO_AST")[0][1])
+                parent_obj_nodes.append(parent_obj_edge[0])
+                for def_edge in def_edges:
+                    # we return the flatten array
+                    # if one obj has multiple defs, defs can not match obj
+                    parent_obj_defs.append(def_edge[0][1])
+
         return parent_obj_nodes, parent_obj_defs
 
     # Analysis
@@ -1122,8 +1128,7 @@ class Graph:
         for edge in upper_edges:
             if edge[0] not in tmp_parent_obj_map:
                 tmp_parent_obj_map[edge[0]] = []
-            else:
-                tmp_parent_obj_map[edge[0]].append(edge[3]['obj'])
+            tmp_parent_obj_map[edge[0]].append(edge[3]['obj'])
 
         parent_nodes = tmp_parent_obj_map.keys()
 
