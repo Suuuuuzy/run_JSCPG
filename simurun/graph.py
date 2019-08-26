@@ -1102,7 +1102,7 @@ class Graph:
                 for def_edge in def_edges:
                     # we return the flatten array
                     # if one obj has multiple defs, defs can not match obj
-                    parent_obj_defs.append(def_edge[0][1])
+                    parent_obj_defs.append(def_edge[1])
 
         return parent_obj_nodes, parent_obj_defs
 
@@ -1140,6 +1140,7 @@ class Graph:
         # here we treat every upper level objects as object from nodes
         for cur_parent_node in cur_parents:
             parent_obj_nodes, parent_obj_defs = self.get_parent_object_def(cur_parent_node)
+            print(parent_obj_defs)
             for parent_obj_def in parent_obj_defs:
                 extended_parent_nodes.add(parent_obj_def)
 
