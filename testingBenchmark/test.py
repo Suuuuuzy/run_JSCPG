@@ -31,6 +31,10 @@ def graph_diff(g1, g2):
     g1_edges_data = list(g1.edges.data())
     g2_edges_data = list(g2.edges.data())
 
+    # sort the edges before compare
+    g1_edges_data.sort(key = lambda val: val[1])
+    g2_edges_data.sort(key = lambda val: val[1])
+
     if len(g1_edges_data) != len(g2_edges_data):
         res += "\nEdges number diff: G1 has {} edges and G2 has {} edges".format(len(g1_edges_data), len(g2_edges_data))
     else:

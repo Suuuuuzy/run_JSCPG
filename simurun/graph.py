@@ -1109,6 +1109,7 @@ class Graph:
     # Analysis
 
     def _dfs_upper_by_edge_type(self, node_id, edge_types):
+        #  TODO: find the statement node instead of the ast node
         """
         dfs a specific type of edge upper from a node id
 
