@@ -1233,5 +1233,6 @@ class Graph:
                         self.logger.debug(cur_path_str1)
 
                         res_path += "==========================\n"
+                        res_path += "{}\n".format(self.get_node_file_path(path[0]))
                         res_path += cur_path_str2
         return pathes, res_path
