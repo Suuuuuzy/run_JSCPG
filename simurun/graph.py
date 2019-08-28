@@ -1109,7 +1109,6 @@ class Graph:
     # Analysis
 
     def _dfs_upper_by_edge_type(self, node_id, edge_types):
-        #  TODO: find the statement node instead of the ast node
         """
         dfs a specific type of edge upper from a node id
 
@@ -1141,9 +1140,9 @@ class Graph:
         # here we treat every upper level objects as object from nodes
         for cur_parent_node in cur_parents:
             parent_obj_nodes, parent_obj_defs = self.get_parent_object_def(cur_parent_node)
-            print(parent_obj_defs)
             for parent_obj_def in parent_obj_defs:
-                extended_parent_nodes.add(parent_obj_def)
+                statement_ast_node = self.find_nearest_upper_CPG_node(parent_obj_def)
+                extended_parent_nodes.add(statement_ast_node)
 
         extended_parent_nodes = list(extended_parent_nodes) + list(parent_nodes)
 

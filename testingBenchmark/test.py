@@ -32,6 +32,8 @@ def graph_diff(g1, g2):
     g2_edges_data = list(g2.edges.data())
 
     # sort the edges before compare
+    # we assume the order of first key is already satisfied
+    # sort by the second key of the edges
     g1_edges_data.sort(key = lambda val: val[1])
     g2_edges_data.sort(key = lambda val: val[1])
 
