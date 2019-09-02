@@ -21,7 +21,7 @@ class NoColorFormatter(logging.Formatter):
         res = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', res)
         return res
 
-def create_logger(name, output_type="console", level=logging.DEBUG):
+def create_logger(name, output_type="console", level=logging.DEBUG, file_name='run_log.log'):
     """
     we can choose this is a file logger or a console logger
     for now, we hard set the log file name to be run_log.log
@@ -38,7 +38,7 @@ def create_logger(name, output_type="console", level=logging.DEBUG):
     for handler in list(logger.handlers):
         logger.removeHandler(handler)
 
-    file_handler = logging.FileHandler(filename="run_log.log")
+    file_handler = logging.FileHandler(filename=file_name)
     file_handler.setFormatter(NoColorFormatter())
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(ColorFormatter())

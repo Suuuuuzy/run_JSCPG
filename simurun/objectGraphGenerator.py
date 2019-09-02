@@ -7,10 +7,12 @@ import sty
 import re
 import math
 import subprocess
+import csv
 from .logger import *
 from . import modeledJSBuiltIns
 
 registered_func = {}
+csv.field_size_limit(sys.maxsize)
 
 logger = create_logger("main_logger", output_type="file")
 
