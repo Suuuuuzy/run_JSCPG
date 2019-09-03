@@ -6,6 +6,19 @@ import secrets
 
 
 class NodeHandleResult:
+    '''
+    Object for storing AST node handling result.
+
+    Args:
+        obj_nodes (list, optional): Object nodes. Defaults to [].
+        values (list, optional): Values of the variable or literal (as
+            JavaScript source code, e.g. strings are quoted by quotation
+            marks). Defaults to [].
+        name (str, optional): Variable name. Defaults to None.
+        name_nodes (list, optional): Name nodes. Defaults to [].
+        used_objs (list, optional): Object nodes used in handling the
+            AST node. Definition varies. Defaults to [].
+    '''
     def __init__(self, **kwargs):
         self.obj_nodes = kwargs.get('obj_nodes', [])
         self.values = kwargs.get('values', [])
@@ -32,40 +45,46 @@ class BranchTag:
     Class for tagging branches.
 
     Args:
-        stmt (str): ID of the if/switch statement
-        branch (str): which condition/case in the statement
-        op (str): operation, 'A' for addition, 'D' for deletion
+        point (str): ID of the branching point (e.g. if/switch
+            statement).
+        branch (str): Which branch (condition/case in the statement).
+        mark (str): One of the following:
+            Operation mark, 'A' for addition, 'D' for deletion.
+            For-loop mark, 'P' for primary (loop variable), 'S' for
+                secondary (other variables created in the for-loop).
         ---
-        s (str/BranchTag): string to create the object directly, or copy
-            the existing object
+        or use this alternative argument:
+
+        s (str/BranchTag): String to create the object directly, or copy
+            the existing object.
     '''
 
     def __init__(self, s = None, **kwargs):
-        self.stmt = ''
+        self.point = ''
         self.branch = ''
-        self.op = ''
+        self.mark = ''
         if s:
             try:
-                self.stmt, self.branch, self.op = re.match(
+                self.point, self.branch, self.mark = re.match(
                     r'-?([^#]+)#(\d+)(\w?)', str(s)).groups()
             except Exception:
                 pass
-        if 'stmt' in kwargs:
-            self.stmt = kwargs['stmt']
+        if 'point' in kwargs:
+            self.point = kwargs['point']
         if 'branch' in kwargs:
             self.branch = kwargs['branch']
-        if 'op' in kwargs:
-            self.op = kwargs['op']
+        if 'mark' in kwargs:
+            self.mark = kwargs['mark']
         # assert self.__bool__()
 
     def __str__(self):
-        return f"{self.stmt}#{self.branch}{self.op or ''}"
+        return f"{self.point}#{self.branch}{self.mark or ''}"
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.__str__()}")'
 
     def __bool__(self):
-        return bool(self.stmt and self.branch)
+        return bool(self.point and self.branch)
 
     def __eq__(self, other):
         return str(self) == str(other)
@@ -75,7 +94,7 @@ class BranchTagContainer(list):
     '''
     Experimental. 
     '''
-    def match(self, tag: BranchTag = None, stmt=None, branch=None, op=None) \
+    def match(self, tag: BranchTag = None, point=None, branch=None, mark=None) \
         -> Tuple[int, BranchTag]:
         '''
         Find a matching BranchTag in the array.
@@ -87,27 +106,27 @@ class BranchTagContainer(list):
             BranchTag.
         '''
         if tag:
-            stmt = tag.stmt
+            point = tag.point
             branch = tag.branch
-            op = tag.op
+            mark = tag.mark
         for i, t in enumerate(self):
-            if t.stmt == stmt and t.branch == branch:
-                if op and t.op == op:
+            if t.point == point and t.branch == branch:
+                if mark and t.mark == mark:
                     return i, t
         return None, None
 
-    def add(self, tag=None, stmt=None, branch=None, op=None):
+    def add(self, tag=None, point=None, branch=None, mark=None):
         if tag:
             self.append(tag)
-        elif stmt != None and branch != None:
-            self.append(BranchTag(stmt=stmt, branch=branch, op=op))
+        elif point != None and branch != None:
+            self.append(BranchTag(point=point, branch=branch, mark=mark))
 
-    def remove(self, tag: BranchTag = None, stmt=None, branch=None, op=None) \
+    def remove(self, tag: BranchTag = None, point=None, branch=None, mark=None) \
         -> NoReturn:
         '''
         Remove a matching BranchTag in the array.
         '''
-        i, _ = self.match(tag, stmt, branch, op)
+        i, _ = self.match(tag, point, branch, mark)
         if i != None:
             self.delete(i)
 
@@ -179,3 +198,15 @@ class DictCounter:
 
 def get_random_hex(length=6):
     return secrets.token_hex(length // 2)
+
+
+class JSSpecialValue(Enum):
+    UNDEFINED = 0
+    NULL = 1
+    NAN = 10
+    INFINITY = 11
+    NEGATIVE_INFINITY = 12
+    TRUE = 20
+    FALSE = 21
+    OBJECT = 100
+    FUNCTION = 101

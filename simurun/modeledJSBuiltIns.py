@@ -1,5 +1,5 @@
 from .graph import Graph
-from .utilities import NodeHandleResult
+from .utilities import NodeHandleResult, BranchTag
 from . import objectGraphGenerator
 import sty
 import re
@@ -162,6 +162,37 @@ def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, 
         objectGraphGenerator.call_callback_function(G, caller_ast, func_decl,
             func_scope, args=[NodeHandleResult(obj_nodes=objs)],
             branches=extra.branches)
+    return NodeHandleResult()
+
+
+def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResult, callback: NodeHandleResult):
+    branches = extra.branches
+    objs = []
+    names = []
+    counter = 0
+    for arr in array.obj_nodes:
+        name_nodes = G.get_prop_name_nodes(arr)
+        for name_node in name_nodes:
+            name = G.get_node_attr(name_node).get('name')
+            for obj in G.get_obj_nodes(name_node, branches=branches):
+                objs.append(obj)
+                names.append(name)
+                tags = G.get_node_attr(obj).get('for_each_tags', [])
+                tags.append(BranchTag(point=f'ForEach{caller_ast}',
+                                      branch=counter, mark='P'))
+                counter += 1
+    args = [NodeHandleResult(obj_nodes=objs),
+            NodeHandleResult(values=names),
+            array]
+    logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
+    for func in callback.obj_nodes:
+        func_decl = G.get_obj_def_ast_node(func)
+        func_name = G.get_name_from_child(func_decl)
+        func_scope = G.add_scope('FUNC_SCOPE', func, f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
+        objectGraphGenerator.call_callback_function(
+            G, caller_ast, func_decl, func_scope, args=args,
+            branches=[extra.branches + BranchTag(point=f'ForEach{caller_ast}',
+                branch=counter)])
     return NodeHandleResult()
 
 
