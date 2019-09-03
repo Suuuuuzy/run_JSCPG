@@ -301,10 +301,7 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     right_objs = list(handled_right.obj_nodes)
 
     # experimental
-    # if handled_right.values:
-    #     for value in handled_right.values:
-    #         right_objs.append(eval_value(G, value, return_result=True,
-    #             ast_node=ast_node))
+    right_objs.extend(convert_values(G, handled_right, ast_node))
 
     if not right_objs:
         logger.debug("Right OBJ not found")
@@ -530,9 +527,13 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
         if cur_node_attr.get('flags:string[]') == 'BINARY_BOOL_OR':
             # TODO: add value check to filter out false values
+            handled_left = handle_node(G, left_child, extra)
+            handled_right = handle_node(G, right_child, extra)
             left_objs = handle_node(G, left_child, extra).obj_nodes
             right_objs = handle_node(G, right_child, extra).obj_nodes
             now_objs = list(set(left_objs + right_objs))
+            now_objs.extend(convert_values(G, handled_left, node_id))
+            now_objs.extend(convert_values(G, handled_right, node_id))
             return NodeHandleResult(obj_nodes=now_objs)
         else:
             handled_left = handle_node(G, left_child, extra)
@@ -544,6 +545,8 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             used_objs.extend(handled_right.obj_nodes)
             added_obj = G.add_obj_node(node_id)
             used_objs = list(set(used_objs))
+            used_objs.extend(convert_values(G, handled_left, node_id))
+            used_objs.extend(convert_values(G, handled_right, node_id))
             for obj in used_objs:
                 G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
             return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
@@ -567,9 +570,10 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type in ['integer', 'double', 'string']:
         js_type = 'string' if cur_type == 'string' else 'number'
         code = G.get_node_attr(node_id).get('code')
-        added_obj = G.add_obj_node(node_id, js_type, code)
-        logger.debug(f'{node_id} handle result: obj_nodes={[added_obj]}, value={code}')
-        return NodeHandleResult(obj_nodes=[added_obj])
+        value = code if js_type == 'string' else float(code)
+        # added_obj = G.add_obj_node(node_id, js_type, code)
+        logger.debug(f'{node_id} handle result: value={code}')
+        return NodeHandleResult(values=[value])
 
     elif cur_type in ['AST_CALL', 'AST_METHOD_CALL', 'AST_NEW']:
         returned_objs, used_objs = ast_call_function(G, node_id, extra)
@@ -1176,8 +1180,8 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
 
 def eval_value(G, s, return_node=False, ast_node=None):
     '''
-    Extract Python values, JavaScript types from literal values
-    (presented by JavaScript code) and create object nodes.
+    Experimental. Extract Python values, JavaScript types from literal
+    values (presented by JavaScript code) and create object nodes.
     
     Args:
         G (Graph): Graph.
@@ -1226,6 +1230,20 @@ def eval_value(G, s, return_node=False, ast_node=None):
         return evaluated, js_type, result
     else:
         return evaluated, js_type
+
+
+def convert_values(G, handle_result, ast_node=None):
+    '''
+    experimental
+    '''
+    returned_objs = []
+    if handle_result.values:
+        for value in handle_result.values:
+            if type(value) in [int, float]:
+                returned_objs.append(G.add_obj_node(ast_node, 'number', value))
+            else:
+                returned_objs.append(G.add_obj_node(ast_node, 'string', value))
+    return returned_objs
 
 
 def generate_obj_graph(G, entry_nodeid):
