@@ -32,10 +32,9 @@ def graph_diff(g1, g2):
     g2_edges_data = list(g2.edges.data())
 
     # sort the edges before compare
-    # we assume the order of first key is already satisfied
-    # sort by the second key of the edges
-    g1_edges_data.sort(key = lambda val: val[1])
-    g2_edges_data.sort(key = lambda val: val[1])
+    # sort by the first key first, if first key same, sort by the second key of the edges
+    g1_edges_data.sort(key = lambda val: "{:10s}{:10s}{}".format(val[0], val[1], val[2]))
+    g2_edges_data.sort(key = lambda val: "{:10s}{:10s}{}".format(val[0], val[1], val[2]))
 
     if len(g1_edges_data) != len(g2_edges_data):
         res += "\nEdges number diff: G1 has {} edges and G2 has {} edges".format(len(g1_edges_data), len(g2_edges_data))

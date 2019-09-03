@@ -1124,6 +1124,7 @@ class Graph:
         for t in edge_types:
             upper_edges.extend(self.get_in_edges(node_id, edge_type=t))
 
+        print("upper_edges", upper_edges)
         tmp_parent_obj_map = {}
         for edge in upper_edges:
             if edge[0] not in tmp_parent_obj_map:
@@ -1203,6 +1204,7 @@ class Graph:
                 if func_name in expoit_func_list:
                     caller = list(self.get_child_nodes(run_scope, 
                         edge_type = 'SCOPE_TO_CALLER'))[0]
+                    print("caller " + caller)
                     pathes, obj_num_map = self._dfs_upper_by_edge_type(caller, [
                         "OBJ_REACHES"
                     ])
