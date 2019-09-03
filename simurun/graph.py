@@ -28,6 +28,9 @@ class Graph:
 
         self.call_counter = DictCounter()
 
+        # contains a list of node ids based on the ast id
+        self.call_stack = []
+
     # Basic graph operations
 
     # node

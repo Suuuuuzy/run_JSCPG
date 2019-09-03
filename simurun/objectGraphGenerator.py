@@ -642,6 +642,10 @@ def simurun_function(G, func_decl_ast_node, branches=[]):
     """
     Simurun a function by running its body.
     """
+    if func_decl_ast_node in G.call_stack:
+        return [], []
+    G.call_stack.append(func_decl_ast_node)
+
     func_name = G.get_name_from_child(func_decl_ast_node)
     decl_vars_and_funcs(G, func_decl_ast_node)
     logger.info(sty.ef.inverse + sty.fg.green +
@@ -651,6 +655,8 @@ def simurun_function(G, func_decl_ast_node, branches=[]):
         branches) + sty.rs.all)
     for child in G.get_child_nodes(func_decl_ast_node, child_type='AST_STMT_LIST'):
         return simurun_block(G, child, parent_scope=G.cur_scope)
+
+    G.call_stack.pop()
     return [], []
 
 def simurun_block(G, ast_node, parent_scope, branches=[], block_scope=True):
@@ -872,6 +878,7 @@ def run_toplevel_file(G, node_id):
     # simurun the file
     backup_obj = G.cur_obj
     backup_scope = G.cur_scope
+    
 
     func_scope = G.add_scope('FUNC_SCOPE', node_id,
         G.call_counter.gets(f'File{node_id}'),
