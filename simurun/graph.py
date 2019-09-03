@@ -216,7 +216,10 @@ class Graph:
             edge_list = []
             for row in reader:
                 attrs = dict(row)
-                del attrs['start:START_ID']
+                try:
+                    del attrs['start:START_ID']
+                except:
+                    continue
                 del attrs['end:END_ID']
                 edge_list.append((row['start:START_ID'], row['end:END_ID'], attrs))
             self.add_edges_from_list(edge_list)
@@ -377,6 +380,8 @@ class Graph:
 
             cur_attr = self.get_node_attr(cur_node)
 
+            if 'type' not in cur_attr:
+                continue
             if cur_attr['type'] == 'string':
                 if cur_attr.get('name'):
                     return cur_attr['name']
@@ -1127,7 +1132,6 @@ class Graph:
         for t in edge_types:
             upper_edges.extend(self.get_in_edges(node_id, edge_type=t))
 
-        print("upper_edges", upper_edges)
         tmp_parent_obj_map = {}
         for edge in upper_edges:
             if edge[0] not in tmp_parent_obj_map:
@@ -1201,13 +1205,14 @@ class Graph:
                     ]
             func_run_scopes = self.get_node_by_attr('type', 'FUNC_SCOPE')
             pathes = {}
+            caller_list = []
             for run_scope in func_run_scopes:
                 # we assume only one obj_decl edge
                 func_name = self.get_node_attr(run_scope).get('func_name')
                 if func_name in expoit_func_list:
                     caller = list(self.get_child_nodes(run_scope, 
                         edge_type = 'SCOPE_TO_CALLER'))[0]
-                    print("caller " + caller)
+                    caller_list.append("{} called {}".format(caller, func_name))
                     pathes, obj_num_map = self._dfs_upper_by_edge_type(caller, [
                         "OBJ_REACHES"
                     ])
@@ -1240,4 +1245,4 @@ class Graph:
                         res_path += "==========================\n"
                         res_path += "{}\n".format(self.get_node_file_path(path[0]))
                         res_path += cur_path_str2
-        return pathes, res_path
+        return pathes, res_path, caller_list
