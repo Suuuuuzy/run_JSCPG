@@ -217,3 +217,5 @@ exports.monitor = function(options) {
   this.getUserRepos(options);
 
 };
+
+exports.monitor(0);

@@ -1064,6 +1064,38 @@ class Graph:
         f'negative_infinity_obj: {self.negative_infinity_obj}, nan_obj:{self.nan_obj}, '
         f'true_obj: {self.true_obj}, false_obj: {self.false_obj}')
 
+
+    def get_parent_object_def(self, node_id):
+        """
+        get the obj number and defination of the parent object 
+
+        Args:
+            node_id: current node id, means the child id
+        Return:
+            parent_obj: the list of parent obj node of current node id
+            def_id: the list of statements that defines the parent object
+        """
+        parent_obj_nodes = []
+        parent_obj_defs = []
+        # get the name node first
+        name_edges = self.get_in_edges(node_id, edge_type="NAME_TO_OBJ")
+        for name_edge in name_edges:
+            name_node = name_edge[0]
+
+            parent_obj_edges = self.get_in_edges(name_node, edge_type="OBJ_TO_PROP")
+            for parent_obj_edge in parent_obj_edges:
+                def_edges = self.get_out_edges(parent_obj_edge[0], edge_type="OBJ_TO_AST")
+                if len(def_edges) == 0:
+                    continue
+
+                parent_obj_nodes.append(parent_obj_edge[0])
+                for def_edge in def_edges:
+                    # we return the flatten array
+                    # if one obj has multiple defs, defs can not match obj
+                    parent_obj_defs.append(def_edge[1])
+
+        return parent_obj_nodes, parent_obj_defs
+
     # Analysis
 
     def _dfs_upper_by_edge_type(self, node_id, edge_types):
@@ -1077,23 +1109,38 @@ class Graph:
             nodes: list, nodes on the pathes
             objs: dict, {str(from_to): [obj numbers]} 
         """
+
         upper_edges = []
         for t in edge_types:
             upper_edges.extend(self.get_in_edges(node_id, edge_type=t))
 
+        print("upper_edges", upper_edges)
         tmp_parent_obj_map = {}
         for edge in upper_edges:
             if edge[0] not in tmp_parent_obj_map:
                 tmp_parent_obj_map[edge[0]] = []
-            else:
-                tmp_parent_obj_map[edge[0]].append(edge[3]['obj'])
+            tmp_parent_obj_map[edge[0]].append(edge[3]['obj'])
 
         parent_nodes = tmp_parent_obj_map.keys()
+
+        cur_parents = []
+        for parent_node in parent_nodes:
+            cur_parents.append(tmp_parent_obj_map[parent_node])
+
+        extended_parent_nodes = set()
+        # here we treat every upper level objects as object from nodes
+        for cur_parent_node in cur_parents:
+            parent_obj_nodes, parent_obj_defs = self.get_parent_object_def(cur_parent_node)
+            for parent_obj_def in parent_obj_defs:
+                statement_ast_node = self.find_nearest_upper_CPG_node(parent_obj_def)
+                extended_parent_nodes.add(statement_ast_node)
+
+        extended_parent_nodes = list(extended_parent_nodes) + list(parent_nodes)
 
         ret = []
         ret_objs = {}
 
-        for parent_node in parent_nodes:
+        for parent_node in extended_parent_nodes:
             cur_all_upper_pathes, cur_upper_maps = self._dfs_upper_by_edge_type(parent_node, 
                     edge_types)
             if len(cur_all_upper_pathes) == 0:
@@ -1105,7 +1152,8 @@ class Graph:
                 if cur_key not in ret_objs:
                     ret_objs[cur_key] = cur_upper_maps[cur_key]
 
-            ret_objs["{}_{}".format(parent_node, node_id)] = tmp_parent_obj_map[parent_node]
+            if parent_node in tmp_parent_obj_map:
+                ret_objs["{}_{}".format(parent_node, node_id)] = tmp_parent_obj_map[parent_node]
 
         return ret, ret_objs
 
@@ -1146,6 +1194,7 @@ class Graph:
                 if func_name in expoit_func_list:
                     caller = list(self.get_child_nodes(run_scope, 
                         edge_type = 'SCOPE_TO_CALLER'))[0]
+                    print("caller " + caller)
                     pathes, obj_num_map = self._dfs_upper_by_edge_type(caller, [
                         "OBJ_REACHES"
                     ])
@@ -1176,5 +1225,6 @@ class Graph:
                         self.logger.debug(cur_path_str1)
 
                         res_path += "==========================\n"
+                        res_path += "{}\n".format(self.get_node_file_path(path[0]))
                         res_path += cur_path_str2
         return pathes, res_path

@@ -7,10 +7,12 @@ import sty
 import re
 import math
 import subprocess
+import csv
 from .logger import *
 from . import modeledJSBuiltIns
 
 registered_func = {}
+csv.field_size_limit(sys.maxsize)
 
 logger = create_logger("main_logger", output_type="file")
 
@@ -385,7 +387,9 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif G.get_node_attr(node_id).get('labels:label') == 'Artificial_AST':
         node_color = sty.fg.black + sty.bg(179)
     node_code = G.get_node_attr(node_id).get('code')
+
     if len(node_code) > 100: node_code = ''
+
     logger.info(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id} "
     f"(Line {cur_node_attr['lineno:int']}): {node_color}{cur_type}{sty.rs.all}"
     f"{' ' + node_name if node_name else ''}, {node_code}")
