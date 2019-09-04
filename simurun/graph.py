@@ -630,10 +630,10 @@ class Graph:
                 # check which edge matches the current checking branch
                 for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
                     tag = attr.get('branch')
-                    if tag and tag.stmt == branch.stmt and tag.branch == branch.branch:
-                        if tag.op == 'A': # if the object is added (assigned) in that branch
+                    if tag and tag.point == branch.point and tag.branch == branch.branch:
+                        if tag.mark == 'A': # if the object is added (assigned) in that branch
                             has_obj[obj] = True
-                        elif tag.op == 'D': # if the object is removed in that branch
+                        elif tag.mark == 'D': # if the object is removed in that branch
                             has_obj[obj] = False
             return list(filter(lambda x: has_obj[x], objs))
         else:
@@ -747,14 +747,14 @@ class Graph:
                     for key, edge_attr in self.get_edges_between(name_node, obj,
                         'NAME_TO_OBJ').items():
                         tag = edge_attr.get('branch', BranchTag())
-                        if tag == BranchTag(branch, op='A'):
+                        if tag == BranchTag(branch, mark='A'):
                             # if addition exists, delete the addition edge
                             self.graph.remove_edge(name_node, obj, key)
                             flag = True
                     if not flag:
                         # if no addition, add a deletion edge
                         self.add_edge(name_node, obj,{'type:TYPE':
-                        'NAME_TO_OBJ', 'branch': BranchTag(branch, op='D')})
+                        'NAME_TO_OBJ', 'branch': BranchTag(branch, mark='D')})
                 else:
                     # do not use "remove_edge", which cannot remove all edges
                     self.remove_all_edges_between(name_node, obj)
@@ -763,7 +763,7 @@ class Graph:
         for obj in obj_nodes:
             if branch:
                 self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ",
-                "branch": BranchTag(branch, op='A')})
+                "branch": BranchTag(branch, mark='A')})
             else:
                 self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ"})
 
@@ -781,6 +781,40 @@ class Graph:
             return None
         else:
             return tmp_edge[0][1]
+
+
+    def copy_obj(self, obj_node, ast_node=None):
+        '''
+        Copy an object and its properties.
+        '''
+        # copy object node
+        new_obj_node = str(self._get_new_nodeid())
+        self.add_node(new_obj_node, self.get_node_attr(obj_node))
+        # copy properties
+        for i in self.get_out_edges(obj_node, edge_type='OBJ_TO_PROP'):
+            # copy property name node
+            prop_name_node = i[1]
+            new_prop_name_node = str(self._get_new_nodeid())
+            self.add_node(new_prop_name_node,
+                          self.get_node_attr(prop_name_node))
+            self.add_edge(new_obj_node, new_prop_name_node,
+                          {'type:TYPE': 'OBJ_TO_PROP'})
+            # copy property object nodes
+            for j in self.get_out_edges(prop_name_node, edge_type=
+                'NAME_TO_OBJ'):
+                new_prop_obj_node = self.copy_obj(j[1], ast_node)
+                self.add_node(new_prop_obj_node, self.get_node_attr(j[1]))
+                self.add_edge(new_prop_name_node, new_prop_obj_node,
+                    {'type:TYPE': 'OBJ_DECL'})
+        for e in self.get_out_edges(obj_node, edge_type='OBJ_DECL'):
+            self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_DECL'})
+        if ast_node is not None:
+            self.add_edge(new_obj_node, ast_node, {'type:TYPE': 'OBJ_TO_AST'})
+        else:
+            for e in self.get_out_edges(obj_node, edge_type='OBJ_TO_AST'):
+                self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_TO_AST'})
+        return new_obj_node
+
 
     # scopes
 
@@ -978,16 +1012,6 @@ class Graph:
 
         # we need to run the function 
         return func_ast
-
-    def find_name_of_call(self, node_id):
-        """
-        input a ast call node, return the function name
-        """
-        edges = self.get_out_edges(node_id, edge_type = "PARENT_OF")
-        for edge in edges:
-            cur_attr = self.get_node_attr(edge[1])
-            if cur_attr['type'] == 'AST_NAME':
-                return self.get_name_from_child(edge[1])
 
     def get_self_invoke_node_by_caller(self, caller_id):
         """

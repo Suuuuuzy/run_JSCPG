@@ -214,12 +214,19 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     '''
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)[:2]
     handled_parent = handle_node(G, parent, extra)
-    prop_name = G.get_name_from_child(prop) or 'undefined'
+    handled_prop = handle_node(G, prop, extra)
     
     parent_code = G.get_node_attr(parent).get('code')
     parent_name = handled_parent.name or parent_code or 'Unknown'
     parent_objs = handled_parent.obj_nodes
     parent_name_nodes = handled_parent.name_nodes
+
+    prop_names = list(filter(lambda x: x is not None, handled_prop.values))
+    for obj in handled_prop.obj_nodes:
+        name = G.get_node_attr(obj).get('code')
+        if name is not None:
+            prop_names.append(name)
+
     if not parent_objs:
         if not (extra and extra.side == 'right'):
             logger.debug("PARENT OBJ {} NOT DEFINED, creating object nodes".
@@ -240,14 +247,28 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
 
     branches = extra.branches
     side = extra.side
-    prop_name_nodes, prop_obj_nodes = find_prop(G, parent_objs, prop_name, branches, side, parent_name)
+    prop_name_nodes, prop_obj_nodes = [], []
+
+    for prop_name in prop_names:
+        name_nodes, obj_nodes = find_prop(G, parent_objs, prop_name,
+            branches, side, parent_name)
+        prop_name_nodes.extend(name_nodes)
+        prop_obj_nodes.extend(obj_nodes)
 
     if not prop_name_nodes and not prop_obj_nodes:
         # try wildcard (*)
-        prop_name_nodes, prop_obj_nodes = find_prop(G, parent_objs, '*', branches, side, parent_name)
+        prop_name_nodes, prop_obj_nodes = find_prop(G, parent_objs, '*',
+            branches, side, parent_name)
 
-    logger.debug(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, name={parent_name}.{prop_name}, name_nodes={list(prop_name_nodes)}')
-    return NodeHandleResult(obj_nodes=list(prop_obj_nodes), name=f'{parent_name}.{prop_name}', name_nodes=list(prop_name_nodes))
+    if len(prop_names) == 1:
+        name = f'{parent_name}.{prop_names[0]}'
+    else:
+        name = f'{parent_name}.{"/".join(prop_names)}'
+
+    logger.debug(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, '
+        f'name={name}, name_nodes={list(prop_name_nodes)}')
+    return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
+        name=f'{name}', name_nodes=list(prop_name_nodes))
 
 def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     '''
@@ -283,10 +304,7 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     right_objs = list(handled_right.obj_nodes)
 
     # experimental
-    # if handled_right.values:
-    #     for value in handled_right.values:
-    #         right_objs.append(eval_value(G, value, return_result=True,
-    #             ast_node=ast_node))
+    right_objs.extend(convert_values(G, handled_right, ast_node))
 
     if not right_objs:
         logger.debug("Right OBJ not found")
@@ -511,9 +529,14 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type == 'AST_BINARY_OP':
         left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
         if cur_node_attr.get('flags:string[]') == 'BINARY_BOOL_OR':
+            # TODO: add value check to filter out false values
+            handled_left = handle_node(G, left_child, extra)
+            handled_right = handle_node(G, right_child, extra)
             left_objs = handle_node(G, left_child, extra).obj_nodes
             right_objs = handle_node(G, right_child, extra).obj_nodes
-            now_objs = list(set(left_objs + right_objs)) # TODO: find cause of empty obj_nodes
+            now_objs = list(set(left_objs + right_objs))
+            now_objs.extend(convert_values(G, handled_left, node_id))
+            now_objs.extend(convert_values(G, handled_right, node_id))
             return NodeHandleResult(obj_nodes=now_objs)
         else:
             handled_left = handle_node(G, left_child, extra)
@@ -525,6 +548,8 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             used_objs.extend(handled_right.obj_nodes)
             added_obj = G.add_obj_node(node_id)
             used_objs = list(set(used_objs))
+            used_objs.extend(convert_values(G, handled_left, node_id))
+            used_objs.extend(convert_values(G, handled_right, node_id))
             for obj in used_objs:
                 G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
             return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
@@ -548,10 +573,10 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type in ['integer', 'double', 'string']:
         js_type = 'string' if cur_type == 'string' else 'number'
         code = G.get_node_attr(node_id).get('code')
-        added_obj = G.add_obj_node(node_id, js_type, code)
-        # modified_objs.add(added_obj)
-        logger.debug(f'{node_id} handle result: obj_nodes={[added_obj]}, value={code}')
-        return NodeHandleResult(obj_nodes=[added_obj], value=code)
+        value = code if js_type == 'string' else float(code)
+        # added_obj = G.add_obj_node(node_id, js_type, code)
+        logger.debug(f'{node_id} handle result: value={code}')
+        return NodeHandleResult(values=[value])
 
     elif cur_type in ['AST_CALL', 'AST_METHOD_CALL', 'AST_NEW']:
         returned_objs, used_objs = ast_call_function(G, node_id, extra)
@@ -569,7 +594,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         branches = extra.branches
         parent_branch = branches[-1] if branches else None
         for i, if_elem in enumerate(if_elems):
-            branch_tag = BranchTag(stmt=stmt_id, branch=str(i))
+            branch_tag = BranchTag(point=stmt_id, branch=str(i))
             handle_node(G, if_elem, ExtraInfo(extra, branches=branches+[branch_tag]))
         num_of_branches = len(if_elems) # which is always 2 for javascript...
         if not has_else(G, node_id):
@@ -595,7 +620,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         parent_branch = branches[-1] if branches else None
         cases = G.get_ordered_ast_child_nodes(node_id)
         for i, case in enumerate(cases):
-            branch_tag = BranchTag(stmt=stmt_id, branch=str(i))
+            branch_tag = BranchTag(point=stmt_id, branch=str(i))
             test, body = G.get_ordered_ast_child_nodes(case)
             handle_node(G, test, extra)
             simurun_block(G, body, G.cur_scope, branches+[branch_tag],
@@ -716,10 +741,10 @@ def merge(G, stmt, num_of_branches, parent_branch):
             deleted = [False] * num_of_branches
             for key, edge_attr in G.graph[u][v].items():
                 branch_tag = edge_attr.get('branch')
-                if branch_tag and branch_tag.stmt == stmt:
-                    if branch_tag.op == 'A':
+                if branch_tag and branch_tag.point == stmt:
+                    if branch_tag.mark == 'A':
                         created[int(branch_tag.branch)] = True
-                    if branch_tag.op == 'D':
+                    if branch_tag.mark == 'D':
                         deleted[int(branch_tag.branch)] = True
             # logger.debug(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
 
@@ -748,12 +773,12 @@ def merge(G, stmt, num_of_branches, parent_branch):
                 edges = list(G.graph[u][v].items())
                 for key, edge_attr in edges:
                     branch_tag = edge_attr.get('branch', BranchTag())
-                    if branch_tag.stmt == stmt:
+                    if branch_tag.point == stmt:
                         G.graph.remove_edge(u, v, key)
                 if parent_branch:
                     # add one addition edge with parent if/switch's (upper level's) tags
-                    # logger.debug(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='A')}")
-                    G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, op='A')})
+                    # logger.debug(f"create edge {u}->{v}, branch={BranchTag(parent_branch, mark='A')}")
+                    G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, mark='A')})
                 else:
                     # logger.debug(f'create edge {u}->{v}')
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ'})
@@ -765,7 +790,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
             edges = list(G.graph[u][v].items())
             for key, edge_attr in edges:
                 branch_tag = edge_attr.get('branch', BranchTag())
-                if branch_tag.stmt == stmt:
+                if branch_tag.point == stmt:
                     G.graph.remove_edge(u, v, key)
             if flag_deleted:
                 if parent_branch:
@@ -773,15 +798,15 @@ def merge(G, stmt, num_of_branches, parent_branch):
                     flag = True
                     for key, edge_attr in list(G.graph[u][v].items()):
                         branch_tag = edge_attr.get('branch', BranchTag())
-                        if branch_tag == BranchTag(parent_branch, op='A'):
+                        if branch_tag == BranchTag(parent_branch, mark='A'):
                             # logger.debug(f'delete edge {u}->{v}')
                             G.graph.remove_edge(u, v, key)
                             flag = False
                     # if there is not
                     if flag:
                         # add one deletion edge with parent if/switch's (upper level's) tags
-                        # logger.debug(f"create edge {u}->{v}, branch={BranchTag(parent_branch, op='D')}")
-                        G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, op='D')})
+                        # logger.debug(f"create edge {u}->{v}, branch={BranchTag(parent_branch, mark='D')}")
+                        G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, mark='D')})
                 else:
                     # find if there is an addition in upper level
                     for key, edge_attr in list(G.graph[u][v].items()):
@@ -1091,7 +1116,7 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
             parent_branch = branches[-1] if branches else None
             # if branches exist, add a new branch tag to the list
             if has_branches:
-                next_branches = branches+[BranchTag(stmt=stmt_id, branch=i)]
+                next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
             else:
                 next_branches = branches
             # switch scopes ("new" will swtich scopes and object by itself)
@@ -1163,10 +1188,10 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         cur_stmt, cur_lineno))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
 
-def eval_value(G, s, return_result=False, ast_node=None):
+def eval_value(G, s, return_node=False, ast_node=None):
     '''
-    Extract Python values, JavaScript types from literal values
-    (presented by JavaScript code) and create object nodes.
+    Experimental. Extract Python values, JavaScript types from literal
+    values (presented by JavaScript code) and create object nodes.
     
     Args:
         G (Graph): Graph.
@@ -1208,12 +1233,27 @@ def eval_value(G, s, return_result=False, ast_node=None):
             js_type = 'number'
         elif type(evaluated) is str:
             js_type = 'string'
-        if return_result:
+        if return_node:
             added_obj = G.add_obj_node(ast_node, js_type, s)
-    if return_result:
+            result = NodeHandleResult(obj_nodes=[added_obj])
+    if return_node:
         return evaluated, js_type, result
     else:
         return evaluated, js_type
+
+
+def convert_values(G, handle_result, ast_node=None):
+    '''
+    experimental
+    '''
+    returned_objs = []
+    if handle_result.values:
+        for value in handle_result.values:
+            if type(value) in [int, float]:
+                returned_objs.append(G.add_obj_node(ast_node, 'number', value))
+            else:
+                returned_objs.append(G.add_obj_node(ast_node, 'string', value))
+    return returned_objs
 
 
 def generate_obj_graph(G, entry_nodeid):
