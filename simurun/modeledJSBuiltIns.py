@@ -46,7 +46,7 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('unshift', array_prototype, array_push)
     G.add_blank_func_as_prop('shift', array_prototype, array_pop)
     G.add_blank_func_as_prop('join', array_prototype, array_join)
-    G.add_blank_func_as_prop('forEach', array_prototype, array_for_each_static)
+    G.add_blank_func_as_prop('forEach', array_prototype, array_for_each_static_new)
     G.add_blank_func_as_prop('keys', array_prototype, array_keys)
     G.add_blank_func_as_prop('values', array_prototype, array_values)
     G.add_blank_func_as_prop('entries', array_prototype, array_entries)
@@ -191,7 +191,7 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
         func_scope = G.add_scope('FUNC_SCOPE', func, f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
         objectGraphGenerator.call_callback_function(
             G, caller_ast, func_decl, func_scope, args=args,
-            branches=[extra.branches + BranchTag(point=f'ForEach{caller_ast}',
+            branches=extra.branches + [BranchTag(point=f'ForEach{caller_ast}',
                 branch=counter)])
     return NodeHandleResult()
 

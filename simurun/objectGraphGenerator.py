@@ -260,7 +260,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     if len(prop_names) == 1:
         name = f'{parent_name}.{prop_names[0]}'
     else:
-        name = f'{parent_name}.{prop_names}'
+        name = f'{parent_name}.{"/".join(prop_names)}'
 
     logger.debug(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, '
         f'name={name}, name_nodes={list(prop_name_nodes)}')
