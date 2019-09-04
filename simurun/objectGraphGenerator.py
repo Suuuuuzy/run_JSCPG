@@ -122,7 +122,7 @@ def register_func(G, node_id):
     logger.info(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
 
 def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
-    'Unknown', in_proto=False):
+    'Unknown', in_proto=False, depth=0):
     '''
     Recursively find a property under parent_objs and its __proto__.
     
@@ -143,9 +143,12 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
         prop_name_nodes, prop_obj_nodes: two sets containing possible
             name nodes and object nodes.
     '''
+    if depth == 5:
+        return [], []
+
     if in_proto:
         logger.debug('Cannot find "direct" property, going into __proto__ ' \
-            f'{parent_objs}...')
+                f'{parent_objs}...')
         logger.debug(f'  {parent_name}.{prop_name}')
     prop_name_nodes = set()
     prop_obj_nodes = set()
@@ -179,7 +182,7 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
                 if __proto__obj_nodes:
                     __name_nodes, __obj_nodes = find_prop(G, __proto__obj_nodes,
                         prop_name, branches, parent_name=parent_name+
-                        '.__proto__', in_proto=True)
+                        '.__proto__', in_proto=True, depth=depth+1)
                     if __name_nodes:
                         name_node_found = True
                         prop_name_nodes.update(__name_nodes)

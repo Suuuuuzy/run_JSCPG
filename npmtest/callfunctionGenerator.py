@@ -122,7 +122,7 @@ def test_package(package, root_path):
     detailed_path = res_path[1]
     caller_list = res_path[2]
     if len(line_path) != 0 or len(caller_list) != 0:
-        with open("found_path", 'w') as fp:
+        with open("found_path", 'a+') as fp:
             fp.write("{} called".format(caller_list))
             fp.write("Found path from {}: {}\n".format(package, line_path))
 
@@ -130,10 +130,10 @@ def test_package(package, root_path):
     os.remove("out.dat")
     return 1
 
+root_path = "/media/data/lsong18/data/npmpackages/"
 
 def main():
-    root_path = "/media/data/lsong18/data/npmpackages/"
-    packages = get_list_of_packages(root_path, limit = 1000)
+    packages = get_list_of_packages(root_path, limit = 10000)
     tqdm_bar = tqdm(packages)
 
     success_list = []
@@ -150,10 +150,13 @@ def main():
             success_list.append(package)
         elif result == -1:
             skip_list.append(package)
+            npm_test_logger.error("Skip {} for large file".format(package))
         elif result == -2:
             not_found.append(package)
+            npm_test_logger.error("Skip {} for not found main".format(package))
         elif result == -3:
             generate_error.append(package)
+            npm_test_logger.error("Generate {} error".format(package))
 
     npm_test_logger.info("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt,\
             len(success_list), total_cnt, len(skip_list), total_cnt - len(skip_list) - len(success_list)))
@@ -166,5 +169,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package('angular5-stepper')
+#test_package('qrcode-lite', root_path)
 main()
