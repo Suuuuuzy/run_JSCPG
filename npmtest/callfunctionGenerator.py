@@ -42,7 +42,12 @@ def get_main_file_of_package(package_path):
         return None
 
     with open(package_json_path) as fp:
-        package_json = json.load(fp)
+        try:
+            package_json = json.load(fp)
+        except:
+            print("Skip special encoding {}".format(package_path))
+            npm_test_logger.error("Special encoding {}".format(package_path))
+            return None
 
         if 'main' not in package_json:
             main_file = 'index.js'
@@ -79,35 +84,87 @@ def dir_line_count(dir):
 def dir_size_count(dir):
     return sum(map(lambda item: item_size_count(os.path.join(dir, item)), os.listdir(dir)))
 
-
-root_path = "/media/data/lsong18/data/npmpackages/"
-packages = get_list_of_packages(root_path, limit = 1000)
-for package in tqdm(packages):
-
+def test_package(package, root_path):
+    """
+    test a specific package
+    Args:
+        package_name: the name of the package
+    return:
+        the result:
+            1, success
+            -1, skipped
+            -2, not found. package parse error
+            -3, graph generation error
+    """
     line_count = dir_line_count(root_path + package)
     size_count = dir_size_count(root_path + package)
     npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package, size_count, line_count))
-    if size_count > 40960 or line_count > 20000:
-        npm_test_logger.warning("Skip")
-        continue
+    if size_count > 409600 or line_count > 200000:
+        npm_test_logger.warning("Skip {}".format(package))
+        return -1
 
     package_main_file = get_main_file_of_package("{}{}".format(root_path, package))
     if package_main_file is None:
         npm_test_logger.error("{} not found".format(package))
-        continue
+        return -2
     js_call_templete = "var main_func=require('{}');\nmain_func('var');".format(package_main_file)
     with open("__test__.js", 'w') as jcp:
         jcp.write(js_call_templete)
 
     try:
         G = unittest_main('__test__.js')
-    except:
-        npm_test_logger.error("Package {} too large.".format(package))
+    except Exception as e:
+        npm_test_logger.error("ERROR when generate graph for {}.".format(package))
+        npm_test_logger.error(e)
+        return -3
     res_path = G.traceback("os-command")
     line_path = res_path[0]
     detailed_path = res_path[1]
-    if len(line_path) != 0:
+    caller_list = res_path[2]
+    if len(line_path) != 0 or len(caller_list) != 0:
         with open("found_path", 'w') as fp:
+            fp.write("{} called".format(caller_list))
             fp.write("Found path from {}: {}\n".format(package, line_path))
 
     os.remove("run_log.log")
+    os.remove("out.dat")
+    return 1
+
+
+def main():
+    root_path = "/media/data/lsong18/data/npmpackages/"
+    packages = get_list_of_packages(root_path, limit = 1000)
+    tqdm_bar = tqdm(packages)
+
+    success_list = []
+    skip_list = []
+    not_found = []
+    generate_error = []
+    total_cnt = len(packages)
+
+    for package in tqdm_bar:
+        tqdm_bar.set_description("{}".format(package))
+        tqdm_bar.refresh()
+        result = test_package(package, root_path)
+        if result == 1:
+            success_list.append(package)
+        elif result == -1:
+            skip_list.append(package)
+        elif result == -2:
+            not_found.append(package)
+        elif result == -3:
+            generate_error.append(package)
+
+    npm_test_logger.info("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt,\
+            len(success_list), total_cnt, len(skip_list), total_cnt - len(skip_list) - len(success_list)))
+    npm_test_logger.info("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
+    npm_test_logger.error("Generation error list: {}".format(generate_error))
+
+    print("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt,\
+            len(success_list), total_cnt, len(skip_list), total_cnt - len(skip_list) - len(success_list)))
+
+    print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
+    
+
+#test_package('angular5-stepper')
+main()
