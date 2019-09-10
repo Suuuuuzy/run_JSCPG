@@ -268,7 +268,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     logger.debug(f'{ast_node} handle result: obj_nodes={list(prop_obj_nodes)}, '
         f'name={name}, name_nodes={list(prop_name_nodes)}')
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
-        name=f'{name}', name_nodes=list(prop_name_nodes))
+        name=f'{name}', name_nodes=list(prop_name_nodes)), handled_parent 
 
 def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     '''
@@ -507,7 +507,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             name_nodes=name_nodes)
 
     elif cur_type == 'AST_PROP':
-        return handle_prop(G, node_id, extra)
+        return handle_prop(G, node_id, extra)[0]
 
 
     elif cur_type == 'AST_TOPLEVEL':
@@ -971,8 +971,9 @@ def ast_call_function(G, ast_node, extra):
         extra (ExtraInfo): extra information.
     '''
     # handle the callee
+    handled_parent = None
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
-        handled_callee = handle_prop(G, ast_node, extra)
+        handled_callee,handled_parent = handle_prop(G, ast_node, extra)
     else:
         callee = G.get_ordered_ast_child_nodes(ast_node)[0]
         handled_callee = handle_node(G, callee, extra)
@@ -998,7 +999,7 @@ def ast_call_function(G, ast_node, extra):
     # if the function call is creating a new object
     is_new = False
     # parent object (for method call only)
-    handled_parent = None
+    # handled_parent = None
 
     handled_args = []
     if G.get_node_attr(ast_node).get('type') == 'AST_CALL':
@@ -1006,7 +1007,6 @@ def ast_call_function(G, ast_node, extra):
     elif G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
         stmt_id = 'Call' + ast_node
         parent = G.get_ordered_ast_child_nodes(ast_node)[0]
-        handled_parent = handle_node(G, parent, extra)
     elif G.get_node_attr(ast_node).get('type') == 'AST_NEW':
         stmt_id = 'New' + ast_node
         is_new = True

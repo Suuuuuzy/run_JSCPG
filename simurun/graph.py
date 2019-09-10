@@ -328,6 +328,8 @@ class Graph:
         res = {}
         for edge in edges:
             node_attr = self.get_node_attr(edge[1])
+            if 'childnum:int' not in node_attr:
+                continue
             res[node_attr['childnum:int']] = edge[1]
         return res
 

@@ -99,7 +99,7 @@ def test_package(package, root_path):
     line_count = dir_line_count(root_path + package)
     size_count = dir_size_count(root_path + package)
     npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package, size_count, line_count))
-    if size_count > 409600 or line_count > 200000:
+    if size_count < 409600 and line_count < 200000:
         npm_test_logger.warning("Skip {}".format(package))
         return -1
 
@@ -111,12 +111,15 @@ def test_package(package, root_path):
     with open("__test__.js", 'w') as jcp:
         jcp.write(js_call_templete)
 
+    G = unittest_main('__test__.js')
+    """
     try:
         G = unittest_main('__test__.js')
     except Exception as e:
         npm_test_logger.error("ERROR when generate graph for {}.".format(package))
         npm_test_logger.error(e)
         return -3
+    """
     res_path = G.traceback("os-command")
     line_path = res_path[0]
     detailed_path = res_path[1]
@@ -141,9 +144,14 @@ def main():
     not_found = []
     generate_error = []
     total_cnt = len(packages)
+    cur_cnt = 0
 
     for package in tqdm_bar:
-        tqdm_bar.set_description("{}".format(package))
+        cur_cnt += 1
+        # if cur_cnt < 6100:
+        #    continue
+        npm_test_logger.info("No {}".format(cur_cnt))
+        tqdm_bar.set_description("No {}, {}".format(cur_cnt, package))
         tqdm_bar.refresh()
         result = test_package(package, root_path)
         if result == 1:
@@ -169,5 +177,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package('qrcode-lite', root_path)
-main()
+test_package('lame', root_path)
+#main()

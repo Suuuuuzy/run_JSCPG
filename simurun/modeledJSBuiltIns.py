@@ -233,6 +233,8 @@ def object_keys(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=Fa
         arr = G.add_obj_node(None, 'array')
         for i, name_node in enumerate(G.get_prop_name_nodes(obj)):
             name = G.get_node_attr(name_node).get('code')
+            if name is None:
+                continue
             if for_array and not (name.isdigit() or name == '*'):
                 continue # Array only returns numeric keys/corresponding values
             string = G.add_obj_node(None, 'string', name)
