@@ -799,18 +799,23 @@ class Graph:
                           self.get_node_attr(prop_name_node))
             self.add_edge(new_obj_node, new_prop_name_node,
                           {'type:TYPE': 'OBJ_TO_PROP'})
+            if self.get_node_attr(prop_name_node).get('name') == '__proto__':
+                continue
             # copy property object nodes
             for j in self.get_out_edges(prop_name_node, edge_type=
                 'NAME_TO_OBJ'):
                 new_prop_obj_node = self.copy_obj(j[1], ast_node)
-                self.add_node(new_prop_obj_node, self.get_node_attr(j[1]))
+                # self.add_node(new_prop_obj_node, self.get_node_attr(j[1])) # ?
                 self.add_edge(new_prop_name_node, new_prop_obj_node,
                     {'type:TYPE': 'OBJ_DECL'})
+        # copy OBJ_DECL edges
         for e in self.get_out_edges(obj_node, edge_type='OBJ_DECL'):
             self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_DECL'})
         if ast_node is not None:
+            # assign new OBJ_TO_AST edges
             self.add_edge(new_obj_node, ast_node, {'type:TYPE': 'OBJ_TO_AST'})
         else:
+            # copy OBJ_TO_AST edges
             for e in self.get_out_edges(obj_node, edge_type='OBJ_TO_AST'):
                 self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_TO_AST'})
         return new_obj_node

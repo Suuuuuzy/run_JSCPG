@@ -1,6 +1,7 @@
 from .graph import Graph
 from .scopeController import ScopeController
-from .utilities import NodeHandleResult, BranchTag, ExtraInfo
+from .utilities import NodeHandleResult, ExtraInfo
+from .utilities import BranchTag, BranchTagContainer
 import sys
 import os
 import sty
@@ -121,8 +122,8 @@ def register_func(G, node_id):
 
     logger.info(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
 
-def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
-    'Unknown', in_proto=False, depth=0):
+def find_prop(G, parent_objs, prop_name, branches=BranchTagContainer(),
+    side=None, parent_name='Unknown', in_proto=False, depth=0, for_tags=None):
     '''
     Recursively find a property under parent_objs and its __proto__.
     
@@ -196,6 +197,8 @@ def find_prop(G, parent_objs, prop_name, branches=None, side=None, parent_name=
                 # only add a name node
                 added_name_node = G.add_prop_name_node(prop_name, parent_obj)
                 prop_name_nodes.add(added_name_node)
+                if for_tags:
+                    G.set_node_attr(added_name_node, ('for_tags', for_tags))
                 logger.log(ATTENTION, f'Add prop name node ' \
                 f'{parent_name}.{prop_name} ({parent_obj}->{added_name_node})')
     return prop_name_nodes, prop_obj_nodes
@@ -221,11 +224,30 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     parent_objs = handled_parent.obj_nodes
     parent_name_nodes = handled_parent.name_nodes
 
-    prop_names = list(filter(lambda x: x is not None, handled_prop.values))
+    # literal-based prop names
+    prop_names = []
+    for name in handled_prop.values:
+        if name is not None:
+            if type(name) in [int, float]:
+                prop_names.append('%g' % name)
+            else:
+                prop_names.append(name)
+    # literal-based prop names have no tags
+    prop_name_tags = [[]] * len(prop_names)
+    # obj node-based prop names
     for obj in handled_prop.obj_nodes:
         name = G.get_node_attr(obj).get('code')
         if name is not None:
-            prop_names.append(name)
+            # convert numbers to strings
+            if type(name) in [int, float]:
+                prop_names.append('%g' % name)
+            else:
+                prop_names.append(name)
+        else:
+            prop_names.append('Obj#' + obj)
+        for_tags = G.get_node_attr(obj).get('for_tags')
+        if for_tags is not None:
+            prop_name_tags.append(for_tags)
 
     if not parent_objs:
         if not (extra and extra.side == 'right'):
@@ -249,9 +271,9 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     side = extra.side
     prop_name_nodes, prop_obj_nodes = [], []
 
-    for prop_name in prop_names:
+    for i, prop_name in enumerate(prop_names):
         name_nodes, obj_nodes = find_prop(G, parent_objs, prop_name,
-            branches, side, parent_name)
+            branches, side, parent_name, for_tags=prop_name_tags[i])
         prop_name_nodes.extend(name_nodes)
         prop_obj_nodes.extend(obj_nodes)
 
@@ -311,15 +333,59 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
         right_objs = [G.undefined_obj]
 
     # get branch tags
-    branches = extra.branches if extra else []
-    
+    branches = extra.branches if extra else BranchTagContainer()
+
+    # returned objects for serial assignment (e.g. a = b = c)
+    returned_objs = []
+
     # do the assignment
     for name_node in handled_left.name_nodes:
-        G.assign_obj_nodes_to_name_node(name_node, right_objs, branches=branches)
+        nn_for_tags = G.get_node_attr(name_node).get('for_tags')
+        if not nn_for_tags: # empty array or None
+            G.assign_obj_nodes_to_name_node(name_node, right_objs,
+                branches=branches)
+            returned_objs = right_objs
+        else:
+            logger.debug(f"  name node's for tags {nn_for_tags}")
+            for obj in right_objs:
+                obj_for_tags = G.get_node_attr(obj).get('for_tags', [])
+                flag = 2 # 0: ignore, 1: assign, 2: copy
+                for tag1 in nn_for_tags:
+                    for tag2 in obj_for_tags:
+                        if tag1 == tag2: # if tags are completely matched
+                            flag = 1
+                            break
+                        elif (tag1.point == tag2.point
+                            and tag1.brach == tag2.branch):
+                            # if tags are partially matched,
+                            # the object will be ignored
+                            flag = 0
+                            break
+                    # if no matched tags, the object will be copied
+                    if flag != 2:
+                        break
+                if flag == 1: # assign
+                    G.assign_obj_nodes_to_name_node(name_node, [obj],
+                        branches=branches)
+                    returned_objs.append(obj)
+                    logger.debug(f'  found matching obj {obj} with tags {obj_for_tags}')
+                elif flag == 2: # copy
+                    copied_obj = G.copy_obj(obj)
+                    for_tags = G.get_node_attr(obj).get('for_tags',
+                                                        BranchTagContainer())
+                    new_for_tags = [BranchTag(i, mark='S')
+                        for i in branches.get_matched_tags(nn_for_tags)]
+                    for_tags.extend(new_for_tags)
+                    G.set_node_attr(copied_obj, ('for_tags', for_tags))
+                    G.assign_obj_nodes_to_name_node(name_node, [copied_obj],
+                        branches=branches)
+                    returned_objs.append(copied_obj)
+                    logger.debug(f'  copied from obj {obj} with tags {for_tags}')
 
     used_objs = handled_right.used_objs
     logger.debug(f'  assign used objs={used_objs}')
-    return NodeHandleResult(obj_nodes=handled_right.obj_nodes, name_nodes=handled_left.name_nodes, used_objs=used_objs)
+    return NodeHandleResult(obj_nodes=handled_right.obj_nodes,
+        name_nodes=handled_left.name_nodes, used_objs=used_objs)
 
 def has_else(G, if_ast_node):
     '''
@@ -334,7 +400,8 @@ def has_else(G, if_ast_node):
             return True
     return False
 
-def instantiate_obj(G, exp_ast_node, constructor_decl, branches=[]):
+def instantiate_obj(G, exp_ast_node, constructor_decl,
+    branches=BranchTagContainer()):
     '''
     Instantiate an object (create a new object).
     
@@ -365,7 +432,8 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=[]):
     G.cur_obj = backup_obj
 
     # finally add call edge from caller to callee
-    G.add_edge_if_not_exist(exp_ast_node, constructor_decl, {"type:TYPE": "CALLS"})
+    G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
+                            {"type:TYPE": "CALLS"})
 
     # build the prototype chain
     G.build_proto(created_obj)
@@ -445,28 +513,24 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         else:
             value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
             key = G.get_name_from_child(key_node)
-            if key:
+            if key is not None:
                 key = key.strip("'\"")
             else:
                 try:
                     key = int(G.get_node_attr(node_id).get('childnum:int'))
                 except ValueError:
                     pass
-            if not key:
+            if key is None:
                 key = '*'
             handled_value = handle_node(G, value_node, extra)
-            value_objs = handled_value.obj_nodes
-            now_objs = []
+            value_objs = list(handled_value.obj_nodes)
+            for value in handled_value.values:
+                value_objs.extend(convert_values(G, handled_value, node_id))
             used_objs = list(set(handled_value.used_objs))
             for obj in value_objs:
-                now_objs.append(G.add_obj_as_prop(key, node_id,
-                parent_obj=extra.parent_obj, tobe_added_obj=obj))
-        return NodeHandleResult(obj_nodes=now_objs, used_objs=used_objs)
-
-    elif cur_type == 'AST_DIM':
-        G.set_node_attr(node_id, ('type', 'AST_PROP'))
-        return handle_node(G, node_id, extra)
-
+                G.add_obj_as_prop(key, node_id,
+                    parent_obj=extra.parent_obj, tobe_added_obj=obj)
+        return NodeHandleResult(obj_nodes=value_objs, used_objs=used_objs)
 
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
         var_name = G.get_name_from_child(node_id)
@@ -476,7 +540,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             name_node = None
         else:
             now_objs = []
-            branches = extra.branches if extra else []
+            branches = extra.branches if extra else BranchTagContainer()
 
             name_node = G.get_name_node(var_name)
             if name_node is not None:
@@ -505,6 +569,10 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
         return NodeHandleResult(obj_nodes=now_objs, name=var_name,
             name_nodes=name_nodes)
+
+    elif cur_type == 'AST_DIM':
+        # G.set_node_attr(node_id, ('type', 'AST_PROP'))
+        return handle_prop(G, node_id, extra)
 
     elif cur_type == 'AST_PROP':
         return handle_prop(G, node_id, extra)
@@ -592,7 +660,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         stmt_id = "If" + node_id
         if_elems = G.get_ordered_ast_child_nodes(node_id)
         branches = extra.branches
-        parent_branch = branches[-1] if branches else None
+        parent_branch = branches.get_last_choice_tag()
         for i, if_elem in enumerate(if_elems):
             branch_tag = BranchTag(point=stmt_id, branch=str(i))
             handle_node(G, if_elem, ExtraInfo(extra, branches=branches+[branch_tag]))
@@ -617,7 +685,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type == 'AST_SWITCH_LIST':
         stmt_id = "Switch" + node_id
         branches = extra.branches
-        parent_branch = branches[-1] if branches else None
+        parent_branch = branches.get_last_choice_tag()
         cases = G.get_ordered_ast_child_nodes(node_id)
         for i, case in enumerate(cases):
             branch_tag = BranchTag(point=stmt_id, branch=str(i))
@@ -666,7 +734,7 @@ def decl_vars_and_funcs(G, ast_node):
             'AST_WHILE', 'AST_SWITCH_CASE']:
             decl_vars_and_funcs(G, stmt)
 
-def simurun_function(G, func_decl_ast_node, branches=[]):
+def simurun_function(G, func_decl_ast_node, branches=BranchTagContainer()):
     """
     Simurun a function by running its body.
     """
@@ -687,7 +755,7 @@ def simurun_function(G, func_decl_ast_node, branches=[]):
     G.call_stack.pop()
     return [], []
 
-def simurun_block(G, ast_node, parent_scope, branches=[], block_scope=True):
+def simurun_block(G, ast_node, parent_scope, branches=BranchTagContainer(), block_scope=True):
     """
     Simurun a block by running its statements one by one.
     A block is a BlockStatement in JavaScript,
@@ -817,7 +885,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
 
 
 def call_callback_function(G, caller, func_decl, func_scope, args=None,
-    branches=[]):
+    branches=BranchTagContainer()):
     # generate empty object for parameters of the callback function
     param_list_node = None
     for child in G.get_ordered_ast_child_nodes(func_decl):
@@ -847,7 +915,7 @@ def call_callback_function(G, caller, func_decl, func_scope, args=None,
 
     G.cur_scope = func_scope
 
-    simurun_function(G, func_decl)
+    simurun_function(G, func_decl, branches)
 
     G.cur_scope = backup_scope
     G.cur_obj = backup_obj
@@ -1113,12 +1181,20 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                         tobe_added_obj=obj)
             # manage branches
             branches = extra.branches
-            parent_branch = branches[-1] if branches else None
+            parent_branch = branches.get_last_choice_tag()
             # if branches exist, add a new branch tag to the list
             if has_branches:
                 next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
             else:
                 next_branches = branches
+            # if the function is defined in a for loop, restore the branches
+            for_tags = \
+                G.get_node_attr(func_obj).get('for_tags', BranchTagContainer()
+                ).get_creating_for_tags()
+            if for_tags:
+                for_tags = [BranchTag(i, mark='') for i in for_tags]
+                next_branches.extend(for_tags)
+            logger.debug(f'next branch tags: {next_branches}')
             # switch scopes ("new" will swtich scopes and object by itself)
             backup_scope = G.cur_scope
             G.cur_scope = func_scope
@@ -1244,7 +1320,8 @@ def eval_value(G, s, return_node=False, ast_node=None):
 
 def convert_values(G, handle_result, ast_node=None):
     '''
-    experimental
+    Experimental. Converts 'values' field in NodeHandleResult into
+    object nodes. Returns converted object nodes as a list.
     '''
     returned_objs = []
     if handle_result.values:

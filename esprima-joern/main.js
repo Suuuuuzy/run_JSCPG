@@ -2195,10 +2195,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 // property
                 nodeIdCounter++;
                 relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                dfs(currentNode.property, nodeIdCounter, currentId, 1, currentFunctionId, {
-                    doNotUseVar: true
-                });
-                if (getCode(currentNode, sourceCode).search(/\[/) != -1) // PHP distinguishes subscript and member, but JavaScript does not
+                dfs(currentNode.property, nodeIdCounter, currentId, 1, currentFunctionId, null);
+                // PHP distinguishes subscript and member, but JavaScript does not
+                if (getCode(currentNode, sourceCode).search(/\[/) != -1)
                     phptype = 'AST_DIM';
                 else
                     phptype = 'AST_PROP';

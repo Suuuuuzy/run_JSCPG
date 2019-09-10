@@ -83,6 +83,9 @@ class BranchTag:
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.__str__()}")'
 
+    def __hash__(self):
+        return hash(self.__repr__())
+
     def __bool__(self):
         return bool(self.point and self.branch)
 
@@ -94,6 +97,48 @@ class BranchTagContainer(list):
     '''
     Experimental. 
     '''
+    def __add__(self, other):
+        return BranchTagContainer(list.__add__(self, other))
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({list.__repr__(self)})'
+
+    def __str__(self):
+        return list.__repr__(self)
+
+    def get_last_choice_tag(self):
+        for i in reversed(self):
+            if i.point.startswith('If') or i.point.startswith('Switch'):
+                return i
+        return None
+
+    def get_last_for_tag(self):
+        for i in reversed(self):
+            if i.point.startswith('For'):
+                return i
+        return None
+
+    def get_choice_tags(self):
+        return BranchTagContainer(filter(
+            lambda i: i.point.startswith('If') or i.point.startswith('Switch'),
+            self))
+
+    def get_for_tags(self):
+        return BranchTagContainer(filter(
+            lambda i: i.point.startswith('For'), self))
+
+    def get_creating_for_tags(self):
+        return BranchTagContainer(filter(
+            lambda i: i.point.startswith('For') and i.mark == 'S', self))
+
+    def get_matched_tags(self, source):
+        result = []
+        for i in source:
+            for j in self:
+                if i.point == j.point and i.branch == j.branch:
+                    result.append(j)
+        return BranchTagContainer(set(result))
+
     def match(self, tag: BranchTag = None, point=None, branch=None, mark=None) \
         -> Tuple[int, BranchTag]:
         '''
@@ -115,26 +160,11 @@ class BranchTagContainer(list):
                     return i, t
         return None, None
 
-    def add(self, tag=None, point=None, branch=None, mark=None):
-        if tag:
-            self.append(tag)
+    def append(self, tag=None, point=None, branch=None, mark=None):
+        if tag is not None:
+            list.append(tag)
         elif point != None and branch != None:
-            self.append(BranchTag(point=point, branch=branch, mark=mark))
-
-    def remove(self, tag: BranchTag = None, point=None, branch=None, mark=None) \
-        -> NoReturn:
-        '''
-        Remove a matching BranchTag in the array.
-        '''
-        i, _ = self.match(tag, point, branch, mark)
-        if i != None:
-            self.delete(i)
-
-    def delete(self, i):
-        '''
-        Delete an entry at the position.
-        '''
-        del self[i]
+            list.append(BranchTag(point=point, branch=branch, mark=mark))
 
     def is_empty(self):
         return not bool(self)
@@ -142,7 +172,7 @@ class BranchTagContainer(list):
 
 class ExtraInfo:
     def __init__(self, original=None, **kwargs):
-        self.branches = []
+        self.branches = BranchTagContainer()
         self.side = None
         self.parent_obj = None
         self.caller_ast = None

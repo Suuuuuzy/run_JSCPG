@@ -174,12 +174,17 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
         name_nodes = G.get_prop_name_nodes(arr)
         for name_node in name_nodes:
             name = G.get_node_attr(name_node).get('name')
+            try: # check if the index is an integer
+                _ = int(name)
+            except ValueError:
+                continue
             for obj in G.get_obj_nodes(name_node, branches=branches):
                 objs.append(obj)
                 names.append(name)
-                tags = G.get_node_attr(obj).get('for_each_tags', [])
+                tags = G.get_node_attr(obj).get('for_tags', [])
                 tags.append(BranchTag(point=f'ForEach{caller_ast}',
                                       branch=counter, mark='P'))
+                G.set_node_attr(obj, ('for_tags', tags))
                 counter += 1
     args = [NodeHandleResult(obj_nodes=objs),
             NodeHandleResult(values=names),
@@ -191,8 +196,7 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
         func_scope = G.add_scope('FUNC_SCOPE', func, f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
         objectGraphGenerator.call_callback_function(
             G, caller_ast, func_decl, func_scope, args=args,
-            branches=extra.branches + [BranchTag(point=f'ForEach{caller_ast}',
-                branch=counter)])
+            branches=extra.branches + [BranchTag(point=f'ForEach{caller_ast}')])
     return NodeHandleResult()
 
 
