@@ -13,7 +13,7 @@ class Graph:
 
     def __init__(self):
         self.graph = nx.MultiDiGraph()
-        self.cur_obj = None 
+        self.cur_objs = []
         self.cur_scope = None
         self.cur_id = 0
         self.file_contents = {}
@@ -492,7 +492,7 @@ class Graph:
         self.set_node_attr(new_name_node, ('name', name))
         return new_name_node
 
-    def add_prop_name_node(self, name, parent_obj = None):
+    def add_prop_name_node(self, name, parent_obj):
         """
         Add an empty name node (without a corresponding object) as a
         property of another object.
@@ -502,9 +502,6 @@ class Graph:
         For left side of an assignment (such that no dummy object node
         is created).
         """
-        if parent_obj == None:
-            assert self.cur_obj is not None
-            parent_obj = self.cur_obj
         new_name_node = str(self._get_new_nodeid())
         self.add_node(new_name_node)
         self.set_node_attr(new_name_node, ('labels:label', 'Name'))
@@ -520,9 +517,7 @@ class Graph:
         parent_obj -> name node -> new obj / tobe_added_obj
         add edge from ast node to obj generation node
         """
-        if parent_obj == None:
-            assert self.cur_obj is not None
-            parent_obj = self.cur_obj
+        assert parent_obj is not None
 
         name_node = self.get_prop_name_node(prop_name, parent_obj)
 
@@ -663,10 +658,7 @@ class Graph:
             return []
         return self.get_objs_by_name_node(name_node, branches)
 
-    def get_prop_names(self, parent_obj=None):
-        if parent_obj is None:
-            assert self.cur_obj is not None
-            parent_obj = self.cur_obj
+    def get_prop_names(self, parent_obj):
         s = set()
         for name_node in self.get_prop_name_nodes(parent_obj):
             name = self.get_node_attr(name_node).get('name')
@@ -685,7 +677,7 @@ class Graph:
                 return name_node
         return None
 
-    def get_prop_obj_nodes(self, parent_obj=None, prop_name=None, branches: List[BranchTag]=[], exclude_proto=True):
+    def get_prop_obj_nodes(self, parent_obj, prop_name=None, branches: List[BranchTag]=[], exclude_proto=True):
         '''
         Get object nodes of an object's property.
         
@@ -702,9 +694,6 @@ class Graph:
         Returns:
             list: object nodes.
         '''
-        if parent_obj is None:
-            assert self.cur_obj is not None
-            parent_obj = self.cur_obj
         s = set()
         if prop_name is None: # this caused inconsistent run results
             name_nodes = self.get_prop_name_nodes(parent_obj)

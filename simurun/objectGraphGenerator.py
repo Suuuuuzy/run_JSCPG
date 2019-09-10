@@ -422,14 +422,14 @@ def instantiate_obj(G, exp_ast_node, constructor_decl,
     # add edge between obj and obj decl
     G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
 
-    backup_obj = G.cur_obj
+    backup_objs = G.cur_objs
 
     # update current object (this)
-    G.cur_obj = created_obj
+    G.cur_objs = [created_obj]
 
     simurun_function(G, constructor_decl, branches=branches)
 
-    G.cur_obj = backup_obj
+    G.cur_objs = backup_objs
 
     # finally add call edge from caller to callee
     G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
@@ -535,8 +535,8 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
         var_name = G.get_name_from_child(node_id)
 
-        if var_name == 'this' and G.cur_obj is not None:
-            now_objs = [G.cur_obj]
+        if var_name == 'this' and G.cur_objs:
+            now_objs = G.cur_objs
             name_node = None
         else:
             now_objs = []
@@ -572,7 +572,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
     elif cur_type == 'AST_DIM':
         # G.set_node_attr(node_id, ('type', 'AST_PROP'))
-        return handle_prop(G, node_id, extra)
+        return handle_prop(G, node_id, extra)[0]
 
     elif cur_type == 'AST_PROP':
         return handle_prop(G, node_id, extra)[0]
@@ -747,7 +747,7 @@ def simurun_function(G, func_decl_ast_node, branches=BranchTagContainer()):
     logger.info(sty.ef.inverse + sty.fg.green +
         "FUNCTION {} {} STARTS, SCOPE {}, DECL OBJ {}, this OBJ {}, branches {}"
         .format(func_decl_ast_node, func_name, G.cur_scope,
-        G.get_func_decl_objs_by_ast_node(func_decl_ast_node)[0], G.cur_obj,
+        G.get_func_decl_objs_by_ast_node(func_decl_ast_node)[0], G.cur_objs,
         branches) + sty.rs.all)
     for child in G.get_child_nodes(func_decl_ast_node, child_type='AST_STMT_LIST'):
         return simurun_block(G, child, parent_scope=G.cur_scope)
@@ -906,7 +906,7 @@ def call_callback_function(G, caller, func_decl, func_scope, args=None,
                     G.add_obj_to_scope(param_name, scope=func_scope,
                         tobe_added_obj=obj)
     
-    backup_obj = G.cur_obj
+    backup_objs = G.cur_objs
     backup_scope = G.cur_scope
 
     # added_obj = G.add_obj_node(caller, "FUNC_RUN_OBJ")
@@ -918,7 +918,7 @@ def call_callback_function(G, caller, func_decl, func_scope, args=None,
     simurun_function(G, func_decl, branches)
 
     G.cur_scope = backup_scope
-    G.cur_obj = backup_obj
+    G.cur_objs = backup_objs
 
     # add call edge
     G.add_edge_if_not_exist(caller, func_decl, {"type:TYPE": "CALLS"})
@@ -972,7 +972,7 @@ def run_toplevel_file(G, node_id):
     logger.info(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(func_name) + sty.rs.all)
     func_decl_obj = decl_function(G, node_id, func_name = func_name, parent_scope=G.BASE_SCOPE)
     # simurun the file
-    backup_obj = G.cur_obj
+    backup_objs = G.cur_objs
     backup_scope = G.cur_scope
     
 
@@ -990,7 +990,7 @@ def run_toplevel_file(G, node_id):
     # add module.exports as exports
     G.add_obj_to_scope(name="exports", tobe_added_obj=added_module_exports)
     # "this" is set to module.exports by default
-    # G.cur_obj = added_module_exports
+    # G.cur_objs = added_module_exports
     G.add_obj_to_scope(name="this", tobe_added_obj=added_module_exports)
     
     simurun_function(G, node_id)
@@ -1041,7 +1041,7 @@ def ast_call_function(G, ast_node, extra):
     # handle the callee
     handled_parent = None
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
-        handled_callee,handled_parent = handle_prop(G, ast_node, extra)
+        handled_callee, handled_parent = handle_prop(G, ast_node, extra)
     else:
         callee = G.get_ordered_ast_child_nodes(ast_node)[0]
         handled_callee = handle_node(G, callee, extra)

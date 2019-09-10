@@ -165,7 +165,7 @@ def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, 
     return NodeHandleResult()
 
 
-def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResult, callback: NodeHandleResult):
+def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResult, callback: NodeHandleResult, this: NodeHandleResult=None):
     branches = extra.branches
     objs = []
     names = []
