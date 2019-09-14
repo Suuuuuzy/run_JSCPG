@@ -519,7 +519,13 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         if not (extra and extra.parent_obj is not None):
             logger.error("AST_ARRAY_ELEM occurs outside AST_ARRAY")
         else:
-            value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
+            # should only have two childern
+            try:
+                value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
+            except:
+                # TODO: Check what happend here for colorider
+                return NodeHandleResult()
+                
             key = G.get_name_from_child(key_node)
             if key is not None:
                 key = key.strip("'\"")

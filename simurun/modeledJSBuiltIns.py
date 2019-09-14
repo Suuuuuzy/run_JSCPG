@@ -218,7 +218,8 @@ def array_pop(G: Graph, caller_ast, extra, array: NodeHandleResult):
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
-def array_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep: NodeHandleResult):
+def array_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep: NodeHandleResult = ''):
+    # the sep can be none
     returned_objs = []
     used_objs = set()
     for arr in array.obj_nodes:
@@ -253,6 +254,8 @@ def object_values(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=
         arr = G.add_obj_node(None, 'array')
         for i, name_node in enumerate(G.get_prop_name_nodes(obj)):
             name = G.get_node_attr(name_node).get('code')
+            if name is None:
+                continue
             if for_array and not (name.isdigit() or name == '*'):
                 continue # Array only returns numeric keys/corresponding values
             prop_objs = G.get_objs_by_name_node(name_node)

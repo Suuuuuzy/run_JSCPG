@@ -148,8 +148,8 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        # if cur_cnt < 6100:
-        #    continue
+        if cur_cnt < 2800:
+            continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package))
         tqdm_bar.refresh()
@@ -177,5 +177,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package('alfred-jira-notifications', root_path)
-#main()
+#test_package('morningstar-fixed-income-classification', root_path)
+main()
