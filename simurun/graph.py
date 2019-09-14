@@ -205,6 +205,8 @@ class Graph:
         with io.StringIO(nodes) as fp:
             reader = csv.DictReader(fp, delimiter='\t')
             for row in reader:
+                if 'id:ID' not in row:
+                    continue
                 cur_id = row['id:ID']
                 self.add_node(cur_id)
                 for attr, val in row.items():

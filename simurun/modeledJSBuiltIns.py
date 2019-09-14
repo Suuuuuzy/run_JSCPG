@@ -295,7 +295,7 @@ def array_entries(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array
     return object_entries(G, caller_ast, extra, this, True)
 
 
-def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult):
+def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult, format_type: NodeHandleResult = None):
     returned_objs = []
     for obj in this.obj_nodes:
         string = G.add_obj_node(None, 'string')

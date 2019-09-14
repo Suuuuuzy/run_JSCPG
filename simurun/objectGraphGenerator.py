@@ -113,6 +113,9 @@ def register_func(G, node_id):
         node_id: the node that needed to be registered
     """
     # we assume this node only have one parent node
+    # sometimes this could be the root node and do not have any parent nodes
+    if len(G.get_in_edges(node_id, edge_type="PARENT_OF")) == 0:
+        return None
     parent_stmt_nodeid = G.get_in_edges(node_id, edge_type = "PARENT_OF")[0][0]
     parent_func_nodeid = G.get_in_edges(parent_stmt_nodeid, edge_type = "PARENT_OF")[0][0]
     G.set_node_attr(parent_func_nodeid, ("HAVE_FUNC", node_id))
@@ -246,8 +249,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
         else:
             prop_names.append('Obj#' + obj)
         for_tags = G.get_node_attr(obj).get('for_tags')
-        if for_tags is not None:
-            prop_name_tags.append(for_tags)
+        prop_name_tags.append(for_tags)
 
     if not parent_objs:
         if not (extra and extra.side == 'right'):
@@ -456,7 +458,13 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         node_color = sty.fg.black + sty.bg(179)
     node_code = G.get_node_attr(node_id).get('code')
 
-    if len(node_code) > 100: node_code = ''
+    try:
+        if len(node_code) > 100: node_code = ''
+    except:
+        print(G.get_node_attr(node_id))
+        node_code = ''
+        #if len(node_code) > 100: node_code = ''
+        
 
     logger.info(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE{sty.rs.all} {node_id} "
     f"(Line {cur_node_attr['lineno:int']}): {node_color}{cur_type}{sty.rs.all}"
@@ -641,7 +649,11 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type in ['integer', 'double', 'string']:
         js_type = 'string' if cur_type == 'string' else 'number'
         code = G.get_node_attr(node_id).get('code')
-        value = code if js_type == 'string' else float(code)
+        if cur_type == 'integer' and \
+            code.startswith("0x") or code.startswith("0X"):
+                value = int(code, 16)
+        else:
+            value = code if js_type == 'string' else float(code)
         # added_obj = G.add_obj_node(node_id, js_type, code)
         logger.debug(f'{node_id} handle result: value={code}')
         return NodeHandleResult(values=[value])

@@ -99,9 +99,9 @@ def test_package(package, root_path):
     line_count = dir_line_count(root_path + package)
     size_count = dir_size_count(root_path + package)
     npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package, size_count, line_count))
-    if size_count < 409600 and line_count < 200000:
-        npm_test_logger.warning("Skip {}".format(package))
-        return -1
+    #if size_count < 409600 and line_count < 200000:
+    #    npm_test_logger.warning("Skip {}".format(package))
+    #    return -1
 
     package_main_file = get_main_file_of_package("{}{}".format(root_path, package))
     if package_main_file is None:
@@ -177,5 +177,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package('lame', root_path)
+test_package('alfred-jira-notifications', root_path)
 #main()
