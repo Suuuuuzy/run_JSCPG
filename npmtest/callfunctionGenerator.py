@@ -136,7 +136,7 @@ def test_package(package, root_path):
 root_path = "/media/data/lsong18/data/npmpackages/"
 
 def main():
-    packages = get_list_of_packages(root_path, limit = 10000)
+    packages = get_list_of_packages(root_path, limit = 50000)
     tqdm_bar = tqdm(packages)
 
     success_list = []
@@ -148,7 +148,7 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt < 2800:
+        if cur_cnt < 12690:
             continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package))
@@ -177,5 +177,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package('morningstar-fixed-income-classification', root_path)
+#test_package('mongo-sites-api', root_path)
 main()

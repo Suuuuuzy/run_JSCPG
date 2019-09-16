@@ -518,6 +518,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type == 'AST_ARRAY_ELEM':
         if not (extra and extra.parent_obj is not None):
             logger.error("AST_ARRAY_ELEM occurs outside AST_ARRAY")
+            return None
         else:
             # should only have two childern
             try:
@@ -658,6 +659,10 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         if cur_type == 'integer' and \
             code.startswith("0x") or code.startswith("0X"):
                 value = int(code, 16)
+
+        elif cur_type == 'integer' and \
+            code.startswith("0b") or code.startswith("0B"):
+                value = int(code, 2)
         else:
             value = code if js_type == 'string' else float(code)
         # added_obj = G.add_obj_node(node_id, js_type, code)
@@ -899,8 +904,6 @@ def merge(G, stmt, num_of_branches, parent_branch):
                         if 'branch' not in edge_attr:
                             # logger.debug(f'delete edge {u}->{v}')
                             G.graph.remove_edge(u, v, key)
-
-
 
 def call_callback_function(G, caller, func_decl, func_scope, args=None,
     branches=BranchTagContainer()):

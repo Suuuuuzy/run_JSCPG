@@ -426,6 +426,37 @@ class Graph:
         """deprecated"""
         return self.get_ordered_ast_child_nodes(node_id)
 
+    def get_all_child_nodes(self, node_id, max_depth = None):
+        """
+        return a list of child node id, by bfs order
+        Args:
+            node_id: the node id of the start node
+
+        Return:
+            a list of node in bfs order
+        """
+        bfs_queue = []
+        visited = set()
+        bfs_queue.append((node_id, 0))
+
+        while(len(bfs_queue)):
+            cur_node, cur_depth = bfs_queue.pop(0)
+            if max_depth and cur_depth > max_depth: break
+
+            # if visited before, stop here
+            if cur_node in visited:
+                continue
+            else:
+                visited.add(cur_node)
+
+            cur_attr = self.get_node_attr(cur_node)
+
+            out_edges = self.get_out_edges(cur_node, edge_type = 'PARENT_OF')
+            out_nodes = [(edge[1], cur_depth + 1) for edge in out_edges]
+            bfs_queue += out_nodes
+
+        return list(visited) 
+
     # Object graph
 
     # name nodes and object nodes
@@ -1104,7 +1135,6 @@ class Graph:
         f'negative_infinity_obj: {self.negative_infinity_obj}, nan_obj:{self.nan_obj}, '
         f'true_obj: {self.true_obj}, false_obj: {self.false_obj}')
 
-
     def get_parent_object_def(self, node_id):
         """
         get the obj number and defination of the parent object 
@@ -1220,6 +1250,16 @@ class Graph:
         return self.file_contents[file_name]
 
     def traceback(self, export_type):
+        """
+        traceback from the leak point, the edge is OBJ_REACHES
+        Args:
+            export_type: the type of export, listed below
+
+        Return:
+            the paths include the objs,
+            the string description of paths,
+            the list of callers,
+        """
         res_path = ""
         if export_type == 'os-command':
             expoit_func_list = [
@@ -1250,7 +1290,6 @@ class Graph:
                         cur_path_str1 = ""
                         cur_path_str2 = ""
                         path.reverse()
-                        # path.append(caller)
                         for node in path:
                             cur_node_attr = self.get_node_attr(node)
                             if cur_node_attr.get('lineno:int') is None:

@@ -5,6 +5,7 @@ from .graph import Graph
 from .logger import *
 from .objectGraphGenerator import register_func, handle_node, \
     add_edges_between_funcs, analyze_files, analyze_string, generate_obj_graph
+from .trace_rule import TraceRule
 
 def unittest_main(file_path):
     """
@@ -52,6 +53,10 @@ def main():
     logger.debug(res_path[0])
     logger.debug('ResPath1:')
     logger.debug(res_path[1])
+
+    trace_rule = TraceRule('test', 'test', G)
+    res = trace_rule.exist_func(['parseInt'], res_path[0][0])
+
     return res_path
 
 if __name__ == "__main__":

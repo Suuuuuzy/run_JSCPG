@@ -201,11 +201,15 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
 
 
 def array_push(G: Graph, caller_ast, extra, array: NodeHandleResult, *added_objs: NodeHandleResult):
+    obj_nodes = set()
+    used_objs = set()
     for arr in array.obj_nodes:
         for added_obj in added_objs:
+            used_objs = used_objs.union(set(added_obj.used_objs))
+            obj_nodes = obj_nodes.union(set(added_obj.obj_nodes))
             for obj in added_obj.obj_nodes:
                 G.add_obj_as_prop(prop_name='*', parent_obj=arr, tobe_added_obj=obj)
-    used_objs = list(set(added_obj.obj_nodes + added_obj.used_objs))
+    used_objs = list(obj_nodes.union(used_objs))
     return NodeHandleResult(used_objs=used_objs)
 
 
@@ -273,6 +277,8 @@ def object_entries(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array
             child_arr = G.add_obj_node(None, 'array')
             # key
             name = G.get_node_attr(name_node).get('code')
+            if name is None:
+                continue
             if for_array and not (name.isdigit() or name == '*'):
                 continue # Array only returns numeric keys/corresponding values
             string = G.add_obj_node(None, 'string', name)
@@ -298,7 +304,8 @@ def array_entries(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array
     return object_entries(G, caller_ast, extra, this, True)
 
 
-def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult, format_type: NodeHandleResult = None):
+def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult, 
+        encoding: NodeHandleResult = None, start = None, end = None):
     returned_objs = []
     for obj in this.obj_nodes:
         string = G.add_obj_node(None, 'string')

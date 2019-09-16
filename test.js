@@ -1,3 +1,7 @@
-var a = {a: 1, b:2};
-var b = [1,2,3,4,5];
+function pure(test) {
+  return parseInt(test);
+}
 
+var command = "testing";
+command = pure(command);
+exec(command);
