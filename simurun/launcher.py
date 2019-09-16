@@ -54,8 +54,9 @@ def main():
     logger.debug('ResPath1:')
     logger.debug(res_path[1])
 
-    trace_rule = TraceRule('test', 'test', G)
-    res = trace_rule.exist_func(['parseInt'], res_path[0][0])
+    trace_rule = TraceRule('exsit_func', ['parseInt'], G)
+    res = trace_rule.check(res_path[0][0])
+    print(res)
 
     return res_path
 

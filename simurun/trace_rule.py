@@ -34,5 +34,21 @@ class TraceRule:
                 return False
 
         return True
-        print(func_list)
+
+    def check(self, path):
+        """
+        select the checking function and run it based on the key value
+        Return:
+            the running result of the obj
+        """
+        key_map = {
+                "exsit_func": self.exist_func,
+                }
+
+        if self.key in key_map:
+            check_function = key_map[self.key]
+        else:
+            return False
+
+        return check_function(self.value, path)
 
