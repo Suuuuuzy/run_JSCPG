@@ -807,7 +807,7 @@ class Graph:
             return tmp_edge[0][1]
 
 
-    def copy_obj(self, obj_node, ast_node=None):
+    def copy_obj(self, obj_node, ast_node=None, copied=set()):
         '''
         Copy an object and its properties.
         '''
@@ -828,7 +828,12 @@ class Graph:
             # copy property object nodes
             for j in self.get_out_edges(prop_name_node, edge_type=
                 'NAME_TO_OBJ'):
-                new_prop_obj_node = self.copy_obj(j[1], ast_node)
+                # sometimes this loop may dead inside a graph with a circle
+                # check whether we copied this node before
+                if j[1] in copied:
+                    continue
+                copied.add(j[1])
+                new_prop_obj_node = self.copy_obj(j[1], ast_node, copied)
                 # self.add_node(new_prop_obj_node, self.get_node_attr(j[1])) # ?
                 self.add_edge(new_prop_name_node, new_prop_obj_node,
                     {'type:TYPE': 'OBJ_DECL'})
