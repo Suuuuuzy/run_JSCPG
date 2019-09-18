@@ -250,7 +250,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
                 prop_names.append(name)
         else:
             prop_names.append('Obj#' + obj)
-        for_tags = G.get_node_attr(obj).get('for_tags')
+        for_tags = G.get_node_attr(obj).get('for_tags', [])
         prop_name_tags.append(for_tags)
 
     if not parent_objs:
@@ -661,14 +661,19 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         if cur_type == 'integer' and \
             code.startswith("0x") or code.startswith("0X"):
                 value = int(code, 16)
-
         elif cur_type == 'integer' and \
             code.startswith("0b") or code.startswith("0B"):
                 value = int(code, 2)
+        elif cur_type == 'string':
+            # remove ONE pair of quotation marks around the string
+            if re.match(r'^".*"$', code) or re.match(r"^'.*'$", code):
+                value = code[1:-1]
+            else:
+                value = code
         else:
-            value = code if js_type == 'string' else float(code)
+            value = float(code)
         # added_obj = G.add_obj_node(node_id, js_type, code)
-        logger.debug(f'{node_id} handle result: value={code}')
+        logger.debug(f'{node_id} handle result: value={value}')
         return NodeHandleResult(values=[value])
 
     elif cur_type in ['AST_CALL', 'AST_METHOD_CALL', 'AST_NEW']:

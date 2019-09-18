@@ -742,7 +742,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             break;
         case 'Literal':
             let phpLiteralType = typeof(currentNode.value);
-            if (outputStyle == 'php' && (phpLiteralType == 'boolean' || phpLiteralType == 'object')) {
+            if (outputStyle == 'php' && (phpLiteralType == 'boolean' || currentNode.value == null)) {
                 // true, false or null
                 nodeIdCounter++;
                 let vNameId = nodeIdCounter;
@@ -2195,12 +2195,17 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 // property
                 nodeIdCounter++;
                 relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                dfs(currentNode.property, nodeIdCounter, currentId, 1, currentFunctionId, null);
                 // PHP distinguishes subscript and member, but JavaScript does not
-                if (getCode(currentNode, sourceCode).search(/\[/) != -1)
+                // if (getCode(currentNode, sourceCode).search(/\[/) != -1) { // do not write like this
+                if (currentNode.computed) { // use Esprima's parsing result
                     phptype = 'AST_DIM';
-                else
+                    // distinguish if index is a literal (string or number), or value of a variable (identifier)
+                    dfs(currentNode.property, nodeIdCounter, currentId, 1, currentFunctionId, null);
+                } else {
                     phptype = 'AST_PROP';
+                    // treat property name as a string
+                    dfs(currentNode.property, nodeIdCounter, currentId, 1, currentFunctionId, {doNotUseVar: true});
+                }
                 nodes[currentId] = {
                     label: 'AST',
                     type: currentNode.type,
