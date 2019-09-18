@@ -39,3 +39,7 @@
 ['224 called exec'] calledFound path from instance-stats: []
 ['43 called exec', '124 called exec'] calledFound path from ups3site: []
 ['769 called exec'] calledFound path from create-lila-app: []
+['71 called exec'] calledFound path from git-branch-delete-multiple: []
+['125 called exec', '169 called exec'] calledFound path from rofi-emoji: []
+['145 called exec', '348 called exec', '367 called exec'] calledFound path from whoport: []
+['621 called exec', '172 called exec'] calledFound path from git-branch-cleaner: [['149']]

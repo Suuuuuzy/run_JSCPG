@@ -238,6 +238,8 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     # literal-based prop names have no tags
     prop_name_tags = [[]] * len(prop_names)
     # obj node-based prop names
+    print(parent_objs)
+    print(handled_prop.obj_nodes)
     for obj in handled_prop.obj_nodes:
         name = G.get_node_attr(obj).get('code')
         if name is not None:
@@ -1104,7 +1106,9 @@ def ast_call_function(G, ast_node, extra):
     arg_list_node = G.get_ordered_ast_child_nodes(ast_node)[-1]
     arg_list = G.get_ordered_ast_child_nodes(arg_list_node)
     for arg in arg_list:
+        print(arg)
         handled_arg = handle_node(G, arg, extra)
+        print(handled_arg)
         handled_args.append(handled_arg)
 
     return call_function(G, func_decl_objs, handled_args, handled_parent,

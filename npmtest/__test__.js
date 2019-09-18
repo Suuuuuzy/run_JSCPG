@@ -1,2 +1,2 @@
-var main_func=require('/media/data/lsong18/data/npmpackages/swgg-github-apps/lib.swgg_github_apps.js');
+var main_func=require('/media/data/lsong18/data/npmpackages/eris-command-framework/index.js');
 main_func('var');

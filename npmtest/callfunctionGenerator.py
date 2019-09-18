@@ -148,7 +148,7 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt < 15000:
+        if cur_cnt < 18090:
             continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package))
@@ -177,5 +177,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package('swgg-github-apps', root_path)
-#main()
+#test_package('swgg-github-apps', root_path)
+main()

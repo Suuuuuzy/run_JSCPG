@@ -1,7 +1,8 @@
-function pure(test) {
-  return parseInt(test);
+function test(req) {
+  exec(req.text);
 }
-
-var command = "testing";
-command = pure(command);
-exec(command);
+var Req = function(){
+  this.text = "text";
+}
+var req = new Req();
+test(req);
