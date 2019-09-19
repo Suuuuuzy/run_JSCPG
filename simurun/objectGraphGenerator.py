@@ -76,7 +76,10 @@ def add_edges_between_funcs(G):
         CPG_caller_id = G.find_nearest_upper_CPG_node(caller_id)
         entry_edge = G.get_out_edges(callee_id, data = True, edge_type = 'ENTRY')[0]
         # add CFG edge to ENTRY
-        logger.info(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, entry_edge[1]))
+        ln1 = G.get_node_attr(CPG_caller_id).get('lineno:int')
+        ln2 = G.get_node_attr(list(G.get_in_edges(entry_edge[1]))[0][0]).get('lineno:int')
+        ln2 = 'Line ' + ln2 if ln2 else 'Built-in'
+        logger.info(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} (Line {}) -> {} ({})'.format(CPG_caller_id, ln1, entry_edge[1], ln2))
         # assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
         # assert entry_edge[1] != None, "Failed to add CFG edge. Callee ENTRY is None."
         added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
@@ -86,7 +89,8 @@ def add_edges_between_funcs(G):
         caller_para_names = get_argnames_from_funcaller(G, caller_id)
         callee_paras = get_argids_from_funcallee(G, callee_id)
         for idx in range(min(len(callee_paras), len(caller_para_names))):
-            logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {}'.format(CPG_caller_id, callee_paras[idx]))
+            ln2 = G.get_node_attr(callee_paras[idx]).get('lineno:int')
+            logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} (Line {}) -> {} (Line {})'.format(CPG_caller_id, ln1, callee_paras[idx], ln2))
             assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
             assert callee_paras[idx] != None, f"Failed to add CFG edge. callee_paras[{idx}] is None."
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
@@ -96,7 +100,9 @@ def add_edges_between_funcs(G):
             if G.get_node_attr(child)['type'] == 'AST_STMT_LIST':
                 for stmt in G.get_child_nodes(child, 'PARENT_OF'):
                     if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
-                        logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {}'.format(stmt, CPG_caller_id))
+                        ln1 = G.get_node_attr(stmt).get('lineno:int')
+                        ln2 = G.get_node_attr(CPG_caller_id).get('lineno:int')
+                        logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} (Line {}) -> {} (Line {})'.format(stmt, ln1, CPG_caller_id, ln2))
                         assert stmt != None, "Failed to add CFG edge. Statement ID is None."
                         assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
                         added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
@@ -912,7 +918,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
                             # logger.debug(f'delete edge {u}->{v}')
                             G.graph.remove_edge(u, v, key)
 
-def call_callback_function(G, caller, func_decl, func_scope, args=None,
+def call_callback_function(G, caller_ast, func_decl, func_scope, args=None,
     branches=BranchTagContainer()):
     # generate empty object for parameters of the callback function
     param_list_node = None
@@ -926,10 +932,13 @@ def call_callback_function(G, caller, func_decl, func_scope, args=None,
             # handled_param = handle_node(G, child)
             param_name = G.get_name_from_child(child)
             if not args:
-                G.add_obj_to_scope(param_name, scope=func_scope)
+                added_obj = G.add_obj_to_scope(param_name, scope=func_scope,
+                    ast_node=caller_ast)
+                logger.debug(f'add arg {param_name} <- new object {added_obj}')
             else:
                 if i >= len(args):
                     break
+                logger.debug(f'add arg {param_name} <- {args[i].obj_nodes}')
                 for obj in args[i].obj_nodes:
                     G.add_obj_to_scope(param_name, scope=func_scope,
                         tobe_added_obj=obj)
@@ -949,7 +958,7 @@ def call_callback_function(G, caller, func_decl, func_scope, args=None,
     G.cur_objs = backup_objs
 
     # add call edge
-    G.add_edge_if_not_exist(caller, func_decl, {"type:TYPE": "CALLS"})
+    G.add_edge_if_not_exist(caller_ast, func_decl, {"type:TYPE": "CALLS"})
 
 def decl_function(G, node_id, func_name=None, parent_scope=None):
     '''

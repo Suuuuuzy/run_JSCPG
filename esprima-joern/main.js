@@ -779,18 +779,28 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     funcId: currentFunctionId,
                 };
             } else {
-                if (phpLiteralType === 'number') {
+                let code;
+                if (currentNode.regex) {
+                    // regular expression
+                    phpLiteralType = 'string';
+                    // replace slashes with double slashes
+                    code = '/' + currentNode.regex.pattern.replace(/\\/, '\\\\') + '/' + currentNode.regex.flags;
+                } else if (phpLiteralType === 'number') {
                     if (Number.isInteger(currentNode.value))
                         phpLiteralType = 'integer';
                     else
                         phpLiteralType = 'double';
+                    code = currentNode.raw;
+                } else if (phpLiteralType === 'string'){
+                    let quoted = currentNode.raw.match(/'^(.*)$'/) || currentNode.raw.match(/"^(.*)$"/) || ['', ''];
+                    code = quoted[1];
                 }
                 nodes[currentId] = {
                     label: 'AST',
                     type: currentNode.type,
                     ctype: 'PrimaryExpression',
                     phptype: phpLiteralType,
-                    code: currentNode.raw,
+                    code: code,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
@@ -2306,7 +2316,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 label: 'AST',
                 type: currentNode.type,
                 phptype: 'string',
-                code: currentNode.value.raw,
+                code: currentNode.value.value,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -2824,16 +2834,17 @@ function analyze(filePath, parentNodeId) {
         label = label == 'AST_V' ? 'AST' : u.label; // AST_V -> AST
         let childNum = u.childNum === 0 ? 0 : u.childNum || '';
         if (outputStyle == 'php') {
-            let code = u.operator || u.code || '';
-            if (delimiter != ',') {
-                code = code.replace(/\t|\n/g, '');
-            }
-            if (code.search(/\s|,|"/) != -1) {
-                code = '"' + code.replace(/"/g, '\"\"') + '"'; // quote code if space or comma is found
-                // code = ""; // delete code if space or comma is found
+            // process and quote code
+            let code = u.operator || u.code || null;
+            if (code === undefined || code === null) {
+                code = '';
+            } else {
+                code = code.replace(/\n/g, '').replace(/\t/g, ' ').replace(/"/g, '""');
+                code = '"' + code + '"';
             }
             nodesStream.push([i, label, u.phptype || u.type, u.phpflag || '',
-                u.lineLocStart || '', code, childNum, u.funcId || '', '', '', u.lineLocEnd || '', u.name || '', ''
+                u.lineLocStart || '', code, childNum, u.funcId || '',
+                '', '', u.lineLocEnd || '', u.name || '', ''
             ].join(delimiter) + '\n');
         } else if (outputStyle == 'c') {
             if (i == 0) continue;
