@@ -52,3 +52,4 @@ class TraceRule:
 
         return check_function(self.value, path)
 
+    

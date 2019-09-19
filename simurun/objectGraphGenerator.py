@@ -244,8 +244,6 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     # literal-based prop names have no tags
     prop_name_tags = [[]] * len(prop_names)
     # obj node-based prop names
-    print(parent_objs)
-    print(handled_prop.obj_nodes)
     for obj in handled_prop.obj_nodes:
         name = G.get_node_attr(obj).get('code')
         if name is not None:
@@ -1120,9 +1118,7 @@ def ast_call_function(G, ast_node, extra):
     arg_list_node = G.get_ordered_ast_child_nodes(ast_node)[-1]
     arg_list = G.get_ordered_ast_child_nodes(arg_list_node)
     for arg in arg_list:
-        print(arg)
         handled_arg = handle_node(G, arg, extra)
-        print(handled_arg)
         handled_args.append(handled_arg)
 
     return call_function(G, func_decl_objs, handled_args, handled_parent,
@@ -1356,7 +1352,6 @@ def eval_value(G, s, return_node=False, ast_node=None):
     else:
         return evaluated, js_type
 
-
 def convert_values(G, handle_result, ast_node=None):
     '''
     Experimental. Converts 'values' field in NodeHandleResult into
@@ -1370,7 +1365,6 @@ def convert_values(G, handle_result, ast_node=None):
             else:
                 returned_objs.append(G.add_obj_node(ast_node, 'string', value))
     return returned_objs
-
 
 def generate_obj_graph(G, entry_nodeid):
     """
@@ -1402,7 +1396,6 @@ def analyze_files(G, path, start_node_id=0):
     G.import_from_string(stdout)
     generate_obj_graph(G, str(start_node_id + 1))
 
-
 def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
@@ -1414,7 +1407,6 @@ def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     G.import_from_string(stdout)
     if toplevel:
         generate_obj_graph(G, str(start_node_id + 1))
-
 
 def analyze_json(G, json_str, start_node_id=0, extra=None):
     # This function is almost the same as analyze_string,
