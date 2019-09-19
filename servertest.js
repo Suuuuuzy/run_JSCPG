@@ -10,5 +10,5 @@ var server = http.createServer(function (req, res){
       res.end(body);
     });
   }
-  exec(req.text);
+  exec(req);
 }).listen(3000);
