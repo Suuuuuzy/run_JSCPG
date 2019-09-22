@@ -196,7 +196,7 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
         func_scope = G.add_scope('FUNC_SCOPE', func, f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
         objectGraphGenerator.call_callback_function(
             G, caller_ast, func_decl, func_scope, args=args,
-            branches=extra.branches + [BranchTag(point=f'ForEach{caller_ast}')])
+            branches=extra.branches+[BranchTag(point=f'ForEach{caller_ast}')])
     return NodeHandleResult()
 
 

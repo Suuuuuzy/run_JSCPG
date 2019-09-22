@@ -131,7 +131,7 @@ def register_func(G, node_id):
 
     logger.info(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
 
-def find_prop(G, parent_objs, prop_name, branches=BranchTagContainer(),
+def find_prop(G, parent_objs, prop_name, branches=None,
     side=None, parent_name='Unknown', in_proto=False, depth=0, for_tags=None):
     '''
     Recursively find a property under parent_objs and its __proto__.
@@ -140,7 +140,7 @@ def find_prop(G, parent_objs, prop_name, branches=BranchTagContainer(),
         G (Graph): graph.
         parent_objs (list): parent objects.
         prop_name (str): property name.
-        branches (Iterable[BranchTag], optional): branch information.
+        branches (BranchTagContainer, optional): branch information.
             Defaults to None.
         side (str, optional): 'left' or 'right', denoting left side or
             right side of assignment. Defaults to None.
@@ -224,6 +224,8 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     Returns:
         NodeHandleResult
     '''
+    print('extra=', extra)
+    # recursively handle both parts
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)[:2]
     handled_parent = handle_node(G, parent, extra)
     handled_prop = handle_node(G, prop, extra)
@@ -233,6 +235,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     parent_objs = handled_parent.obj_nodes
     parent_name_nodes = handled_parent.name_nodes
 
+    # prepare property names and corresponding for-tags
     # literal-based prop names
     prop_names = []
     for name in handled_prop.values:
@@ -242,7 +245,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
             else:
                 prop_names.append(name)
     # literal-based prop names have no tags
-    prop_name_tags = [[]] * len(prop_names)
+    prop_name_tags = [[] for i in range(len(prop_names))]
     # obj node-based prop names
     for obj in handled_prop.obj_nodes:
         name = G.get_node_attr(obj).get('code')
@@ -257,6 +260,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
         for_tags = G.get_node_attr(obj).get('for_tags', [])
         prop_name_tags.append(for_tags)
 
+    # create parent object if it doesn't exist
     if not parent_objs:
         if not (extra and extra.side == 'right'):
             logger.debug("PARENT OBJ {} NOT DEFINED, creating object nodes".
@@ -265,11 +269,13 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
             if parent_name_nodes:
                 parent_objs = []
                 for name_node in parent_name_nodes:
-                    parent_objs.append(G.add_obj_to_name_node(name_node,
-                        ast_node, 'BUILT-IN'))
+                    obj = G.add_obj_to_name_node(name_node, ast_node, None)
+                    parent_objs.append(obj)
+
             else:
-                parent_objs = [G.add_obj_to_scope(parent_name, ast_node,
-                    "BUILT-IN", scope=G.BASE_SCOPE)]
+                obj = G.add_obj_to_scope(parent_name, ast_node, None,
+                                         scope=G.BASE_SCOPE)
+                parent_objs = [obj]
         else:
             logger.debug("PARENT OBJ {} NOT DEFINED, return undefined".
                 format(parent_name))
@@ -279,6 +285,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     side = extra.side
     prop_name_nodes, prop_obj_nodes = [], []
 
+    # find property name nodes and object nodes
     for i, prop_name in enumerate(prop_names):
         name_nodes, obj_nodes = find_prop(G, parent_objs, prop_name,
             branches, side, parent_name, for_tags=prop_name_tags[i])
@@ -382,7 +389,8 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
                     for_tags = G.get_node_attr(obj).get('for_tags',
                                                         BranchTagContainer())
                     new_for_tags = [BranchTag(i, mark='S')
-                        for i in branches.get_matched_tags(nn_for_tags)]
+                        for i in BranchTagContainer(nn_for_tags)
+                        .get_matched_tags(branches, level=1)]
                     for_tags.extend(new_for_tags)
                     G.set_node_attr(copied_obj, ('for_tags', for_tags))
                     G.assign_obj_nodes_to_name_node(name_node, [copied_obj],
@@ -669,11 +677,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             code.startswith("0b") or code.startswith("0B"):
                 value = int(code, 2)
         elif cur_type == 'string':
-            # remove ONE pair of quotation marks around the string
-            if re.match(r'^".*"$', code) or re.match(r"^'.*'$", code):
-                value = code[1:-1]
-            else:
-                value = code
+            value = code
         else:
             value = float(code)
         # added_obj = G.add_obj_node(node_id, js_type, code)
@@ -784,7 +788,8 @@ def simurun_function(G, func_decl_ast_node, branches=BranchTagContainer()):
         G.get_func_decl_objs_by_ast_node(func_decl_ast_node)[0], G.cur_objs,
         branches) + sty.rs.all)
     for child in G.get_child_nodes(func_decl_ast_node, child_type='AST_STMT_LIST'):
-        return simurun_block(G, child, parent_scope=G.cur_scope)
+        return simurun_block(G, child, parent_scope=G.cur_scope,
+            branches=branches)
 
     G.call_stack.pop()
     return [], []
@@ -936,8 +941,10 @@ def call_callback_function(G, caller_ast, func_decl, func_scope, args=None,
             else:
                 if i >= len(args):
                     break
-                logger.debug(f'add arg {param_name} <- {args[i].obj_nodes}')
-                for obj in args[i].obj_nodes:
+                objs = args[i].obj_nodes + convert_values(G, args[i],
+                    ast_node=caller_ast)
+                logger.debug(f'add arg {param_name} <- {objs}')
+                for obj in objs:
                     G.add_obj_to_scope(param_name, scope=func_scope,
                         tobe_added_obj=obj)
     
@@ -1073,6 +1080,7 @@ def ast_call_function(G, ast_node, extra):
         ast_node: the Call/New expression's AST node.
         extra (ExtraInfo): extra information.
     '''
+    print('extra=', extra)
     # handle the callee
     handled_parent = None
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
@@ -1227,7 +1235,7 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 G.get_node_attr(func_obj).get('for_tags', BranchTagContainer()
                 ).get_creating_for_tags()
             if for_tags:
-                for_tags = [BranchTag(i, mark='') for i in for_tags]
+                for_tags = [BranchTag(i, mark=None) for i in for_tags]
                 next_branches.extend(for_tags)
             logger.debug(f'next branch tags: {next_branches}')
             # switch scopes ("new" will swtich scopes and object by itself)

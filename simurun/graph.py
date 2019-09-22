@@ -628,20 +628,21 @@ class Graph:
             scope = list(scope_edges)[0][0]
         return None
 
-    def get_objs_by_name_node(self, name_node, branches: List[BranchTag]=[]):
+    def get_objs_by_name_node(self, name_node, branches=None):
         '''
         Get corresponding object nodes of a name node.
         
         Args:
             name_node: the name node.
-            branches (List[BranchTag], optional): branch information.
-                Default to [].
+            branches (BranchTagContainer, optional): branch information.
+                Default to None.
         
         Returns:
             list: list of object nodes.
         '''
         if name_node is None:
             return []
+        print('branches=', branches)
         out_edges = self.get_out_edges(name_node, edge_type='NAME_TO_OBJ')
         objs = set([edge[1] for edge in out_edges])
         if branches:
@@ -651,8 +652,10 @@ class Graph:
                 has_obj[obj] = False
             # check edges without branch tag
             for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
-                tag = attr.get('branch')
-                if tag == None:
+                branch_tag = attr.get('branch')
+                for_tags = self.get_node_attr(obj).get('for_tags')
+                print('obj=',obj,'for_tags=',for_tags)
+                if branch_tag is None and not for_tags:
                     has_obj[obj] = True
             # for each branch in branch history
             # we check from the oldest (shallowest) to the most recent (deepest)
@@ -661,10 +664,21 @@ class Graph:
                 for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
                     tag = attr.get('branch')
                     if tag and tag.point == branch.point and tag.branch == branch.branch:
-                        if tag.mark == 'A': # if the object is added (assigned) in that branch
-                            has_obj[obj] = True
-                        elif tag.mark == 'D': # if the object is removed in that branch
+                        if tag.mark == 'A':
+                            # if the object is added (assigned) in that branch
+                             has_obj[obj] = True
+                        elif tag.mark == 'D':
+                            # if the object is removed in that branch
                             has_obj[obj] = False
+                    for tag in self.get_node_attr(obj).get('for_tags', []):
+                        if tag.point == branch.point and (
+                            branch.branch is None
+                            or tag.branch == branch.branch
+                        ):
+                            # if the object is used as the loop variable
+                            # or created in that branch
+                            has_obj[obj] = True
+                            break
             return list(filter(lambda x: has_obj[x], objs))
         else:
             return list(objs)

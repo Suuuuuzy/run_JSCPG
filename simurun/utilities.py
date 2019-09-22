@@ -60,25 +60,35 @@ class BranchTag:
     '''
 
     def __init__(self, s = None, **kwargs):
-        self.point = ''
-        self.branch = ''
-        self.mark = ''
+        self.point = None
+        self.branch = None
+        self.mark = None
         if s:
             try:
                 self.point, self.branch, self.mark = re.match(
-                    r'-?([^#]+)#(\d+)(\w?)', str(s)).groups()
+                    r'-?([^#]*)#(\d*)(\w?)', str(s)).groups()
+                if self.point == '':
+                    self.point = None
+                if self.branch == '':
+                    self.branch = None
+                if self.mark == '':
+                    self.mark = None
             except Exception:
                 pass
         if 'point' in kwargs:
             self.point = kwargs['point']
         if 'branch' in kwargs:
-            self.branch = kwargs['branch']
+            self.branch = str(kwargs['branch'])
         if 'mark' in kwargs:
             self.mark = kwargs['mark']
         # assert self.__bool__()
 
     def __str__(self):
-        return f"{self.point}#{self.branch}{self.mark or ''}"
+        return '{}#{}{}'.format(
+            self.point if self.point is not None else '',
+            self.branch if self.branch is not None else '',
+            self.mark if self.mark is not None else ''
+        )
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.__str__()}")'
@@ -131,11 +141,18 @@ class BranchTagContainer(list):
         return BranchTagContainer(filter(
             lambda i: i.point.startswith('For') and i.mark == 'S', self))
 
-    def get_matched_tags(self, source):
+    def get_matched_tags(self, source, level=2):
         result = []
         for i in source:
             for j in self:
-                if i.point == j.point and i.branch == j.branch:
+                flag = True
+                if level >= 1 and i.point != j.point:
+                    flag = False
+                if level >= 2 and i.branch != j.branch:
+                    flag = False
+                if level >= 3 and i.mark != j.mark:
+                    flag = False
+                if flag:
                     result.append(j)
         return BranchTagContainer(set(result))
 

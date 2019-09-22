@@ -792,7 +792,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         phpLiteralType = 'double';
                     code = currentNode.raw;
                 } else if (phpLiteralType === 'string'){
-                    let quoted = currentNode.raw.match(/'^(.*)$'/) || currentNode.raw.match(/"^(.*)$"/) || ['', ''];
+                    let quoted = currentNode.raw.match(/^'(.*)'$/) || currentNode.raw.match(/^"(.*)"$/) || ['', ''];
                     code = quoted[1];
                 }
                 nodes[currentId] = {
