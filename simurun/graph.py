@@ -310,7 +310,6 @@ class Graph:
             dict_graph = json.load(fp)
             
         self.graph = nx.Graph(dict_graph)
-        print(str(self.graph))
 
     def recount_cur_id(self):
         self.cur_id = 0
@@ -455,7 +454,8 @@ class Graph:
             out_nodes = [(edge[1], cur_depth + 1) for edge in out_edges]
             bfs_queue += out_nodes
 
-        return list(visited) 
+        # sort the set to make it deterministic
+        return sorted(visited, key=lambda v: int(v))
 
     # Object graph
 
@@ -642,7 +642,6 @@ class Graph:
         '''
         if name_node is None:
             return []
-        print('branches=', branches)
         out_edges = self.get_out_edges(name_node, edge_type='NAME_TO_OBJ')
         objs = set([edge[1] for edge in out_edges])
         if branches:
@@ -654,7 +653,6 @@ class Graph:
             for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
                 branch_tag = attr.get('branch')
                 for_tags = self.get_node_attr(obj).get('for_tags')
-                print('obj=',obj,'for_tags=',for_tags)
                 if branch_tag is None and not for_tags:
                     has_obj[obj] = True
             # for each branch in branch history
@@ -1187,7 +1185,7 @@ class Graph:
 
     # Analysis
 
-    def _dfs_upper_by_edge_type(self, node_id, edge_types):
+    def _dfs_upper_by_edge_type(self, source=None, edge_type='OBJ_REACHES', depth_limit=None):
         """
         dfs a specific type of edge upper from a node id
 
@@ -1196,54 +1194,45 @@ class Graph:
             edge_types: we only consider some types of edge types
         Return:
             nodes: list, nodes on the pathes
-            objs: dict, {str(from_to): [obj numbers]} 
+            objs: dict, the objs on the edge, {str(from_to): [obj numbers]} 
         """
+        G = self.graph
+        pathes = []
+        if source is None:
+            # edges for all components
+            nodes = G
+        else:
+            # edges for components with source
+            nodes = [source]
+        visited = set()
+        if depth_limit is None:
+            depth_limit = len(G)
+        for start in nodes:
+            if start in visited:
+                continue
+            visited.add(start)
 
-        upper_edges = []
-        for t in edge_types:
-            upper_edges.extend(self.get_in_edges(node_id, edge_type=t))
+            edge_group = self.get_in_edges(start, edge_type=edge_type)
+            nodes_group = [edge[0] for edge in edge_group]
 
-        tmp_parent_obj_map = {}
-        for edge in upper_edges:
-            if edge[0] not in tmp_parent_obj_map:
-                tmp_parent_obj_map[edge[0]] = []
-            tmp_parent_obj_map[edge[0]].append(edge[3]['obj'])
+            stack = [(start, depth_limit, iter(nodes_group))]
+            while stack:
+                parent, depth_now, children = stack[-1]
+                try:
+                    child = next(children)
+                    if child not in visited:
+                        visited.add(child)
+                        if depth_now > 1:
 
-        parent_nodes = tmp_parent_obj_map.keys()
+                            edge_group = self.get_in_edges(start, edge_type=edge_type)
+                            nodes_group = [edge[0] for edge in edge_group]
 
-        cur_parents = []
-        for parent_node in parent_nodes:
-            cur_parents.append(tmp_parent_obj_map[parent_node])
+                            stack.append((child, depth_now - 1, iter(nodes_group)))
+                except StopIteration:
+                    pathes.append([node[0] for node in stack])
+                    stack.pop()
 
-        extended_parent_nodes = set()
-        # here we treat every upper level objects as object from nodes
-        for cur_parent_node in cur_parents:
-            parent_obj_nodes, parent_obj_defs = self.get_parent_object_def(cur_parent_node)
-            for parent_obj_def in parent_obj_defs:
-                statement_ast_node = self.find_nearest_upper_CPG_node(parent_obj_def)
-                extended_parent_nodes.add(statement_ast_node)
-
-        extended_parent_nodes = list(extended_parent_nodes) + list(parent_nodes)
-
-        ret = []
-        ret_objs = {}
-
-        for parent_node in extended_parent_nodes:
-            cur_all_upper_pathes, cur_upper_maps = self._dfs_upper_by_edge_type(parent_node, 
-                    edge_types)
-            if len(cur_all_upper_pathes) == 0:
-                ret.append([parent_node])
-            for cur_path in cur_all_upper_pathes:
-                ret.append([parent_node] + cur_path)
-
-            for cur_key in cur_upper_maps:
-                if cur_key not in ret_objs:
-                    ret_objs[cur_key] = cur_upper_maps[cur_key]
-
-            if parent_node in tmp_parent_obj_map:
-                ret_objs["{}_{}".format(parent_node, node_id)] = tmp_parent_obj_map[parent_node]
-
-        return ret, ret_objs
+        return pathes
 
     def get_node_file_path(self, node_id):
         # it's a ast so a node only has one parent
@@ -1294,16 +1283,17 @@ class Graph:
                     caller = list(self.get_child_nodes(run_scope, 
                         edge_type = 'SCOPE_TO_CALLER'))[0]
                     caller_list.append("{} called {}".format(caller, func_name))
-                    pathes, obj_num_map = self._dfs_upper_by_edge_type(caller, [
-                        "OBJ_REACHES"
-                    ])
+                    pathes = self._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
+
+                    # here we treat the single calling as a possible path
+                    # pathes.append([caller])
                     self.logger.debug('Paths:')
 
                     # give the end node one more chance, find the parent obj of the ending point
                     for path in pathes:
                         last_node = path[-1]
                         upper_nodes = self._dfs_upper_by_edge_type(last_node, 
-                                ["OBJ_TO_PROP"])
+                                "OBJ_TO_PROP")
 
                     for path in pathes:
                         cur_path_str1 = ""

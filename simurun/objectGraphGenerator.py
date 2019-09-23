@@ -224,7 +224,6 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     Returns:
         NodeHandleResult
     '''
-    print('extra=', extra)
     # recursively handle both parts
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)[:2]
     handled_parent = handle_node(G, parent, extra)
@@ -1080,7 +1079,6 @@ def ast_call_function(G, ast_node, extra):
         ast_node: the Call/New expression's AST node.
         extra (ExtraInfo): extra information.
     '''
-    print('extra=', extra)
     # handle the callee
     handled_parent = None
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
