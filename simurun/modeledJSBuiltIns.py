@@ -169,6 +169,7 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
     branches = extra.branches
     objs = []
     names = []
+    name_tags = []
     counter = 0
     for arr in array.obj_nodes:
         name_nodes = G.get_prop_name_nodes(arr)
@@ -181,13 +182,15 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
             for obj in G.get_obj_nodes(name_node, branches=branches):
                 objs.append(obj)
                 names.append(name)
-                tags = G.get_node_attr(obj).get('for_tags', [])
-                tags.append(BranchTag(point=f'ForEach{caller_ast}',
-                                      branch=counter, mark='P'))
-                G.set_node_attr(obj, ('for_tags', tags))
+                new_tag = BranchTag(point=f'ForEach{caller_ast}',
+                                    branch=counter, mark='P')
+                obj_tags = G.get_node_attr(obj).get('for_tags', [])
+                obj_tags.append(new_tag)
+                G.set_node_attr(obj, ('for_tags', obj_tags))
+                name_tags.append([new_tag])
                 counter += 1
     args = [NodeHandleResult(obj_nodes=objs),
-            NodeHandleResult(values=names),
+            NodeHandleResult(values=names, value_tags=name_tags),
             array]
     logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
     for func in callback.obj_nodes:
