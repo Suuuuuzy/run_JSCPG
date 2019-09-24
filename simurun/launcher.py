@@ -25,11 +25,21 @@ def vul_checking(G, pathes):
     Returns:
         
     """
+    trace_rules = []
     trace_rules.append(TraceRule('start_with_func', ['createServer'], G))
+    trace_rules.append(TraceRule('not_exist_func', ['parseInt'], G))
+    trace_rules.append(TraceRule('end_with_func', ['exec'], G))
+    success_pathes = []
+    flag = True
     for path in pathes:
-        # the source (start point) of the path should be a function
-        if trace_rule.check(path):
-            print (path)
+        flag = True
+        for trace_rule in trace_rules:
+            if not trace_rule.check(path):
+                flag = False
+                break
+        if flag:
+            success_pathes.append(path)
+    return success_pathes
 
 def main():
     parser = argparse.ArgumentParser(description=
@@ -70,7 +80,8 @@ def main():
     logger.debug('ResPath1:')
     logger.debug(res_path[1])
 
-    vul_checking(G, res_path[0])
+    res_pathes = vul_checking(G, res_path[0])
+    print(res_pathes)
     return res_path
 
 if __name__ == "__main__":
