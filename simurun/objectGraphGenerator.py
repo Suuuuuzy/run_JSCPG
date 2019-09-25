@@ -132,7 +132,8 @@ def register_func(G, node_id):
     logger.info(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
 
 def find_prop(G, parent_objs, prop_name, branches=None,
-    side=None, parent_name='Unknown', in_proto=False, depth=0, for_tags=None):
+    side=None, parent_name='Unknown', in_proto=False, depth=0,
+    prop_name_for_tags=None):
     '''
     Recursively find a property under parent_objs and its __proto__.
     
@@ -163,6 +164,31 @@ def find_prop(G, parent_objs, prop_name, branches=None,
     prop_name_nodes = set()
     prop_obj_nodes = set()
     for parent_obj in parent_objs:
+        # filter out unrelated possibilities
+        skip = False
+        parent_matched_tags = BranchTagContainer(G.get_node_attr(parent_obj)
+            .get('for_tags', [])).get_matched_tags(branches, level=1)
+        print(f'{sty.fg.yellow}Parent obj {parent_obj},'
+            f' parent name {parent_name}, prop name {prop_name},'
+            f' current tags: {branches},'
+            f' parent tags: {G.get_node_attr(parent_obj).get("for_tags", [])},'
+            f' parent matched tags: {parent_matched_tags},'
+            f' prop name for tags: {prop_name_for_tags}'
+            + sty.rs.all)
+        if prop_name_for_tags:
+            for t1 in parent_matched_tags:
+                for t2 in prop_name_for_tags:
+                    if t1.point == t2.point and t1.branch != t2.branch:
+                        skip = True
+                        print(f'{sty.fg.red}Skip parent obj {parent_obj} and '
+                            f'prop name {prop_name} because of {t1}, {t2}'
+                            + sty.rs.all)
+                        break
+                if skip:
+                    break
+        if skip:
+            continue
+
         # flag of whether any name node with prop_name under this parent
         # object is found
         name_node_found = False
@@ -206,9 +232,10 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 # only add a name node
                 added_name_node = G.add_prop_name_node(prop_name, parent_obj)
                 prop_name_nodes.add(added_name_node)
-                print('for_tags', for_tags)
-                if for_tags:
-                    G.set_node_attr(added_name_node, ('for_tags', for_tags))
+                print('prop_name_for_tags', prop_name_for_tags)
+                if prop_name_for_tags:
+                    G.set_node_attr(added_name_node,
+                                    ('for_tags', prop_name_for_tags))
                 logger.log(ATTENTION, f'Add prop name node ' \
                 f'{parent_name}.{prop_name} ({parent_obj}->{added_name_node})')
     return prop_name_nodes, prop_obj_nodes
@@ -245,8 +272,9 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
                 prop_names.append('%g' % name)
             else:
                 prop_names.append(name)
-    # literal-based prop names have no tags
-    prop_name_tags = [[] for i in range(len(prop_names))]
+    # literal-based prop names usually have no tags
+    prop_name_tags = handled_prop.value_tags or \
+        [[] for i in range(len(prop_names))]
     # obj node-based prop names
     for obj in handled_prop.obj_nodes:
         name = G.get_node_attr(obj).get('code')
@@ -289,7 +317,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     # find property name nodes and object nodes
     for i, prop_name in enumerate(prop_names):
         name_nodes, obj_nodes = find_prop(G, parent_objs, prop_name,
-            branches, side, parent_name, for_tags=prop_name_tags[i])
+            branches, side, parent_name, prop_name_for_tags=prop_name_tags[i])
         prop_name_nodes.extend(name_nodes)
         prop_obj_nodes.extend(obj_nodes)
 
@@ -389,7 +417,7 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
                     copied_obj = G.copy_obj(obj)
                     for_tags = G.get_node_attr(obj).get('for_tags',
                                                         BranchTagContainer())
-                    new_for_tags = [BranchTag(i, mark='S')
+                    new_for_tags = [BranchTag(i, mark='C')
                         for i in BranchTagContainer(nn_for_tags)
                         .get_matched_tags(branches, level=1)]
                     for_tags.extend(new_for_tags)

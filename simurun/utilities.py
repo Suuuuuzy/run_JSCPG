@@ -69,8 +69,8 @@ class BranchTag:
         branch (str): Which branch (condition/case in the statement).
         mark (str): One of the following:
             Operation mark, 'A' for addition, 'D' for deletion.
-            For-loop mark, 'P' for primary (loop variable), 'S' for
-                secondary (other variables created in the for-loop).
+            For-loop mark, 'L' for loop variable, 'P' for parent loop
+                variable, 'C' for other variables created in the loop.
         ---
         or use this alternative argument:
 
@@ -170,17 +170,25 @@ class BranchTagContainer(list):
 
     def get_creating_for_tags(self):
         '''
-        Get all choice statement (if/switch) tags with an 'S' mark.
+        Get all choice statement (if/switch) tags with an 'C' mark.
         '''
         return BranchTagContainer(filter(
-            lambda i: i.point.startswith('For') and i.mark == 'S', self))
+            lambda i: i.point.startswith('For') and i.mark == 'C', self))
 
-    def get_matched_tags(self, source, level=2):
+    def set_marks(self, mark):
         '''
-        Get tags matching with tags in 'source'.
+        Set all tags' marks to a new mark.
+        '''
+        for tag in self:
+            tag.mark = mark
+        return self
+
+    def get_matched_tags(self, target, level=2):
+        '''
+        Get tags matching with tags in 'target'.
         
         Args:
-            source (Iterable): Source container.
+            target (Iterable): Target container.
             level (int, optional): Matching level.
                 1: Only point matches.
                 2: Point and branch match.
@@ -191,8 +199,8 @@ class BranchTagContainer(list):
             BranchTagContainer: all matching tags.
         '''
         result = []
-        for i in source:
-            for j in self:
+        for i in self:
+            for j in target:
                 flag = True
                 if level >= 1 and i.point != j.point:
                     flag = False
@@ -201,7 +209,8 @@ class BranchTagContainer(list):
                 if level >= 3 and i.mark != j.mark:
                     flag = False
                 if flag:
-                    result.append(j)
+                    result.append(i)
+                    break
         return BranchTagContainer(set(result))
 
     def match(self, tag: BranchTag = None, point=None, branch=None, mark=None) \
