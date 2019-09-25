@@ -76,7 +76,7 @@ class TraceRule:
         Return:
             True or False
         """
-        end_node = path[0]
+        end_node = path[-1]
 
         childern = self.graph.get_all_child_nodes(end_node)
         for child in childern:
@@ -90,6 +90,24 @@ class TraceRule:
                     return cur_func in func_names 
 
 
+    def start_within_file(self, file_names, path):
+        """
+        check whether a path starts within a file
+        Args:
+            file_names: the possible file names
+            path: the path to be checked
+        Return:
+            True or False
+        """
+        start_node = path[0]
+
+        file_name = self.graph.get_node_file_path(start_node)
+        cur_node = self.graph.get_node_attr(start_node)
+        print(cur_node)
+        file_name = file_name if '/' not in file_name else file_name.split('/')[-1]
+        return file_name in file_names
+        
+
     def check(self, path):
         """
         select the checking function and run it based on the key value
@@ -100,6 +118,7 @@ class TraceRule:
                 "exist_func": self.exist_func,
                 "not_exist_func": self.not_exist_func,
                 "start_with_func": self.start_with_func,
+                "start_within_file": self.start_within_file,
                 "end_with_func": self.end_with_func
                 }
 

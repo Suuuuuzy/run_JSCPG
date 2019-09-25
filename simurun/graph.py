@@ -1273,47 +1273,52 @@ class Graph:
             expoit_func_list = [
                     'exec'
                     ]
-            func_run_scopes = self.get_node_by_attr('type', 'FUNC_SCOPE')
-            pathes = {}
-            caller_list = []
-            for run_scope in func_run_scopes:
-                # we assume only one obj_decl edge
-                func_name = self.get_node_attr(run_scope).get('func_name')
-                if func_name in expoit_func_list:
-                    caller = list(self.get_child_nodes(run_scope, 
-                        edge_type = 'SCOPE_TO_CALLER'))[0]
-                    caller_list.append("{} called {}".format(caller, func_name))
-                    pathes = self._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
+        elif export_type == 'xss':
+            expoit_func_list = [
+                    'createServer',
+                    'write'
+                    ]
+        func_nodes = self.get_node_by_attr('type', 'AST_METHOD_CALL')
+        func_nodes += self.get_node_by_attr('type', 'AST_CALL')
+        pathes = {}
+        caller_list = []
+        for func_node in func_nodes:
+            # we assume only one obj_decl edge
+            func_name = self.get_name_from_child(func_node)
+            if func_name in expoit_func_list:
+                caller = func_node
+                caller_list.append("{} called {}".format(caller, func_name))
+                pathes = self._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
 
-                    # here we treat the single calling as a possible path
-                    # pathes.append([caller])
-                    self.logger.debug('Paths:')
+                # here we treat the single calling as a possible path
+                # pathes.append([caller])
+                self.logger.debug('Paths:')
 
-                    # give the end node one more chance, find the parent obj of the ending point
-                    for path in pathes:
-                        last_node = path[-1]
-                        upper_nodes = self._dfs_upper_by_edge_type(last_node, 
-                                "OBJ_TO_PROP")
+                # give the end node one more chance, find the parent obj of the ending point
+                for path in pathes:
+                    last_node = path[-1]
+                    upper_nodes = self._dfs_upper_by_edge_type(last_node, 
+                            "OBJ_TO_PROP")
 
-                    for path in pathes:
-                        cur_path_str1 = ""
-                        cur_path_str2 = ""
-                        path.reverse()
-                        for node in path:
-                            cur_node_attr = self.get_node_attr(node)
-                            if cur_node_attr.get('lineno:int') is None:
-                                continue
-                            cur_path_str1 += cur_node_attr['lineno:int'] + '->'
-                            start_lineno = int(cur_node_attr['lineno:int'])
-                            end_lineno = int(cur_node_attr['endlineno:int'])
-                            content = self.get_node_file_content(node)
-                            cur_path_str2 += "{}\t{}".format(start_lineno,
-                                    ''.join(content[start_lineno:end_lineno + 1]))
-                        cur_path_str1 += self.get_node_attr(caller)['lineno:int']
-                        self.logger.debug(cur_path_str1)
+                for path in pathes:
+                    cur_path_str1 = ""
+                    cur_path_str2 = ""
+                    path.reverse()
+                    for node in path:
+                        cur_node_attr = self.get_node_attr(node)
+                        if cur_node_attr.get('lineno:int') is None:
+                            continue
+                        cur_path_str1 += cur_node_attr['lineno:int'] + '->'
+                        start_lineno = int(cur_node_attr['lineno:int'])
+                        end_lineno = int(cur_node_attr['endlineno:int'])
+                        content = self.get_node_file_content(node)
+                        cur_path_str2 += "{}\t{}".format(start_lineno,
+                                ''.join(content[start_lineno:end_lineno + 1]))
+                    cur_path_str1 += self.get_node_attr(caller)['lineno:int']
+                    self.logger.debug(cur_path_str1)
 
-                        res_path += "==========================\n"
-                        res_path += "{}\n".format(self.get_node_file_path(path[0]))
-                        res_path += cur_path_str2
+                    res_path += "==========================\n"
+                    res_path += "{}\n".format(self.get_node_file_path(path[0]))
+                    res_path += cur_path_str2
         return pathes, res_path, caller_list
 

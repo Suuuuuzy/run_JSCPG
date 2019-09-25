@@ -116,6 +116,20 @@ function getFunctionDef(node) {
 function searchModule(moduleName, requiredBy) {
     if (builtInModules.includes(moduleName)) {
         // console.log(`${moduleName.blue.bright} is a built-in module.`);
+        let searchPaths = new Set();
+        let currentSearchPath = path.resolve(requiredBy, '.');
+        while (currentSearchPath != '/') { // this probably will only work under Linux/Unix
+            searchPaths.add(path.resolve(currentSearchPath, 'builtin_packages'));
+            currentSearchPath = path.resolve(currentSearchPath, '..');
+        }
+        for (let p of searchPaths) {
+          filePath = path.resolve(p, moduleName + '.js');
+          console.log(filePath);
+          if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+              console.log(`Package ${moduleName} found at ${filePath}.`.white.inverse);
+              return filePath;
+          }
+        }
         return 'built-in';
     }
     let searchPaths = new Set();

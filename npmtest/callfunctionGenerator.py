@@ -120,7 +120,7 @@ def test_package(package, root_path):
         npm_test_logger.error(e)
         return -3
     """
-    res_path = G.traceback("os-command")
+    res_path = G.traceback("xss")
     line_path = res_path[0]
     detailed_path = res_path[1]
     caller_list = res_path[2]
@@ -148,8 +148,8 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt < 18090:
-            continue
+        #if cur_cnt < 18090:
+        #    continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package))
         tqdm_bar.refresh()
@@ -177,5 +177,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package('swgg-github-apps', root_path)
-main()
+test_package('newline-db', root_path)
+#main()

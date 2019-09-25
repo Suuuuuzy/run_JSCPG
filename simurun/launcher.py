@@ -26,9 +26,11 @@ def vul_checking(G, pathes):
         
     """
     trace_rules = []
-    trace_rules.append(TraceRule('start_with_func', ['createServer'], G))
-    trace_rules.append(TraceRule('not_exist_func', ['parseInt'], G))
-    trace_rules.append(TraceRule('end_with_func', ['exec'], G))
+    #print(pathes)
+    #trace_rules.append(TraceRule('start_within_file', ['http.js'], G))
+    #trace_rules.append(TraceRule('start_with_func', ['createServer'], G))
+    #trace_rules.append(TraceRule('not_exist_func', ['parseInt'], G))
+    trace_rules.append(TraceRule('end_with_func', ['write'], G))
     success_pathes = []
     flag = True
     for path in pathes:
@@ -74,14 +76,13 @@ def main():
         generate_obj_graph(G, '1')
     # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
     G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
-    res_path = G.traceback("os-command")
+    res_path = G.traceback("xss")
     logger.debug('ResPath0:')
     logger.debug(res_path[0])
     logger.debug('ResPath1:')
     logger.debug(res_path[1])
 
     res_pathes = vul_checking(G, res_path[0])
-    print(res_pathes)
     return res_path
 
 if __name__ == "__main__":
