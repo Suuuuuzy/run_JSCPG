@@ -1,5 +1,5 @@
 from .graph import Graph
-from .utilities import NodeHandleResult, BranchTag
+from .utilities import NodeHandleResult, BranchTag, BranchTagContainer
 from . import objectGraphGenerator
 import sty
 import re
@@ -169,9 +169,14 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
     branches = extra.branches
     objs = []
     names = []
+    name_tags = []
     counter = 0
     for arr in array.obj_nodes:
         name_nodes = G.get_prop_name_nodes(arr)
+        parent_for_tags = BranchTagContainer(G.get_node_attr(arr)
+            .get('for_tags', [])).get_matched_tags(branches, level=1) \
+            .set_marks('P')
+        print(f'{sty.fg.yellow}Parent for tags: {parent_for_tags}{sty.rs.all}')
         for name_node in name_nodes:
             name = G.get_node_attr(name_node).get('name')
             try: # check if the index is an integer
@@ -181,13 +186,15 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
             for obj in G.get_obj_nodes(name_node, branches=branches):
                 objs.append(obj)
                 names.append(name)
-                tags = G.get_node_attr(obj).get('for_tags', [])
-                tags.append(BranchTag(point=f'ForEach{caller_ast}',
-                                      branch=counter, mark='P'))
-                G.set_node_attr(obj, ('for_tags', tags))
+                new_tag = BranchTag(point=f'ForEach{caller_ast}',
+                                    branch=counter, mark='L')
+                obj_tags = G.get_node_attr(obj).get('for_tags', [])
+                obj_tags.extend(parent_for_tags + [new_tag])
+                G.set_node_attr(obj, ('for_tags', obj_tags))
+                name_tags.append(parent_for_tags +  [new_tag])
                 counter += 1
     args = [NodeHandleResult(obj_nodes=objs),
-            NodeHandleResult(values=names),
+            NodeHandleResult(values=names, value_tags=name_tags),
             array]
     logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
     for func in callback.obj_nodes:

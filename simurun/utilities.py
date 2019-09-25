@@ -18,13 +18,32 @@ class NodeHandleResult:
         name_nodes (list, optional): Name nodes. Defaults to [].
         used_objs (list, optional): Object nodes used in handling the
             AST node. Definition varies. Defaults to [].
+        from_branches (list, optional): Experimental. Which branches
+            the object nodes come from. Defaults to [].
+        value_tags (list, optional): Experimental. For tags of values.
+            Defaults to [].
+        ast_node (optional): AST node ID. If it is not None, results
+            will be printed out. Set the class variable 'print_callback'
+            to customize print format. Defaults to None.
     '''
+
+    @classmethod
+    def _print(handle_result):
+        print(str(handle_result))
+
+    print_callback = _print
+
     def __init__(self, **kwargs):
         self.obj_nodes = kwargs.get('obj_nodes', [])
         self.values = kwargs.get('values', [])
         self.name = kwargs.get('name')
         self.name_nodes = kwargs.get('name_nodes', [])
         self.used_objs = kwargs.get('used_objs', [])
+        self.from_branches = kwargs.get('from_branches', [])
+        self.value_tags = kwargs.get('value_tags', [])
+        self.ast_node = kwargs.get('ast_node')
+        if self.ast_node:
+            self.print_callback()
 
     def __bool__(self):
         return bool(self.obj_nodes or self.values
@@ -34,7 +53,7 @@ class NodeHandleResult:
     def __repr__(self):
         s = []
         for key in dir(self):
-            if not key.startswith("__"):
+            if not key.startswith("_"):
                 s.append(f'{key}={repr(getattr(self, key))}')
         args = ', '.join(s)
         return f'{self.__class__.__name__}({args})'
@@ -50,8 +69,8 @@ class BranchTag:
         branch (str): Which branch (condition/case in the statement).
         mark (str): One of the following:
             Operation mark, 'A' for addition, 'D' for deletion.
-            For-loop mark, 'P' for primary (loop variable), 'S' for
-                secondary (other variables created in the for-loop).
+            For-loop mark, 'L' for loop variable, 'P' for parent loop
+                variable, 'C' for other variables created in the loop.
         ---
         or use this alternative argument:
 
@@ -105,7 +124,7 @@ class BranchTag:
 
 class BranchTagContainer(list):
     '''
-    Experimental. 
+    Experimental. An extension to list that contains branch tags.
     '''
     def __add__(self, other):
         return BranchTagContainer(list.__add__(self, other))
@@ -117,34 +136,71 @@ class BranchTagContainer(list):
         return list.__repr__(self)
 
     def get_last_choice_tag(self):
+        '''
+        Get the last choice statement (if/switch) tag.
+        '''
         for i in reversed(self):
             if i.point.startswith('If') or i.point.startswith('Switch'):
                 return i
         return None
 
     def get_last_for_tag(self):
+        '''
+        Get the last for statement or forEach tag.
+        '''
         for i in reversed(self):
             if i.point.startswith('For'):
                 return i
         return None
 
     def get_choice_tags(self):
+        '''
+        Get all choice statement (if/switch) tags.
+        '''
         return BranchTagContainer(filter(
             lambda i: i.point.startswith('If') or i.point.startswith('Switch'),
             self))
 
     def get_for_tags(self):
+        '''
+        Get all for statement or forEach tags.
+        '''
         return BranchTagContainer(filter(
             lambda i: i.point.startswith('For'), self))
 
     def get_creating_for_tags(self):
+        '''
+        Get all choice statement (if/switch) tags with an 'C' mark.
+        '''
         return BranchTagContainer(filter(
-            lambda i: i.point.startswith('For') and i.mark == 'S', self))
+            lambda i: i.point.startswith('For') and i.mark == 'C', self))
 
-    def get_matched_tags(self, source, level=2):
+    def set_marks(self, mark):
+        '''
+        Set all tags' marks to a new mark.
+        '''
+        for tag in self:
+            tag.mark = mark
+        return self
+
+    def get_matched_tags(self, target, level=2):
+        '''
+        Get tags matching with tags in 'target'.
+        
+        Args:
+            target (Iterable): Target container.
+            level (int, optional): Matching level.
+                1: Only point matches.
+                2: Point and branch match.
+                3: Point, branch and mark match.
+                Defaults to 2.
+        
+        Returns:
+            BranchTagContainer: all matching tags.
+        '''
         result = []
-        for i in source:
-            for j in self:
+        for i in self:
+            for j in target:
                 flag = True
                 if level >= 1 and i.point != j.point:
                     flag = False
@@ -153,7 +209,8 @@ class BranchTagContainer(list):
                 if level >= 3 and i.mark != j.mark:
                     flag = False
                 if flag:
-                    result.append(j)
+                    result.append(i)
+                    break
         return BranchTagContainer(set(result))
 
     def match(self, tag: BranchTag = None, point=None, branch=None, mark=None) \
