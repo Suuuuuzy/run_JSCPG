@@ -15,6 +15,32 @@ def unittest_main(file_path):
     analyze_files(G, file_path)
     return G
 
+def vul_checking(G, pathes):
+    """
+    checking the vuleralbilities in the pathes
+
+    Args:
+        G: the graph object
+        pathes: the possible pathes
+    Returns:
+        
+    """
+    trace_rules = []
+    trace_rules.append(TraceRule('start_with_func', ['createServer'], G))
+    trace_rules.append(TraceRule('not_exist_func', ['parseInt'], G))
+    trace_rules.append(TraceRule('end_with_func', ['exec'], G))
+    success_pathes = []
+    flag = True
+    for path in pathes:
+        flag = True
+        for trace_rule in trace_rules:
+            if not trace_rule.check(path):
+                flag = False
+                break
+        if flag:
+            success_pathes.append(path)
+    return success_pathes
+
 def main():
     parser = argparse.ArgumentParser(description=
         'The object graph generator for JavaScript.')
@@ -54,12 +80,8 @@ def main():
     logger.debug('ResPath1:')
     logger.debug(res_path[1])
 
-    trace_rule = TraceRule('exsit_func', ['parseInt'], G)
-    print(res_path)
-    if len(res_path[0]) != 0:
-        res = trace_rule.check(res_path[0][0])
-        print(res)
-
+    res_pathes = vul_checking(G, res_path[0])
+    print(res_pathes)
     return res_path
 
 if __name__ == "__main__":

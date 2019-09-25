@@ -35,6 +35,61 @@ class TraceRule:
 
         return True
 
+    def not_exist_func(self, func_names, path):
+        """
+        check if there exist a function named func_names in the path
+        """
+        return not self.exist_func(func_names, path)
+
+
+    def start_with_func(self, func_names, path):
+        """
+        check whether a path starts with a function
+
+        Args:
+            func_names: the possible function names
+            path: the path needed to be checked
+        Return:
+            True or False
+        """
+        start_node = path[0]
+
+        childern = self.graph.get_all_child_nodes(start_node)
+        for child in childern:
+            cur_node = self.graph.get_node_attr(child)
+            if 'type' in cur_node:
+                if cur_node['type'] == 'AST_CALL' or cur_node['type'] == 'AST_METHOD_CALL':
+                    cur_func = self.graph.get_name_from_child(child)
+                    if cur_func not in func_names:
+                        # if not current, maybe inside the call there is another call
+                        continue
+                    return cur_func in func_names 
+        return False
+
+    def end_with_func(self, func_names, path):
+        """
+        check whether a path ends with a function
+
+        Args:
+            func_names: the possible function names
+            path: the path needed to be checked
+        Return:
+            True or False
+        """
+        end_node = path[0]
+
+        childern = self.graph.get_all_child_nodes(end_node)
+        for child in childern:
+            cur_node = self.graph.get_node_attr(child)
+            if 'type' in cur_node:
+                if cur_node['type'] == 'AST_CALL' or cur_node['type'] == 'AST_METHOD_CALL':
+                    cur_func = self.graph.get_name_from_child(child)
+                    if cur_func not in func_names:
+                        # if not current, maybe inside the call there is another call
+                        continue
+                    return cur_func in func_names 
+
+
     def check(self, path):
         """
         select the checking function and run it based on the key value
@@ -42,7 +97,10 @@ class TraceRule:
             the running result of the obj
         """
         key_map = {
-                "exsit_func": self.exist_func,
+                "exist_func": self.exist_func,
+                "not_exist_func": self.not_exist_func,
+                "start_with_func": self.start_with_func,
+                "end_with_func": self.end_with_func
                 }
 
         if self.key in key_map:
@@ -52,4 +110,3 @@ class TraceRule:
 
         return check_function(self.value, path)
 
-    
