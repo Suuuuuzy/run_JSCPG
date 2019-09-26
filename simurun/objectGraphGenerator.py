@@ -873,7 +873,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
         num_of_branches (int): number of branches.
         parent_branch (BranchTag): parent branch tag (if this branch is
             inside another branch statement).
-    '''
+)    '''
     name_nodes = G.get_node_by_attr('labels:label', 'Name')
     for u in name_nodes:
         for v in G.get_child_nodes(u, 'NAME_TO_OBJ'):
@@ -1245,14 +1245,14 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
             # add "arguments" array
             arguments_obj = G.add_obj_to_scope(name='arguments',
                                                scope=func_scope)
-            for i, param in enumerate(params):
-                if i >= len(args): break
+            for j, param in enumerate(params):
+                if j >= len(args): break
                 param_name = G.get_name_from_child(param)
-                logger.debug(f'add arg {param_name} <- {args[i]}, scope {func_scope}')
-                for obj in args[i].obj_nodes:
+                logger.debug(f'add arg {param_name} <- {args[j]}, scope {func_scope}')
+                for obj in args[j].obj_nodes:
                     G.add_obj_to_scope(name=param_name, scope=func_scope,
                         tobe_added_obj=obj)
-                    G.add_obj_as_prop(prop_name=str(i), parent_obj=arguments_obj,
+                    G.add_obj_as_prop(prop_name=str(j), parent_obj=arguments_obj,
                         tobe_added_obj=obj)
             # manage branches
             branches = extra.branches
