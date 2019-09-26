@@ -18,6 +18,7 @@ def setup_js_builtins(G: Graph):
     setup_symbol(G)
     setup_errors(G)
     setup_global_functions(G)
+    setup_console(G)
 
 
 def setup_string(G: Graph):
@@ -176,7 +177,6 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
         parent_for_tags = BranchTagContainer(G.get_node_attr(arr)
             .get('for_tags', [])).get_matched_tags(branches, level=1) \
             .set_marks('P')
-        print(f'{sty.fg.yellow}Parent for tags: {parent_for_tags}{sty.rs.all}')
         for name_node in name_nodes:
             name = G.get_node_attr(name_node).get('name')
             try: # check if the index is an integer
@@ -407,3 +407,18 @@ def string_returning_func(G: Graph, caller_ast, extra, *args):
 
 def boolean_returning_func(G: Graph, caller_ast, extra, *args):
     return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj])
+
+
+def setup_console(G: Graph):
+    console_obj = G.add_obj_to_scope(name='console', scope=G.BASE_SCOPE)
+    G.add_blank_func_as_prop('log', console_obj, console_log)
+    G.add_blank_func_as_prop('error', console_obj, console_log)
+
+
+def console_log(G: Graph, caller_ast, extra, _, *args):
+    for i, arg in enumerate(args):
+        logger.debug(f'Argument {i}: {arg}')
+        logger.debug(f'Values in obj nodes: ' + ', '.join(
+            [f'{obj}: {G.get_node_attr(obj).get("code"):g}'
+            for obj in arg.obj_nodes]))
+    return NodeHandleResult(obj_nodes=[G.undefined_obj])

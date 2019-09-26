@@ -168,21 +168,21 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         skip = False
         parent_matched_tags = BranchTagContainer(G.get_node_attr(parent_obj)
             .get('for_tags', [])).get_matched_tags(branches, level=1)
-        print(f'{sty.fg.yellow}Parent obj {parent_obj},'
-            f' parent name {parent_name}, prop name {prop_name},'
-            f' current tags: {branches},'
-            f' parent tags: {G.get_node_attr(parent_obj).get("for_tags", [])},'
-            f' parent matched tags: {parent_matched_tags},'
-            f' prop name for tags: {prop_name_for_tags}'
-            + sty.rs.all)
+        # print(f'{sty.fg.yellow}Parent obj {parent_obj},'
+        #     f' parent name {parent_name}, prop name {prop_name},'
+        #     f' current tags: {branches},'
+        #     f' parent tags: {G.get_node_attr(parent_obj).get("for_tags", [])},'
+        #     f' parent matched tags: {parent_matched_tags},'
+        #     f' prop name for tags: {prop_name_for_tags}'
+        #     + sty.rs.all)
         if prop_name_for_tags:
             for t1 in parent_matched_tags:
                 for t2 in prop_name_for_tags:
                     if t1.point == t2.point and t1.branch != t2.branch:
                         skip = True
-                        print(f'{sty.fg.red}Skip parent obj {parent_obj} and '
-                            f'prop name {prop_name} because of {t1}, {t2}'
-                            + sty.rs.all)
+                        # print(f'{sty.fg.red}Skip parent obj {parent_obj} and '
+                        #     f'prop name {prop_name} because of {t1}, {t2}'
+                        #     + sty.rs.all)
                         break
                 if skip:
                     break
@@ -232,7 +232,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 # only add a name node
                 added_name_node = G.add_prop_name_node(prop_name, parent_obj)
                 prop_name_nodes.add(added_name_node)
-                print('prop_name_for_tags', prop_name_for_tags)
                 if prop_name_for_tags:
                     G.set_node_attr(added_name_node,
                                     ('for_tags', prop_name_for_tags))
@@ -383,7 +382,6 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     # do the assignment
     for name_node in handled_left.name_nodes:
         nn_for_tags = G.get_node_attr(name_node).get('for_tags')
-        print('nn_for_tags=', nn_for_tags)
         if not nn_for_tags: # empty array or None
             G.assign_obj_nodes_to_name_node(name_node, right_objs,
                 branches=branches)
@@ -503,7 +501,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     try:
         if len(node_code) > 100: node_code = ''
     except:
-        print(G.get_node_attr(node_id))
+        # print(G.get_node_attr(node_id))
         node_code = ''
         #if len(node_code) > 100: node_code = ''
         
@@ -873,7 +871,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
         num_of_branches (int): number of branches.
         parent_branch (BranchTag): parent branch tag (if this branch is
             inside another branch statement).
-)    '''
+     '''
     name_nodes = G.get_node_by_attr('labels:label', 'Name')
     for u in name_nodes:
         for v in G.get_child_nodes(u, 'NAME_TO_OBJ'):

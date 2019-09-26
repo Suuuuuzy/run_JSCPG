@@ -653,7 +653,7 @@ class Graph:
             for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
                 branch_tag = attr.get('branch')
                 for_tags = self.get_node_attr(obj).get('for_tags')
-                if branch_tag is None and not for_tags:
+                if branch_tag is None:
                     has_obj[obj] = True
             # for each branch in branch history
             # we check from the oldest (shallowest) to the most recent (deepest)
@@ -669,14 +669,14 @@ class Graph:
                             # if the object is removed in that branch
                             has_obj[obj] = False
                     for tag in self.get_node_attr(obj).get('for_tags', []):
-                        if tag.point == branch.point and (
-                            branch.branch is None
-                            or tag.branch == branch.branch
-                        ):
-                            # if the object is used as the loop variable
-                            # or created in that branch
-                            has_obj[obj] = True
-                            break
+                        if tag.point == branch.point:
+                            if branch.branch is not None and \
+                                tag.branch != branch.branch:
+                                # if the object is used as the loop variable
+                                # or created in another branch of that
+                                # branching point
+                                has_obj[obj] = False
+                                break
             return list(filter(lambda x: has_obj[x], objs))
         else:
             return list(objs)
