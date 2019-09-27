@@ -1240,8 +1240,13 @@ class Graph:
             node_attr = self.get_node_attr(node_id)
             if node_attr['type'] == "AST_TOPLEVEL":
                 return node_attr['name']
-            node_id = self.get_in_edges(node_id, 
-                    edge_type = "PARENT_OF")[0][0]
+            parent_edge = self.get_in_edges(node_id, 
+                    edge_type = "PARENT_OF")
+            if len(parent_edge) != 0:
+                node_id = parent_edge[0][0]
+            else:
+                # should be built in
+                return None 
 
     def get_node_file_content(self, node_id):
         """
@@ -1249,6 +1254,8 @@ class Graph:
         return the dict with numbers and contents
         """
         file_name = self.get_node_file_path(node_id)
+        if file_name is None:
+            return None
         if file_name not in self.file_contents:
             content_dict = ['']
             with open(file_name, 'r') as fp:
@@ -1257,68 +1264,4 @@ class Graph:
             self.file_contents[file_name] = content_dict.copy()
         return self.file_contents[file_name]
 
-    def traceback(self, export_type):
-        """
-        traceback from the leak point, the edge is OBJ_REACHES
-        Args:
-            export_type: the type of export, listed below
-
-        Return:
-            the paths include the objs,
-            the string description of paths,
-            the list of callers,
-        """
-        res_path = ""
-        if export_type == 'os-command':
-            expoit_func_list = [
-                    'exec'
-                    ]
-        elif export_type == 'xss':
-            expoit_func_list = [
-                    'createServer',
-                    'write'
-                    ]
-        func_nodes = self.get_node_by_attr('type', 'AST_METHOD_CALL')
-        func_nodes += self.get_node_by_attr('type', 'AST_CALL')
-        pathes = {}
-        caller_list = []
-        for func_node in func_nodes:
-            # we assume only one obj_decl edge
-            func_name = self.get_name_from_child(func_node)
-            if func_name in expoit_func_list:
-                caller = func_node
-                caller_list.append("{} called {}".format(caller, func_name))
-                pathes = self._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
-
-                # here we treat the single calling as a possible path
-                # pathes.append([caller])
-                self.logger.debug('Paths:')
-
-                # give the end node one more chance, find the parent obj of the ending point
-                for path in pathes:
-                    last_node = path[-1]
-                    upper_nodes = self._dfs_upper_by_edge_type(last_node, 
-                            "OBJ_TO_PROP")
-
-                for path in pathes:
-                    cur_path_str1 = ""
-                    cur_path_str2 = ""
-                    path.reverse()
-                    for node in path:
-                        cur_node_attr = self.get_node_attr(node)
-                        if cur_node_attr.get('lineno:int') is None:
-                            continue
-                        cur_path_str1 += cur_node_attr['lineno:int'] + '->'
-                        start_lineno = int(cur_node_attr['lineno:int'])
-                        end_lineno = int(cur_node_attr['endlineno:int'])
-                        content = self.get_node_file_content(node)
-                        cur_path_str2 += "{}\t{}".format(start_lineno,
-                                ''.join(content[start_lineno:end_lineno + 1]))
-                    cur_path_str1 += self.get_node_attr(caller)['lineno:int']
-                    self.logger.debug(cur_path_str1)
-
-                    res_path += "==========================\n"
-                    res_path += "{}\n".format(self.get_node_file_path(path[0]))
-                    res_path += cur_path_str2
-        return pathes, res_path, caller_list
 

@@ -6,6 +6,8 @@ from tqdm import tqdm
 sys.path.append("..")
 from simurun.launcher import *
 from simurun.logger import *
+from simurun.trace_rule import TraceRule
+from simurun.vulChecking import *
 
 npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmtest.log")
 
@@ -84,6 +86,20 @@ def dir_line_count(dir):
 def dir_size_count(dir):
     return sum(map(lambda item: item_size_count(os.path.join(dir, item)), os.listdir(dir)))
 
+def unit_check_log(G, vul_type, package=None):
+    """
+    run the check and log the result
+    """
+    res_path = traceback(G, vul_type)
+    line_path = res_path[0]
+    detailed_path = res_path[1]
+    caller_list = res_path[2]
+    checking_res = vul_checking(G, line_path, vul_type)
+    if (len(line_path) != 0 or len(caller_list) != 0) and len(checking_res) != 0:
+        with open("found_path_{}".format(vul_type), 'a+') as fp:
+            fp.write("{} called".format(caller_list))
+            fp.write("Found path from {}: {}\n".format(package, checking_res))
+
 def test_package(package, root_path):
     """
     test a specific package
@@ -111,6 +127,7 @@ def test_package(package, root_path):
     with open("__test__.js", 'w') as jcp:
         jcp.write(js_call_templete)
 
+    """
     G = unittest_main('__test__.js')
     """
     try:
@@ -119,15 +136,9 @@ def test_package(package, root_path):
         npm_test_logger.error("ERROR when generate graph for {}.".format(package))
         npm_test_logger.error(e)
         return -3
-    """
-    res_path = G.traceback("xss")
-    line_path = res_path[0]
-    detailed_path = res_path[1]
-    caller_list = res_path[2]
-    if len(line_path) != 0 or len(caller_list) != 0:
-        with open("found_path", 'a+') as fp:
-            fp.write("{} called".format(caller_list))
-            fp.write("Found path from {}: {}\n".format(package, line_path))
+
+    unit_check_log(G, 'xss', package)
+    unit_check_log(G, 'os_command', package)
 
     os.remove("run_log.log")
     os.remove("out.dat")
@@ -148,8 +159,8 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        #if cur_cnt < 18090:
-        #    continue
+        if cur_cnt < 0:
+            continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package))
         tqdm_bar.refresh()
@@ -177,5 +188,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package('newline-db', root_path)
-#main()
+#test_package('song_servertest', root_path)
+main()

@@ -419,6 +419,6 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
     for i, arg in enumerate(args):
         logger.debug(f'Argument {i}: {arg}')
         logger.debug(f'Values in obj nodes: ' + ', '.join(
-            [f'{obj}: {G.get_node_attr(obj).get("code"):g}'
+            [f'{obj}: {G.get_node_attr(obj).get("code")}'
             for obj in arg.obj_nodes]))
     return NodeHandleResult(obj_nodes=[G.undefined_obj])

@@ -6,6 +6,7 @@ from .logger import *
 from .objectGraphGenerator import register_func, handle_node, \
     add_edges_between_funcs, analyze_files, analyze_string, generate_obj_graph
 from .trace_rule import TraceRule
+from .vulChecking import *
 
 def unittest_main(file_path):
     """
@@ -27,9 +28,10 @@ def vul_checking(G, pathes):
     """
     trace_rules = []
     #print(pathes)
-    #trace_rules.append(TraceRule('start_within_file', ['http.js'], G))
+    trace_rules.append(TraceRule('start_within_file', ['http.js'], G))
     #trace_rules.append(TraceRule('start_with_func', ['createServer'], G))
-    #trace_rules.append(TraceRule('not_exist_func', ['parseInt'], G))
+    #trace_rules.append(TraceRule('exist_func', ['createServer'], G))
+    trace_rules.append(TraceRule('not_exist_func', ['parseInt'], G))
     trace_rules.append(TraceRule('end_with_func', ['write'], G))
     success_pathes = []
     flag = True
@@ -76,13 +78,14 @@ def main():
         generate_obj_graph(G, '1')
     # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
     G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
-    res_path = G.traceback("xss")
+    res_path = traceback(G, "xss")
     logger.debug('ResPath0:')
     logger.debug(res_path[0])
     logger.debug('ResPath1:')
     logger.debug(res_path[1])
 
     res_pathes = vul_checking(G, res_path[0])
+    print(res_pathes)
     return res_path
 
 if __name__ == "__main__":
