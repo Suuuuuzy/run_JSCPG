@@ -11,7 +11,7 @@ import subprocess
 import csv
 import json
 from .logger import *
-from . import modeledJSBuiltIns
+from . import modeled_js_builtins
 
 registered_func = {}
 csv.field_size_limit(sys.maxsize)
@@ -1439,7 +1439,7 @@ def generate_obj_graph(G, entry_nodeid):
     generate the object graph of a program
     """
     G.setup1()
-    modeledJSBuiltIns.setup_js_builtins(G)
+    modeled_js_builtins.setup_js_builtins(G)
     G.setup2()
     NodeHandleResult.print_callback = print_handle_result
     logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
