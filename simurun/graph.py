@@ -16,6 +16,8 @@ class Graph:
         self.cur_objs = []
         self.cur_scope = None
         self.cur_id = 0
+        self.entry_file_path = None
+        self.cur_file_path = None
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
 
@@ -200,7 +202,11 @@ class Graph:
     # import/export
 
     def import_from_string(self, string):
-        nodes, rels = string.split('\n\n')[:2]
+        try:
+            nodes, rels = string.split('\n\n')[:2]
+        except ValueError as e:
+            self.logger.error('AST generation failed!')
+            raise e
 
         with io.StringIO(nodes) as fp:
             reader = csv.DictReader(fp, delimiter='\t')
@@ -470,7 +476,8 @@ class Graph:
                 Defaults to None.
             js_type (str, optional): JavaScript type. Use None to avoid
                 adding prototype (but type is still set to 'object').
-                Defaults to 'object'.
+                Use 'array' to quickly create an array (type is still
+                'object'). Defaults to 'object'.
             value (str, optional): Value of a literal, represented by
                 JavaScript code. Defaults to None.
         
@@ -480,7 +487,6 @@ class Graph:
         obj_node = str(self._get_new_nodeid())
         self.add_node(obj_node)
         self.set_node_attr(obj_node, ('labels:label', 'Object'))
-        self.set_node_attr(obj_node, ('type', js_type or 'object'))
 
         if ast_node is not None:
             self.add_edge(obj_node, ast_node, {"type:TYPE": "OBJ_TO_AST"})
@@ -489,7 +495,9 @@ class Graph:
         # Even if you assigned another function to the constructors
         # (e.g. Object = function(){}), objects are still created with
         # original constructors (and prototypes).
-        if js_type == "function":
+        if js_type is None:
+            js_type = 'object'
+        elif js_type == "function":
             self.add_obj_as_prop("prototype", ast_node, "object",
                     parent_obj=obj_node)
             if self.function_prototype is not None:
@@ -502,8 +510,11 @@ class Graph:
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.object_prototype)
         elif js_type == "array":
+            js_type = 'object'
             self.add_obj_as_prop(prop_name="__proto__", parent_obj=obj_node,
             tobe_added_obj=self.array_prototype)
+
+        self.set_node_attr(obj_node, ('type', js_type))
 
         if value is not None:
             self.set_node_attr(obj_node, ('code', value))
@@ -1182,6 +1193,30 @@ class Graph:
                     parent_obj_defs.append(def_edge[1])
 
         return parent_obj_nodes, parent_obj_defs
+
+    def generate_obj_graph_for_python_obj(self, py_obj=None, ast_node=None):
+        if py_obj is None:
+            return self.null_obj
+        elif type(py_obj) in [int, float]:
+            return self.add_obj_node(ast_node=ast_node, js_type='number',
+                value=py_obj)
+        elif type(py_obj) is str:
+            return self.add_obj_node(ast_node=ast_node, js_type='string',
+                value=py_obj)
+        elif type(py_obj) is list:
+            obj = self.add_obj_node(ast_node=ast_node, js_type='array',
+                value=py_obj)
+            for i, u in enumerate(py_obj):
+                member = self.generate_obj_graph_for_python_obj(u)
+                self.add_obj_as_prop(prop_name=i, tobe_added_obj=member)
+            return obj
+        elif type(py_obj) is dict:
+            obj = self.add_obj_node(ast_node=ast_node, js_type='object',
+                value=py_obj)
+            for k, v in py_obj.items():
+                member = self.generate_obj_graph_for_python_obj(v)
+                self.add_obj_as_prop(prop_name=k, tobe_added_obj=member)
+            return obj
 
     # Analysis
 
