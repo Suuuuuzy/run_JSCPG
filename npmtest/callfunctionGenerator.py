@@ -140,8 +140,11 @@ def test_package(package, root_path):
     unit_check_log(G, 'xss', package)
     unit_check_log(G, 'os_command', package)
 
-    os.remove("run_log.log")
-    os.remove("out.dat")
+    try:
+        os.remove("run_log.log")
+        os.remove("out.dat")
+    except:
+        pass
     return 1
 
 root_path = "/media/data/lsong18/data/npmpackages/"
@@ -159,7 +162,7 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt < 0:
+        if cur_cnt < 140:
             continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package))
