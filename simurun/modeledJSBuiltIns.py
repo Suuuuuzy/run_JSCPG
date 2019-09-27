@@ -419,6 +419,17 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
     for i, arg in enumerate(args):
         logger.debug(f'Argument {i}: {arg}')
         logger.debug(f'Values in obj nodes: ' + ', '.join(
-            [f'{obj}: {G.get_node_attr(obj).get("code"):g}'
+            [f'{obj}: {G.get_node_attr(obj).get("code")}'
             for obj in arg.obj_nodes]))
     return NodeHandleResult(obj_nodes=[G.undefined_obj])
+
+
+def setup_json(G: Graph):
+    console_obj = G.add_obj_to_scope(name='JSON', scope=G.BASE_SCOPE)
+    G.add_blank_func_as_prop('parse', console_obj, json_parse)
+    G.add_blank_func_as_prop('stringify', console_obj, string_returning_func)
+
+
+def json_parse(G: Graph, caller_ast, extra, _, text, reviver):
+    return objectGraphGenerator.analyze_json_python(G, text, extra=extra,
+        caller_ast=caller_ast)

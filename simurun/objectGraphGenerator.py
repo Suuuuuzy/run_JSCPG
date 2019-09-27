@@ -9,6 +9,7 @@ import re
 import math
 import subprocess
 import csv
+import json
 from .logger import *
 from . import modeledJSBuiltIns
 
@@ -593,6 +594,9 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         if var_name == 'this' and G.cur_objs:
             now_objs = G.cur_objs
             name_node = None
+        elif var_name == '__dirname':
+            return NodeHandleResult(name=var_name, values=[G.cur_file_path],
+                ast_node=node_id)
         else:
             now_objs = []
             branches = extra.branches if extra else BranchTagContainer()
@@ -637,7 +641,6 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
     elif cur_type == 'AST_PROP':
         return handle_prop(G, node_id, extra)[0]
-
 
     elif cur_type == 'AST_TOPLEVEL':
         added_scope, module_exports_objs = \
@@ -763,6 +766,16 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             simurun_block(G, body, G.cur_scope, branches+[branch_tag],
                           block_scope=False)
         merge(G, stmt_id, len(cases), parent_branch)
+
+    elif cur_type == 'AST_CONDITIONAL':
+        test, consequent, alternate = G.get_ordered_ast_child_nodes(node_id)
+        logger.debug(f'Ternary operator: {test} ? {consequent} : {alternate}')
+        handle_node(G, test, extra)
+        h1 = handle_node(G, consequent, extra)
+        h2 = handle_node(G, alternate, extra)
+        return NodeHandleResult(obj_nodes=h1.obj_nodes+h2.obj_nodes,
+            values=h1.values+h2.values, used_objs=h1.used_objs+h2.used_objs,
+            name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id)
 
     # handle registered functions
     if "HAVE_FUNC" in cur_node_attr:
@@ -1035,23 +1048,24 @@ def decl_function(G, node_id, func_name=None, parent_scope=None):
 
     return added_obj
 
-def run_toplevel_file(G, node_id):
+def run_toplevel_file(G: Graph, node_id):
     """
     run a top level file 
     return a obj and scope
     """
     # add scope and obj first
-    func_name = G.get_node_attr(node_id)['name']
-    logger.info(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(func_name) + sty.rs.all)
-    func_decl_obj = decl_function(G, node_id, func_name = func_name, parent_scope=G.BASE_SCOPE)
+    file_path = G.get_node_attr(node_id)['name']
+    G.cur_file_path = file_path
+    logger.info(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(file_path) + sty.rs.all)
+    func_decl_obj = decl_function(G, node_id, func_name=file_path, parent_scope=G.BASE_SCOPE)
+
     # simurun the file
     backup_objs = G.cur_objs
     backup_scope = G.cur_scope
-    
 
     func_scope = G.add_scope('FUNC_SCOPE', node_id,
         G.call_counter.gets(f'File{node_id}'),
-        func_decl_obj, None, func_name, parent_scope=G.BASE_SCOPE)
+        func_decl_obj, None, file_path, parent_scope=G.BASE_SCOPE)
 
     G.cur_scope = func_scope
 
@@ -1489,3 +1503,7 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     stdout = '\n'.join(filter(filter_func, stdout.split('\n')))
     G.import_from_string(stdout)
     return handle_node(G, str(start_node_id), extra)
+
+def analyze_json_python(G, json_str, extra=None, caller_ast=None):
+    py_obj = json.loads(json_str)
+    return G.generate_obj_graph_for_python_obj(py_obj, ast_node=caller_ast)
