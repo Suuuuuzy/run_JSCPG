@@ -417,10 +417,12 @@ def setup_console(G: Graph):
 
 def console_log(G: Graph, caller_ast, extra, _, *args):
     for i, arg in enumerate(args):
-        logger.debug(f'Argument {i}: {arg}')
-        logger.debug(f'Values in obj nodes: ' + ', '.join(
-            [f'{obj}: {G.get_node_attr(obj).get("code")}'
-            for obj in arg.obj_nodes]))
+        values = list(filter(lambda x: x is not None, arg.values))
+        for obj in arg.obj_nodes:
+            value = G.get_node_attr(obj).get('code')
+            if value is not None:
+                values.append(f'{obj}: {value}')
+        logger.debug(f'Argument {i} values: ' + ', '.join(values))
     return NodeHandleResult(obj_nodes=[G.undefined_obj])
 
 

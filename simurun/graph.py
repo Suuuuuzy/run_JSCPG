@@ -16,6 +16,7 @@ class Graph:
         self.cur_objs = []
         self.cur_scope = None
         self.cur_id = 0
+        self.entry_file_path = None
         self.cur_file_path = None
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")

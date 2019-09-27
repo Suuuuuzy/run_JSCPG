@@ -11,7 +11,7 @@ import subprocess
 import csv
 import json
 from .logger import *
-from . import modeled_js_builtins
+from . import modeled_js_builtins, modeled_builtin_modules
 
 registered_func = {}
 csv.field_size_limit(sys.maxsize)
@@ -660,7 +660,8 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
     elif cur_type == 'AST_BINARY_OP':
         left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
-        if cur_node_attr.get('flags:string[]') == 'BINARY_BOOL_OR':
+        flag = cur_node_attr.get('flags:string[]')
+        if flag == 'BINARY_BOOL_OR':
             # TODO: add value check to filter out false values
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
@@ -670,7 +671,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             now_objs.extend(convert_values(G, handled_left, node_id))
             now_objs.extend(convert_values(G, handled_right, node_id))
             return NodeHandleResult(obj_nodes=now_objs)
-        else:
+        elif flag == 'BINARY_ADD':
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
             used_objs = []
@@ -678,13 +679,32 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             used_objs.extend(handled_left.obj_nodes)
             used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
-            added_obj = G.add_obj_node(node_id)
             used_objs = list(set(used_objs))
             used_objs.extend(convert_values(G, handled_left, node_id))
             used_objs.extend(convert_values(G, handled_right, node_id))
-            for obj in used_objs:
-                G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-            return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
+            # calculate values
+            values1 = list(filter(lambda x: x is not None, handled_left.values))
+            values2 = list(filter(lambda x: x is not None, handled_right.values))
+            source1 = [None] * len(values1)
+            source2 = [None] * len(values2)
+            for obj in handled_left.obj_nodes:
+                value = G.get_node_attr(obj).get('code')
+                if value is not None:
+                    values1.append(value)
+                    source1.append(obj)
+            for obj in handled_right.obj_nodes:
+                value = G.get_node_attr(obj).get('code')
+                if value is not None:
+                    values2.append(value)
+                    source2.append(obj)
+            results = []
+            for i, v1 in enumerate(values1):
+                for j, v2 in enumerate(values2):
+                    results.append(str(v1) + str(v2))
+            # TODO: CONTRIBUTES_TO
+            # for obj in used_objs:
+            #     G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+            return NodeHandleResult(values=results, used_objs=used_objs)
 
     elif cur_type == 'AST_ASSIGN_OP':
         left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
@@ -1056,6 +1076,8 @@ def run_toplevel_file(G: Graph, node_id):
     # add scope and obj first
     file_path = G.get_node_attr(node_id)['name']
     G.cur_file_path = file_path
+    if G.entry_file_path is None:
+        G.entry_file_path = file_path
     logger.info(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(file_path) + sty.rs.all)
     func_decl_obj = decl_function(G, node_id, func_name=file_path, parent_scope=G.BASE_SCOPE)
 
@@ -1093,9 +1115,24 @@ def run_toplevel_file(G: Graph, node_id):
 
     return func_scope, module_exports_objs
 
-def handle_require(G, node_id):
-    arg_list = G.get_ordered_ast_child_nodes(node_id)[1]
-    module_name = (G.get_name_from_child(arg_list) or '').strip("'\"")
+def handle_require(G, node_id, extra=ExtraInfo()):
+    # handle module name
+    arg_list = G.get_ordered_ast_child_nodes(
+        G.get_ordered_ast_child_nodes(node_id)[-1] )
+    handled_module_name = handle_node(G, arg_list[0], extra)
+    module_names = list(filter(lambda x: x is not None,
+                        handled_module_name.values))
+    for obj in handled_module_name.obj_nodes:
+        value = G.get_node_attr(obj).get('code')
+        if value is not None:
+            module_names.append(value)
+
+    module_name = module_names[0] # TODO: multiple possibilities
+
+    if module_name in modeled_builtin_modules.modeled_modules:
+        return [modeled_builtin_modules.get_module(G, module_name)], []
+
+    # module's path is in 'name' field
     file_name = G.get_node_attr(node_id).get('name')
     toplevel_nodes = G.get_nodes_by_type_and_flag('AST_TOPLEVEL', 'TOPLEVEL_FILE')
     module_exports_objs = []
@@ -1330,6 +1367,7 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
     if has_branches:
         merge(G, stmt_id, len(func_objs), parent_branch)
 
+    # TODO: add values
     return list(returned_objs), list(used_objs)
 
 def build_df_by_def_use(G, cur_stmt, used_objs):
