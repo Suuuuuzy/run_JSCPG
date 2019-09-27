@@ -202,7 +202,11 @@ class Graph:
     # import/export
 
     def import_from_string(self, string):
-        nodes, rels = string.split('\n\n')[:2]
+        try:
+            nodes, rels = string.split('\n\n')[:2]
+        except ValueError as e:
+            self.logger.error('AST generation failed!')
+            raise e
 
         with io.StringIO(nodes) as fp:
             reader = csv.DictReader(fp, delimiter='\t')

@@ -207,8 +207,11 @@ function searchModule(moduleName, requiredBy) {
                         console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
                     }
                 }
-                main = main || 'main.js';
+                main = main || 'index.js';
                 let mainPath = path.resolve(currentPath, main);
+                if (fs.existsSync(mainPath) && fs.statSync(mainPath).isDirectory()){
+                    mainPath = path.resolve(mainPath, 'index.js');
+                }
                 if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
                     console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
                     found = true;
@@ -797,6 +800,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 if (currentNode.regex) {
                     // regular expression
                     phpLiteralType = 'string';
+                    phpflag = 'JS_REGEX';
                     // replace slashes with double slashes
                     code = '/' + currentNode.regex.pattern.replace(/\\/, '\\\\') + '/' + currentNode.regex.flags;
                 } else if (phpLiteralType === 'number') {
@@ -814,6 +818,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     type: currentNode.type,
                     ctype: 'PrimaryExpression',
                     phptype: phpLiteralType,
+                    phpflag: phpflag || '',
                     code: code,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,

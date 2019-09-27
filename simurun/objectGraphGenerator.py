@@ -1127,6 +1127,7 @@ def handle_require(G, node_id, extra=ExtraInfo()):
         if value is not None:
             module_names.append(value)
 
+    if not module_names: return [], []
     module_name = module_names[0] # TODO: multiple possibilities
 
     if module_name in modeled_builtin_modules.modeled_modules:
