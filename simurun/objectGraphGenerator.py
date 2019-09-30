@@ -395,7 +395,7 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
                             flag = 1
                             break
                         elif (tag1.point == tag2.point
-                            and tag1.brach == tag2.branch):
+                            and tag1.branch == tag2.branch):
                             # if tags are partially matched,
                             # the object will be ignored
                             flag = 0
