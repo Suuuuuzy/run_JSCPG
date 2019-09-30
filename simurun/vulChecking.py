@@ -1,4 +1,5 @@
 from .trace_rule import TraceRule
+
 def traceback(G, export_type):
     """
     traceback from the leak point, the edge is OBJ_REACHES
@@ -14,7 +15,7 @@ def traceback(G, export_type):
     res_path = ""
     if export_type == 'os_command':
         expoit_func_list = [
-                'exec'
+                'sink_hqbpillvul'
                 ]
     elif export_type == 'xss':
         expoit_func_list = [
@@ -109,7 +110,7 @@ def vul_checking(G, pathes, vul_type):
             [('start_within_file', ['http.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['send'])]
             ]
     os_command_rule_lists = [
-            [('not_exist_func', ['parseInt']), ('end_with_func', ['exec'])]
+            [('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul'])]
             ]
 
     vul_type_map = {
@@ -122,3 +123,4 @@ def vul_checking(G, pathes, vul_type):
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)
     return success_pathes
+

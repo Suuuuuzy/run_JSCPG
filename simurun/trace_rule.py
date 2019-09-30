@@ -41,7 +41,6 @@ class TraceRule:
         """
         return not self.exist_func(func_names, path)
 
-
     def start_with_func(self, func_names, path):
         """
         check whether a path starts with a function
@@ -79,16 +78,17 @@ class TraceRule:
         end_node = path[-1]
 
         childern = self.graph.get_all_child_nodes(end_node)
+        print(func_names, path)
         for child in childern:
             cur_node = self.graph.get_node_attr(child)
             if 'type' in cur_node:
                 if cur_node['type'] == 'AST_CALL' or cur_node['type'] == 'AST_METHOD_CALL':
                     cur_func = self.graph.get_name_from_child(child)
+                    print(cur_func)
                     if cur_func not in func_names:
                         # if not current, maybe inside the call there is another call
                         continue
                     return cur_func in func_names 
-
 
     def start_within_file(self, file_names, path):
         """
@@ -107,7 +107,6 @@ class TraceRule:
             return False
         file_name = file_name if '/' not in file_name else file_name.split('/')[-1]
         return file_name in file_names
-        
 
     def check(self, path):
         """

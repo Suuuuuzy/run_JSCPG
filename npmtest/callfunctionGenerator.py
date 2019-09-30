@@ -162,7 +162,7 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt < 140:
+        if cur_cnt < 0:
             continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package))
