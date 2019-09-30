@@ -1227,15 +1227,12 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
 
     args_used_objs = set() # only for unmodeled built-in functions
     callback_functions = set() # only for unmodeled built-in functions
-    processed_args = []
     for arg in args:
         args_used_objs.update(arg.obj_nodes)
         # add callback functions
         for obj in arg.obj_nodes:
             if G.get_node_attr(obj).get('type') == 'function':
                 callback_functions.add(obj)
-        processed_args.append(to_obj_nodes(G, arg, ast_node))
-    args = processed_args
 
     returned_objs = set()
     used_objs = set()
@@ -1286,7 +1283,7 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 if j >= len(args): break
                 param_name = G.get_name_from_child(param)
                 logger.debug(f'add arg {param_name} <- {args[j]}, scope {func_scope}')
-                for obj in args[j].obj_nodes:
+                for obj in to_obj_nodes(G, args[j], caller_ast):
                     G.add_obj_to_scope(name=param_name, scope=func_scope,
                         tobe_added_obj=obj)
                     G.add_obj_as_prop(prop_name=str(j), parent_obj=arguments_obj,
