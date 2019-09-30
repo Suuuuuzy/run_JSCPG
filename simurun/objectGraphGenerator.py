@@ -365,10 +365,7 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     if handled_left.name == "elements":
         G.event_node = left
 
-    right_objs = list(handled_right.obj_nodes)
-
-    # experimental
-    right_objs.extend(convert_values(G, handled_right, ast_node))
+    right_objs = to_obj_nodes(G, handled_right, ast_node)
 
     if not right_objs:
         logger.debug("Right OBJ not found")
@@ -483,7 +480,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl,
 
     return created_obj
 
-def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
+def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     """
     for different node type, do different actions to handle this node
     """
@@ -579,9 +576,7 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             if key is None:
                 key = '*'
             handled_value = handle_node(G, value_node, extra)
-            value_objs = list(handled_value.obj_nodes)
-            for value in handled_value.values:
-                value_objs.extend(convert_values(G, handled_value, node_id))
+            value_objs = to_obj_nodes(G, handled_value, node_id)
             used_objs = list(set(handled_value.used_objs))
             for obj in value_objs:
                 G.add_obj_as_prop(key, node_id,
@@ -665,11 +660,8 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             # TODO: add value check to filter out false values
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
-            left_objs = handle_node(G, left_child, extra).obj_nodes
-            right_objs = handle_node(G, right_child, extra).obj_nodes
-            now_objs = list(set(left_objs + right_objs))
-            now_objs.extend(convert_values(G, handled_left, node_id))
-            now_objs.extend(convert_values(G, handled_right, node_id))
+            now_objs = list(set(to_obj_nodes(G, handled_left, node_id)
+                + to_obj_nodes(G, handled_right, node_id)))
             return NodeHandleResult(obj_nodes=now_objs)
         elif flag == 'BINARY_ADD':
             handled_left = handle_node(G, left_child, extra)
@@ -680,27 +672,15 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
-            used_objs.extend(convert_values(G, handled_left, node_id))
-            used_objs.extend(convert_values(G, handled_right, node_id))
             # calculate values
-            values1 = list(filter(lambda x: x is not None, handled_left.values))
-            values2 = list(filter(lambda x: x is not None, handled_right.values))
-            source1 = [None] * len(values1)
-            source2 = [None] * len(values2)
-            for obj in handled_left.obj_nodes:
-                value = G.get_node_attr(obj).get('code')
-                if value is not None:
-                    values1.append(value)
-                    source1.append(obj)
-            for obj in handled_right.obj_nodes:
-                value = G.get_node_attr(obj).get('code')
-                if value is not None:
-                    values2.append(value)
-                    source2.append(obj)
+            values1, source1, tags1 = to_values(G, handled_left, node_id)
+            values2, source2, tags2 = to_values(G, handled_left, node_id)
             results = []
+            result_tags = []
             for i, v1 in enumerate(values1):
                 for j, v2 in enumerate(values2):
                     results.append(str(v1) + str(v2))
+                    result_tags.append(tags1 + tags2)
             # TODO: CONTRIBUTES_TO
             # for obj in used_objs:
             #     G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
@@ -732,7 +712,14 @@ def handle_node(G, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             code.startswith("0b") or code.startswith("0B"):
                 value = int(code, 2)
         elif cur_type == 'string':
-            value = code
+            if G.get_node_attr(node_id).get('flags:string[]') == 'JS_REGEXP':
+                added_obj = G.add_obj_node(js_type='object', value=code)
+                G.add_obj_as_prop('__proto__', parent_obj=added_obj,
+                    tobe_added_obj=G.regexp_prototype)
+                return NodeHandleResult(obj_nodes=[added_obj], 
+                    ast_node=node_id)
+            else:
+                value = code
         else:
             value = float(code)
         # added_obj = G.add_obj_node(node_id, js_type, code)
@@ -998,15 +985,12 @@ def call_callback_function(G, caller_ast, func_decl, func_scope, args=None,
             G.get_ordered_ast_child_nodes(param_list_node)):
             # handled_param = handle_node(G, child)
             param_name = G.get_name_from_child(child)
-            if not args:
+            if not args or i >= len(args):
                 added_obj = G.add_obj_to_scope(param_name, scope=func_scope,
                     ast_node=caller_ast)
                 logger.debug(f'add arg {param_name} <- new object {added_obj}')
             else:
-                if i >= len(args):
-                    break
-                objs = args[i].obj_nodes + convert_values(G, args[i],
-                    ast_node=caller_ast)
+                objs = to_obj_nodes(G, args[i], ast_node=caller_ast)
                 logger.debug(f'add arg {param_name} <- {objs}')
                 for obj in objs:
                     G.add_obj_to_scope(param_name, scope=func_scope,
@@ -1243,12 +1227,15 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
 
     args_used_objs = set() # only for unmodeled built-in functions
     callback_functions = set() # only for unmodeled built-in functions
+    processed_args = []
     for arg in args:
         args_used_objs.update(arg.obj_nodes)
         # add callback functions
         for obj in arg.obj_nodes:
             if G.get_node_attr(obj).get('type') == 'function':
                 callback_functions.add(obj)
+        processed_args.append(to_obj_nodes(G, arg, ast_node))
+    args = processed_args
 
     returned_objs = set()
     used_objs = set()
@@ -1443,10 +1430,11 @@ def eval_value(G, s, return_node=False, ast_node=None):
     else:
         return evaluated, js_type
 
-def convert_values(G, handle_result, ast_node=None):
+def to_obj_nodes(G, handle_result, ast_node=None,
+    incl_existing_obj_nodes=True):
     '''
-    Experimental. Converts 'values' field in NodeHandleResult into
-    object nodes. Returns converted object nodes as a list.
+    Experimental. Converts 'values' field into object nodes.
+    Returns converted object nodes as a list.
     '''
     returned_objs = []
     if handle_result.values:
@@ -1459,7 +1447,32 @@ def convert_values(G, handle_result, ast_node=None):
                 G.set_node_attr(added_obj, 
                     ('for_tags', handle_result.value_tags[i]))
             returned_objs.append(added_obj)
+    if incl_existing_obj_nodes:
+        returned_objs.extend(handle_result.obj_nodes)
     return returned_objs
+
+def to_values(G, handle_result, ast_node=None, incl_existing_values=True):
+    '''
+    Experimental. Get values ('code' fields) in object nodes.
+    Returns values, sources and tags in lists.
+    '''
+    values = []
+    sources = []
+    tags = []
+    if incl_existing_values:
+        values = list(filter(lambda x: x is not None, handle_result.values))
+        sources = [None] * len(handle_result.values)
+        if handle_result.value_tags:
+            tags = handle_result.value_tags
+        else:
+            tags = [None] * len(handle_result.values)
+    for obj in handle_result.obj_nodes:
+        value = G.get_node_attr(obj).get('code')
+        if value is not None:
+            values.append(value)
+            sources.append(obj)
+            tags.append(G.get_node_attr(obj).get('for_tags', []))
+    return values, sources, tags
 
 def print_handle_result(handle_result):
     output = f'{sty.ef.b}{sty.fg.cyan}{handle_result.ast_node}{sty.rs.all} ' \

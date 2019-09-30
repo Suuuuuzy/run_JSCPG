@@ -53,7 +53,7 @@ class NodeHandleResult:
     def __repr__(self):
         s = []
         for key in dir(self):
-            if key != 'print_callback' and not key.startswith("_"):
+            if not key.startswith("_") and not callable(getattr(self, key)):
                 s.append(f'{key}={repr(getattr(self, key))}')
         args = ', '.join(s)
         return f'{self.__class__.__name__}({args})'

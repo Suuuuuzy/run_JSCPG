@@ -800,7 +800,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 if (currentNode.regex) {
                     // regular expression
                     phpLiteralType = 'string';
-                    phpflag = 'JS_REGEX';
+                    phpflag = 'JS_REGEXP';
                     // replace slashes with double slashes
                     code = '/' + currentNode.regex.pattern.replace(/\\/, '\\\\') + '/' + currentNode.regex.flags;
                 } else if (phpLiteralType === 'number') {

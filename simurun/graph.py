@@ -27,6 +27,7 @@ class Graph:
         self.array_prototype = None
         self.number_prototype = None
         self.boolean_prototype = None
+        self.regexp_prototype = None
 
         self.call_counter = DictCounter()
 
