@@ -18,7 +18,7 @@ def setup_js_builtins(G: Graph):
     setup_symbol(G)
     setup_errors(G)
     setup_global_functions(G)
-    setup_console(G)
+    setup_global_objs(G)
 
 
 def setup_string(G: Graph):
@@ -325,7 +325,7 @@ def object_create(G: Graph, caller_ast, extra, proto: NodeHandleResult):
     returned_objs = []
     for p in proto:
         new_obj = G.add_obj_node(caller_ast, None)
-        G.add_obj_as_prop(name='__proto__', parent_obj=new_obj, tobe_added_obj=p)
+        G.add_obj_as_prop(prop_name='__proto__', parent_obj=new_obj, tobe_added_obj=p)
         returned_objs.append(new_obj)
     return NodeHandleResult(obj_nodes=returned_objs)
 
@@ -409,10 +409,17 @@ def boolean_returning_func(G: Graph, caller_ast, extra, *args):
     return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj])
 
 
-def setup_console(G: Graph):
+def setup_global_objs(G: Graph):
     console_obj = G.add_obj_to_scope(name='console', scope=G.BASE_SCOPE)
     G.add_blank_func_as_prop('log', console_obj, console_log)
     G.add_blank_func_as_prop('error', console_obj, console_log)
+
+    process_obj = G.add_obj_to_scope(name='process', scope=G.BASE_SCOPE)
+    G.add_obj_as_prop(prop_name='argv', parent_obj=process_obj)
+    version_obj = G.add_obj_as_prop(prop_name='versions', parent_obj=process_obj)
+    G.add_obj_as_prop(prop_name='modules', parent_obj=version_obj, js_type='string')
+    G.add_obj_as_prop(prop_name='platform', parent_obj=process_obj)
+    G.add_obj_as_prop(prop_name='arch', parent_obj=process_obj)
 
 
 def console_log(G: Graph, caller_ast, extra, _, *args):

@@ -1,3 +1,5 @@
 var child = require("child_process");
-child.exec("test");
+var args = process.argv.slice(process.execArgv.length + 2);
+var arg = parseInt(args);
+child.exec(arg);
 

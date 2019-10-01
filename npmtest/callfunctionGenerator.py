@@ -145,6 +145,8 @@ def test_package(package, root_path):
         os.remove("out.dat")
     except:
         pass
+
+    del G
     return 1
 
 root_path = "/media/data/lsong18/data/npmpackages/"
@@ -191,5 +193,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package('song_servertest', root_path)
-main()
+test_package('iohook-prebuild-test', root_path)
+#main()
