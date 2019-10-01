@@ -506,7 +506,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
     logger.info(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE {node_id}{sty.rs.all} "
     f"(Line {cur_node_attr['lineno:int']}): {node_color}{cur_type}{sty.rs.all}"
-    f"{' ' + node_name if node_name else ''}, {node_code}")
+    f" {node_name or ''}{sty.rs.all}, {node_code or ''}")
 
     # remove side information
     # because assignment's side affects its direct children
@@ -828,22 +828,26 @@ def simurun_function(G, func_decl_ast_node, branches=BranchTagContainer()):
     Simurun a function by running its body.
     """
     if func_decl_ast_node in G.call_stack:
+        logger.warning(f'Function {func_decl_ast_node} in call stack, skip simulating')
         return [], []
     G.call_stack.append(func_decl_ast_node)
 
-    func_name = G.get_name_from_child(func_decl_ast_node)
     decl_vars_and_funcs(G, func_decl_ast_node)
+    func_decl_obj = G.get_func_decl_objs_by_ast_node(func_decl_ast_node)[0]
+    func_name = G.get_node_attr(func_decl_obj).get('name')
     logger.info(sty.ef.inverse + sty.fg.green +
-        "FUNCTION {} {} STARTS, SCOPE {}, DECL OBJ {}, this OBJ {}, branches {}"
-        .format(func_decl_ast_node, func_name, G.cur_scope,
-        G.get_func_decl_objs_by_ast_node(func_decl_ast_node)[0], G.cur_objs,
+        "FUNCTION {} {} STARTS, SCOPE {}, DECL OBJ {}, this OBJs {}, branches {}"
+        .format(func_decl_ast_node, func_name or '{anonymous}',
+        G.cur_scope, func_decl_obj, G.cur_objs,
         branches) + sty.rs.all)
+    returned_objs, used_objs = [], []
     for child in G.get_child_nodes(func_decl_ast_node, child_type='AST_STMT_LIST'):
-        return simurun_block(G, child, parent_scope=G.cur_scope,
-            branches=branches)
+        returned_objs, used_objs = simurun_block(G, child,
+            parent_scope=G.cur_scope, branches=branches)
+        break
 
     G.call_stack.pop()
-    return [], []
+    return returned_objs, used_objs
 
 def simurun_block(G, ast_node, parent_scope, branches=BranchTagContainer(), block_scope=True):
     """
@@ -1039,6 +1043,7 @@ def decl_function(G, node_id, func_name=None, parent_scope=None):
 
     # add function declaration object
     added_obj = G.add_obj_node(node_id, "function")
+    G.set_node_attr(added_obj, ('name', func_name))
     # record its parent scope
     # when the function is called, we add scopes under this "parent scope",
     # instead of current scope (which is where the function is called)
@@ -1224,6 +1229,10 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
     '''
     if stmt_id == 'Unknown' and caller_ast is not None:
         stmt_id = caller_ast
+
+    if not func_objs:
+        logger.warning(f'No definition found for function {func_name}')
+        return [], []
 
     args_used_objs = set() # only for unmodeled built-in functions
     callback_functions = set() # only for unmodeled built-in functions

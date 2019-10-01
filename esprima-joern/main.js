@@ -447,6 +447,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     label: 'AST',
                     type: currentNode.type,
                     ctype: 'IdentifierDecl',
+                    operator: '=',
                     phptype: 'AST_ASSIGN',
                     phpflag: phpflag,
                     childNum: childNum,
@@ -475,7 +476,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 label: 'AST',
                 type: currentNode.type,
                 phptype: phptype,
-                code: currentNode.operator || null,
+                operator: currentNode.operator || null,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -542,7 +543,6 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     type: currentNode.type,
                     phptype: 'AST_CALL',
                     phpflag: 'JS_TYPEOF',
-                    code: currentNode.operator || null,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: childNum,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -574,7 +574,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     type: currentNode.type,
                     phptype: 'AST_UNARY_OP',
                     phpflag: phpflag,
-                    code: currentNode.operator || null,
+                    operator: currentNode.operator || null,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: childNum,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -624,7 +624,6 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 type: currentNode.type,
                 phptype: phptype,
                 phpflag: phpflag,
-                code: currentNode.operator || null,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -741,6 +740,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             childNumberCounter++;
             relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
             dfs(currentNode.right, nodeIdCounter, currentId, 1, currentFunctionId, null);
+
             nodes[currentId] = {
                 label: 'AST',
                 type: currentNode.type,
@@ -1287,7 +1287,6 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 label: 'AST',
                 type: currentNode.type,
                 phptype: 'AST_RETURN',
-                code: currentNode.operator ? currentId.operator : null,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -2641,7 +2640,6 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 label: 'AST',
                 type: currentNode.type,
                 phptype: 'AST_TRY',
-                code: currentNode.operator ? currentId.operator : null,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -2708,7 +2706,6 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 label: 'AST',
                 type: currentNode.type,
                 phptype: 'AST_CATCH',
-                code: currentNode.operator ? currentId.operator : null,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -2737,7 +2734,6 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 label: 'AST',
                 type: currentNode.type,
                 phptype: 'AST_THROW',
-                code: currentNode.operator ? currentId.operator : null,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -2854,7 +2850,8 @@ function analyze(filePath, parentNodeId) {
         let childNum = u.childNum === 0 ? 0 : u.childNum || '';
         if (outputStyle == 'php') {
             // process and quote code
-            let code = u.operator || u.code || null;
+            // let code = u.operator || u.code || null;
+            let code = u.code || null;
             if (code === undefined || code === null) {
                 code = '';
             } else {
