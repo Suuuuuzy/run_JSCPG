@@ -665,7 +665,6 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             return NodeHandleResult(obj_nodes=now_objs)
         elif flag == 'BINARY_ADD':
             handled_left = handle_node(G, left_child, extra)
-            print(G.get_name_from_child(left_child), G.get_node_attr(left_child))
             handled_right = handle_node(G, right_child, extra)
             used_objs = []
             used_objs.extend(handled_left.used_objs)
@@ -675,18 +674,20 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             used_objs = list(set(used_objs))
             # calculate values
             values1, source1, tags1 = to_values(G, handled_left, node_id)
-            values2, source2, tags2 = to_values(G, handled_left, node_id)
+            values2, source2, tags2 = to_values(G, handled_right, node_id)
             results = []
+            result_sources = []
             result_tags = []
-            print(len(values1), len(values2))
             for i, v1 in enumerate(values1):
                 for j, v2 in enumerate(values2):
-                    results.append(str(v1) + str(v2))
+                    if v1 is not None and v2 is not None:
+                        results.append(str(v1) + str(v2))
+                    else:
+                        results.append(None)
                     result_tags.append(tags1 + tags2)
-            # TODO: CONTRIBUTES_TO
-            # for obj in used_objs:
-            #     G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-            return NodeHandleResult(values=results, used_objs=used_objs)
+                    result_sources.append(source1[i] or [] + source2[j] or [])
+            return NodeHandleResult(values=results, used_objs=used_objs,
+                value_sources=result_sources)
 
     elif cur_type == 'AST_ASSIGN_OP':
         left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
@@ -1455,6 +1456,12 @@ def to_obj_nodes(G, handle_result, ast_node=None,
                 G.set_node_attr(added_obj, 
                     ('for_tags', handle_result.value_tags[i]))
             returned_objs.append(added_obj)
+            # add CONTRIBUTES_TO edges from sources to the added object
+            if i < len(handle_result.value_sources):
+                for obj in handle_result.value_sources[i]:
+                    if obj is not None:
+                        G.add_edge(obj, added_obj,
+                            {'type:TYPE': 'CONTRIBUTES_TO'})
     if incl_existing_obj_nodes:
         returned_objs.extend(handle_result.obj_nodes)
     return returned_objs
@@ -1468,18 +1475,20 @@ def to_values(G, handle_result, ast_node=None, incl_existing_values=True):
     sources = []
     tags = []
     if incl_existing_values:
-        values = list(filter(lambda x: x is not None, handle_result.values))
-        sources = [None] * len(handle_result.values)
+        values = list(handle_result.values)
+        if handle_result.value_sources:
+            sources = handle_result.value_sources
+        else:
+            sources = [[]] * len(handle_result.values)
         if handle_result.value_tags:
             tags = handle_result.value_tags
         else:
-            tags = [None] * len(handle_result.values)
+            tags = [[]] * len(handle_result.values)
     for obj in handle_result.obj_nodes:
         value = G.get_node_attr(obj).get('code')
-        if value is not None:
-            values.append(value)
-            sources.append(obj)
-            tags.append(G.get_node_attr(obj).get('for_tags', []))
+        values.append(value)
+        sources.append([obj])
+        tags.append(G.get_node_attr(obj).get('for_tags', []))
     return values, sources, tags
 
 def print_handle_result(handle_result):

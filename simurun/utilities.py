@@ -41,6 +41,7 @@ class NodeHandleResult:
         self.used_objs = kwargs.get('used_objs', [])
         self.from_branches = kwargs.get('from_branches', [])
         self.value_tags = kwargs.get('value_tags', [])
+        self.value_sources = kwargs.get('value_sources', [])
         self.ast_node = kwargs.get('ast_node')
         if self.ast_node:
             self.print_callback()
@@ -53,7 +54,8 @@ class NodeHandleResult:
     def __repr__(self):
         s = []
         for key in dir(self):
-            if not key.startswith("_") and not callable(getattr(self, key)):
+            if not key.startswith("_") and not callable(getattr(self, key)) \
+                and getattr(self, key):
                 s.append(f'{key}={repr(getattr(self, key))}')
         args = ', '.join(s)
         return f'{self.__class__.__name__}({args})'
