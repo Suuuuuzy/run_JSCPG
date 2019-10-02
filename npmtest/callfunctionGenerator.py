@@ -146,6 +146,7 @@ def test_package(package, root_path):
     except:
         pass
 
+    # not necessary but just in case
     del G
     return 1
 

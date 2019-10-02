@@ -665,6 +665,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             return NodeHandleResult(obj_nodes=now_objs)
         elif flag == 'BINARY_ADD':
             handled_left = handle_node(G, left_child, extra)
+            print(G.get_name_from_child(left_child), G.get_node_attr(left_child))
             handled_right = handle_node(G, right_child, extra)
             used_objs = []
             used_objs.extend(handled_left.used_objs)
@@ -677,6 +678,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             values2, source2, tags2 = to_values(G, handled_left, node_id)
             results = []
             result_tags = []
+            print(len(values1), len(values2))
             for i, v1 in enumerate(values1):
                 for j, v2 in enumerate(values2):
                     results.append(str(v1) + str(v2))
