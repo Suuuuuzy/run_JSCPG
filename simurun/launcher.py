@@ -8,7 +8,7 @@ from .objectGraphGenerator import register_func, handle_node, \
 from .trace_rule import TraceRule
 from .vulChecking import *
 
-def unittest_main(file_path):
+def unittest_main(file_path, check_signatures=[]):
     """
     main function for uniitest 
     """
@@ -24,7 +24,9 @@ def unittest_main(file_path):
             level=logging.DEBUG)
 
     G = Graph()
-    analyze_files(G, file_path)
+    result = analyze_files(G, file_path, check_signatures=check_signatures)
+    if result == False:
+        return None 
     return G
 
 def main():

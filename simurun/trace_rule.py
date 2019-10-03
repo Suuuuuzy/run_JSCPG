@@ -118,6 +118,25 @@ class TraceRule:
         file_name = file_name if '/' not in file_name else file_name.split('/')[-1]
         return file_name in file_names
 
+    def start_with_var(self, var_names, path):
+        #TODO: not finished, need to update the var name finding algorithm
+        """
+        check whether a path starts with a variable 
+        Args:
+            var_names: the possible var names
+            path: the path to be checked
+        Return:
+            True or False
+        """
+        start_node = path[0]
+
+        path_start_var_name = self.graph.get_name_from_child(start_node)
+        cur_node = self.graph.get_node_attr(start_node)
+        if path_start_var_name is None:
+            return False
+        return path_start_var_name in var_names
+
+
     def check(self, path):
         """
         select the checking function and run it based on the key value

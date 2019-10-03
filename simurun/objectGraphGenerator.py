@@ -1523,7 +1523,10 @@ esprima_path = os.path.realpath(os.path.join(__file__,
                                 '../../esprima-joern/main.js'))
 
 
-def analyze_files(G, path, start_node_id=0):
+def analyze_files(G, path, start_node_id=0, check_signatures=[]):
+    """
+        return we generate the obj graph or not
+    """
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
     proc = subprocess.Popen([esprima_path, path,
@@ -1532,7 +1535,11 @@ def analyze_files(G, path, start_node_id=0):
     stdout, stderr = proc.communicate()
     logger.info(stderr)
     G.import_from_string(stdout)
+    if not G.check_signature_functions(check_signatures):
+        return False 
+
     generate_obj_graph(G, str(start_node_id + 1))
+    return True
 
 def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
