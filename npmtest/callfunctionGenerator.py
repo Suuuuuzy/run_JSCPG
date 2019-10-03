@@ -11,6 +11,12 @@ from simurun.vulChecking import *
 
 npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmtest.log")
 
+all_sign_functions = [
+        "sink_hqbpillvul",
+        "createServer",
+        'write'
+        ]
+
 def validate_package(package_path):
     """
     check whether a package is valid by whether it include package.json
@@ -151,7 +157,7 @@ def test_package(package_path):
     G = unittest_main('__test__.js')
     """
     try:
-        G = unittest_main('__test__.js')
+        G = unittest_main('__test__.js', check_signatures=all_sign_functions)
     except Exception as e:
         npm_test_logger.error("ERROR when generate graph for {}.".format(package_path))
         npm_test_logger.error(e)

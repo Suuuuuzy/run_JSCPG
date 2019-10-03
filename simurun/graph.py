@@ -1300,4 +1300,22 @@ class Graph:
             self.file_contents[file_name] = content_dict.copy()
         return self.file_contents[file_name]
 
+    def check_signature_functions(self, func_names):
+        """
+        checking whether one of the func_names exist in the graph
+        if not, we do not need to build the obj graph
+        Args:
+            func_names: the possible function names
+        Return:
+            True for exist or False for not exist
+        """
+        if len(func_names) == 0:
+            return False
+        func_nodes = self.get_node_by_attr('type', 'AST_METHOD_CALL')
+        func_nodes += self.get_node_by_attr('type', 'AST_CALL')
+        for func_node in func_nodes:
+            func_name = self.get_name_from_child(func_node)
+            if func_name in func_names:
+                return True
+        return False
 
