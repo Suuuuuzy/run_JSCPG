@@ -12,7 +12,8 @@ from simurun.vulChecking import *
 npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmtest.log")
 
 all_sign_functions = [
-        "sink_hqbpillvul",
+        "sink_exec_hqbpillvul",
+        "sink_execFile_hqbpillvul",
         "createServer",
         'send',
         'write'
@@ -29,7 +30,6 @@ def validate_package(package_path):
     package_json_path = '{}/package.json'.format(package_path)
     return os.path.exists(package_json_path)
     
-
 def get_list_of_packages(path, limit=None):
     """
     return a list of package names, which is the name of the folders in the path
@@ -175,7 +175,7 @@ def test_package(package_path):
     unit_check_log(G, 'os_command', package_path)
 
     try:
-        os.remove("run_log.log")
+        #os.remove("run_log.log")
         os.remove("out.dat")
     except:
         pass
@@ -228,5 +228,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package('iohook-prebuild-test', root_path)
-main()
+test_package(os.path.join(root_path, 'gitlabhook'))
+#main()

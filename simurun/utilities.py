@@ -4,7 +4,6 @@ from enum import Enum
 import math
 import secrets
 
-
 class NodeHandleResult:
     '''
     Object for storing AST node handling result.

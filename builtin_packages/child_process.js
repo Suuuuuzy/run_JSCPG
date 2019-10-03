@@ -3,8 +3,20 @@ function exec(command, options='nothing',callback='nobk') {
   var stdout = 'stdout';
   var stderr = 'stderr';
   var sink = command;
-  sink_hqbpillvul(sink);
+  sink_exec_hqbpillvul(sink);
   callback(err, stdout, stderr);
 }
 
-exports.exec = exec;
+function execFile(command, options='nothing', dict='nothing', callback='nobk') {
+  var err = 'err';
+  var stdout = 'stdout';
+  var stderr = 'stderr';
+  var sink = command;
+  sink_execFile_hqbpillvul(sink);
+  callback(err, stdout, stderr);
+}
+
+module.exports = {
+  exec,
+  execFile
+}
