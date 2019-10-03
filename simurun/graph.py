@@ -1159,10 +1159,11 @@ class Graph:
         self.false_obj = self.add_obj_node(None, 'boolean', 'false')
         self.add_obj_to_name('false', scope=self.BASE_SCOPE,
                              tobe_added_obj=self.false_obj)
-        self.logger.debug(sty.ef.inverse + 'Internal objects' + sty.rs.all)
-        self.logger.debug(f'undefined_obj: {self.undefined_obj}, infinity_obj: {self.infinity_obj}, '
+        self.logger.debug(sty.ef.inverse + 'Internal objects\n' + 
+        f'undefined_obj: {self.undefined_obj}, infinity_obj: {self.infinity_obj}, '
         f'negative_infinity_obj: {self.negative_infinity_obj}, nan_obj:{self.nan_obj}, '
-        f'true_obj: {self.true_obj}, false_obj: {self.false_obj}')
+        f'true_obj: {self.true_obj}, false_obj: {self.false_obj}'
+        + sty.rs.all)
 
     def get_parent_object_def(self, node_id):
         """

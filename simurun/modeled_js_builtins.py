@@ -19,12 +19,19 @@ def setup_js_builtins(G: Graph):
     setup_errors(G)
     setup_global_functions(G)
     setup_global_objs(G)
+    setup_regexp(G)
 
 
 def setup_string(G: Graph):
     string_cons = G.add_blank_func_to_scope('String', scope=G.BASE_SCOPE)
     string_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=string_cons)[0]
     G.string_prototype = string_prototype
+    # built-in functions for regexp
+    G.add_blank_func_as_prop('match', string_prototype, None)
+    G.add_blank_func_as_prop('matchAll', string_prototype, None)
+    G.add_blank_func_as_prop('replace', string_prototype, None)
+    G.add_blank_func_as_prop('search', string_prototype, None)
+    G.add_blank_func_as_prop('split', string_prototype, None)
 
 
 def setup_number(G: Graph):
@@ -106,7 +113,7 @@ def setup_object_and_function(G: Graph):
     G.function_prototype = function_prototype
     G.object_prototype = object_prototype
 
-    # built-in functions
+    # object built-in functions
     G.add_blank_func_as_prop('keys', object_cons, object_keys)
     G.add_blank_func_as_prop('values', object_cons, object_values)
     G.add_blank_func_as_prop('entries', object_cons, object_entries)
@@ -114,6 +121,11 @@ def setup_object_and_function(G: Graph):
     G.add_blank_func_as_prop('toString', object_prototype, object_to_string)
     G.add_blank_func_as_prop('toLocaleString', object_prototype, object_to_string)
     G.add_blank_func_as_prop('valueOf', object_prototype, this_returning_func)
+
+    # function built-in functions
+    G.add_blank_func_as_prop('call', function_prototype, function_call)
+    G.add_blank_func_as_prop('apply', function_prototype, function_apply)
+    G.add_blank_func_as_prop('bind', function_prototype, function_bind)
 
 
 def setup_global_functions(G: Graph):
@@ -179,10 +191,11 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
             .set_marks('P')
         for name_node in name_nodes:
             name = G.get_node_attr(name_node).get('name')
-            try: # check if the index is an integer
-                _ = int(name)
-            except ValueError:
-                continue
+            if name != '*':
+                try: # check if the index is an integer
+                    _ = int(name)
+                except ValueError:
+                    continue
             for obj in G.get_obj_nodes(name_node, branches=branches):
                 objs.append(obj)
                 names.append(name)
@@ -207,14 +220,14 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
     return NodeHandleResult()
 
 
-def array_push(G: Graph, caller_ast, extra, array: NodeHandleResult, *added_objs: NodeHandleResult):
+def array_push(G: Graph, caller_ast, extra, array: NodeHandleResult, *tobe_added_objs: NodeHandleResult):
     obj_nodes = set()
     used_objs = set()
     for arr in array.obj_nodes:
-        for added_obj in added_objs:
-            used_objs = used_objs.union(set(added_obj.used_objs))
-            obj_nodes = obj_nodes.union(set(added_obj.obj_nodes))
-            for obj in added_obj.obj_nodes:
+        for obj in tobe_added_objs:
+            used_objs = used_objs.union(set(obj.used_objs))
+            obj_nodes = obj_nodes.union(set(obj.obj_nodes))
+            for obj in obj.obj_nodes:
                 G.add_obj_as_prop(prop_name='*', parent_obj=arr, tobe_added_obj=obj)
     used_objs = list(obj_nodes.union(used_objs))
     return NodeHandleResult(used_objs=used_objs)
@@ -406,7 +419,11 @@ def string_returning_func(G: Graph, caller_ast, extra, *args):
 
 
 def boolean_returning_func(G: Graph, caller_ast, extra, *args):
-    return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj])
+    used_objs = set()
+    for arg in args:
+        used_objs.update(arg.obj_nodes)
+        used_objs.update(arg.used_objs)
+    return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj], used_objs=list(used_objs))
 
 
 def setup_global_objs(G: Graph):
@@ -423,14 +440,17 @@ def setup_global_objs(G: Graph):
 
 
 def console_log(G: Graph, caller_ast, extra, _, *args):
+    used_objs = set()
     for i, arg in enumerate(args):
-        values = list(filter(lambda x: x is not None, arg.values))
+        used_objs.update(arg.obj_nodes)
+        used_objs.update(arg.used_objs)
+        values = arg.values
         for obj in arg.obj_nodes:
             value = G.get_node_attr(obj).get('code')
             if value is not None:
-                values.append(f'{obj}: {value}')
+                values.append(f'{sty.fg.li_black}{obj}{sty.rs.all}: {value}')
         logger.debug(f'Argument {i} values: ' + ', '.join(values))
-    return NodeHandleResult(obj_nodes=[G.undefined_obj])
+    return NodeHandleResult(obj_nodes=[G.undefined_obj], used_objs=list(used_objs))
 
 
 def setup_json(G: Graph):
@@ -442,3 +462,163 @@ def setup_json(G: Graph):
 def json_parse(G: Graph, caller_ast, extra, _, text, reviver):
     return objectGraphGenerator.analyze_json_python(G, text, extra=extra,
         caller_ast=caller_ast)
+
+
+def setup_regexp(G: Graph):
+    regexp_cons = G.add_blank_func_to_scope('RegExp', scope=G.BASE_SCOPE,
+        python_func=regexp_constructor)
+    regexp_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=regexp_cons)[0]
+    G.regexp_prototype = regexp_prototype
+    # built-in functions
+    G.add_blank_func_as_prop('exec', regexp_prototype, None)
+    G.add_blank_func_as_prop('test', regexp_prototype, None)
+
+
+def regexp_constructor(G: Graph, caller_ast, extra, pattern=None, flags=None):
+    returned_objs = []
+    used_objs = set(pattern.obj_nodes + pattern.used_objs)
+    if flags:
+        used_objs.update(flags.obj_nodes)
+        used_objs.update(flags.used_objs)
+    if pattern is not None:
+        flag_objs = flags.obj_nodes if flags else []
+        for p in pattern.obj_nodes:
+            for f in flag_objs:
+                pv = G.get_node_attr(p).get('code')
+                fv = G.get_node_attr(f).get('code')
+                if pv is None or fv is None:
+                    code = None
+                else:
+                    code = f'/{pv}/{fv}'
+                added_obj = G.add_obj_node(ast_node=caller_ast, js_type=None,
+                    value=code)
+                G.add_obj_as_prop(prop_name='__proto__', parent_obj=added_obj,
+                    tobe_added_obj=G.regexp_prototype)
+                returned_objs.append(added_obj)
+    return 
+
+
+def string_replace(G: Graph, caller_ast, extra, strs, substrs, new_sub_strs):
+    returned_objs = []
+    for s in strs.obj_nodes:
+        for substr in substrs.obj_nodes:
+            for new_sub_str in new_sub_strs.obj_nodes:
+                sv = G.get_node_attr(s).get('code')
+                ssv = G.get_node_attr(substr).get('code')
+                nssv = G.get_node_attr(new_sub_str).get('code')
+                if sv is None or ssv is None or nssv is None:
+                    added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string')
+                    G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    G.add_edge(substr, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    G.add_edge(new_sub_str, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                else:
+                    if G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
+                        r, glob, sticky = convert_to_python_re(ssv)
+                        if glob:
+                            output = r.sub(nssv, sv)
+                        else:
+                            output = r.subn(nssv, sv, count=1)[0]
+                    else:
+                        output = sv.replace(ssv, nssv)
+                    added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=output)
+                    G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    G.add_edge(substr, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    G.add_edge(new_sub_str, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                returned_objs.append(added_obj)
+    return NodeHandleResult(obj_nodes=returned_objs,
+        used_objs=list(set(strs.obj_nodes + substrs.obj_nodes + new_sub_strs.obj_nodes
+        + strs.used_objs + substrs.used_objs + new_sub_strs.used_objs)))
+
+
+def string_match(G: Graph, caller_ast, extra, strs, regexps=None):
+    if regexps is None or not regexps.obj_nodes:
+        added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
+        G.add_obj_as_prop(ast_node=caller_ast, js_type='string', value='', parent_obj=added_array)
+        return NodeHandleResult(obj_nodes=added_array)
+    returned_objs = []
+    for s in strs:
+        for regexp in regexps:
+            sv = G.get_node_attr(s).get('code')
+            rv = G.get_node_attr(regexp).get('code')
+            if sv is None or rv is None:
+                added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
+                added_obj = G.add_obj_as_prop(ast_node=caller_ast,
+                    prop_name='0', js_type='string', parent_obj=added_array)
+                G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                G.add_edge(regexp, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                G.add_edge(s, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
+                G.add_edge(regexp, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
+            else:
+                added_array = G.null_obj
+                r, glob, sticky = convert_to_python_re(rv)
+                if glob:
+                    result = r.findall(sv)
+                    if result:
+                        added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
+                        for i, u in result:
+                            added_obj = G.add_obj_as_prop(ast_node=caller_ast, prop_name=i,
+                                js_type='string', value=u, parent_obj=added_array)
+                            G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            G.add_edge(regexp, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        G.add_edge(s, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        G.add_edge(regexp, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
+                else:
+                    match = re.compile('a').search(sv)
+                    if match:
+                        added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
+                        for i, u in match[0] + match.groups():
+                            added_obj = G.add_obj_as_prop(ast_node=caller_ast, prop_name=i,
+                                js_type='string', value=u, parent_obj=added_array)
+                            G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            G.add_edge(regexp, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        G.add_obj_as_prop(ast_node=caller_ast, prop_name='index',
+                            js_type='number', value=match.start(), parent_obj=added_array)
+                        G.add_obj_as_prop(ast_node=caller_ast, prop_name='input',
+                            js_type='string', value=sv, parent_obj=added_array)
+                        # TODO: groups
+                        G.add_obj_as_prop(ast_node=caller_ast, prop_name='groups',
+                            parent_obj=added_array, tobe_added_obj=G.undefined_obj)
+                        G.add_edge(s, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        G.add_edge(regexp, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
+            returned_objs.append(added_array)
+    return NodeHandleResult(obj_nodes=returned_objs,
+        used_objs=list(set(strs.obj_nodes + strs.used_objs + regexps.obj_nodes + regexps.used_objs)))
+
+
+def string_split(G: Graph, caller_ast, extra, strs, separators):
+    pass
+
+
+
+def split_regexp(code) -> [str, str]:
+    if code is None:
+        return None, None
+    match = re.match(r'^/(.*)/(\w*)$', code)
+    if match:
+        return match.groups()
+    else:
+        return None, None
+
+
+def convert_to_python_re(code) -> [re.Pattern, bool, bool]:
+    pattern, flags = split_regexp(code)
+    glob, sticky = False, False
+    if pattern is not None:
+        f = 0
+        if flags:
+            # ignore these errors if your editor shows
+            if 'g' in flags:
+                glob = True
+            if 'i' in flags:
+                f |= re.IGNORECASE
+            if 'm' in flags:
+                f |= re.MULTILINE
+            if 's' in flags:
+                f |= re.DOTALL
+            if 'u' in flags:
+                f |= re.UNICODE
+            if 'y' in flags:
+                sticky = True
+        return re.compile(pattern, f), glob, sticky
+    else:
+        return None, None, None
