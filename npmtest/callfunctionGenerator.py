@@ -159,7 +159,8 @@ def test_package(package_path):
     G = unittest_main('__test__.js')
     """
     try:
-        G = unittest_main('__test__.js', check_signatures=all_sign_functions)
+        #G = unittest_main('__test__.js', check_signatures=all_sign_functions)
+        G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         npm_test_logger.error("ERROR when generate graph for {}.".format(package_path))
         npm_test_logger.error(e)

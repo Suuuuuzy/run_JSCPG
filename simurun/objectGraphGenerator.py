@@ -1541,7 +1541,6 @@ def analyze_files(G, path, start_node_id=0, check_signatures=[]):
     generate_obj_graph(G, str(start_node_id + 1))
     return True
 
-
 def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows

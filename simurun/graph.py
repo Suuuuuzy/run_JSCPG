@@ -1305,12 +1305,12 @@ class Graph:
         checking whether one of the func_names exist in the graph
         if not, we do not need to build the obj graph
         Args:
-            func_names: the possible function names
+            func_names: the possible function names, if length is 0, return True
         Return:
             True for exist or False for not exist
         """
         if len(func_names) == 0:
-            return False
+            return True 
         func_nodes = self.get_node_by_attr('type', 'AST_METHOD_CALL')
         func_nodes += self.get_node_by_attr('type', 'AST_CALL')
         for func_node in func_nodes:
