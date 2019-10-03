@@ -11,6 +11,18 @@ from simurun.vulChecking import *
 
 npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmtest.log")
 
+def validate_package(package_path):
+    """
+    check whether a package is valid by whether it include package.json
+    Args:
+        package_path: the path to the package
+    Returns:
+        True or False
+    """
+    package_json_path = '{}/package.json'.format(package_path)
+    return os.path.exists(package_json_path)
+    
+
 def get_list_of_packages(path, limit=None):
     """
     return a list of package names, which is the name of the folders in the path
@@ -19,16 +31,24 @@ def get_list_of_packages(path, limit=None):
     return:
         a list of package names
     """
-    if limit is None:
-        return [name for name in os.listdir(path) if os.path.isdir(name)]
-    else:
-        res = []
-        cnt = 0
-        for name in os.listdir(path):
-            cnt += 1
-            res.append(name)
-            if cnt == limit:
-                return res
+    possible_packages = [os.path.join(path, name) for name in os.listdir(path)]
+
+    if limit is not None:
+        possible_packages = possible_packages[:limit]
+    
+    all_packages = []
+    for package in possible_packages:
+        if package.split('/')[-1][0] == '@' and (not validate_package(package)):
+            #should have sub dir
+            sub_packages = [os.path.join(package, name) for name in os.listdir(package)]
+            all_packages += sub_packages
+        else:
+            all_packages.append(package)
+    
+    if limit is not None:
+        all_packages = all_packages[:limit]
+    
+    return all_packages 
 
 def get_main_file_of_package(package_path):
     """
@@ -38,9 +58,11 @@ def get_main_file_of_package(package_path):
     return:
         the main entrance file of the library
     """
-    package_json_path = '{}/package.json'.format(package_path)
-    if not os.path.exists(package_json_path):
+
+    package_json_path = os.path.join(package_path, 'package.json')
+    if not validate_package(package_path):
         print("ERROR: {} do not exist".format(package_json_path)) 
+        # check one level deeper of the main folder
         return None
 
     with open(package_json_path) as fp:
@@ -100,7 +122,7 @@ def unit_check_log(G, vul_type, package=None):
             fp.write("{} called".format(caller_list))
             fp.write("Found path from {}: {}\n".format(package, checking_res))
 
-def test_package(package, root_path):
+def test_package(package_path):
     """
     test a specific package
     Args:
@@ -112,17 +134,15 @@ def test_package(package, root_path):
             -2, not found. package parse error
             -3, graph generation error
     """
-    line_count = dir_line_count(root_path + package)
-    size_count = dir_size_count(root_path + package)
-    npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package, size_count, line_count))
-    #if size_count < 409600 and line_count < 200000:
-    #    npm_test_logger.warning("Skip {}".format(package))
-    #    return -1
+    line_count = dir_line_count(package_path)
+    size_count = dir_size_count(package_path)
+    npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
 
-    package_main_file = get_main_file_of_package("{}{}".format(root_path, package))
+    package_main_file = get_main_file_of_package(package_path)
     if package_main_file is None:
-        npm_test_logger.error("{} not found".format(package))
+        npm_test_logger.error("{} not found".format(package_path))
         return -2
+
     js_call_templete = "var main_func=require('{}');\nmain_func('var');".format(package_main_file)
     with open("__test__.js", 'w') as jcp:
         jcp.write(js_call_templete)
@@ -133,12 +153,12 @@ def test_package(package, root_path):
     try:
         G = unittest_main('__test__.js')
     except Exception as e:
-        npm_test_logger.error("ERROR when generate graph for {}.".format(package))
+        npm_test_logger.error("ERROR when generate graph for {}.".format(package_path))
         npm_test_logger.error(e)
         return -3
 
-    unit_check_log(G, 'xss', package)
-    unit_check_log(G, 'os_command', package)
+    unit_check_log(G, 'xss', package_path)
+    unit_check_log(G, 'os_command', package_path)
 
     try:
         os.remove("run_log.log")
@@ -168,9 +188,9 @@ def main():
         if cur_cnt < 0:
             continue
         npm_test_logger.info("No {}".format(cur_cnt))
-        tqdm_bar.set_description("No {}, {}".format(cur_cnt, package))
+        tqdm_bar.set_description("No {}, {}".format(cur_cnt, package.split('/')[-1]))
         tqdm_bar.refresh()
-        result = test_package(package, root_path)
+        result = test_package(package)
         if result == 1:
             success_list.append(package)
         elif result == -1:
@@ -194,5 +214,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package('iohook-prebuild-test', root_path)
-#main()
+#test_package('iohook-prebuild-test', root_path)
+main()
