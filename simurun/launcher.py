@@ -14,6 +14,8 @@ def unittest_main(file_path, check_signatures=[]):
     """
     G = Graph()
     result = analyze_files(G, file_path, check_signatures=check_signatures)
+    if result == False:
+        return None 
     return G
 
 def main():

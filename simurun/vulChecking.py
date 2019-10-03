@@ -20,7 +20,8 @@ def traceback(G, export_type):
     elif export_type == 'xss':
         expoit_func_list = [
                 'createServer',
-                'write'
+                'write',
+                'send'
                 ]
     func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
     func_nodes += G.get_node_by_attr('type', 'AST_CALL')

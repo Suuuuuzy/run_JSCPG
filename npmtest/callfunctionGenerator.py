@@ -14,6 +14,7 @@ npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmt
 all_sign_functions = [
         "sink_hqbpillvul",
         "createServer",
+        'send',
         'write'
         ]
 
@@ -142,12 +143,13 @@ def test_package(package_path):
     """
     line_count = dir_line_count(package_path)
     size_count = dir_size_count(package_path)
-    npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
 
     package_main_file = get_main_file_of_package(package_path)
     if package_main_file is None:
         npm_test_logger.error("{} not found".format(package_path))
         return -2
+
+    npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
 
     js_call_templete = "var main_func=require('{}');\nmain_func('var');".format(package_main_file)
     with open("__test__.js", 'w') as jcp:
@@ -163,6 +165,11 @@ def test_package(package_path):
         npm_test_logger.error(e)
         return -3
 
+    if G is None:
+        npm_test_logger.error("Skip {} for no signature functions".format(package_path))
+        return -4
+
+    npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
     unit_check_log(G, 'xss', package_path)
     unit_check_log(G, 'os_command', package_path)
 
