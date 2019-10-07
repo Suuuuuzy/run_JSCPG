@@ -158,8 +158,8 @@ def test_package(package_path):
     """
 
     try:
-        #G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
-        G = unittest_main('__test__.js', check_signatures=[])
+        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
+        #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         npm_test_logger.error("ERROR when generate graph for {}.".format(package_path))
         npm_test_logger.error(e)
@@ -199,7 +199,7 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt < 0:
+        if cur_cnt < 1800:
             continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package.split('/')[-1]))
@@ -228,5 +228,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package(os.path.join(root_path, 'ps'))
-main()
+test_package(os.path.join(root_path, 'gitlabhook'))
+#main()
