@@ -60,7 +60,6 @@ def traceback(G, export_type):
                 res_path += "==========================\n"
                 res_path += "{}\n".format(G.get_node_file_path(path[0]))
                 res_path += cur_path_str2
-    print(ret_pathes)
     return ret_pathes, res_path, caller_list
 
 def do_vul_checking(G, rule_list, pathes):
