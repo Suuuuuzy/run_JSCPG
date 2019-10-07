@@ -1013,6 +1013,9 @@ def merge(G, stmt, num_of_branches, parent_branch):
 
 def call_callback_function(G, caller_ast, func_decl, func_scope, args=None,
     branches=BranchTagContainer()):
+    '''
+    Deprecated
+    '''
     # generate empty object for parameters of the callback function
     param_list_node = None
     for child in G.get_ordered_ast_child_nodes(func_decl):
@@ -1241,8 +1244,9 @@ def ast_call_function(G, ast_node, extra):
         extra, caller_ast=ast_node, is_new=is_new, stmt_id=stmt_id,
         func_name=func_name, relations=relations)
 
-def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
-    is_new=False, stmt_id='Unknown', func_name='{anonymous}', relations=None):
+def call_function(G, func_objs, args=[], this=None, extra=ExtraInfo(),
+    caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}',
+    relations={}):
     '''
     Directly call a function.
     
@@ -1260,6 +1264,8 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
             use only. Defaults to 'Unknown'.
         func_name (str, optional): The function's name, for adding blank
             functions only. Defaults to '{anonymous}'.
+        relations (dict, optional): See return_relations in find_prop.
+            Defaults to {}.
     
     Returns:
         List, List: Lists of returned objects and used objects.
@@ -1297,8 +1303,8 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
         # bound functions
         func_obj_attrs = G.get_node_attr(func_obj)
         if func_obj_attrs.get('target_func'):
-            logger.log(ATTENTION, 'Bound function found ({}->{})'.format(func_obj_attrs.get('target_func'), func_obj))
             _this = func_obj_attrs.get('bound_this')
+            logger.log(ATTENTION, 'Bound function found ({}->{}), this={}'.format(func_obj_attrs.get('target_func'), func_obj, _this.obj_nodes))
             if func_obj_attrs.get('bound_args') is not None:
                 _args = func_obj_attrs.get('bound_args')
             func_obj = func_obj_attrs.get('target_func')
@@ -1340,14 +1346,22 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
             arguments_obj = G.add_obj_to_scope(name='arguments',
                                                scope=func_scope)
             for j, param in enumerate(params):
-                if j >= len(args): break
                 param_name = G.get_name_from_child(param)
-                logger.debug(f'add arg {param_name} <- {args[j]}, scope {func_scope}')
-                for obj in to_obj_nodes(G, args[j], caller_ast):
-                    G.add_obj_to_scope(name=param_name, scope=func_scope,
-                        tobe_added_obj=obj)
-                    G.add_obj_as_prop(prop_name=str(j), parent_obj=arguments_obj,
-                        tobe_added_obj=obj)
+                if j < len(args):
+                    logger.debug(f'add arg {param_name} <- {args[j].obj_nodes}, scope {func_scope}')
+                    for obj in to_obj_nodes(G, args[j], caller_ast):
+                        G.add_obj_to_scope(name=param_name, scope=func_scope,
+                            tobe_added_obj=obj)
+                        G.add_obj_as_prop(prop_name=str(j),
+                            parent_obj=arguments_obj, tobe_added_obj=obj)
+                else:
+                    # add dummy arguments
+                    param_name = G.get_name_from_child(param)
+                    added_obj = G.add_obj_to_scope(name=param_name,
+                        scope=func_scope)
+                    G.add_obj_as_prop(prop_name=str(j),
+                        parent_obj=arguments_obj, tobe_added_obj=added_obj)
+                    logger.debug(f'add arg {param_name} <- new obj {added_obj}, scope {func_scope}')
             # manage branches
             branches = extra.branches
             parent_branch = branches.get_last_choice_tag()
@@ -1398,16 +1412,8 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 # call all callback functions
                 if callback_functions:
                     logger.debug(sty.fg.green + sty.ef.inverse + 'callback functions = {}'.format(callback_functions) + sty.rs.all)
-                    for obj in callback_functions:
-                        func_ast = G.get_obj_def_ast_node(obj)
-                        func_name = G.get_name_from_child(func_ast)
-                        parent_scope = G.get_node_attr(func_obj) \
-                                        .get('parent_scope')
-                        func_scope = G.add_scope('FUNC_SCOPE', func_ast,
-                            f'Function{func_ast}:{caller_ast}', obj,
-                            caller_ast, func_name, parent_scope=parent_scope)
-                        call_callback_function(G, caller_ast, func_ast,
-                            func_scope)
+                    call_function(G, callback_functions, caller_ast=caller_ast,
+                        extra=extra, stmt_id=stmt_id)
         assert type(branch_returned_objs) is list
         assert type(branch_used_objs) is list
         returned_objs.update(branch_returned_objs)

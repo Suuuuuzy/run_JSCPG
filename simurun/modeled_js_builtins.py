@@ -1,5 +1,5 @@
 from .graph import Graph
-from .utilities import NodeHandleResult, BranchTag, BranchTagContainer
+from .utilities import NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
 from . import objectGraphGenerator
 import sty
 import re
@@ -210,13 +210,9 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
             NodeHandleResult(values=names, value_tags=name_tags),
             array]
     logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
-    for func in callback.obj_nodes:
-        func_decl = G.get_obj_def_ast_node(func)
-        func_name = G.get_name_from_child(func_decl)
-        func_scope = G.add_scope('FUNC_SCOPE', func, f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
-        objectGraphGenerator.call_callback_function(
-            G, caller_ast, func_decl, func_scope, args=args,
-            branches=extra.branches+[BranchTag(point=f'ForEach{caller_ast}')])
+    new_extra = ExtraInfo(extra, branches=extra.branches+[BranchTag(point=f'ForEach{caller_ast}')])
+    objectGraphGenerator.call_function(G, callback.obj_nodes, args=args,
+        extra=new_extra, caller_ast=caller_ast, func_name=callback.name)
     return NodeHandleResult()
 
 
@@ -387,7 +383,7 @@ def function_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this: Nod
         if args:
             G.set_node_attr(new_func, ('bound_args', args))
         returned_objs.append(new_func)
-        logger.log(ATTENTION, 'Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this, ast_node))
+        logger.log(ATTENTION, 'Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this.obj_nodes, ast_node))
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
