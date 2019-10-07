@@ -134,7 +134,7 @@ def register_func(G, node_id):
 
 def find_prop(G, parent_objs, prop_name, branches=None,
     side=None, parent_name='Unknown', in_proto=False, depth=0,
-    prop_name_for_tags=None):
+    prop_name_for_tags=None, return_relations=False):
     '''
     Recursively find a property under parent_objs and its __proto__.
     
@@ -150,10 +150,17 @@ def find_prop(G, parent_objs, prop_name, branches=None,
             print log. Defaults to ''.
         in_proto (bool, optional): whether __proto__ is being searched.
             Defaults to False.
+        prop_name_for_tags (list, optional): Experimental. For-tags
+            related to the property name. Defaults to None.
+        return_relations (boolean, optional): Experimental. If true,
+            returns a dict of relationships between property object
+            nodes and their parent object nodes. Otherwise, return an
+            empty dict. This is useful in method calls.
     
     Returns:
-        prop_name_nodes, prop_obj_nodes: two sets containing possible
-            name nodes and object nodes.
+        prop_name_nodes, prop_obj_nodes, objs_parents: two sets
+            containing possible name nodes and object nodes, and a dict
+            (see argument "return_relations").
     '''
     if depth == 5:
         return [], []
@@ -164,6 +171,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         logger.debug(f'  {parent_name}.{prop_name}')
     prop_name_nodes = set()
     prop_obj_nodes = set()
+    relations = {}
     for parent_obj in parent_objs:
         # filter out unrelated possibilities
         skip = False
@@ -202,9 +210,15 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 branches=branches)
             if prop_objs:
                 prop_obj_nodes.update(prop_objs)
+                if return_relations:
+                    for obj in prop_objs:
+                        if obj in relations:
+                            relations[obj].append(parent_obj)
+                        else:
+                            relations[obj] = [parent_obj]
         elif prop_name != '__proto__' and prop_name != '*':
             # if name node is not found, search the property under __proto__
-            # note that we cannot search __proto__ under __proto__
+            # note that we cannot search "__proto__" under __proto__
             __proto__name_node = G.get_prop_name_node("__proto__",
                 parent_obj=parent_obj)
             if __proto__name_node is not None:
@@ -217,13 +231,20 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     __proto__obj_nodes = list(set(__proto__obj_nodes) -
                         set(parent_objs))
                 if __proto__obj_nodes:
-                    __name_nodes, __obj_nodes = find_prop(G, __proto__obj_nodes,
-                        prop_name, branches, parent_name=parent_name+
-                        '.__proto__', in_proto=True, depth=depth+1)
+                    __name_nodes, __obj_nodes, _ = find_prop(G,
+                        __proto__obj_nodes, prop_name, branches,
+                        parent_name=parent_name + '.__proto__',
+                        in_proto=True, depth=depth+1)
                     if __name_nodes:
                         name_node_found = True
                         prop_name_nodes.update(__name_nodes)
                         prop_obj_nodes.update(__obj_nodes)
+                        if return_relations:
+                            for obj in prop_objs:
+                                if obj in relations:
+                                    relations[obj].append(parent_obj)
+                                else:
+                                    relations[obj] = [parent_obj]
         if not name_node_found and not in_proto and prop_name != '*':
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
@@ -238,9 +259,10 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                                     ('for_tags', prop_name_for_tags))
                 logger.log(ATTENTION, f'Add prop name node ' \
                 f'{parent_name}.{prop_name} ({parent_obj}->{added_name_node})')
-    return prop_name_nodes, prop_obj_nodes
+    return prop_name_nodes, prop_obj_nodes, relations
 
-def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
+def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
+    -> [NodeHandleResult, NodeHandleResult]:
     '''
     Handle property.
     
@@ -248,9 +270,11 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
         G (Graph): graph.
         ast_node ([type]): the MemberExpression (AST_PROP) AST node.
         extra (ExtraInfo, optional): Extra information. Defaults to {}.
+        return_relations (bool, optional): See return_relations in
+            find_prop. Defaults to False.
     
     Returns:
-        NodeHandleResult
+        handled property, handled parent
     '''
     # recursively handle both parts
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)[:2]
@@ -312,18 +336,30 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
     branches = extra.branches
     side = extra.side
     prop_name_nodes, prop_obj_nodes = [], []
+    relations = {}
 
     # find property name nodes and object nodes
     for i, prop_name in enumerate(prop_names):
-        name_nodes, obj_nodes = find_prop(G, parent_objs, prop_name,
-            branches, side, parent_name, prop_name_for_tags=prop_name_tags[i])
+        name_nodes, obj_nodes, _relations = find_prop(G, parent_objs, 
+            prop_name, branches, side, parent_name,
+            prop_name_for_tags=prop_name_tags[i],
+            return_relations=return_relations)
         prop_name_nodes.extend(name_nodes)
         prop_obj_nodes.extend(obj_nodes)
+        if return_relations:
+            if _relations:
+                # combine dicts
+                for obj, parents in _relations.items():
+                    if obj in relations:
+                        relations[obj].extend(parents)
+                    else:
+                        relations[obj] = parents
 
     if not prop_name_nodes and not prop_obj_nodes:
         # try wildcard (*)
-        prop_name_nodes, prop_obj_nodes = find_prop(G, parent_objs, '*',
-            branches, side, parent_name)
+        prop_name_nodes, prop_obj_nodes, relations = find_prop(G,
+            parent_objs, '*', branches, side, parent_name,
+            return_relations=return_relations)
 
     if len(prop_names) == 1:
         name = f'{parent_name}.{prop_names[0]}'
@@ -332,7 +368,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) -> NodeHandleResult:
 
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
         name=f'{name}', name_nodes=list(prop_name_nodes),
-        ast_node=ast_node), handled_parent 
+        ast_node=ast_node), handled_parent, relations
 
 def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     '''
@@ -360,10 +396,6 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     if not handled_right:
         logger.warning("Right side handling error at statement {}, child {}".format(ast_node, right))
         return NodeHandleResult()
-
-    # TODO: REMOVE! specific to july demo
-    if handled_left.name == "elements":
-        G.event_node = left
 
     right_objs = to_obj_nodes(G, handled_right, ast_node)
 
@@ -858,7 +890,7 @@ def simurun_block(G, ast_node, parent_scope, branches=BranchTagContainer(), bloc
     A block is a BlockStatement in JavaScript,
     or an AST_STMT_LIST in PHP.
     """
-    logger.debug('BLOCK {} STARTS'.format(ast_node))
+    logger.log(ATTENTION, 'BLOCK {} STARTS'.format(ast_node))
     returned_objs = set()
     used_objs = set()
     if parent_scope == None:
@@ -1157,8 +1189,10 @@ def ast_call_function(G, ast_node, extra):
     '''
     # handle the callee
     handled_parent = None
+    relations = {}
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
-        handled_callee, handled_parent = handle_prop(G, ast_node, extra)
+        handled_callee, handled_parent, relations = \
+            handle_prop(G, ast_node, extra)
     else:
         callee = G.get_ordered_ast_child_nodes(ast_node)[0]
         handled_callee = handle_node(G, callee, extra)
@@ -1205,10 +1239,10 @@ def ast_call_function(G, ast_node, extra):
 
     return call_function(G, func_decl_objs, handled_args, handled_parent,
         extra, caller_ast=ast_node, is_new=is_new, stmt_id=stmt_id,
-        func_name=func_name)
+        func_name=func_name, relations=relations)
 
 def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
-    is_new=False, stmt_id='Unknown', func_name='{anonymous}'):
+    is_new=False, stmt_id='Unknown', func_name='{anonymous}', relations=None):
     '''
     Directly call a function.
     
@@ -1230,13 +1264,12 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
     Returns:
         List, List: Lists of returned objects and used objects.
     '''
-    if stmt_id == 'Unknown' and caller_ast is not None:
-        stmt_id = caller_ast
-
+    # No function objects found, return immediately
     if not func_objs:
-        logger.warning(f'No definition found for function {func_name}')
+        logger.error(f'No definition found for function {func_name}')
         return [], []
 
+    # process arguments
     args_used_objs = set() # only for unmodeled built-in functions
     callback_functions = set() # only for unmodeled built-in functions
     for arg in args:
@@ -1246,24 +1279,39 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
             if G.get_node_attr(obj).get('type') == 'function':
                 callback_functions.add(obj)
 
-    returned_objs = set()
-    used_objs = set()
-
     # if the function declaration has multiple possibilities,
     # and need to merge afterwards
     has_branches = (len(func_objs) > 1)
 
+    if stmt_id == 'Unknown' and caller_ast is not None:
+        stmt_id = caller_ast
+
+    # initiate return values
+    returned_objs = set()
+    used_objs = set()
+
     # for each possible function declaration
     for i, func_obj in enumerate(func_objs):
+        _this = this
+        _args = list(args) if args is not None else None
+        # bound functions
+        func_obj_attrs = G.get_node_attr(func_obj)
+        if func_obj_attrs.get('target_func'):
+            logger.log(ATTENTION, 'Bound function found ({}->{})'.format(func_obj_attrs.get('target_func'), func_obj))
+            _this = func_obj_attrs.get('bound_this')
+            if func_obj_attrs.get('bound_args') is not None:
+                _args = func_obj_attrs.get('bound_args')
+            func_obj = func_obj_attrs.get('target_func')
+
         branch_returned_objs = []
         branch_used_objs = []
         func_ast = G.get_obj_def_ast_node(func_obj)
         # check if python function exists
         python_func = G.get_node_attr(func_obj).get('pythonfunc')
         if python_func: # special Python function
-            if this:
+            if _this:
                 # add parent object (this) as an argument
-                args.insert(0, this)
+                args.insert(0, _this)
             if is_new:
                 logger.error(f'Error: try to new Python function {python_func}...')
                 continue
@@ -1324,8 +1372,14 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                 branch_returned_objs = [instantiate_obj(G, caller_ast,
                     func_ast, branches=next_branches)]
             else:
+                backup_objs = G.cur_objs
+                if _this:
+                    G.cur_objs = _this.obj_nodes
+                else:
+                    G.cur_objs = relations.get(func_obj, [])
                 branch_returned_objs, branch_used_objs = simurun_function(
                     G, func_ast, branches=next_branches)
+                G.cur_objs = backup_objs
             # switch back scopes
             G.cur_scope = backup_scope
             # if it's an unmodeled built-in function
@@ -1342,8 +1396,8 @@ def call_function(G, func_objs, args, this, extra=ExtraInfo(), caller_ast=None,
                     G.add_edge(obj, returned_obj,
                         {'type:TYPE': 'CONTRIBUTES_TO'})
                 # call all callback functions
-                logger.debug(sty.fg.green + sty.ef.inverse + 'callback functions = {}'.format(callback_functions) + sty.rs.all)
                 if callback_functions:
+                    logger.debug(sty.fg.green + sty.ef.inverse + 'callback functions = {}'.format(callback_functions) + sty.rs.all)
                     for obj in callback_functions:
                         func_ast = G.get_obj_def_ast_node(obj)
                         func_name = G.get_name_from_child(func_ast)

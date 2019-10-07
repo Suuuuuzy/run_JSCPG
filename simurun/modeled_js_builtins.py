@@ -325,13 +325,14 @@ def array_entries(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array
 
 
 def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult, 
-        encoding: NodeHandleResult = None, start = None, end = None):
+        *args):
     returned_objs = []
     for obj in this.obj_nodes:
-        string = G.add_obj_node(None, 'string')
+        value = G.get_node_attr(obj).get('code')
+        string = G.add_obj_node(caller_ast, 'string', value)
         G.add_edge(obj, string, {'type:TYPE': 'CONTRIBUTES_TO'})
         returned_objs.append(string)
-    return NodeHandleResult(obj_nodes=returned_objs)
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=this.obj_nodes)
 
 
 def object_create(G: Graph, caller_ast, extra, proto: NodeHandleResult):
@@ -379,13 +380,14 @@ def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this: No
 def function_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, *args):
     returned_objs = []
     for f in func.obj_nodes:
-        for t in this.obj_nodes:
-            new_func = G.add_obj_node(caller_ast, 'function')
-            G.set_node_attr(new_func, ('target_func', f))
-            G.set_node_attr(new_func, ('bound_this', t))
-            if args:
-                G.set_node_attr(new_func, ('bound_args', args))
-            returned_objs.append(new_func)
+        ast_node = G.get_obj_def_ast_node(f)
+        new_func = G.add_obj_node(ast_node, 'function')
+        G.set_node_attr(new_func, ('target_func', f))
+        G.set_node_attr(new_func, ('bound_this', this))
+        if args:
+            G.set_node_attr(new_func, ('bound_args', args))
+        returned_objs.append(new_func)
+        logger.log(ATTENTION, 'Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this, ast_node))
     return NodeHandleResult(obj_nodes=returned_objs)
 
 

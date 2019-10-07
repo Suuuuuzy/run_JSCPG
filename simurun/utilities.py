@@ -136,6 +136,9 @@ class BranchTagContainer(list):
     def __str__(self):
         return list.__repr__(self)
 
+    def __bool__(self):
+        return len(self) != 0
+
     def get_last_choice_tag(self):
         '''
         Get the last choice statement (if/switch) tag.
