@@ -12,6 +12,17 @@ def unittest_main(file_path, check_signatures=[]):
     """
     main function for uniitest 
     """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--print', action='store_true')
+    args = parser.parse_args()
+    if args.print:
+        create_logger("main_logger", output_type="console",
+            level=logging.DEBUG)
+        create_logger("graph_logger", output_type="console",
+            level=logging.DEBUG)
+        create_logger("npmtest", output_type="console",
+            level=logging.DEBUG)
+
     G = Graph()
     result = analyze_files(G, file_path, check_signatures=check_signatures)
     if result == False:
@@ -35,7 +46,7 @@ def main():
     if args.print:
         logger = create_logger("main_logger", output_type="console",
             level=logging.DEBUG)
-        logger = create_logger("graph_logger", output_type="console",
+        create_logger("graph_logger", output_type="console",
             level=logging.DEBUG)
     if args.input_file:
         if args.input_file == '-':

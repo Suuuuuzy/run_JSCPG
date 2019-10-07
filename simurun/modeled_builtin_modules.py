@@ -31,14 +31,9 @@ def setup_fs(G: Graph):
 
 def read_file(G: Graph, caller_ast, extra, _, path, options=None, callback=None):
     data = read_file_sync(G, caller_ast, extra, None, path, options)
-    for func in callback.obj_nodes:
-        func_decl = G.get_obj_def_ast_node(func)
-        func_name = G.get_name_from_child(func_decl)
-        func_scope = G.add_scope('FUNC_SCOPE', func,
-            f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
-        objectGraphGenerator.call_callback_function(G, caller_ast, func_decl,
-            func_scope, args=[NodeHandleResult(obj_nodes=[G.null_obj]), data],
-            branches=extra.branches)
+    objectGraphGenerator.call_function(G, callback.obj_nodes,
+        args=[NodeHandleResult(obj_nodes=[G.null_obj]), data],
+        extra=extra)
     return NodeHandleResult()
 
 

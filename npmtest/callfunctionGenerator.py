@@ -5,7 +5,7 @@ import pygount
 from tqdm import tqdm
 
 sys.path.append("..")
-from simurun.launcher import *
+from simurun.launcher import unittest_main
 from simurun.logger import *
 from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
