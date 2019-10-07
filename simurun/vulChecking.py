@@ -1,4 +1,5 @@
 from .trace_rule import TraceRule
+from .vulFuncLists import *
 
 def traceback(G, export_type):
     """
@@ -13,20 +14,11 @@ def traceback(G, export_type):
         the list of callers,
     """
     res_path = ""
-    if export_type == 'os_command':
-        expoit_func_list = [
-                "sink_execFile_hqbpillvul",
-                'sink_exec_hqbpillvul'
-                ]
-    elif export_type == 'xss':
-        expoit_func_list = [
-                'createServer',
-                'write',
-                'send'
-                ]
+    expoit_func_list = signature_lists[export_type]
+
     func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
     func_nodes += G.get_node_by_attr('type', 'AST_CALL')
-    pathes = {}
+    ret_pathes = []
     caller_list = []
     for func_node in func_nodes:
         # we assume only one obj_decl edge
@@ -47,6 +39,7 @@ def traceback(G, export_type):
                         "OBJ_TO_PROP")
 
             for path in pathes:
+                ret_pathes.append(path)
                 cur_path_str1 = ""
                 cur_path_str2 = ""
                 path.reverse()
@@ -67,7 +60,7 @@ def traceback(G, export_type):
                 res_path += "==========================\n"
                 res_path += "{}\n".format(G.get_node_file_path(path[0]))
                 res_path += cur_path_str2
-    return pathes, res_path, caller_list
+    return ret_pathes, res_path, caller_list
 
 def do_vul_checking(G, rule_list, pathes):
     """

@@ -3,21 +3,15 @@ import json
 import sys
 import pygount
 from tqdm import tqdm
+
 sys.path.append("..")
 from simurun.launcher import unittest_main
 from simurun.logger import *
 from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
+from simurun.vulFuncLists import *
 
 npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmtest.log")
-
-all_sign_functions = [
-        "sink_exec_hqbpillvul",
-        "sink_execFile_hqbpillvul",
-        "createServer",
-        'send',
-        'write'
-        ]
 
 def validate_package(package_path):
     """
@@ -89,7 +83,11 @@ def get_main_file_of_package(package_path):
     if os.path.exists(main_file_path):
         return main_file_path
     else:
-        return None
+        # give it one more chance as not put .js in the end
+        if os.path.exists(main_file_path + '.js'):
+            return main_file_path + '.js'
+        
+    return None
 
 def item_line_count(path):
     if os.path.isdir(path):
@@ -156,10 +154,11 @@ def test_package(package_path):
         jcp.write(js_call_templete)
 
     """
-    G = unittest_main('__test__.js')
+    G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
     """
+
     try:
-        #G = unittest_main('__test__.js', check_signatures=all_sign_functions)
+        #G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         npm_test_logger.error("ERROR when generate graph for {}.".format(package_path))
@@ -175,7 +174,7 @@ def test_package(package_path):
     unit_check_log(G, 'os_command', package_path)
 
     try:
-        #os.remove("run_log.log")
+        os.remove("run_log.log")
         os.remove("out.dat")
     except:
         pass
@@ -185,6 +184,7 @@ def test_package(package_path):
     return 1
 
 root_path = "/media/data/lsong18/data/npmpackages/"
+#root_path = "/home/lsong18/projs/node_modules/"
 
 def main():
     packages = get_list_of_packages(root_path, limit = 50000)
@@ -228,5 +228,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'gitlabhook'))
-#main()
+#test_package(os.path.join(root_path, 'ps'))
+main()
