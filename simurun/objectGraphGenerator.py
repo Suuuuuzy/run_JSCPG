@@ -257,7 +257,8 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 if prop_name_for_tags:
                     G.set_node_attr(added_name_node,
                                     ('for_tags', prop_name_for_tags))
-                logger.log(ATTENTION, f'Add prop name node ' \
+                logger.debug(sty.ef.b +
+                 'Add prop name node' + sty.rs.all + ' '
                 f'{parent_name}.{prop_name} ({parent_obj}->{added_name_node})')
     return prop_name_nodes, prop_obj_nodes, relations
 
@@ -390,7 +391,7 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     handled_left = handle_node(G, left, ExtraInfo(extra, side='left'))
 
     if not handled_left:
-        logger.warning("Left side handling error at statement {}, child {}".format(ast_node, right))
+        logger.warning("Left side handling error at statement {}, child {}".format(ast_node, left))
         return NodeHandleResult()
 
     if not handled_right:
@@ -1441,7 +1442,7 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if def_cpg_node == None: continue
         if def_cpg_node == cur_stmt: continue
         def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')
-        logger.info(sty.fg.li_magenta + sty.ef.b + "OBJ REACHES" + sty.rs.all +
+        logger.info(sty.fg.li_magenta + sty.ef.inverse + "OBJ REACHES" + sty.rs.all +
         " {} (Line {}) -> {} (Line {})".format(def_cpg_node, def_lineno,
         cur_stmt, cur_lineno))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
