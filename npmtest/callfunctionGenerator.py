@@ -229,5 +229,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'dot'))
+test_package(os.path.join(root_path, 'litecollective'))
 #main()

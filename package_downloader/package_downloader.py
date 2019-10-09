@@ -9,6 +9,3 @@ with open("./xss.csv", 'r') as fp:
         print('npm install {}@{}'.format(package_name.lower(), package_version))
         subprocess.check_call('npm install {}@{}'.format(package_name.lower(), package_version), shell=True)
         
-
-
-
