@@ -2,6 +2,7 @@ import os
 import json 
 import sys
 import pygount
+import traceback as tb
 from tqdm import tqdm
 
 sys.path.append("..")
@@ -164,6 +165,7 @@ def test_package(package_path):
     except Exception as e:
         npm_test_logger.error("ERROR when generate graph for {}.".format(package_path))
         npm_test_logger.error(e)
+        npm_test_logger.debug(tb.format_exc())
         return -3
 
     if G is None:

@@ -348,18 +348,23 @@ def object_is(G: Graph, caller_ast, extra, value1: NodeHandleResult, value2: Nod
 
 
 def function_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, *args):
-    objectGraphGenerator.call_function(func.obj_nodes, args, this, extra,
-        caller_ast, False, stmt_id=f'Call{caller_ast}')
-
+    returned_objs, used_objs = objectGraphGenerator.call_function(
+        func.obj_nodes, args, this, extra, caller_ast,
+        stmt_id=f'Call{caller_ast}')
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
 
 def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, arg_array=None):
     args = []
+    print(func)
+    print(this)
+    print(arg_array)
     if arg_array is not None:
         for array in arg_array.obj_nodes: # for every possible argument array
             i = 0 # argument counter
             while True:
                 objs = G.get_prop_obj_nodes(parent_obj=array, prop_name=str(i),
                     branches=extra.branches)
+                # print(objs)
                 if objs:
                     # if the counter exceeds the length of the args array,
                     # expand it
@@ -368,6 +373,9 @@ def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this: No
                     # extend possible objects with objects in the array
                     args[i].extend(objs)
                 else: # the array is finished (index is larger than its length)
+                    break
+                i += 1
+                if i > 32767:
                     break
     args = [NodeHandleResult(obj_nodes=i) for i in args]
     return function_call(G, caller_ast, extra, func, this, *args)
