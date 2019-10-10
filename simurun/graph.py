@@ -589,7 +589,7 @@ class Graph:
         # check if the name node exists first
         name_node = self.get_name_node(name, scope=scope, follow_scope_chain=False)
         if name_node == None:
-            self.logger.debug(f'name node for {name} does not exist')
+            self.logger.debug(f'{sty.ef.b}Add name node{sty.rs.all} {name} in scope {scope}')
             name_node = str(self._get_new_nodeid())
             self.add_edge(scope, name_node, {"type:TYPE": "SCOPE_TO_VAR"})
             self.set_node_attr(name_node, ('labels:label', 'Name'))
@@ -1025,7 +1025,7 @@ class Graph:
         used for built-in functions
         we need to run the function after the define
         """
-        self.logger.debug(sty.ef.inverse + sty.fg(179) + "add_blank_func" + sty.rs.all + " func_name: {}".format(func_name))
+        self.logger.debug(sty.ef.inverse + sty.fg(179) + "Add blank function" + sty.rs.all + " name: {}".format(func_name))
 
         # add a function decl node first
         func_ast = self._get_new_nodeid()
