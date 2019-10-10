@@ -2,6 +2,7 @@ import os
 import json 
 import sys
 import pygount
+import traceback as tb
 from tqdm import tqdm
 
 sys.path.append("..")
@@ -123,6 +124,7 @@ def unit_check_log(G, vul_type, package=None):
     caller_list = res_path[2]
     checking_res = vul_checking(G, line_path, vul_type)
     if (len(line_path) != 0 or len(caller_list) != 0) and len(checking_res) != 0:
+        print("Found path from {}: {}\n".format(package, checking_res))
         with open("found_path_{}".format(vul_type), 'a+') as fp:
             fp.write("{} called".format(caller_list))
             fp.write("Found path from {}: {}\n".format(package, checking_res))
@@ -158,11 +160,12 @@ def test_package(package_path):
     """
 
     try:
-        #G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
-        G = unittest_main('__test__.js', check_signatures=[])
+        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
+        #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         npm_test_logger.error("ERROR when generate graph for {}.".format(package_path))
         npm_test_logger.error(e)
+        npm_test_logger.debug(tb.format_exc())
         return -3
 
     if G is None:
@@ -199,7 +202,7 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt < 0:
+        if cur_cnt < 1878:
             continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package.split('/')[-1]))
@@ -228,5 +231,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package(os.path.join(root_path, 'ps'))
-main()
+test_package(os.path.join(root_path, 'litecollective'))
+#main()

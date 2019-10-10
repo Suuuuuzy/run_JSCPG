@@ -1,0 +1,7 @@
+['34 called createServer', '65 called write'] calledFound path from /media/data/lsong18/data/npmpackages/testpackae: [['34']]
+['127 called createServer', '165 called send'] calledFound path from /media/data/lsong18/data/npmpackages/sock-monkey: [['127']]
+['7359 called write', '9485 called write', '9705 called write', '28382 called createServer', '28471 called write', '28541 called createServer', '28582 called createServer', '28972 called send'] calledFound path from /media/data/lsong18/data/npmpackages/@fovea/cli: [['28382']]
+['2203 called createServer', '2237 called write', '2721 called write', '2567 called createServer', '2640 called createServer'] calledFound path from /media/data/lsong18/data/npmpackages/bdsd.sock: [['2203']]
+['375 called createServer', '457 called write', '498 called write'] calledFound path from /media/data/lsong18/data/npmpackages/w2c: [['375']]
+['96 called createServer', '233 called write', '554 called write', '582 called write', '658 called write', '676 called write'] calledFound path from /media/data/lsong18/data/npmpackages/own-staticresourceservice: [['96']]
+['96 called createServer', '233 called write', '554 called write', '582 called write', '658 called write', '676 called write'] calledFound path from /media/data/lsong18/data/npmpackages/own-staticresourceservice: [['96']]

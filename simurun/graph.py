@@ -763,7 +763,7 @@ class Graph:
                 s.update(self.get_obj_nodes(name_node, branches))
         else:
             name_node = self.get_prop_name_node(prop_name, parent_obj)
-            s.update(self.get_obj_nodes(name_node), branches)
+            s.update(self.get_obj_nodes(name_node, branches))
         return list(s)
 
     def assign_obj_nodes_to_name_node(self, name_node, obj_nodes, multi=False,
