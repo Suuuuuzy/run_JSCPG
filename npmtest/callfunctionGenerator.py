@@ -4,6 +4,7 @@ import sys
 import pygount
 import traceback as tb
 from tqdm import tqdm
+import subprocess
 
 sys.path.append("..")
 from simurun.launcher import unittest_main
@@ -52,15 +53,19 @@ def get_list_of_packages(path, limit=None):
     
     return all_packages 
 
-def get_main_file_of_package(package_path):
+def get_entrance_files_of_package(package_path):
     """
-    get the main file path of a package
+    get the entrance file pathes of a package
+    we use madge to get all the entrance functions, which are the files that no one require
+    at the same time if the main file of the package json is not included
+    include the main file into the list
     Args:
         package: the path of a package
     return:
-        the main entrance file of the library
+        the main entrance files of the library
     """
 
+    entrance_files = []
     package_json_path = os.path.join(package_path, 'package.json')
     if not validate_package(package_path):
         print("ERROR: {} do not exist".format(package_json_path)) 
@@ -80,15 +85,25 @@ def get_main_file_of_package(package_path):
         else:
             main_file = package_json['main']
 
-    main_file_path = "{}/{}".format(package_path, main_file)
-    if os.path.exists(main_file_path):
-        return main_file_path
-    else:
-        # give it one more chance as not put .js in the end
-        if os.path.exists(main_file_path + '.js'):
-            return main_file_path + '.js'
-        
-    return None
+
+    analysis_path = './require_analysis.js'
+    proc = subprocess.Popen(['node', analysis_path,
+        package_path], text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    #here we assume that there are no ' in the file names
+    stdout = stdout.replace('\'', '"')
+    package_structure = json.loads(stdout)
+
+    for root_file in package_structure:
+        entrance_files.append(root_file)
+
+    if main_file not in entrance_files:
+        entrance_files.append(main_file)
+
+    main_file_pathes = ["{}/{}".format(package_path, main_file) for main_file in entrance_files]
+
+    return main_file_pathes
 
 def item_line_count(path):
     if os.path.isdir(path):
@@ -130,6 +145,7 @@ def unit_check_log(G, vul_type, package=None):
             fp.write("Found path from {}: {}\n".format(package, checking_res))
 
 def test_package(package_path):
+    # TODO: change the return value
     """
     test a specific package
     Args:
@@ -143,15 +159,34 @@ def test_package(package_path):
     """
     line_count = dir_line_count(package_path)
     size_count = dir_size_count(package_path)
-
-    package_main_file = get_main_file_of_package(package_path)
-    if package_main_file is None:
-        npm_test_logger.error("{} not found".format(package_path))
-        return -2
-
     npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
 
-    js_call_templete = "var main_func=require('{}');\nmain_func('var');".format(package_main_file)
+    package_main_files = get_entrance_files_of_package(package_path)
+    for package_file in package_main_files:
+        res = test_file(package_file)
+    npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
+    return 1
+
+def test_file(file_path):
+    """
+    test a specific file 
+    Args:
+        file_path: the path of the file 
+    return:
+        the result:
+            1, success
+            -1, skipped
+            -2, not found. package parse error
+            -3, graph generation error
+    """
+
+    print("testing {}".format(file_path))
+    if file_path is None:
+        npm_test_logger.error("{} not found".format(file_path))
+        return -2
+
+
+    js_call_templete = "var main_func=require('{}');\nmain_func('var');".format(file_path)
     with open("__test__.js", 'w') as jcp:
         jcp.write(js_call_templete)
 
@@ -163,18 +198,17 @@ def test_package(package_path):
         G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
-        npm_test_logger.error("ERROR when generate graph for {}.".format(package_path))
+        npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
         return -3
 
     if G is None:
-        npm_test_logger.error("Skip {} for no signature functions".format(package_path))
+        npm_test_logger.error("Skip {} for no signature functions".format(file_path))
         return -4
 
-    npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
-    unit_check_log(G, 'xss', package_path)
-    unit_check_log(G, 'os_command', package_path)
+    unit_check_log(G, 'xss', file_path)
+    unit_check_log(G, 'os_command', file_path)
 
     try:
         os.remove("run_log.log")
@@ -231,5 +265,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'litecollective'))
+test_package(os.path.join(root_path, 'wxchangba'))
 #main()
