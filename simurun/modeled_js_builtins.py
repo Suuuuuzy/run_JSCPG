@@ -23,7 +23,7 @@ def setup_js_builtins(G: Graph):
 
 
 def setup_string(G: Graph):
-    string_cons = G.add_blank_func_to_scope('String', scope=G.BASE_SCOPE)
+    string_cons = G.add_blank_func_to_scope('String', scope=G.BASE_SCOPE, python_func=this_returning_func)
     string_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=string_cons)[0]
     G.string_prototype = string_prototype
     # built-in functions for regexp
@@ -35,7 +35,7 @@ def setup_string(G: Graph):
 
 
 def setup_number(G: Graph):
-    number_cons = G.add_blank_func_to_scope('Number', scope=G.BASE_SCOPE)
+    number_cons = G.add_blank_func_to_scope('Number', scope=G.BASE_SCOPE, python_func=this_returning_func)
     number_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=number_cons)[0]
     G.number_prototype = number_prototype
     # Number.prototype.__proto__ = Object.prototype
@@ -43,7 +43,7 @@ def setup_number(G: Graph):
 
 
 def setup_array(G: Graph):
-    array_cons = G.add_blank_func_to_scope('Array', scope=G.BASE_SCOPE)
+    array_cons = G.add_blank_func_to_scope('Array', scope=G.BASE_SCOPE) # TODO: implement this
     array_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=array_cons)[0]
     G.array_prototype = array_prototype
     # Array.prototype.__proto__ = Object.prototype
@@ -64,7 +64,7 @@ def setup_array(G: Graph):
 
 
 def setup_boolean(G: Graph):
-    boolean_cons = G.add_blank_func_to_scope('Boolean', scope=G.BASE_SCOPE)
+    boolean_cons = G.add_blank_func_to_scope('Boolean', scope=G.BASE_SCOPE, python_func=this_returning_func)
     boolean_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=boolean_cons)[0]
     G.boolean_prototype = boolean_prototype
     # Boolean.prototype.__proto__ = Object.prototype
@@ -72,14 +72,14 @@ def setup_boolean(G: Graph):
 
 
 def setup_symbol(G: Graph):
-    symbol_cons = G.add_blank_func_to_scope('Symbol', scope=G.BASE_SCOPE)
+    symbol_cons = G.add_blank_func_to_scope('Symbol', scope=G.BASE_SCOPE, python_func=this_returning_func)
     symbol_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=symbol_cons)[0]
     # Symbol.prototype.__proto__ = Object.prototype
     G.add_obj_as_prop(None, None, '__proto__', parent_obj=symbol_prototype, tobe_added_obj=G.object_prototype)
 
 
 def setup_errors(G: Graph):
-    error_cons = G.add_blank_func_to_scope('Error', scope=G.BASE_SCOPE)
+    error_cons = G.add_blank_func_to_scope('Error', scope=G.BASE_SCOPE, python_func=this_returning_func)
     # Error.prototype.__proto__ = Object.prototype
     error_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=error_cons)[0]
     G.add_obj_as_prop(None, None, '__proto__', parent_obj=error_prototype, tobe_added_obj=G.object_prototype)
@@ -92,14 +92,14 @@ def setup_errors(G: Graph):
 
 def setup_object_and_function(G: Graph):
     # add Object (function)
-    object_cons = G.add_blank_func_to_scope('Object', scope=G.BASE_SCOPE)
+    object_cons = G.add_blank_func_to_scope('Object', scope=G.BASE_SCOPE, python_func=this_returning_func)
     # get Object.prototype
     object_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=object_cons)[0]
     G.set_node_attr(object_prototype, ('code', 'Object.prototype'))
     # add Object.prototype.__proto__
     G.add_obj_as_prop(None, None, '__proto__', parent_obj=object_prototype, tobe_added_obj=G.null_obj)
     # add Function (function)
-    function_cons = G.add_blank_func_to_scope('Function', scope=G.BASE_SCOPE)
+    function_cons = G.add_blank_func_to_scope('Function', scope=G.BASE_SCOPE) # TODO: implement this
     # get Function.prototype
     function_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=function_cons)[0]
     G.set_node_attr(function_prototype, ('code', 'Function.prototype'))
@@ -349,7 +349,7 @@ def object_is(G: Graph, caller_ast, extra, value1: NodeHandleResult, value2: Nod
 
 def function_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, *args):
     returned_objs, used_objs = objectGraphGenerator.call_function(
-        func.obj_nodes, args, this, extra, caller_ast,
+        G, func.obj_nodes, list(args), this, extra, caller_ast,
         stmt_id=f'Call{caller_ast}')
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
 
@@ -405,8 +405,11 @@ def blank_func(G: Graph, caller_ast, extra, *args):
     return NodeHandleResult()
 
 
-def this_returning_func(G: Graph, caller_ast, extra, this: NodeHandleResult, *args):
-    return this
+def this_returning_func(G: Graph, caller_ast, extra, this: NodeHandleResult=None, *args):
+    if this is None:
+        return NodeHandleResult()
+    else:
+        return this
 
 
 def string_returning_func(G: Graph, caller_ast, extra, *args):
@@ -497,7 +500,7 @@ def regexp_constructor(G: Graph, caller_ast, extra, pattern=None, flags=None):
                 G.add_obj_as_prop(prop_name='__proto__', parent_obj=added_obj,
                     tobe_added_obj=G.regexp_prototype)
                 returned_objs.append(added_obj)
-    return 
+    return NodeHandleResult(obj_nodes=returned_objs)
 
 
 def string_replace(G: Graph, caller_ast, extra, strs, substrs, new_sub_strs):
