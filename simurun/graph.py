@@ -200,6 +200,14 @@ class Graph:
         """
         return nx.dfs_edges(self.graph, source, depth_limit)
 
+    def has_path(self, source, target):
+        '''
+        Return True if there is a path from source to target, False
+        otherwise.
+        '''
+        return nx.algorithms.shortest_paths.generic.has_path(
+            self.graph, source, target)
+
     # import/export
 
     def import_from_string(self, string):
@@ -925,13 +933,18 @@ class Graph:
 
     # functions and calls
 
-    def get_func_decl_objs_by_ast_node(self, ast_node):
+    def get_func_decl_objs_by_ast_node(self, ast_node, scope=None):
         objs = []
         edges = self.get_in_edges(ast_node, edge_type='OBJ_TO_AST')
         for edge in edges:
             # avoid function run objects
             if self.get_node_attr(edge[0]).get('type') == 'function':
                 objs.append(edge[0])
+        if scope is not None:
+            objs = list(filter(lambda obj: self.has_path(scope, obj), objs))
+            if len(objs) > 1:
+                self.logger.warning('Function {} is declared as multiple objects in scope {}'
+                    .format(ast_node, scope))
         return objs
 
     def get_func_scopes_by_obj_node(self, obj_node):

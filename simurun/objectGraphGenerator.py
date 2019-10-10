@@ -677,14 +677,11 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         return NodeHandleResult(obj_nodes=module_exports_objs)
 
     elif cur_type in ['AST_FUNC_DECL', 'AST_CLOSURE']:
-        func_obj = decl_function(G, node_id)
-        if func_obj is not None:
-            obj_nodes = [func_obj]
-        else: # the function has been declared
-            obj_nodes = G.get_func_decl_objs_by_ast_node(node_id)
-        logger.debug(f'Declared function obj nodes: {obj_nodes}')
+        obj_nodes = G.get_func_decl_objs_by_ast_node(node_id,
+                    scope=G.find_func_scope_from_cur_scope())
+        if not obj_nodes:
+            obj_nodes = [decl_function(G, node_id)]
         return NodeHandleResult(obj_nodes=obj_nodes)
-
 
     elif cur_type == 'AST_BINARY_OP':
         left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
@@ -837,22 +834,27 @@ def decl_vars_and_funcs(G, ast_node):
         node_type = G.get_node_attr(stmt)['type']
         if node_type == 'AST_VAR' and \
             G.get_node_attr(stmt)['flags:string[]'] == 'JS_DECL_VAR':
+            # var a;
             name = G.get_name_from_child(stmt)
             if G.get_name_node(name, scope=func_scope,
                 follow_scope_chain=False) is None:
                 G.add_obj_to_scope(name=name, scope=func_scope,
                                    tobe_added_obj=G.undefined_obj)
         elif node_type == 'AST_ASSIGN':
+            # var a = ...;
             children = G.get_ordered_ast_child_nodes(stmt)
             if G.get_node_attr(children[0])['type'] == 'AST_VAR' and \
                 G.get_node_attr(children[0])['flags:string[]'] == 'JS_DECL_VAR':
                 name = G.get_name_from_child(children[0])
+                # if name node does not exist, add a name node in the scope
+                # and assign it to the undefined object
                 if G.get_name_node(name, scope=func_scope,
                     follow_scope_chain=False) is None:
                     G.add_obj_to_scope(name=name, scope=func_scope,
                                        tobe_added_obj=G.undefined_obj)
         elif node_type == 'AST_FUNC_DECL':
-            handle_node(G, stmt)
+            func_name = G.get_name_from_child(stmt)
+            func_obj = decl_function(G, stmt)
         elif node_type == 'AST_STMT_LIST':
             decl_vars_and_funcs(G, stmt)
         elif node_type in ['AST_IF_ELEM', 'AST_FOR', 'AST_FOR_EACH',
@@ -1072,8 +1074,8 @@ def decl_function(G, node_id, func_name=None, parent_scope=None):
         added_obj: The function's object node.
     '''
     # for a function decl, if already visited, return
-    if "VISITED" in G.get_node_attr(node_id):
-        return None
+    # if "VISITED" in G.get_node_attr(node_id):
+    #     return None
 
     if parent_scope is None:
         parent_scope = G.cur_scope
@@ -1092,7 +1094,9 @@ def decl_function(G, node_id, func_name=None, parent_scope=None):
         G.add_obj_to_scope(name=func_name, scope=parent_scope,
             tobe_added_obj=added_obj)
 
-    G.set_node_attr(node_id, ("VISITED", "1"))
+    # G.set_node_attr(node_id, ("VISITED", "1"))
+
+    logger.debug(f'{sty.fg(179)}{sty.ef.b}Declare function{sty.rs.all} {func_name} as {added_obj}')
 
     return added_obj
 

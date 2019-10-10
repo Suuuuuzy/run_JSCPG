@@ -355,16 +355,12 @@ def function_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this: Nod
 
 def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, arg_array=None):
     args = []
-    print(func)
-    print(this)
-    print(arg_array)
     if arg_array is not None:
         for array in arg_array.obj_nodes: # for every possible argument array
             i = 0 # argument counter
             while True:
                 objs = G.get_prop_obj_nodes(parent_obj=array, prop_name=str(i),
                     branches=extra.branches)
-                # print(objs)
                 if objs:
                     # if the counter exceeds the length of the args array,
                     # expand it
