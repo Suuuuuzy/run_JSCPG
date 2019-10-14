@@ -3,6 +3,11 @@
 *.dat
 .testDB/
 testreport/
+/tmp/
+
+# package download
+/vul_packages/
+
 
 # global
 logs

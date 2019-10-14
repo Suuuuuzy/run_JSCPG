@@ -69,7 +69,6 @@ def get_entrance_files_of_package(package_path):
     package_json_path = os.path.join(package_path, 'package.json')
     if not validate_package(package_path):
         print("ERROR: {} do not exist".format(package_json_path)) 
-        # check one level deeper of the main folder
         return None
 
     with open(package_json_path) as fp:
@@ -78,7 +77,7 @@ def get_entrance_files_of_package(package_path):
         except:
             print("Skip special encoding {}".format(package_path))
             npm_test_logger.error("Special encoding {}".format(package_path))
-            return None
+            return [] 
 
         if 'main' not in package_json:
             main_file = 'index.js'
@@ -157,15 +156,22 @@ def test_package(package_path):
             -2, not found. package parse error
             -3, graph generation error
     """
+    # pre-filtering the signature functions by grep
+
+
     line_count = dir_line_count(package_path)
     size_count = dir_size_count(package_path)
     npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
 
     package_main_files = get_entrance_files_of_package(package_path)
+    res = []
+
+    if package_main_files is None:
+        return []
     for package_file in package_main_files:
-        res = test_file(package_file)
+        res.append(test_file(package_file))
     npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
-    return 1
+    return res
 
 def test_file(file_path):
     """
@@ -180,7 +186,6 @@ def test_file(file_path):
             -3, graph generation error
     """
 
-    print("testing {}".format(file_path))
     if file_path is None:
         npm_test_logger.error("{} not found".format(file_path))
         return -2
@@ -236,21 +241,21 @@ def main():
 
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt < 1878:
+        if cur_cnt < 0:
             continue
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package.split('/')[-1]))
         tqdm_bar.refresh()
         result = test_package(package)
-        if result == 1:
+        if 1 in result:
             success_list.append(package)
-        elif result == -1:
+        elif -1 in result:
             skip_list.append(package)
             npm_test_logger.error("Skip {} for large file".format(package))
-        elif result == -2:
+        elif -2 in result:
             not_found.append(package)
             npm_test_logger.error("Skip {} for not found main".format(package))
-        elif result == -3:
+        elif -3 in result:
             generate_error.append(package)
             npm_test_logger.error("Generate {} error".format(package))
 
@@ -265,5 +270,5 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'wxchangba'))
-#main()
+#test_package(os.path.join(root_path, 'element-ui-x'))
+main()
