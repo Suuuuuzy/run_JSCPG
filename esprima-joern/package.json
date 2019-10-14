@@ -1,11 +1,12 @@
 {
   "name": "esprima-joern",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "A tool that generates JavaScript AST for Joern",
   "main": "main.js",
   "dependencies": {
     "esprima": "^4.0.1",
-    "ansicolor": "^1.1.84"
+    "ansicolor": "^1.1.84",
+    "commander": "^3.0.2"
   },
   "devDependencies": {},
   "scripts": {

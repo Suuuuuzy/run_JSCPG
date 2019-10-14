@@ -1096,7 +1096,7 @@ def decl_function(G, node_id, func_name=None, parent_scope=None):
 
     # G.set_node_attr(node_id, ("VISITED", "1"))
 
-    logger.debug(f'{sty.fg(179)}{sty.ef.b}Declare function{sty.rs.all} {func_name} as {added_obj}')
+    logger.debug(f'{sty.ef.b}Declare function{sty.rs.all} {func_name} as {added_obj}')
 
     return added_obj
 
@@ -1117,9 +1117,9 @@ def run_toplevel_file(G: Graph, node_id):
     backup_objs = G.cur_objs
     backup_scope = G.cur_scope
 
-    func_scope = G.add_scope('FUNC_SCOPE', node_id,
-        G.call_counter.gets(f'File{node_id}'),
-        func_decl_obj, None, file_path, parent_scope=G.BASE_SCOPE)
+    func_scope = G.add_scope(scope_type='FUNC_SCOPE', decl_ast=node_id,
+        scope_name=G.call_counter.gets(f'File{node_id}'),
+        decl_obj=func_decl_obj, func_name=file_path, parent_scope=G.BASE_SCOPE)
 
     G.cur_scope = func_scope
 
@@ -1594,8 +1594,8 @@ def analyze_files(G, path, start_node_id=0, check_signatures=[]):
     """
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen([esprima_path, path,
-        str(start_node_id), '-'], text=True,
+    proc = subprocess.Popen([esprima_path, path, '-n '
+        + str(start_node_id), '-o -'], text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
     logger.info(stderr)
@@ -1609,7 +1609,7 @@ def analyze_files(G, path, start_node_id=0, check_signatures=[]):
 def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen([esprima_path, '-',
+    proc = subprocess.Popen([esprima_path, '-', '-n ' +
         str(start_node_id)], text=True, stdin=subprocess.PIPE,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate(source_code)
@@ -1628,7 +1628,7 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     # at "start_node_id"
     json_str = 'var a = ' + json_str.strip()
     #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen([esprima_path, '-',
+    proc = subprocess.Popen([esprima_path, '-', '-n ' +
         str(start_node_id - 8)], text=True, stdin=subprocess.PIPE,
         stdout=subprocess.PIPE)
     stdout, _ = proc.communicate(json_str)

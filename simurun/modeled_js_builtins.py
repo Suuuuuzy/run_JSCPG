@@ -143,7 +143,7 @@ def setup_global_functions(G: Graph):
     clear_interval = G.add_blank_func_to_scope('clearInterval', G.BASE_SCOPE, blank_func)
 
 
-def array_for_each(G: Graph, caller_ast, extra, array: NodeHandleResult, callback: NodeHandleResult):
+def array_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult()):
     branches = extra.branches
     for arr in array.obj_nodes:
         elements = G.get_prop_obj_nodes(arr, branches=branches)
@@ -160,7 +160,7 @@ def array_for_each(G: Graph, caller_ast, extra, array: NodeHandleResult, callbac
     return NodeHandleResult()
 
 
-def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, callback: NodeHandleResult):
+def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, callback=NodeHandleResult()):
     branches = extra.branches
     objs = set()
     for arr in array.obj_nodes:
@@ -178,7 +178,7 @@ def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, 
     return NodeHandleResult()
 
 
-def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResult, callback: NodeHandleResult, this: NodeHandleResult=None):
+def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResult, callback=NodeHandleResult(), this=NodeHandleResult()):
     branches = extra.branches
     objs = []
     names = []
@@ -238,8 +238,7 @@ def array_pop(G: Graph, caller_ast, extra, array: NodeHandleResult):
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
-def array_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep: NodeHandleResult = ''):
-    # the sep can be none
+def array_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep=None):
     returned_objs = []
     used_objs = set()
     for arr in array.obj_nodes:
@@ -331,9 +330,9 @@ def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult,
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=this.obj_nodes)
 
 
-def object_create(G: Graph, caller_ast, extra, proto: NodeHandleResult):
+def object_create(G: Graph, caller_ast, extra, proto=NodeHandleResult()):
     returned_objs = []
-    for p in proto:
+    for p in proto.obj_nodes:
         new_obj = G.add_obj_node(caller_ast, None)
         G.add_obj_as_prop(prop_name='__proto__', parent_obj=new_obj, tobe_added_obj=p)
         returned_objs.append(new_obj)
@@ -347,13 +346,13 @@ def object_is(G: Graph, caller_ast, extra, value1: NodeHandleResult, value2: Nod
         return NodeHandleResult(obj_nodes=G.false_obj)
 
 
-def function_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, *args):
+def function_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
     returned_objs, used_objs = objectGraphGenerator.call_function(
         G, func.obj_nodes, list(args), this, extra, caller_ast,
         stmt_id=f'Call{caller_ast}')
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
 
-def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, arg_array=None):
+def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), arg_array=None):
     args = []
     if arg_array is not None:
         for array in arg_array.obj_nodes: # for every possible argument array
@@ -377,7 +376,7 @@ def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this: No
     return function_call(G, caller_ast, extra, func, this, *args)
 
 
-def function_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this: NodeHandleResult, *args):
+def function_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
     returned_objs = []
     for f in func.obj_nodes:
         ast_node = G.get_obj_def_ast_node(f)
@@ -391,7 +390,7 @@ def function_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this: Nod
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def parse_number(G: Graph, caller_ast, extra, s: NodeHandleResult, rad=None):
+def parse_number(G: Graph, caller_ast, extra, s=NodeHandleResult(), rad=None):
     returned_objs = []
     for obj in s.obj_nodes:
         new_literal = G.add_obj_node(caller_ast, 'number')
@@ -405,7 +404,7 @@ def blank_func(G: Graph, caller_ast, extra, *args):
     return NodeHandleResult()
 
 
-def this_returning_func(G: Graph, caller_ast, extra, this: NodeHandleResult=None, *args):
+def this_returning_func(G: Graph, caller_ast, extra, this=None, *args):
     if this is None:
         return NodeHandleResult()
     else:
@@ -503,7 +502,8 @@ def regexp_constructor(G: Graph, caller_ast, extra, pattern=None, flags=None):
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def string_replace(G: Graph, caller_ast, extra, strs, substrs, new_sub_strs):
+def string_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
+    substrs=NodeHandleResult(), new_sub_strs=NodeHandleResult()):
     returned_objs = []
     for s in strs.obj_nodes:
         for substr in substrs.obj_nodes:
@@ -535,14 +535,14 @@ def string_replace(G: Graph, caller_ast, extra, strs, substrs, new_sub_strs):
         + strs.used_objs + substrs.used_objs + new_sub_strs.used_objs)))
 
 
-def string_match(G: Graph, caller_ast, extra, strs, regexps=None):
+def string_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps=None):
     if regexps is None or not regexps.obj_nodes:
         added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
         G.add_obj_as_prop(ast_node=caller_ast, js_type='string', value='', parent_obj=added_array)
         return NodeHandleResult(obj_nodes=added_array)
     returned_objs = []
-    for s in strs:
-        for regexp in regexps:
+    for s in strs.obj_nodes:
+        for regexp in regexps.obj_nodes:
             sv = G.get_node_attr(s).get('code')
             rv = G.get_node_attr(regexp).get('code')
             if sv is None or rv is None:

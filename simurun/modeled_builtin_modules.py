@@ -15,6 +15,8 @@ def get_module(G, name):
         if name in setup_module:
             return setup_module[name]
         else:
+            logger.log(ATTENTION, 'Setting up built-in module {}...'
+                .format(name))
             module_exports = modeled_modules[name](G)
             setup_module[name] = module_exports
             return module_exports
@@ -29,7 +31,8 @@ def setup_fs(G: Graph):
     return module_exports
 
 
-def read_file(G: Graph, caller_ast, extra, _, path, options=None, callback=None):
+def read_file(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
+    options=None, callback=None):
     data = read_file_sync(G, caller_ast, extra, None, path, options)
     objectGraphGenerator.call_function(G, callback.obj_nodes,
         args=[NodeHandleResult(obj_nodes=[G.null_obj]), data],
@@ -37,7 +40,8 @@ def read_file(G: Graph, caller_ast, extra, _, path, options=None, callback=None)
     return NodeHandleResult()
 
 
-def read_file_sync(G: Graph, caller_ast, extra, _, path, options=None):
+def read_file_sync(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
+    options=None):
     paths = list(filter(lambda x: x is not None, path.values))
     for obj in path.obj_nodes:
         value = G.get_node_attr(obj).get('code')
@@ -47,7 +51,7 @@ def read_file_sync(G: Graph, caller_ast, extra, _, path, options=None):
     returned_objs = []
     for path in paths:
         f = open(os.path.normpath(os.path.join(
-            G.entry_file_path, '..', path)), 'r')
+                G.entry_file_path, '..', path)), 'r')
         content = f.read()
         f.close()
         returned_values.append(content)

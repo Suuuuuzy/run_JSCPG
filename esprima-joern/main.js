@@ -2,8 +2,8 @@
 
 // setup
 
-const outputStyle = 'php'; // 'php' or 'c'
-const delimiter = '\t'; // '\t' or ','
+var outputStyle; // 'php' or 'c'
+var delimiter; // '\t' or ','
 
 const path = require('path');
 const fs = require('fs');
@@ -11,36 +11,78 @@ const esprima = require('esprima');
 const os = require('os');
 const ansicolor = require('ansicolor').nice;
 const Readable = require('stream').Readable;
+const program = require('commander');
+program
+    .version('0.10.0')
+    .usage('<filename or package name> [options]')
+    .description('A tool that generates JavaScript AST in Joern compatible CSV format.\n\n' +
+        'You can choose a filename or package name as input. Use "-" to accept stdin.')
+    .arguments('<filename or package name>')
+    .action(function (input) {
+        this.input = input;
+    })
+    .option('-o, --output <path>', 'Specify an output directory. Defaults to current working directory. ' +
+        'If input is stdin, defaults to stdout.', '.')
+    .option('-n, --start <number>', 'Specify what number the node numbers start from.')
+    .option('-s, --search [path]', "Search a package from the path. " +
+        "If it doesn't exist, it will follow Node.js's searching strategy. " +
+        "Use this option if you give a package name instead of a file name.")
+    .option('--style <php/c>', 'Output style. You can choose from "php" and "c".', 'php')
+    .option('--delimiter <comma/tab>', 'Delimiter of the output. ' +
+        'You can choose from "comma" and "tab".', 'tab');
 
-if (process.argv.length < 3) {
-    console.log('Wrong arguments: ' + process.argv);
-    console.log('Usage: ' + process.argv[1] + ' filename [start_number]');
-    process.exit();
+function invalidArguments() {
+    console.error('Invalid arguments: %s\nSee --help for a list of available commands.', program.args.join(' '));
+    process.exit(1);
 }
+
+program.parse(process.argv);
 
 // initialization
 
 var sourceCode = ""; // source code being analyzed
 var nodeIdCounter;
 var nodes = [];
-if (process.argv[3]) {
-    nodeIdCounter = parseInt(process.argv[3]);
-} else {
-    if (outputStyle == 'php') {
+
+switch (program.style.toLowerCase()){
+    case 'php':
+        outputStyle = 'php';
         nodeIdCounter = 0;
-    } else if (outputStyle == 'c') {
+        break;
+    case 'c':
+        outputStyle = 'c';
         nodeIdCounter = 1;
-    }
+        break;
+    default:
+        invalidArguments();
+        break;
+}
+switch (program.delimiter.toLowerCase()){
+    case 'tab':
+        delimiter = '\t';
+        break;
+    case 'comma':
+        delimiter = ',';
+        break;
+    default:
+        invalidArguments();
+        break;
+}
+if (program.start !== undefined){
+    nodeIdCounter = program.start;
 }
 
-var dirname = process.argv[2];
+var dirname = program.input;
 var filename = "";
 
 var requiredModules = new Set(),
     analyzedModules = [];
 const builtInModules = require('module').builtinModules;
 
-var stdoutMode = dirname == '-' || process.argv[process.argv.length - 1] == '-';
+var stdoutMode = false;
+if (program.output.trim() ==='-' || (program.input.trim() === '-' && program.output === undefined)){
+    stdoutMode = true;
+}
 
 // write csv headers
 
@@ -67,8 +109,8 @@ if (stdoutMode){
     });
 } else {
     // output to files
-    nodesStream.pipe(fs.createWriteStream('nodes.csv'));
-    relsStream.pipe(fs.createWriteStream(outputStyle == 'php' ? 'rels.csv' : 'edges.csv'));
+    nodesStream.pipe(fs.createWriteStream(path.resolve(program.output, 'nodes.csv')));
+    relsStream.pipe(fs.createWriteStream(path.resolve(program.output, outputStyle == 'php' ? 'rels.csv' : 'edges.csv')));
 }
 var parentOf;
 if (outputStyle == 'php') {
@@ -169,26 +211,12 @@ function searchModule(moduleName, requiredBy) {
             console.log(`Package ${moduleName} had been analyzed.`.white.inverse);
             return modulePath;
         } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
-            // check if package.json exists
-            let jsonPath = path.resolve(currentPath, 'package.json');
-            let main;
-            if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
-                try {
-                    main = JSON.parse(fs.readFileSync(jsonPath, 'utf8'))['main'];
-                } catch (e) {
-                    console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
-                }
-            }
-            main = main || 'main.js';
-            let mainPath = path.resolve(currentPath, main);
-            if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
-                console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
-                found = true;
-                modulePath = mainPath;
-                return modulePath;
+            let mainPath = searchMain(currentPath);
+            if (mainPath != null){
+                return mainPath;
             }
         }
-    } else { // module name is not a path
+    } else { // module name is a name (not a path)
         for (let p of searchPaths) {
             let currentPath = path.resolve(p, moduleName);
             if (requiredModules.has(currentPath)) {
@@ -197,26 +225,9 @@ function searchModule(moduleName, requiredBy) {
                 console.log(`Package ${moduleName} had been analyzed.`.white.inverse);
                 return modulePath;
             } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
-                // check if package.json exists
-                let jsonPath = path.resolve(currentPath, 'package.json');
-                let main;
-                if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
-                    try {
-                        main = JSON.parse(fs.readFileSync(jsonPath, 'utf8'))['main'];
-                    } catch (e) {
-                        console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
-                    }
-                }
-                main = main || 'index.js';
-                let mainPath = path.resolve(currentPath, main);
-                if (fs.existsSync(mainPath) && fs.statSync(mainPath).isDirectory()){
-                    mainPath = path.resolve(mainPath, 'index.js');
-                }
-                if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
-                    console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
-                    found = true;
-                    modulePath = mainPath;
-                    return modulePath;
+                let mainPath = searchMain(currentPath);
+                if (mainPath != null){
+                    return mainPath;
                 }
             }
         }
@@ -225,6 +236,31 @@ function searchModule(moduleName, requiredBy) {
         console.error(`Error: required package ${moduleName} not found.`.lightRed.inverse);
     }
     return modulePath;
+}
+
+function searchMain(packagePath){
+    // check if package.json exists
+    let jsonPath = path.resolve(packagePath, 'package.json');
+    let main;
+    if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
+        try {
+            main = JSON.parse(fs.readFileSync(jsonPath, 'utf8'))['main'];
+        } catch (e) {
+            console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
+        }
+    }
+    main = main || 'index.js';
+    let mainPath = path.resolve(packagePath, main);
+    if (fs.existsSync(mainPath) && fs.statSync(mainPath).isDirectory()){
+        mainPath = path.resolve(mainPath, 'index.js');
+    }
+    if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
+        console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
+        found = true;
+        modulePath = mainPath;
+        return modulePath;
+    }
+    return null;
 }
 
 // convert every node in AST
@@ -2891,16 +2927,26 @@ function analyze(filePath, parentNodeId) {
 
 // main
 
-// analyze the designated source code files
-if (dirname == '-'){
-    // analyze stdin
-    analyze(null, null);
+if (program.search){
+    if (program.search === true)
+        program.search = '.';
+    // search module in the specified path
+    modulePath = searchModule(program.input, program.search);
+    if (modulePath && !requiredModules.has(modulePath)) {
+        requiredModules.add(modulePath);
+    }
 } else {
-    // analyze files
-    if (!fs.statSync(dirname).isDirectory()) {
-        analyze(dirname, null);
+    // analyze the designated source code files
+    if (program.input === '--'){
+        // analyze stdin
+        analyze(null, null);
     } else {
-        walkDir(dirname, null, analyze);
+        // analyze files
+        if (!fs.statSync(dirname).isDirectory()) {
+            analyze(dirname, null);
+        } else {
+            walkDir(dirname, null, analyze);
+        }
     }
 }
 
