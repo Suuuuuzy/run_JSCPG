@@ -164,6 +164,7 @@ def test_package(package_path):
     npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
 
     package_main_files = get_entrance_files_of_package(package_path)
+    print(package_main_files)
     res = []
 
     if package_main_files is None:
@@ -185,6 +186,7 @@ def test_file(file_path):
             -2, not found. package parse error
             -3, graph generation error
     """
+    print("testing {}".format(file_path))
 
     if file_path is None:
         npm_test_logger.error("{} not found".format(file_path))
@@ -270,5 +272,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package(os.path.join(root_path, 'element-ui-x'))
-main()
+#test_package(os.path.join(root_path, 'thaumaturgy'))
+test_package(os.path.join(root_path, 'are-we-there-yet'))
+#main()
