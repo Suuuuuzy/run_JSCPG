@@ -353,7 +353,8 @@ class Graph:
         """
         return AST children of a node in childnum order
         """
-        children = sorted(self._get_childern_by_childnum(node_id).items(), key=lambda x: int(x[0]))
+        children = sorted(self._get_childern_by_childnum(node_id).items(),
+                            key=lambda x: int(x[0]))
         if children:
             children = list(zip(*children))[1]
         return children

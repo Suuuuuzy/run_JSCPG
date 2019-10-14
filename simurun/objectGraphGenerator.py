@@ -519,9 +519,8 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     """
     cur_node_attr = G.get_node_attr(node_id)
     cur_type = cur_node_attr['type']
-    if 'lineno:int' not in cur_node_attr:
-        cur_node_attr['lineno:int'] = ''
-    node_name = G.get_name_from_child(node_id, 2)
+    cur_lineno = cur_node_attr['lineno:int']
+    node_name = cur_node_attr.get('name') or G.get_name_from_child(node_id, 2)
     node_color = sty.fg.li_white + sty.bg.li_black
     if G.get_node_attr(node_id).get('labels:label') == 'Artificial':
         node_color = sty.fg.li_white + sty.bg.red
@@ -537,15 +536,20 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         #if len(node_code) > 100: node_code = ''
         
 
-    logger.info(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE {node_id}{sty.rs.all} "
-    f"(Line {cur_node_attr['lineno:int']}): {node_color}{cur_type}{sty.rs.all}"
-    f" {node_name or ''}{sty.rs.all}, {node_code or ''}")
+    logger.info(f"{sty.ef.b}{sty.fg.cyan}HANDLE NODE {node_id}{sty.rs.all}" +
+        (f" (Line {cur_lineno})" if cur_lineno else "") +
+        f": {node_color}{cur_type}{sty.rs.all}"
+        f" {node_name or ''}{sty.rs.all}, {node_code or ''}")
 
     # remove side information
     # because assignment's side affects its direct children
     extra = ExtraInfo(extra, side=None)
 
-    if cur_type == "AST_PARAM":
+    if cur_type == 'File' or cur_type == 'Directory':
+        for child in G.get_child_nodes(node_id):
+            handle_node(G, child, extra)
+
+    elif cur_type == "AST_PARAM":
         '''
         node_name = G.get_name_from_child(node_id)
         # assume we only have on reaches edge to this node
@@ -1594,8 +1598,8 @@ def analyze_files(G, path, start_node_id=0, check_signatures=[]):
     """
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen([esprima_path, path, '-n '
-        + str(start_node_id), '-o -'], text=True,
+    proc = subprocess.Popen([esprima_path, path, '-n',
+        str(start_node_id), '-o', '-'], text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
     logger.info(stderr)
@@ -1603,20 +1607,20 @@ def analyze_files(G, path, start_node_id=0, check_signatures=[]):
     if not G.check_signature_functions(check_signatures):
         return False 
 
-    generate_obj_graph(G, str(start_node_id + 1))
+    generate_obj_graph(G, str(start_node_id))
     return True
 
 def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen([esprima_path, '-', '-n ' +
+    proc = subprocess.Popen([esprima_path, '-', '-n',
         str(start_node_id)], text=True, stdin=subprocess.PIPE,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate(source_code)
     logger.info(stderr)
     G.import_from_string(stdout)
     if toplevel:
-        generate_obj_graph(G, str(start_node_id + 1))
+        generate_obj_graph(G, str(start_node_id))
 
 def analyze_json(G, json_str, start_node_id=0, extra=None):
     # This function is almost the same as analyze_string,
@@ -1628,7 +1632,7 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     # at "start_node_id"
     json_str = 'var a = ' + json_str.strip()
     #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen([esprima_path, '-', '-n ' +
+    proc = subprocess.Popen([esprima_path, '-', '-n',
         str(start_node_id - 8)], text=True, stdin=subprocess.PIPE,
         stdout=subprocess.PIPE)
     stdout, _ = proc.communicate(json_str)

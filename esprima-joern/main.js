@@ -22,7 +22,7 @@ program
         this.input = input;
     })
     .option('-o, --output <path>', 'Specify an output directory. Defaults to current working directory. ' +
-        'If input is stdin, defaults to stdout.', '.')
+        'If input is stdin, defaults to stdout.')
     .option('-n, --start <number>', 'Specify what number the node numbers start from.')
     .option('-s, --search [path]', "Search a package from the path. " +
         "If it doesn't exist, it will follow Node.js's searching strategy. " +
@@ -69,7 +69,7 @@ switch (program.delimiter.toLowerCase()){
         break;
 }
 if (program.start !== undefined){
-    nodeIdCounter = program.start;
+    nodeIdCounter = parseInt(program.start);
 }
 
 var dirname = program.input;
@@ -80,7 +80,7 @@ var requiredModules = new Set(),
 const builtInModules = require('module').builtinModules;
 
 var stdoutMode = false;
-if (program.output.trim() ==='-' || (program.input.trim() === '-' && program.output === undefined)){
+if (program.output ==='-' || (program.input === '-' && program.output === undefined)){
     stdoutMode = true;
 }
 
@@ -108,6 +108,7 @@ if (stdoutMode){
         stdout(relsString);
     });
 } else {
+    program.output = program.output || '.';
     // output to files
     nodesStream.pipe(fs.createWriteStream(path.resolve(program.output, 'nodes.csv')));
     relsStream.pipe(fs.createWriteStream(path.resolve(program.output, outputStyle == 'php' ? 'rels.csv' : 'edges.csv')));
