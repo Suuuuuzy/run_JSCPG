@@ -214,6 +214,9 @@ function searchModule(moduleName, requiredBy) {
         } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
             let mainPath = searchMain(currentPath);
             if (mainPath != null){
+                console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
+                found = true;
+                modulePath = mainPath;
                 return mainPath;
             }
         }
@@ -228,6 +231,9 @@ function searchModule(moduleName, requiredBy) {
             } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
                 let mainPath = searchMain(currentPath);
                 if (mainPath != null){
+                    console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
+                    found = true;
+                    modulePath = mainPath;
                     return mainPath;
                 }
             }
@@ -239,7 +245,7 @@ function searchModule(moduleName, requiredBy) {
     return modulePath;
 }
 
-function searchMain(packagePath){
+function searchMain(packagePath,){
     // check if package.json exists
     let jsonPath = path.resolve(packagePath, 'package.json');
     let main;
@@ -256,10 +262,7 @@ function searchMain(packagePath){
         mainPath = path.resolve(mainPath, 'index.js');
     }
     if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
-        console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
-        found = true;
-        modulePath = mainPath;
-        return modulePath;
+        return mainPath;
     }
     return null;
 }
