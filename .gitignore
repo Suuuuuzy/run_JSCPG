@@ -1,8 +1,14 @@
 *.pyc
 *.log
 *.dat
+/package-lock.json
 .testDB/
 testreport/
+/tmp/
+
+# package download
+/vul_packages/
+
 
 # global
 logs
