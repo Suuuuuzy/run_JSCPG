@@ -1156,38 +1156,44 @@ def handle_require(G, node_id, extra=ExtraInfo()):
     arg_list = G.get_ordered_ast_child_nodes(
         G.get_ordered_ast_child_nodes(node_id)[-1] )
     handled_module_name = handle_node(G, arg_list[0], extra)
-    module_names = list(filter(lambda x: x is not None,
-                        handled_module_name.values))
-    for obj in handled_module_name.obj_nodes:
-        value = G.get_node_attr(obj).get('code')
-        if value is not None:
-            module_names.append(value)
-
+    module_names = to_values(G, handled_module_name, node_id)[0]
     if not module_names: return [], []
-    module_name = module_names[0] # TODO: multiple possibilities
 
-    if module_name in modeled_builtin_modules.modeled_modules:
-        return [modeled_builtin_modules.get_module(G, module_name)], []
-
-    # module's path is in 'name' field
-    file_name = G.get_node_attr(node_id).get('name')
-    toplevel_nodes = G.get_nodes_by_type_and_flag('AST_TOPLEVEL', 'TOPLEVEL_FILE')
-    module_exports_objs = []
-    found = False
-    if module_name and file_name:
-        for node in toplevel_nodes:
-            # file_name = G.get_node_attr(node).get('name')
-            # module_name = re.search(r'([^/\\]*)$', file_name)[1]
-            # if module_name in file_name:
-            #     added_obj, added_scope, module_exports = run_toplevel_file(G, node)
-            #     break
-            if G.get_node_attr(node).get('name') == file_name:
-                found = True
-                _, module_exports_objs = run_toplevel_file(G, node)
-                break
-    if not found:
-        logger.error("Required module {} at {} not found!".format(module_name, file_name))
-    # returned_objs = [module_exports] if module_exports is not None else []
+    returned_objs = set()
+    for module_name in module_names:
+        if module_name in modeled_builtin_modules.modeled_modules:
+            # Python-modeled built-in modules
+            returned_objs.add(
+                modeled_builtin_modules.get_module(G, module_name))
+        else:
+            # actual JS modules
+            # module's path is in 'name' field
+            file_name = G.get_node_attr(node_id).get('name')
+            toplevel_nodes = G.get_nodes_by_type_and_flag(
+                'AST_TOPLEVEL', 'TOPLEVEL_FILE')
+            module_exports_objs = []
+            found = False
+            if module_name and file_name:
+                for node in toplevel_nodes:
+                    if G.get_node_attr(node).get('name') == file_name:
+                        found = True
+                        # if a file has been required, skip the run and return
+                        # the saved module.exports
+                        saved_module_exports = \
+                            G.get_node_attr(node).get('module_exports')
+                        if saved_module_exports != None:
+                            module_exports_objs = saved_module_exports
+                            break
+                        else:
+                            _, module_exports_objs = run_toplevel_file(G, node)
+                            G.set_node_attr(node,
+                                ('module_exports', module_exports_objs))
+                            break
+            if found:
+                returned_objs.update(module_exports_objs)
+            else:
+                logger.error("Required module {} at {} not found!".format(
+                    module_name, file_name))
     return module_exports_objs, []
 
 def ast_call_function(G, ast_node, extra):
