@@ -63,7 +63,7 @@ def run_unittest(file_path, standard_graph_path):
 
     Args:
         file_path: the path to the file
-
+        standard_graph_path: the path to the standard graph
     Return: 
         G: the graph 
     """
@@ -121,10 +121,27 @@ class TestObjectGraphGeneration(unittest.TestCase):
         res = run_unittest("./tests/forTest.js", "./stardards/for.pickle")
         self.assertTrue(res)
 
+    def test_array(self):
+        res = run_unittest("./tests/array-test.js", "./stardards/array-test.pickle")
+        self.assertTrue(res)
+
+    def test_fibonacci(self):
+        res = run_unittest("./tests/fibonacci.js", "./stardards/fibonacci.pickle")
+        self.assertTrue(res)
+
+    def test_sha1(self):
+        res = run_unittest("./tests/sha1.js", "./stardards/sha1.pickle")
+        self.assertTrue(res)
+
 if __name__ == '__main__':
-    # add_unittest("growl", "./tests/growl.js")
-    # add_unittest("vul_demo", "./tests/vul_demo.js")
-    # add_unittest("grammer", "./tests/grammer.js")
-    # add_unittest("for", "./tests/forTest.js")
+    """
+    add_unittest("growl", "./tests/growl.js")
+    add_unittest("vul_demo", "./tests/vul_demo.js")
+    add_unittest("grammer", "./tests/grammer.js")
+    add_unittest("for", "./tests/forTest.js")
+    add_unittest("array-test", "./tests/array-test.js")
+    add_unittest("sha1", "./tests/sha1.js")
+    add_unittest("fibonacci", "./tests/fibonacci.js")
+    """
     suite = unittest.TestLoader().loadTestsFromTestCase(TestObjectGraphGeneration)
     unittest.TextTestRunner(verbosity=2).run(suite)
