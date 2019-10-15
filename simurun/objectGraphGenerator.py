@@ -642,7 +642,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
                 if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
                     # we use the function scope
                     name_node = G.add_name_node(var_name,
-                                    scope=G.find_func_scope_from_cur_scope())
+                                    scope=G.find_ancestor_scope())
                 elif cur_node_attr.get('flags:string[]') in [
                     'JS_DECL_LET', 'JS_DECL_CONST']:
                     # we use the block scope                
@@ -682,7 +682,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
     elif cur_type in ['AST_FUNC_DECL', 'AST_CLOSURE']:
         obj_nodes = G.get_func_decl_objs_by_ast_node(node_id,
-                    scope=G.find_func_scope_from_cur_scope())
+                    scope=G.find_ancestor_scope())
         if not obj_nodes:
             obj_nodes = [decl_function(G, node_id)]
         return NodeHandleResult(obj_nodes=obj_nodes)
@@ -832,7 +832,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 def decl_vars_and_funcs(G, ast_node):
     # pre-declare variables and functions
     # TODO: multiple possibilities?
-    func_scope = G.find_func_scope_from_cur_scope()
+    func_scope = G.find_ancestor_scope()
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     for stmt in stmts:
         node_type = G.get_node_attr(stmt)['type']
@@ -904,8 +904,8 @@ def simurun_block(G, ast_node, parent_scope, branches=BranchTagContainer(), bloc
         parent_scope = G.cur_scope
     if block_scope:
         G.cur_scope = \
-            G.add_scope('BLOCK_SCOPE', ast_node,
-                        G.call_counter.gets(f'Block{ast_node}'))
+            G.add_scope('BLOCK_SCOPE', decl_ast=ast_node,
+                        scope_name=G.call_counter.gets(f'Block{ast_node}'))
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     # simulate statements
     for stmt in stmts:
@@ -1119,7 +1119,7 @@ def run_toplevel_file(G: Graph, node_id):
 
     # add function object and scope
     func_decl_obj = decl_function(G, node_id, func_name=file_path, parent_scope=G.BASE_SCOPE)
-    func_scope = G.add_scope(scope_type='FUNC_SCOPE', decl_ast=node_id,
+    func_scope = G.add_scope(scope_type='FILE_SCOPE', decl_ast=node_id,
         scope_name=G.call_counter.gets(f'File{node_id}'),
         decl_obj=func_decl_obj, func_name=file_path, parent_scope=G.BASE_SCOPE)
 
@@ -1182,7 +1182,7 @@ def handle_require(G, node_id, extra=ExtraInfo()):
             if not module_exports_objs:
                 # check if the file's AST is in the graph
                 proc = subprocess.Popen([search_js_path, module_name,
-                    G.cur_file_path], text=True,
+                    G.get_cur_file_path()], text=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, stderr = proc.communicate()
                 logger.info(stderr)
@@ -1217,7 +1217,7 @@ def handle_require(G, node_id, extra=ExtraInfo()):
             else:
                 logger.error("Required module {} at {} not found!".format(
                     module_name, file_path))
-    return module_exports_objs, []
+    return returned_objs, []
 
 def get_module_exports(G, file_path):
     toplevel_nodes = G.get_nodes_by_type_and_flag(

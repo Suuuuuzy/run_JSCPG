@@ -917,14 +917,15 @@ class Graph:
             self.set_node_attr(new_scope_node, ('func_name', func_name))
         return new_scope_node
 
-    def find_func_scope_from_cur_scope(self, cur_scope=None):
+    def find_ancestor_scope(self, scope_type='FUNC_SCOPE', cur_scope=None):
         '''
-        Find function scope from the current (block) scope.
+        Find ancestor (file/function) scope from the current (block)
+        scope.
         '''
         if cur_scope is None:
             cur_scope = self.cur_scope
         while True:
-            if self.get_node_attr(cur_scope).get('type') == 'FUNC_SCOPE':
+            if self.get_node_attr(cur_scope).get('type') == scope_type:
                 return cur_scope
             edges = self.get_in_edges(cur_scope, edge_type='PARENT_SCOPE_OF')
             if edges:
@@ -1087,12 +1088,21 @@ class Graph:
 
     def get_self_invoke_node_by_caller(self, caller_id):
         """
+        Deprecated
+
         get the closure of self invoke function by the caller id
         
         Args:
             caller_id: the node id of the caller
         """
         return self._get_childern_by_childnum(caller_id)['0']
+
+    def get_cur_file_path(self, cur_scope=None):
+        file_scope = self.find_ancestor_scope(cur_scope=cur_scope,
+            scope_type='FILE_SCOPE')
+        file_ast = self.get_out_edges(file_scope,
+                        edge_type='SCOPE_TO_AST')[0][1]
+        return self.get_node_attr(file_ast).get('name')
 
 
     # prototype
