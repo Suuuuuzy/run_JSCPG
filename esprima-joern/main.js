@@ -156,116 +156,8 @@ function getFunctionDef(node) {
     return id + ' (' + pl + ')';
 };
 
-function searchModule(moduleName, requiredBy) {
-    if (builtInModules.includes(moduleName)) {
-        // console.log(`${moduleName.blue.bright} is a built-in module.`);
-        let searchPaths = new Set();
-        let currentSearchPath = path.resolve(requiredBy, '.');
-        while (currentSearchPath != '/') { // this probably will only work under Linux/Unix
-            searchPaths.add(path.resolve(currentSearchPath, 'builtin_packages'));
-            currentSearchPath = path.resolve(currentSearchPath, '..');
-        }
-        for (let p of searchPaths) {
-          filePath = path.resolve(p, moduleName + '.js');
-          console.log(filePath);
-          if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-              console.log(`Package ${moduleName} found at ${filePath}.`.white.inverse);
-              return filePath;
-          }
-        }
-        return 'built-in';
-    }
-    let searchPaths = new Set();
-    let currentSearchPath = path.resolve(requiredBy, '..');
-    while (currentSearchPath != '/') { // this probably will only work under Linux/Unix
-        searchPaths.add(path.resolve(currentSearchPath, 'node_modules'));
-        currentSearchPath = path.resolve(currentSearchPath, '..');
-    }
-    searchPaths.add('/node_modules');
-    searchPaths.add(path.resolve(os.homedir(), '.node_modules'));
-    searchPaths.add(path.resolve(os.homedir(), '.node_libraries'));
-    searchPaths.add(path.resolve(os.homedir(), 'packagecrawler'));
-    console.log(`Search ${moduleName.blue.bright} in ${Array.from(searchPaths)}`);
-    let found = false;
-    let modulePath = null;
-    if (moduleName.match(/\/|\\/)) { // module name is a path
-        let currentPath = path.resolve(requiredBy, '..', moduleName);
-        // search file
-        if (!moduleName.endsWith('.js'))
-            currentPath += '.js';
-        if (requiredModules.has(currentPath)) {
-            found = true;
-            modulePath = currentPath;
-            console.log(`Package ${moduleName} had been analyzed.`.white.inverse);
-            return modulePath;
-        } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isFile()) {
-            console.log(`Package ${moduleName} found at ${currentPath}`.white.inverse);
-            found = true;
-            modulePath = currentPath;
-            return modulePath;
-        }
-        // search directory
-        currentPath = path.resolve(requiredBy, '..', moduleName);
-        if (requiredModules.has(currentPath)) {
-            found = true;
-            modulePath = currentPath;
-            console.log(`Package ${moduleName} had been analyzed.`.white.inverse);
-            return modulePath;
-        } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
-            let mainPath = searchMain(currentPath);
-            if (mainPath != null){
-                console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
-                found = true;
-                modulePath = mainPath;
-                return mainPath;
-            }
-        }
-    } else { // module name is a name (not a path)
-        for (let p of searchPaths) {
-            let currentPath = path.resolve(p, moduleName);
-            if (requiredModules.has(currentPath)) {
-                found = true;
-                modulePath = currentPath;
-                console.log(`Package ${moduleName} had been analyzed.`.white.inverse);
-                return modulePath;
-            } else if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
-                let mainPath = searchMain(currentPath);
-                if (mainPath != null){
-                    console.log(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
-                    found = true;
-                    modulePath = mainPath;
-                    return mainPath;
-                }
-            }
-        }
-    }
-    if (!found) {
-        console.error(`Error: required package ${moduleName} not found.`.lightRed.inverse);
-    }
-    return modulePath;
-}
-
-function searchMain(packagePath,){
-    // check if package.json exists
-    let jsonPath = path.resolve(packagePath, 'package.json');
-    let main;
-    if (fs.existsSync(jsonPath) && fs.statSync(jsonPath).isFile()) {
-        try {
-            main = JSON.parse(fs.readFileSync(jsonPath, 'utf8'))['main'];
-        } catch (e) {
-            console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
-        }
-    }
-    main = main || 'index.js';
-    let mainPath = path.resolve(packagePath, main);
-    if (fs.existsSync(mainPath) && fs.statSync(mainPath).isDirectory()){
-        mainPath = path.resolve(mainPath, 'index.js');
-    }
-    if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
-        return mainPath;
-    }
-    return null;
-}
+const searchModule = require('./search.js').searchModule;
+const searchMain = require('./search.js').searchMain;
 
 // convert every node in AST
 
@@ -1812,7 +1704,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             if (currentNode.callee && currentNode.callee.name == 'require') {
                 if (currentNode.arguments && currentNode.arguments.length >= 1 && currentNode.arguments[0].type == 'Literal') {
                     let moduleName = currentNode.arguments[0].value;
-                    modulePath = searchModule(moduleName, filename);
+                    modulePath = searchModule(moduleName, filename)[0];
                     if (modulePath && !requiredModules.has(modulePath)) {
                         requiredModules.add(modulePath);
                     }
@@ -2935,7 +2827,7 @@ if (program.search){
     if (program.search === true)
         program.search = '.';
     // search module in the specified path
-    modulePath = searchModule(program.input, program.search);
+    modulePath = searchModule(program.input, program.search)[0];
     if (modulePath && !requiredModules.has(modulePath)) {
         requiredModules.add(modulePath);
     }

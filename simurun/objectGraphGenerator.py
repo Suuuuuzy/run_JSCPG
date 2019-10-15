@@ -1109,22 +1109,21 @@ def run_toplevel_file(G: Graph, node_id):
     run a top level file 
     return a obj and scope
     """
-    # add scope and obj first
+    # switch current file path
     file_path = G.get_node_attr(node_id)['name']
+    previous_file_path = G.cur_file_path
     G.cur_file_path = file_path
     if G.entry_file_path is None:
         G.entry_file_path = file_path
     logger.info(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(file_path) + sty.rs.all)
+
+    # add function object and scope
     func_decl_obj = decl_function(G, node_id, func_name=file_path, parent_scope=G.BASE_SCOPE)
-
-    # simurun the file
-    backup_objs = G.cur_objs
-    backup_scope = G.cur_scope
-
     func_scope = G.add_scope(scope_type='FUNC_SCOPE', decl_ast=node_id,
         scope_name=G.call_counter.gets(f'File{node_id}'),
         decl_obj=func_decl_obj, func_name=file_path, parent_scope=G.BASE_SCOPE)
 
+    backup_scope = G.cur_scope
     G.cur_scope = func_scope
 
     # add module object to the current file's scope
@@ -1135,9 +1134,11 @@ def run_toplevel_file(G: Graph, node_id):
     # add module.exports as exports
     G.add_obj_to_scope(name="exports", tobe_added_obj=added_module_exports)
     # "this" is set to module.exports by default
+    # backup_objs = G.cur_objs
     # G.cur_objs = added_module_exports
     G.add_obj_to_scope(name="this", tobe_added_obj=added_module_exports)
-    
+
+    # simurun the file
     simurun_function(G, node_id)
 
     # get current module.exports
@@ -1147,7 +1148,10 @@ def run_toplevel_file(G: Graph, node_id):
     module_exports_objs = G.get_prop_obj_nodes(parent_obj=module_obj,
         prop_name='exports')
 
+    # switch back scope, object and path
     G.cur_scope = backup_scope
+    # G.cur_objs = backup_objs
+    G.cur_file_path = previous_file_path
 
     return func_scope, module_exports_objs
 
@@ -1167,34 +1171,79 @@ def handle_require(G, node_id, extra=ExtraInfo()):
                 modeled_builtin_modules.get_module(G, module_name))
         else:
             # actual JS modules
+            # static require (module name is a literal)
             # module's path is in 'name' field
-            file_name = G.get_node_attr(node_id).get('name')
-            toplevel_nodes = G.get_nodes_by_type_and_flag(
-                'AST_TOPLEVEL', 'TOPLEVEL_FILE')
+            file_path = G.get_node_attr(node_id).get('name')
             module_exports_objs = []
-            found = False
-            if module_name and file_name:
-                for node in toplevel_nodes:
-                    if G.get_node_attr(node).get('name') == file_name:
-                        found = True
-                        # if a file has been required, skip the run and return
-                        # the saved module.exports
-                        saved_module_exports = \
-                            G.get_node_attr(node).get('module_exports')
-                        if saved_module_exports != None:
-                            module_exports_objs = saved_module_exports
-                            break
-                        else:
-                            _, module_exports_objs = run_toplevel_file(G, node)
-                            G.set_node_attr(node,
-                                ('module_exports', module_exports_objs))
-                            break
-            if found:
+            if module_name and file_path:
+                module_exports_objs = \
+                    get_module_exports(G, file_path)
+            # dynamic require (module name is a variable)
+            if not module_exports_objs:
+                # check if the file's AST is in the graph
+                proc = subprocess.Popen([search_js_path, module_name,
+                    G.cur_file_path], text=True,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = proc.communicate()
+                logger.info(stderr)
+                file_path = stdout.split('\n')[0]
+                if not file_path: # module not found
+                    continue
+                elif file_path == 'built-in': # unmodeled built-in module
+                    continue
+                else:
+                    module_exports_objs = \
+                        get_module_exports(G, file_path)
+            if not module_exports_objs:
+                # if the file's AST is not in the graph,
+                # generate its AST and run it
+                logger.log(ATTENTION, f'Generating AST on demand for module '
+                    f'{module_name} at {file_path}...')
+
+                # following code is copied from analyze_files,
+                # consider combining in future.
+                start_id = str(G.cur_id)
+                proc = subprocess.Popen([esprima_path, file_path, '-n',
+                    start_id, '-o', '-'], text=True,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = proc.communicate()
+                logger.info(stderr)
+                G.import_from_string(stdout)
+                _, module_exports_objs = run_toplevel_file(G, start_id)
+                G.set_node_attr(start_id,
+                    ('module_exports', module_exports_objs))
+            if module_exports_objs:
                 returned_objs.update(module_exports_objs)
             else:
                 logger.error("Required module {} at {} not found!".format(
-                    module_name, file_name))
+                    module_name, file_path))
     return module_exports_objs, []
+
+def get_module_exports(G, file_path):
+    toplevel_nodes = G.get_nodes_by_type_and_flag(
+        'AST_TOPLEVEL', 'TOPLEVEL_FILE')
+    found = False
+    for node in toplevel_nodes:
+        if G.get_node_attr(node).get('name') == file_path:
+            found = True
+            # if a file has been required, skip the run and return
+            # the saved module.exports
+            saved_module_exports = G.get_node_attr(node).get('module_exports')
+            if saved_module_exports != None:
+                module_exports_objs = saved_module_exports
+                logger.log(ATTENTION, 'File has been required, '
+                    'return saved module.exports {} for {}'
+                    .format(module_exports_objs, file_path))
+                break
+            else:
+                _, module_exports_objs = run_toplevel_file(G, node)
+                G.set_node_attr(node,
+                    ('module_exports', module_exports_objs))
+                break
+    if found:
+        return module_exports_objs
+    else:
+        return []
 
 def ast_call_function(G, ast_node, extra):
     '''
@@ -1596,6 +1645,8 @@ def generate_obj_graph(G, entry_nodeid):
 
 esprima_path = os.path.realpath(os.path.join(__file__,
                                 '../../esprima-joern/main.js'))
+search_js_path = os.path.realpath(os.path.join(__file__,
+                                '../../esprima-joern/search.js'))
 
 
 def analyze_files(G, path, start_node_id=0, check_signatures=[]):
@@ -1616,7 +1667,7 @@ def analyze_files(G, path, start_node_id=0, check_signatures=[]):
     generate_obj_graph(G, str(start_node_id))
     return True
 
-def analyze_string(G, source_code, start_node_id=0, toplevel=False):
+def analyze_string(G, source_code, start_node_id=0, generate_graph=False):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
     proc = subprocess.Popen([esprima_path, '-', '-n',
@@ -1625,7 +1676,7 @@ def analyze_string(G, source_code, start_node_id=0, toplevel=False):
     stdout, stderr = proc.communicate(source_code)
     logger.info(stderr)
     G.import_from_string(stdout)
-    if toplevel:
+    if generate_graph:
         generate_obj_graph(G, str(start_node_id))
 
 def analyze_json(G, json_str, start_node_id=0, extra=None):
