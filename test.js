@@ -1,4 +1,2 @@
-var execFile = require('child_process').execFile;
-var runtime = process.versions['electron'] ? 'electron': 'node';
-var name = runtime + '-v' + process.versions.modules + '-' + process.platform + '-' + process.arch
-execFile(name);
+var test1 = require("/media/data/lsong18/data/npmpackages/wxchangba/src/server/app.js");
+// var test = require("./tmp/wx.js");

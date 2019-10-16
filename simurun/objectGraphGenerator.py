@@ -1112,6 +1112,7 @@ def run_toplevel_file(G: Graph, node_id):
     """
     # switch current file path
     file_path = G.get_node_attr(node_id)['name']
+    print("Running {}".format(file_path))
     previous_file_path = G.cur_file_path
     G.cur_file_path = file_path
     if G.entry_file_path is None:
@@ -1153,6 +1154,7 @@ def run_toplevel_file(G: Graph, node_id):
     G.cur_scope = backup_scope
     # G.cur_objs = backup_objs
     G.cur_file_path = previous_file_path
+    print("Finished {}".format(file_path))
 
     return module_exports_objs
 

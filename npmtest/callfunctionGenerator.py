@@ -194,7 +194,7 @@ def test_file(file_path):
         return -2
 
 
-    js_call_templete = "var main_func=require('{}');\nmain_func('var');".format(file_path)
+    js_call_templete = "var main_func=require('{}');".format(file_path)
     with open("__test__.js", 'w') as jcp:
         jcp.write(js_call_templete)
 
@@ -203,7 +203,7 @@ def test_file(file_path):
     """
 
     try:
-        G = unittest_main(file_path, check_signatures=get_all_sign_list())
+        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
@@ -229,7 +229,7 @@ def test_file(file_path):
     return 1
 
 root_path = "/media/data/lsong18/data/npmpackages/"
-root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
+#root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 
 def main():
     packages = get_list_of_packages(root_path, limit = 50000)
@@ -274,5 +274,5 @@ def main():
     
 
 #test_package(os.path.join(root_path, 'tmp'))
-#test_package(os.path.join(root_path, 'are-we-there-yet'))
-main()
+test_package(os.path.join(root_path, 'are-we-there-yet'))
+#main()

@@ -32,8 +32,8 @@ def setup_fs(G: Graph):
     return module_exports
 
 
-def read_file(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
-    options=None, callback=None):
+def read_file(G: Graph, caller_ast, extra, _=NodeHandleResult(), path=NodeHandleResult(),
+    options=None, callback=NodeHandleResult()):
     data = read_file_sync(G, caller_ast, extra, None, path, options)
     objectGraphGenerator.call_function(G, callback.obj_nodes,
         args=[NodeHandleResult(obj_nodes=[G.null_obj]), data],
@@ -41,7 +41,7 @@ def read_file(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
     return NodeHandleResult()
 
 
-def read_file_sync(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
+def read_file_sync(G: Graph, caller_ast, extra, _ =NodeHandleResult(), path=NodeHandleResult(),
     options=None):
     paths = list(filter(lambda x: x is not None, path.values))
     for obj in path.obj_nodes:
