@@ -12,7 +12,7 @@ function searchModule(moduleName, requiredBy) {
         let searchPaths = new Set();
         let currentSearchPath = path.resolve(requiredBy, '.');
         // search JavaScript-modeled built-in modules
-        while (currentSearchPath != '/') {
+        while (currentSearchPath != path.resolve(currentSearchPath, '..')) {
             searchPaths.add(path.resolve(currentSearchPath, 'builtin_packages'));
             currentSearchPath = path.resolve(currentSearchPath, '..');
         }
@@ -31,7 +31,7 @@ function searchModule(moduleName, requiredBy) {
         requiredBy = path.resolve(requiredBy, '..');
     }
     let currentSearchPath = requiredBy;
-    while (currentSearchPath != '/') { // this probably will only work under Linux/Unix
+    while (currentSearchPath != path.resolve(currentSearchPath, '..')) { // this probably will only work under Linux/Unix
         searchPaths.add(path.resolve(currentSearchPath, 'node_modules'));
         currentSearchPath = path.resolve(currentSearchPath, '..');
     }

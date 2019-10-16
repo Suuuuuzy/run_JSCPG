@@ -35,7 +35,7 @@ class Graph:
         # contains a list of node ids based on the ast id
         self.call_stack = []
 
-        csv.field_size_limit(sys.maxsize)
+        csv.field_size_limit(2 ** 31 - 1)
 
     # Basic graph operations
 
