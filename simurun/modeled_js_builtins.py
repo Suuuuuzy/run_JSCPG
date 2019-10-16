@@ -19,6 +19,7 @@ def setup_js_builtins(G: Graph):
     setup_errors(G)
     setup_global_functions(G)
     setup_global_objs(G)
+    setup_json(G)
     setup_regexp(G)
 
 
@@ -448,7 +449,7 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
     for i, arg in enumerate(args):
         used_objs.update(arg.obj_nodes)
         used_objs.update(arg.used_objs)
-        values = arg.values
+        values = list(map(str, arg.values))
         for obj in arg.obj_nodes:
             value = G.get_node_attr(obj).get('code')
             if value is not None:
@@ -463,9 +464,21 @@ def setup_json(G: Graph):
     G.add_blank_func_as_prop('stringify', console_obj, string_returning_func)
 
 
-def json_parse(G: Graph, caller_ast, extra, _, text, reviver):
-    return objectGraphGenerator.analyze_json_python(G, text, extra=extra,
-        caller_ast=caller_ast)
+def json_parse(G: Graph, caller_ast, extra, _, text=None, reviver=None):
+    json_strings, sources, _ = \
+        objectGraphGenerator.to_values(G, text, caller_ast)
+    returned_objs = []
+    used_objs = set()
+    for i, json_string in enumerate(json_strings):
+        obj = objectGraphGenerator.analyze_json_python(G, json_string,
+            extra=extra, caller_ast=caller_ast)
+        if obj is None:
+            obj = G.add_obj_node(ast_node=caller_ast)
+        for s in sources[i]:
+            G.add_edge(s, obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+            used_objs.add(s)
+        returned_objs.append(obj)
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
 
 
 def setup_regexp(G: Graph):

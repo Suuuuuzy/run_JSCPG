@@ -51,7 +51,7 @@ def read_file_sync(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
     returned_objs = []
     for path in paths:
         f = open(os.path.normpath(os.path.join(
-                G.entry_file_path, '..', path)), 'r')
+                G.get_cur_file_path(), '..', path)), 'r')
         content = f.read()
         f.close()
         returned_values.append(content)

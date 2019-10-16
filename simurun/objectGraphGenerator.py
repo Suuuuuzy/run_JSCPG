@@ -494,6 +494,8 @@ def instantiate_obj(G, exp_ast_node, constructor_decl,
     created_obj = G.add_obj_node(ast_node=exp_ast_node, js_type=None)
     # add edge between obj and obj decl
     G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
+    # build the prototype chain
+    G.build_proto(created_obj)
 
     backup_objs = G.cur_objs
 
@@ -507,9 +509,6 @@ def instantiate_obj(G, exp_ast_node, constructor_decl,
     # finally add call edge from caller to callee
     G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
                             {"type:TYPE": "CALLS"})
-
-    # build the prototype chain
-    G.build_proto(created_obj)
 
     return created_obj
 
@@ -626,9 +625,12 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         if var_name == 'this' and G.cur_objs:
             now_objs = G.cur_objs
             name_node = None
+        elif var_name == '__filename':
+            return NodeHandleResult(name=var_name, values=[
+                G.get_cur_file_path()], ast_node=node_id)
         elif var_name == '__dirname':
-            return NodeHandleResult(name=var_name, values=[G.cur_file_path],
-                ast_node=node_id)
+            return NodeHandleResult(name=var_name, values=[os.path.join(
+                G.get_cur_file_path(), '..')], ast_node=node_id)
         else:
             now_objs = []
             branches = extra.branches if extra else BranchTagContainer()
@@ -759,6 +761,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
                 value = code
         else:
             value = float(code)
+        assert value is not None
         # added_obj = G.add_obj_node(node_id, js_type, code)
         return NodeHandleResult(values=[value], ast_node=node_id)
 
@@ -1209,7 +1212,9 @@ def handle_require(G, node_id, extra=ExtraInfo()):
                 stdout, stderr = proc.communicate()
                 logger.info(stderr)
                 G.import_from_string(stdout)
-                _, module_exports_objs = run_toplevel_file(G, start_id)
+                # start from the AST_TOPLEVEL node instead of the File node
+                _, module_exports_objs = \
+                        run_toplevel_file(G, str(int(start_id) + 1))
                 G.set_node_attr(start_id,
                     ('module_exports', module_exports_objs))
             if module_exports_objs:
@@ -1624,7 +1629,8 @@ def print_handle_result(handle_result):
     if handle_result.used_objs:
         output += f', used_objs={handle_result.used_objs}'
     if handle_result.from_branches:
-        output += f', from_branches={handle_result.from_branches}'
+        output += f'{sty.fg.li_black}, from_branches=' \
+            f'{handle_result.from_branches}{sty.rs.all}'
     logger.debug(output)
 
 def generate_obj_graph(G, entry_nodeid):
@@ -1707,5 +1713,8 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     return handle_node(G, str(start_node_id), extra)
 
 def analyze_json_python(G, json_str, extra=None, caller_ast=None):
+    if json_str is None:
+        return None
     py_obj = json.loads(json_str)
+    logger.debug('Python JSON parse result: ' + str(py_obj))
     return G.generate_obj_graph_for_python_obj(py_obj, ast_node=caller_ast)

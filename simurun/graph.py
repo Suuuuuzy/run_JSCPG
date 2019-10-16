@@ -1234,14 +1234,16 @@ class Graph:
                 value=py_obj)
             for i, u in enumerate(py_obj):
                 member = self.generate_obj_graph_for_python_obj(u)
-                self.add_obj_as_prop(prop_name=i, tobe_added_obj=member)
+                self.add_obj_as_prop(prop_name=i, tobe_added_obj=member,
+                    parent_obj=obj)
             return obj
         elif type(py_obj) is dict:
             obj = self.add_obj_node(ast_node=ast_node, js_type='object',
                 value=py_obj)
             for k, v in py_obj.items():
                 member = self.generate_obj_graph_for_python_obj(v)
-                self.add_obj_as_prop(prop_name=k, tobe_added_obj=member)
+                self.add_obj_as_prop(prop_name=k, tobe_added_obj=member,
+                    parent_obj=obj)
             return obj
 
     # Analysis
