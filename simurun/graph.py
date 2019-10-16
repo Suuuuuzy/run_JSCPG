@@ -17,7 +17,8 @@ class Graph:
         self.cur_scope = None
         self.cur_id = 0
         self.entry_file_path = None
-        self.cur_file_path = None
+        self.cur_file_path = None # deprecated, use G.get_cur_file_path()
+        self.multi = False
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
 
@@ -33,6 +34,8 @@ class Graph:
 
         # contains a list of node ids based on the ast id
         self.call_stack = []
+
+        csv.field_size_limit(sys.maxsize)
 
     # Basic graph operations
 

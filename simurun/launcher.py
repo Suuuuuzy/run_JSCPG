@@ -52,7 +52,7 @@ def main():
         if args.input_file == '-':
             # analyze from stdin
             source = sys.stdin.read()
-            analyze_string(G, source, toplevel=True)
+            analyze_string(G, source, generate_graph=True)
         else:
             # analyze from JS source code files
             analyze_files(G, args.input_file)
@@ -71,6 +71,3 @@ def main():
     res_pathes = vul_checking(G, res_path[0], 'os_command')
     print(res_pathes)
     return res_path
-
-if __name__ == "__main__":
-    main()

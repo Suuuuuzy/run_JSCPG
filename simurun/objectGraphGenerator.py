@@ -1,20 +1,15 @@
 from .graph import Graph
-from .scopeController import ScopeController
 from .utilities import NodeHandleResult, ExtraInfo
 from .utilities import BranchTag, BranchTagContainer
-import sys
 import os
 import sty
-import re
-import math
-import subprocess
-import csv
 import json
 from .logger import *
 from . import modeled_js_builtins, modeled_builtin_modules
+from .helpers import to_values, to_obj_nodes
+from .esprima import esprima_parse, esprima_search
 
 registered_func = {}
-csv.field_size_limit(sys.maxsize)
 
 logger = create_logger("main_logger", output_type="file")
 
@@ -512,6 +507,57 @@ def instantiate_obj(G, exp_ast_node, constructor_decl,
 
     return created_obj
 
+def handle_var(G: Graph, ast_node, extra=ExtraInfo()):
+    cur_node_attr = G.get_node_attr(ast_node)
+    var_name = G.get_name_from_child(ast_node)
+
+    if var_name == 'this' and G.cur_objs:
+        now_objs = G.cur_objs
+        name_node = None
+    elif var_name == '__filename':
+        return NodeHandleResult(name=var_name, values=[
+            G.get_cur_file_path()], ast_node=ast_node)
+    elif var_name == '__dirname':
+        return NodeHandleResult(name=var_name, values=[os.path.join(
+            G.get_cur_file_path(), '..')], ast_node=ast_node)
+    else:
+        now_objs = []
+        branches = extra.branches if extra else BranchTagContainer()
+
+        name_node = G.get_name_node(var_name)
+        if name_node is not None:
+            now_objs = list(
+                set(G.get_objs_by_name(var_name, branches=branches)))
+        elif not (extra and extra.side == 'right'):
+            logger.log(ATTENTION, f'Name node {var_name} not found, create name node')
+            if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
+                # we use the function scope
+                name_node = G.add_name_node(var_name,
+                                scope=G.find_ancestor_scope())
+            elif cur_node_attr.get('flags:string[]') in [
+                'JS_DECL_LET', 'JS_DECL_CONST']:
+                # we use the block scope                
+                name_node = G.add_name_node(var_name, scope=G.cur_scope)
+            else:
+                # only if the variable is not defined and doesn't have
+                # 'var', 'let' or 'const', we define it in the global scope
+                name_node = G.add_name_node(var_name, scope=G.BASE_SCOPE)
+
+    name_nodes = [name_node] if name_node is not None else []
+
+    assert None not in now_objs
+
+    # add from_branches information
+    from_branches = []
+    cur_branches = extra.branches
+    for obj in now_objs:
+        from_branches.append(cur_branches.get_matched_tags(
+            G.get_node_attr(obj).get('for_tags') or []))
+
+    return NodeHandleResult(obj_nodes=now_objs, name=var_name,
+        name_nodes=name_nodes, from_branches=from_branches,
+        ast_node=ast_node)
+
 def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     """
     for different node type, do different actions to handle this node
@@ -620,54 +666,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         return NodeHandleResult(obj_nodes=value_objs, used_objs=used_objs)
 
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
-        var_name = G.get_name_from_child(node_id)
-
-        if var_name == 'this' and G.cur_objs:
-            now_objs = G.cur_objs
-            name_node = None
-        elif var_name == '__filename':
-            return NodeHandleResult(name=var_name, values=[
-                G.get_cur_file_path()], ast_node=node_id)
-        elif var_name == '__dirname':
-            return NodeHandleResult(name=var_name, values=[os.path.join(
-                G.get_cur_file_path(), '..')], ast_node=node_id)
-        else:
-            now_objs = []
-            branches = extra.branches if extra else BranchTagContainer()
-
-            name_node = G.get_name_node(var_name)
-            if name_node is not None:
-                now_objs = list(
-                    set(G.get_objs_by_name(var_name, branches=branches)))
-            elif not (extra and extra.side == 'right'):
-                logger.log(ATTENTION, f'Name node {var_name} not found, create name node')
-                if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
-                    # we use the function scope
-                    name_node = G.add_name_node(var_name,
-                                    scope=G.find_ancestor_scope())
-                elif cur_node_attr.get('flags:string[]') in [
-                    'JS_DECL_LET', 'JS_DECL_CONST']:
-                    # we use the block scope                
-                    name_node = G.add_name_node(var_name, scope=G.cur_scope)
-                else:
-                    # only if the variable is not defined and doesn't have
-                    # 'var', 'let' or 'const', we define it in the global scope
-                    name_node = G.add_name_node(var_name, scope=G.BASE_SCOPE)
-
-        name_nodes = [name_node] if name_node is not None else []
-
-        assert None not in now_objs
-
-        # add from_branches information
-        from_branches = []
-        cur_branches = extra.branches
-        for obj in now_objs:
-            from_branches.append(cur_branches.get_matched_tags(
-                G.get_node_attr(obj).get('for_tags') or []))
-
-        return NodeHandleResult(obj_nodes=now_objs, name=var_name,
-            name_nodes=name_nodes, from_branches=from_branches,
-            ast_node=node_id)
+        return handle_var(G, node_id, extra)
 
     elif cur_type == 'AST_DIM':
         # G.set_node_attr(node_id, ('type', 'AST_PROP'))
@@ -677,8 +676,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         return handle_prop(G, node_id, extra)[0]
 
     elif cur_type == 'AST_TOPLEVEL':
-        added_scope, module_exports_objs = \
-            run_toplevel_file(G, node_id)
+        module_exports_objs = run_toplevel_file(G, node_id)
 
         return NodeHandleResult(obj_nodes=module_exports_objs)
 
@@ -1156,7 +1154,7 @@ def run_toplevel_file(G: Graph, node_id):
     # G.cur_objs = backup_objs
     G.cur_file_path = previous_file_path
 
-    return func_scope, module_exports_objs
+    return module_exports_objs
 
 def handle_require(G, node_id, extra=ExtraInfo()):
     # handle module name
@@ -1184,12 +1182,8 @@ def handle_require(G, node_id, extra=ExtraInfo()):
             # dynamic require (module name is a variable)
             if not module_exports_objs:
                 # check if the file's AST is in the graph
-                proc = subprocess.Popen([search_js_path, module_name,
-                    G.get_cur_file_path()], text=True,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, stderr = proc.communicate()
-                logger.info(stderr)
-                file_path = stdout.split('\n')[0]
+                file_path, _ = \
+                    esprima_search(module_name, G.get_cur_file_path())
                 if not file_path: # module not found
                     continue
                 elif file_path == 'built-in': # unmodeled built-in module
@@ -1206,14 +1200,11 @@ def handle_require(G, node_id, extra=ExtraInfo()):
                 # following code is copied from analyze_files,
                 # consider combining in future.
                 start_id = str(G.cur_id)
-                proc = subprocess.Popen([esprima_path, file_path, '-n',
-                    start_id, '-o', '-'], text=True,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, stderr = proc.communicate()
-                logger.info(stderr)
-                G.import_from_string(stdout)
+                result = esprima_parse(file_path, ['-n', start_id, '-o', '-'],
+                    print_func=logger.info)
+                G.import_from_string(result)
                 # start from the AST_TOPLEVEL node instead of the File node
-                _, module_exports_objs = \
+                module_exports_objs = \
                         run_toplevel_file(G, str(int(start_id) + 1))
                 G.set_node_attr(start_id,
                     ('module_exports', module_exports_objs))
@@ -1241,7 +1232,7 @@ def get_module_exports(G, file_path):
                     .format(module_exports_objs, file_path))
                 break
             else:
-                _, module_exports_objs = run_toplevel_file(G, node)
+                module_exports_objs = run_toplevel_file(G, node)
                 G.set_node_attr(node,
                     ('module_exports', module_exports_objs))
                 break
@@ -1515,112 +1506,7 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         cur_stmt, cur_lineno))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
 
-def eval_value(G, s, return_node=False, ast_node=None):
-    '''
-    Experimental. Extract Python values, JavaScript types from literal
-    values (presented by JavaScript code) and create object nodes.
-    
-    Args:
-        G (Graph): Graph.
-        s (str): The literal value (as JavaScript code).
-        return_result (bool, optional): Create/return an object node for
-            the value. Defaults to False.
-        ast_node (optional): The value's AST node. Defaults to None.
-    
-    Returns:
-        evaluated, js_type, result: the Python value, JavaScript type
-            (in string), and object node (optional).
-    '''
-    js_type = None
-    result = None
-    if s == 'true':
-        evaluated = True
-        js_type = 'boolean'
-        result = NodeHandleResult(name='true', obj_nodes=[G.true_obj])
-    elif s == 'false':
-        evaluated = False
-        js_type = 'boolean'
-        result = NodeHandleResult(name='false', obj_nodes=[G.false_obj])
-    elif s == 'NaN':
-        evaluated = math.nan
-        js_type = 'number'
-        result = NodeHandleResult(name='NaN', obj_nodes=[G.false_obj])
-    elif s == 'Infinity':
-        evaluated = math.inf
-        js_type = 'number'
-        result = NodeHandleResult(name='Infinity', obj_nodes=[G.infinity_obj])
-    elif s == '-Infinity':
-        evaluated = -math.inf
-        js_type = 'number'
-        result = NodeHandleResult(name='-Infinity', obj_nodes=[
-            G.negative_infinity_obj])
-    else:
-        evaluated = eval(s)
-        if type(evaluated) is float or type(evaluated) is int:
-            js_type = 'number'
-        elif type(evaluated) is str:
-            js_type = 'string'
-        if return_node:
-            added_obj = G.add_obj_node(ast_node, js_type, s)
-            result = NodeHandleResult(obj_nodes=[added_obj])
-    if return_node:
-        return evaluated, js_type, result
-    else:
-        return evaluated, js_type
-
-def to_obj_nodes(G, handle_result, ast_node=None,
-    incl_existing_obj_nodes=True):
-    '''
-    Experimental. Converts 'values' field into object nodes.
-    Returns converted object nodes as a list.
-    '''
-    returned_objs = []
-    if handle_result.values:
-        for i, value in enumerate(handle_result.values):
-            if type(value) in [int, float]:
-                added_obj = G.add_obj_node(ast_node, 'number', value)
-            else:
-                added_obj = G.add_obj_node(ast_node, 'string', value)
-            if handle_result.value_tags:
-                G.set_node_attr(added_obj, 
-                    ('for_tags', handle_result.value_tags[i]))
-            returned_objs.append(added_obj)
-            # add CONTRIBUTES_TO edges from sources to the added object
-            if i < len(handle_result.value_sources):
-                for obj in handle_result.value_sources[i]:
-                    if obj is not None:
-                        G.add_edge(obj, added_obj,
-                            {'type:TYPE': 'CONTRIBUTES_TO'})
-    if incl_existing_obj_nodes:
-        returned_objs.extend(handle_result.obj_nodes)
-    return returned_objs
-
-def to_values(G, handle_result, ast_node=None, incl_existing_values=True):
-    '''
-    Experimental. Get values ('code' fields) in object nodes.
-    Returns values, sources and tags in lists.
-    '''
-    values = []
-    sources = []
-    tags = []
-    if incl_existing_values:
-        values = list(handle_result.values)
-        if handle_result.value_sources:
-            sources = handle_result.value_sources
-        else:
-            sources = [[]] * len(handle_result.values)
-        if handle_result.value_tags:
-            tags = handle_result.value_tags
-        else:
-            tags = [[]] * len(handle_result.values)
-    for obj in handle_result.obj_nodes:
-        value = G.get_node_attr(obj).get('code')
-        values.append(value)
-        sources.append([obj])
-        tags.append(G.get_node_attr(obj).get('for_tags', []))
-    return values, sources, tags
-
-def print_handle_result(handle_result):
+def print_handle_result(handle_result: NodeHandleResult):
     output = f'{sty.ef.b}{sty.fg.cyan}{handle_result.ast_node}{sty.rs.all} ' \
         f'handle result: obj_nodes={handle_result.obj_nodes}, ' \
         f'name={handle_result.name}, name_nodes={handle_result.name_nodes}'
@@ -1649,24 +1535,13 @@ def generate_obj_graph(G, entry_nodeid):
     add_edges_between_funcs(G)
 
 
-esprima_path = os.path.realpath(os.path.join(__file__,
-                                '../../esprima-joern/main.js'))
-search_js_path = os.path.realpath(os.path.join(__file__,
-                                '../../esprima-joern/search.js'))
-
-
 def analyze_files(G, path, start_node_id=0, check_signatures=[]):
     """
         return we generate the obj graph or not
     """
-    # use "universal_newlines" instead of "text" if you're using Python <3.7
-    #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen([esprima_path, path, '-n',
-        str(start_node_id), '-o', '-'], text=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = proc.communicate()
-    logger.info(stderr)
-    G.import_from_string(stdout)
+    result = esprima_parse(path, ['-n', str(start_node_id), '-o', '-'],
+        print_func=logger.info)
+    G.import_from_string(result)
     if not G.check_signature_functions(check_signatures):
         return False 
 
@@ -1674,14 +1549,9 @@ def analyze_files(G, path, start_node_id=0, check_signatures=[]):
     return True
 
 def analyze_string(G, source_code, start_node_id=0, generate_graph=False):
-    # use "universal_newlines" instead of "text" if you're using Python <3.7
-    #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen([esprima_path, '-', '-n',
-        str(start_node_id)], text=True, stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = proc.communicate(source_code)
-    logger.info(stderr)
-    G.import_from_string(stdout)
+    result = esprima_parse('-', ['-n', str(start_node_id)],
+        print_func=logger.info)
+    G.import_from_string(result)
     if generate_graph:
         generate_obj_graph(G, str(start_node_id))
 
@@ -1694,11 +1564,9 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     # so we pass a "start_node_id - 8" to make the JSON object starts
     # at "start_node_id"
     json_str = 'var a = ' + json_str.strip()
-    #        ↓ ignore this error if your editor shows
-    proc = subprocess.Popen([esprima_path, '-', '-n',
-        str(start_node_id - 8)], text=True, stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE)
-    stdout, _ = proc.communicate(json_str)
+    result = esprima_parse('-', ['-n', str(start_node_id - 8)],
+        input=json_str, print_func=logger.info)
+    G.import_from_string(result)
     # remove all nodes and edges before the JSON object
     def filter_func(line):
         try:
@@ -1708,8 +1576,8 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
         except ValueError:
             pass
         return True
-    stdout = '\n'.join(filter(filter_func, stdout.split('\n')))
-    G.import_from_string(stdout)
+    result = '\n'.join(filter(filter_func, result.split('\n')))
+    G.import_from_string(result)
     return handle_node(G, str(start_node_id), extra)
 
 def analyze_json_python(G, json_str, extra=None, caller_ast=None):

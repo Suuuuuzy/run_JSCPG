@@ -1,6 +1,7 @@
 from .graph import Graph
 from .utilities import NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
 from . import objectGraphGenerator
+from .helpers import to_values, to_obj_nodes
 import sty
 import re
 from .logger import *

@@ -2,6 +2,8 @@ from .graph import Graph
 
 class ScopeController:
     """
+    outdated
+    
     the class used for control the name scope of the program
     This class should only have one instance
     """
