@@ -1262,6 +1262,7 @@ def ast_call_function(G, ast_node, extra):
     
     if handled_callee.name == 'require':
         export_obj = handle_require(G, ast_node)
+        # print(export_obj, G.get_name_from_child(ast_node), G.get_node_file_path(ast_node), G.get_node_line_code(ast_node))
         # run the exported objs immediately
         exported_objs = G.get_prop_obj_nodes(export_obj[0])
         for obj in exported_objs:

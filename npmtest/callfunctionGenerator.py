@@ -72,12 +72,11 @@ def get_entrance_files_of_package(package_path):
         return None
 
     with open(package_json_path) as fp:
+        package_json = {}
         try:
             package_json = json.load(fp)
         except:
-            print("Skip special encoding {}".format(package_path))
-            npm_test_logger.error("Special encoding {}".format(package_path))
-            return [] 
+            npm_test_logger.error("Special {}".format(package_path))
 
         if 'main' not in package_json:
             main_file = 'index.js'
@@ -85,19 +84,23 @@ def get_entrance_files_of_package(package_path):
             main_file = package_json['main']
 
 
+    if main_file[-3:] != ".js":
+        main_file += "/index.js"
+
     analysis_path = './require_analysis.js'
     proc = subprocess.Popen(['node', analysis_path,
         package_path], text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
     #here we assume that there are no ' in the file names
+    #print(stdout)
     stdout = stdout.replace('\'', '"')
     package_structure = json.loads(stdout)
 
     for root_file in package_structure:
         entrance_files.append(root_file)
 
-    if main_file not in entrance_files:
+    if main_file not in entrance_files and os.path.exists("{}/{}".format(package_path, main_file)):
         entrance_files.append(main_file)
 
     main_file_pathes = ["{}/{}".format(package_path, main_file) for main_file in entrance_files]
@@ -164,7 +167,7 @@ def test_package(package_path):
     npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
 
     package_main_files = get_entrance_files_of_package(package_path)
-    print(package_main_files)
+    # print(package_main_files)
     res = []
 
     if package_main_files is None:
@@ -186,8 +189,6 @@ def test_file(file_path):
             -2, not found. package parse error
             -3, graph generation error
     """
-    print("testing {}".format(file_path))
-
     if file_path is None:
         npm_test_logger.error("{} not found".format(file_path))
         return -2
@@ -202,7 +203,7 @@ def test_file(file_path):
     """
 
     try:
-        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
+        G = unittest_main(file_path, check_signatures=get_all_sign_list())
         #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
@@ -228,7 +229,7 @@ def test_file(file_path):
     return 1
 
 root_path = "/media/data/lsong18/data/npmpackages/"
-#root_path = "/home/lsong18/projs/node_modules/"
+root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 
 def main():
     packages = get_list_of_packages(root_path, limit = 50000)
@@ -272,6 +273,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'thaumaturgy'))
+#test_package(os.path.join(root_path, 'tmp'))
 #test_package(os.path.join(root_path, 'are-we-there-yet'))
-#main()
+main()

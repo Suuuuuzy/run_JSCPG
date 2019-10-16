@@ -1314,6 +1314,20 @@ class Graph:
                 # should be built in
                 return None 
 
+    def get_node_line_code(self, node_id):
+        """
+        return the line code of a node
+        """
+        node_attr = self.get_node_attr(node_id)
+        if "lineno:int" in node_attr:
+            lineno = node_attr['lineno:int']
+        else:
+            lineno = None
+        if lineno is not None:
+            file_content = self.get_node_file_content(node_id)
+            return "{}: {}".format(lineno, file_content[int(lineno)])
+        return None
+
     def get_node_file_content(self, node_id):
         """
         find the file of a node
