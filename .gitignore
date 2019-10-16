@@ -7,7 +7,7 @@ testreport/
 /tmp/
 
 # package download
-/vul_packages/
+/package_downloader/packages/
 
 
 # global

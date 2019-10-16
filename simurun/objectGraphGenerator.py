@@ -1261,7 +1261,12 @@ def ast_call_function(G, ast_node, extra):
         handled_callee = handle_node(G, callee, extra)
     
     if handled_callee.name == 'require':
-        return handle_require(G, ast_node)
+        export_obj = handle_require(G, ast_node)
+        # run the exported objs immediately
+        exported_objs = G.get_prop_obj_nodes(export_obj[0])
+        for obj in exported_objs:
+            call_function(G, [obj])
+        return export_obj
 
     # find function declaration objects
     func_decl_objs = list(filter(lambda x: x != G.undefined_obj,
@@ -1479,7 +1484,8 @@ def call_function(G, func_objs, args=[], this=None, extra=ExtraInfo(),
         returned_objs.update(branch_returned_objs)
         used_objs.update(branch_used_objs)
         # add call edge
-        G.add_edge_if_not_exist(caller_ast, func_ast, {"type:TYPE": "CALLS"})
+        if caller_ast is not None:
+            G.add_edge_if_not_exist(caller_ast, func_ast, {"type:TYPE": "CALLS"})
 
     if has_branches:
         merge(G, stmt_id, len(func_objs), parent_branch)
