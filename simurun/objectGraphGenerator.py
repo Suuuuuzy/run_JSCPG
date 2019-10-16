@@ -1138,6 +1138,7 @@ def run_toplevel_file(G: Graph, node_id):
     # "this" is set to module.exports by default
     # backup_objs = G.cur_objs
     # G.cur_objs = added_module_exports
+    # TODO: this is risky
     G.add_obj_to_scope(name="this", tobe_added_obj=added_module_exports)
 
     # simurun the file
@@ -1159,12 +1160,16 @@ def run_toplevel_file(G: Graph, node_id):
     return module_exports_objs
 
 def handle_require(G, node_id, extra=ExtraInfo()):
+    '''
+    Returns:
+        List: returned module.exports objects.
+    '''
     # handle module name
     arg_list = G.get_ordered_ast_child_nodes(
         G.get_ordered_ast_child_nodes(node_id)[-1] )
     handled_module_name = handle_node(G, arg_list[0], extra)
     module_names = to_values(G, handled_module_name, node_id)[0]
-    if not module_names: return [], []
+    if not module_names: return []
 
     returned_objs = set()
     for module_name in module_names:
@@ -1185,7 +1190,8 @@ def handle_require(G, node_id, extra=ExtraInfo()):
             if not module_exports_objs:
                 # check if the file's AST is in the graph
                 file_path, _ = \
-                    esprima_search(module_name, G.get_cur_file_path())
+                    esprima_search(module_name, G.get_cur_file_path(),
+                        print_func=logger.info)
                 if not file_path: # module not found
                     continue
                 elif file_path == 'built-in': # unmodeled built-in module
@@ -1215,7 +1221,7 @@ def handle_require(G, node_id, extra=ExtraInfo()):
             else:
                 logger.error("Required module {} at {} not found!".format(
                     module_name, file_path))
-    return returned_objs, []
+    return list(returned_objs)
 
 def get_module_exports(G, file_path):
     toplevel_nodes = G.get_nodes_by_type_and_flag(
@@ -1251,6 +1257,9 @@ def ast_call_function(G, ast_node, extra):
         G (Graph): graph
         ast_node: the Call/New expression's AST node.
         extra (ExtraInfo): extra information.
+
+    Returns:
+        List, List: Returned objects and used objects.
     '''
     # handle the callee
     handled_parent = None
@@ -1263,16 +1272,19 @@ def ast_call_function(G, ast_node, extra):
         handled_callee = handle_node(G, callee, extra)
     
     if handled_callee.name == 'require':
-        export_obj = handle_require(G, ast_node)
+        module_exports_objs = handle_require(G, ast_node)
         # print(export_obj, G.get_name_from_child(ast_node), G.get_node_file_path(ast_node), G.get_node_line_code(ast_node))
         # run the exported objs immediately
-        exported_objs = G.get_prop_obj_nodes(export_obj[0])
-        for obj in exported_objs:
-            if G.get_node_attr(obj).get("init_run") is not None:
-                continue
-            call_function(G, [obj])
-            G.set_node_attr(obj, ('init_run', "True"))
-        return export_obj
+        if module_exports_objs:
+            exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
+            for obj in exported_objs:
+                if G.get_node_attr(obj).get("init_run") is not None:
+                    continue
+                if G.get_node_attr(obj).get('type') != 'function':
+                    continue
+                call_function(G, [obj])
+                G.set_node_attr(obj, ('init_run', "True"))
+        return module_exports_objs, []
 
     # find function declaration objects
     func_decl_objs = list(filter(lambda x: x != G.undefined_obj,
@@ -1386,16 +1398,13 @@ def call_function(G, func_objs, args=[], this=None, extra=ExtraInfo(),
         # check if python function exists
         python_func = G.get_node_attr(func_obj).get('pythonfunc')
         if python_func: # special Python function
-            if _this:
-                # add parent object (this) as an argument
-                args.insert(0, _this)
             if is_new:
                 logger.error(f'Error: try to new Python function {python_func}...')
                 continue
             else:
                 logger.log(ATTENTION, f'Running Python function {python_func}...')
                 # TODO: add branches info
-                h = python_func(G, caller_ast, extra, *args)
+                h = python_func(G, caller_ast, extra, _this, *args)
                 branch_returned_objs = h.obj_nodes
                 branch_used_objs = h.used_objs
         else: # JS function in AST
@@ -1461,6 +1470,7 @@ def call_function(G, func_objs, args=[], this=None, extra=ExtraInfo(),
                 if _this:
                     G.cur_objs = _this.obj_nodes
                 else:
+                    # TODO: this is incorrect
                     G.cur_objs = relations.get(func_obj, [])
                 branch_returned_objs, branch_used_objs = simurun_function(
                     G, func_ast, branches=next_branches)

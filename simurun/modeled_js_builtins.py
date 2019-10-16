@@ -332,7 +332,7 @@ def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult,
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=this.obj_nodes)
 
 
-def object_create(G: Graph, caller_ast, extra, proto=NodeHandleResult()):
+def object_create(G: Graph, caller_ast, extra, _, proto=NodeHandleResult()):
     returned_objs = []
     for p in proto.obj_nodes:
         new_obj = G.add_obj_node(caller_ast, None)
@@ -341,7 +341,7 @@ def object_create(G: Graph, caller_ast, extra, proto=NodeHandleResult()):
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def object_is(G: Graph, caller_ast, extra, value1: NodeHandleResult, value2: NodeHandleResult):
+def object_is(G: Graph, caller_ast, extra, _, value1: NodeHandleResult, value2: NodeHandleResult):
     if value1.obj_nodes == value2.obj_nodes:
         return NodeHandleResult(obj_nodes=G.true_obj)
     else:
@@ -392,7 +392,7 @@ def function_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this=Node
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def parse_number(G: Graph, caller_ast, extra, s=NodeHandleResult(), rad=None):
+def parse_number(G: Graph, caller_ast, extra, _, s=NodeHandleResult(), rad=None):
     returned_objs = []
     for obj in s.obj_nodes:
         new_literal = G.add_obj_node(caller_ast, 'number')
@@ -402,7 +402,7 @@ def parse_number(G: Graph, caller_ast, extra, s=NodeHandleResult(), rad=None):
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
 
 
-def blank_func(G: Graph, caller_ast, extra, *args):
+def blank_func(G: Graph, caller_ast, extra, _, *args):
     return NodeHandleResult()
 
 
@@ -413,7 +413,7 @@ def this_returning_func(G: Graph, caller_ast, extra, this=None, *args):
         return this
 
 
-def string_returning_func(G: Graph, caller_ast, extra, *args):
+def string_returning_func(G: Graph, caller_ast, extra, _, *args):
     returned_string = G.add_obj_node(caller_ast, 'string')
     used_objs = set()
     for arg in args:
@@ -424,7 +424,7 @@ def string_returning_func(G: Graph, caller_ast, extra, *args):
     return NodeHandleResult(obj_nodes=[returned_string], used_objs=list(used_objs))
 
 
-def boolean_returning_func(G: Graph, caller_ast, extra, *args):
+def boolean_returning_func(G: Graph, caller_ast, extra, _, *args):
     used_objs = set()
     for arg in args:
         used_objs.update(arg.obj_nodes)
@@ -492,7 +492,7 @@ def setup_regexp(G: Graph):
     G.add_blank_func_as_prop('test', regexp_prototype, None)
 
 
-def regexp_constructor(G: Graph, caller_ast, extra, pattern=None, flags=None):
+def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=None, flags=None):
     returned_objs = []
     used_objs = set(pattern.obj_nodes + pattern.used_objs)
     if flags:

@@ -19,7 +19,7 @@ function searchModule(moduleName, requiredBy) {
         for (let p of searchPaths) {
             filePath = path.resolve(p, moduleName + '.js');
             if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-                // console.error(`Package ${moduleName} found at ${filePath}.`.white.inverse);
+                console.error(`Package ${moduleName} found at ${filePath}.`.white.inverse);
                 return [filePath, p];
             }
         }
@@ -39,7 +39,7 @@ function searchModule(moduleName, requiredBy) {
     searchPaths.add(path.resolve(os.homedir(), '.node_modules'));
     searchPaths.add(path.resolve(os.homedir(), '.node_libraries'));
     searchPaths.add(path.resolve(os.homedir(), 'packagecrawler'));
-    //console.error(`Searching ${moduleName.blue.bright} in ${Array.from(searchPaths).toString().green}`);
+    console.error(`Searching ${moduleName.blue.bright} in ${Array.from(searchPaths).toString().green}`);
     let found = false;
     let mainPath, modulePath;
     if (moduleName.match(/\/|\\/)) { // module name is a path
@@ -80,7 +80,7 @@ function searchModule(moduleName, requiredBy) {
         }
     }
     if (!found) {
-        //console.error(`Error: required package ${moduleName} not found.`.lightRed.inverse);
+        console.error(`Error: required package ${moduleName} not found.`.lightRed.inverse);
     }
     return [mainPath, modulePath];
 }
@@ -93,7 +93,7 @@ function searchMain(packagePath) {
         try {
             main = JSON.parse(fs.readFileSync(jsonPath, 'utf8'))['main'];
         } catch (e) {
-            //console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
+            console.error(`Error: package.json (${jsonPath}) does not include main field.`.lightRed.inverse);
         }
     }
     main = main || 'index.js';
