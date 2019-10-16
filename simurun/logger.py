@@ -1,6 +1,7 @@
 import logging 
 import re
 import sty
+import os
 
 ATTENTION = 15
 
@@ -41,7 +42,10 @@ def create_logger(name, output_type="console", level=logging.DEBUG, file_name='r
     file_handler = logging.FileHandler(filename=file_name)
     file_handler.setFormatter(NoColorFormatter())
     stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(ColorFormatter())
+    if os.name == 'nt': # Windows
+        stream_handler.setFormatter(NoColorFormatter())
+    else:
+        stream_handler.setFormatter(ColorFormatter())
 
     logger.setLevel(level)
 
