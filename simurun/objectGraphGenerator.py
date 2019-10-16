@@ -1265,7 +1265,10 @@ def ast_call_function(G, ast_node, extra):
         # run the exported objs immediately
         exported_objs = G.get_prop_obj_nodes(export_obj[0])
         for obj in exported_objs:
+            if G.get_node_attr(obj).get("init_run") is not None:
+                continue
             call_function(G, [obj])
+            G.set_node_attr(obj, ('init_run', "True"))
         return export_obj
 
     # find function declaration objects
