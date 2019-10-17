@@ -1197,7 +1197,8 @@ def run_toplevel_file(G: Graph, node_id):
     """
     # switch current file path
     file_path = G.get_node_attr(node_id)['name']
-    print("Running {}".format(file_path))
+    G.file_stack.append(file_path)
+    print(G.file_stack)
     previous_file_path = G.cur_file_path
     G.cur_file_path = file_path
     if G.entry_file_path is None:
@@ -1240,7 +1241,8 @@ def run_toplevel_file(G: Graph, node_id):
     G.cur_scope = backup_scope
     # G.cur_objs = backup_objs
     G.cur_file_path = previous_file_path
-    print("Finished {}".format(file_path))
+
+    G.file_stack.pop(-1)
 
     return module_exports_objs
 
@@ -1693,3 +1695,4 @@ def analyze_json_python(G, json_str, extra=None, caller_ast=None):
     py_obj = json.loads(json_str)
     logger.debug('Python JSON parse result: ' + str(py_obj))
     return G.generate_obj_graph_for_python_obj(py_obj, ast_node=caller_ast)
+

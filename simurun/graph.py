@@ -8,6 +8,7 @@ import json
 from typing import List, Callable
 from .utilities import BranchTag, DictCounter
 from .logger import *
+import uuid
 
 class Graph:
 
@@ -34,6 +35,7 @@ class Graph:
 
         # contains a list of node ids based on the ast id
         self.call_stack = []
+        self.file_stack = []
 
         csv.field_size_limit(2 ** 31 - 1)
 
@@ -47,6 +49,7 @@ class Graph:
         """
         self.cur_id += 1
         return str(self.cur_id - 1)
+        # return str(uuid.uuid4().int)
 
     def add_node(self, node_for_adding, attr={}):
         self.graph.add_node(node_for_adding, **attr)
@@ -96,6 +99,17 @@ class Graph:
         remove a list of nodes from the graph
         """
         self.graph.remove_nodes_from(remove_list)
+
+    def relabel_nodes(self):
+        """
+        relabel all the nodes to a uuid to make the graph globaly useful
+        """
+        mapping = {}
+        for node in self.graph.nodes():
+            # make a random uuid
+            mapping[node] = str(uuid.uuid4().int)
+
+        self.graph = nx.relabel_nodes(self.graph, mapping)
     
     # edges
 
@@ -245,6 +259,7 @@ class Graph:
             self.add_edges_from_list(edge_list)
         self.logger.info(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
 
+        # self.relabel_nodes()
         # reset cur_id
         self.cur_id = self.graph.number_of_nodes()
 
@@ -268,7 +283,8 @@ class Graph:
                 edge_list.append((row['start:START_ID'], row['end:END_ID'], attrs))
             self.add_edges_from_list(edge_list)
         self.logger.info(sty.ef.inverse + sty.fg.white + "Finished Importing" + sty.rs.all)
-
+    
+        # self.relabel_nodes()
         # reset cur_id
         self.cur_id = self.graph.number_of_nodes()
 
@@ -307,18 +323,19 @@ class Graph:
                 writer.writerow(row)
 
         self.logger.info("Finished Exporting to {} and {}".format(nodes_file_name, rels_file_name))
+
+    def testing_benchmark_export_graph(self, file_path):
+        """
+        export graph to pickle format
+        """
+        nx.readwrite.write_gpickle(self.graph, file_path)
         
     def export_graph(self, file_path):
         """
-        export graph to xml format
+        export graph to pickle format
         """
+        self.relabel_nodes()
         nx.readwrite.write_gpickle(self.graph, file_path)
-        """
-        dict_graph = nx.readwrite.json_graph.node_link_data(self.graph)
-        with open(file_path, 'w') as fp:
-            json_str = json.dumps(dict_graph, default=lambda o: f"<<non-serializable: {type(o).__qualname__}>>")
-            fp.write(json_str)
-        """
 
     def import_graph(self, file_path):
         """

@@ -60,7 +60,7 @@ def main():
         # analyze from CSVs
         G.import_from_CSV("./nodes.csv", "./rels.csv")
         generate_obj_graph(G, '0')
-    # G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = True)
+    # G.relabel_nodes()
     G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
     res_path = traceback(G, "os_command")
     logger.debug('ResPath0:')

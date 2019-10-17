@@ -101,7 +101,7 @@ def add_unittest(test_name, file_path):
         file_path: the JS file path
     """
     G = unittest_main(file_path)
-    G.export_graph("./stardards/{}.pickle".format(test_name))
+    G.testing_benchmark_export_graph("./stardards/{}.pickle".format(test_name))
 
 class TestObjectGraphGeneration(unittest.TestCase):
 
