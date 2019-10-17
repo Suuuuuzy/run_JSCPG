@@ -568,7 +568,7 @@ class Graph:
         return new_name_node
 
     def add_obj_as_prop(self, prop_name=None, ast_node=None, js_type='object', 
-        parent_obj=None, tobe_added_obj=None):
+        value=None, parent_obj=None, tobe_added_obj=None):
         """
         add (or put) an obj as a property of another obj
         parent_obj -> name node -> new obj / tobe_added_obj
@@ -582,7 +582,7 @@ class Graph:
             name_node = self.add_prop_name_node(prop_name, parent_obj)
 
         if tobe_added_obj is None:
-            tobe_added_obj = self.add_obj_node(ast_node, js_type)
+            tobe_added_obj = self.add_obj_node(ast_node, js_type, value)
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
@@ -590,7 +590,7 @@ class Graph:
 
 
     def add_obj_to_scope(self, name=None, ast_node=None, js_type='object',
-        scope=None, tobe_added_obj=None):
+        value=None, scope=None, tobe_added_obj=None):
         """
         add a obj to a scope, if scope is None, add to current scope
         return the added node id
@@ -610,7 +610,7 @@ class Graph:
         if tobe_added_obj == None:
             # here we do not add obj to current obj when add to scope
             # we just add a obj to scope
-            tobe_added_obj = self.add_obj_node(ast_node, js_type)
+            tobe_added_obj = self.add_obj_node(ast_node, js_type, value)
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
         return tobe_added_obj

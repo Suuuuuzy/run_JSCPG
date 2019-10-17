@@ -1,7 +1,7 @@
 from .graph import Graph
-from .utilities import NodeHandleResult
+from .utilities import NodeHandleResult, ExtraInfo
 import math
-
+from typing import Callable
 
 def eval_value(G: Graph, s: str, return_obj_node=False, ast_node=None):
     '''
@@ -108,4 +108,213 @@ def to_values(G: Graph, handle_result: NodeHandleResult, ast_node=None,
         sources.append([obj])
         tags.append(G.get_node_attr(obj).get('for_tags', []))
     return values, sources, tags
+
+def peek_variables(G: Graph, ast_node, handling_func: Callable,
+    extra: ExtraInfo):
+    '''
+    Experimental. Peek what variable is used in the statement and get
+    their object nodes. Currently, you must ensure the statement you
+    want tho peek is in the same scope as your current scope.
+    
+    Args:
+        G (Graph): Graph.
+        ast_node: AST node of the statement.
+        handling_func (Callable): Function to handle the variable node.
+            Normally you should use handle_var.
+        extra (ExtraInfo): Extra info.
+    '''
+    returned_dict = {}
+    if G.get_node_attr(ast_node).get('type') == 'AST_VAR' or \
+        G.get_node_attr(ast_node).get('type') == 'AST_NAME':
+        handle_result = handling_func(G, ast_node, extra)
+        if handle_result.name:
+            returned_dict[handle_result.name] = handle_result.obj_nodes
+    else:
+        for child in G.get_ordered_ast_child_nodes(ast_node):
+            d = peek_variables(G, child, handling_func, extra)
+            for name, nodes in d.items():
+                if name in returned_dict:
+                    returned_dict[name].extend(d[name])
+                else:
+                    returned_dict[name] = d[name]
+        for name, nodes in returned_dict.items():
+            returned_dict[name] = list(set(nodes))
+    return returned_dict
+
+def val_to_str(value, default=None):
+    if type(value) in [float, int]:
+        return '%g' % value
+    else:
+        if value == None:
+            value = default
+        return str(value)
+
+def val_to_float(value):
+    try:
+        return float(value)
+    except ValueError:
+        return float('nan')
+
+def cmp(a, b):
+    return (a > b) - (a < b)
+
+def js_cmp(v1, v2):
+    if type(v1) == type(v2):
+        return cmp(v1, v2)
+    else:
+        # s1 = val_to_str(v1)
+        # s2 = val_to_str(v2)
+        n1 = val_to_float(v1)
+        n2 = val_to_float(v2)
+        return cmp(n1, n2)
+
+def check_condition(G: Graph, ast_node, extra: ExtraInfo,
+    handling_func: Callable, printing_func=print):
+    '''
+    Check if a condition is true or false.
+    
+    Args:
+        G (Graph): Graph.
+        ast_node: AST node of the condition expression.
+        extra (ExtraInfo): Extra info.
+        handling_func (Callable): Node handling function. Normally you
+            should use handle_node.
+
+    Returns:
+        float: A number (range [0, 1]) indicates how possible the
+            condition is true. If both left side and right side are
+            single possibility, it returns 0 for false, and 1 for true.
+    '''
+
+    node_type = G.get_node_attr(ast_node).get('type')
+    op_type = G.get_node_attr(ast_node).get('flags:string[]')
+    flag = True
+    if node_type == 'AST_EXPR_LIST':
+        child = G.get_ordered_ast_child_nodes(ast_node)[0]
+        return check_condition(G, child, extra, handling_func)
+    elif node_type == 'AST_UNARY_OP' and op_type == 'UNARY_BOOL_NOT':
+        child = G.get_ordered_ast_child_nodes(ast_node)[0]
+        p = check_condition(G, child, extra, handling_func)
+        return 1 - p
+    if node_type == 'AST_BINARY_OP':
+        left, right = G.get_ordered_ast_child_nodes(ast_node)[:2]
+        if op_type == 'BINARY_BOOL_OR':
+            lp = check_condition(G, left, extra, handling_func)
+            rp = check_condition(G, right, extra, handling_func)
+            return lp + rp - lp * rp
+        elif op_type == 'BINARY_BOOL_AND':
+            lp = check_condition(G, left, extra, handling_func)
+            rp = check_condition(G, right, extra, handling_func)
+            return lp * rp
+        else:
+            handled_left = handling_func(G, left, extra)
+            handled_right = handling_func(G, right, extra)
+            left_values = to_values(G, handled_left, ast_node)[0]
+            right_values = to_values(G, handled_right, ast_node)[0]
+            # print(f'Comparing {handled_left.name}: {left_values} and {handled_right.name}: {right_values}')
+
+            true_num = 0
+            total_num = len(left_values) * len(right_values)
+            if op_type == 'BINARY_IS_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if v1 is not None and v2 is not None:
+                            if js_cmp(v1, v2) == 0:
+                                true_num += 1
+                            else:
+                                pass
+                        else:
+                            true_num += 0.5
+            elif op_type == 'BINARY_IS_IDENTICAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if v1 is not None and v2 is not None:
+                            if v1 == v2:
+                                true_num += 1
+                            else:
+                                pass
+                        else:
+                            true_num += 0.5
+            elif op_type == 'BINARY_IS_NOT_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if v1 is not None and v2 is not None:
+                            if js_cmp(v1, v2) != 0:
+                                pass
+                            else:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+            elif op_type == 'BINARY_IS_NOT_IDENTICAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if v1 is not None and v2 is not None:
+                            if v1 != v2:
+                                true_num += 1
+                            else:
+                                pass
+                        else:
+                            true_num += 0.5
+            elif op_type == 'BINARY_IS_SMALLER':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if v1 is not None and v2 is not None:
+                            if js_cmp(v1, v2) < 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+            elif op_type == 'BINARY_IS_GREATER':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if v1 is not None and v2 is not None:
+                            if js_cmp(v1, v2) > 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+            elif op_type == 'BINARY_IS_SMALLER_OR_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if v1 is not None and v2 is not None:
+                            if js_cmp(v1, v2) <= 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+            elif op_type == 'BINARY_IS_GREATER_OR_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if v1 is not None and v2 is not None:
+                            if js_cmp(v1, v2) >= 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+            else:
+                flag = False
+    else:
+        flag = False
+    if not flag:
+        handled = handling_func(G, ast_node, extra)
+        true_num = 0
+        total_num = len(handled.obj_nodes) + len(handled.values)
+        for obj in handled.obj_nodes:
+            if obj in [G.undefined_obj, G.null_obj, G.false_obj]:
+                pass
+            elif obj in [G.infinity_obj, G.negative_infinity_obj, G.nan_obj,
+                G.true_obj]:
+                true_num += 1
+            else:
+                value = G.get_node_attr(obj).get('code')
+                typ = G.get_node_attr(obj).get('type')
+                if typ == 'number':
+                    if val_to_float(value) != 0:
+                        true_num += 1
+                elif typ == 'string':
+                    if value:
+                        true_num += 1
+                else:
+                    true_num += 1
+        for value in handled.values:
+            if value:
+                true_num += 1
+    # print(f'Compare result: {true_num / total_num}')
+    return true_num / total_num
 

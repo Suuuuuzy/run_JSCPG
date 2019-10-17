@@ -1,7 +1,7 @@
 from .graph import Graph
 from .utilities import NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
 from . import objectGraphGenerator
-from .helpers import to_values, to_obj_nodes
+from .helpers import to_values, to_obj_nodes, val_to_str
 import sty
 import re
 from .logger import *
@@ -264,7 +264,7 @@ def object_keys(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=Fa
             if for_array and not (name.isdigit() or name == '*'):
                 continue # Array only returns numeric keys/corresponding values
             string = G.add_obj_node(None, 'string', name)
-            G.add_obj_as_prop(name=str(i), parent_obj=arr, tobe_added_obj=string)
+            G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=string)
         returned_objs.append(arr)
     return NodeHandleResult(obj_nodes=returned_objs)
 
@@ -281,7 +281,7 @@ def object_values(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=
                 continue # Array only returns numeric keys/corresponding values
             prop_objs = G.get_objs_by_name_node(name_node)
             for prop_obj in prop_objs:
-                G.add_obj_as_prop(name=str(i), parent_obj=arr, tobe_added_obj=prop_obj)
+                G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=prop_obj)
         returned_objs.append(arr)
     return NodeHandleResult(obj_nodes=returned_objs)
 
@@ -299,12 +299,12 @@ def object_entries(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array
             if for_array and not (name.isdigit() or name == '*'):
                 continue # Array only returns numeric keys/corresponding values
             string = G.add_obj_node(None, 'string', name)
-            G.add_obj_as_prop(name='0', parent_obj=child_arr, tobe_added_obj=string)
+            G.add_obj_as_prop('0', parent_obj=child_arr, tobe_added_obj=string)
             # value
             prop_objs = G.get_objs_by_name_node(name_node)
             for prop_obj in prop_objs:
-                G.add_obj_as_prop(name='1', parent_obj=child_arr, tobe_added_obj=prop_obj)
-            G.add_obj_as_prop(name=str(i), parent_obj=arr, tobe_added_obj=child_arr)
+                G.add_obj_as_prop('1', parent_obj=child_arr, tobe_added_obj=prop_obj)
+            G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=child_arr)
         returned_objs.append(arr)
     return NodeHandleResult(obj_nodes=returned_objs)
 
@@ -453,8 +453,7 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
         values = list(map(str, arg.values))
         for obj in arg.obj_nodes:
             value = G.get_node_attr(obj).get('code')
-            if value is not None:
-                values.append(f'{sty.fg.li_black}{obj}{sty.rs.all}: {value}')
+            values.append(f'{sty.fg.li_black}{obj}{sty.rs.all}: {val_to_str(value)}')
         logger.debug(f'Argument {i} values: ' + ', '.join(values))
     return NodeHandleResult(obj_nodes=[G.undefined_obj], used_objs=list(used_objs))
 
@@ -466,8 +465,7 @@ def setup_json(G: Graph):
 
 
 def json_parse(G: Graph, caller_ast, extra, _, text=None, reviver=None):
-    json_strings, sources, _ = \
-        objectGraphGenerator.to_values(G, text, caller_ast)
+    json_strings, sources, _ = to_values(G, text, caller_ast)
     returned_objs = []
     used_objs = set()
     for i, json_string in enumerate(json_strings):

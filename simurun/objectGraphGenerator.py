@@ -6,7 +6,8 @@ import sty
 import json
 from .logger import *
 from . import modeled_js_builtins, modeled_builtin_modules
-from .helpers import to_values, to_obj_nodes
+from .helpers import to_values, to_obj_nodes, peek_variables
+from .helpers import check_condition, val_to_str, val_to_float
 from .esprima import esprima_parse, esprima_search
 
 registered_func = {}
@@ -107,6 +108,8 @@ def add_edges_between_funcs(G):
 
 def register_func(G, node_id):
     """
+    deprecated
+
     register the function to the nearest parent function like node
     we assume the 1-level parent node is the stmt of parent function
 
@@ -299,10 +302,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
         name = G.get_node_attr(obj).get('code')
         if name is not None:
             # convert numbers to strings
-            if type(name) in [int, float]:
-                prop_names.append('%g' % name)
-            else:
-                prop_names.append(name)
+            prop_names.append(val_to_str(name))
         else:
             prop_names.append('Obj#' + obj)
         for_tags = G.get_node_attr(obj).get('for_tags', [])
@@ -594,26 +594,6 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         for child in G.get_child_nodes(node_id):
             handle_node(G, child, extra)
 
-    elif cur_type == "AST_PARAM":
-        '''
-        node_name = G.get_name_from_child(node_id)
-        # assume we only have on reaches edge to this node
-        now_edge = G.get_in_edges(node_id, edge_type = "REACHES")
-        now_objs = None
-        if len(now_edge) != 0:
-            from_node = now_edge[0][0]
-            now_objs = G.get_objs_by_name(from_node)
-            for obj in now_objs:
-                G.set_obj_by_scope_name(node_name, now_objs)
-        
-        if not now_objs:
-            # for now, just add a new obj.
-            added_obj = G.add_obj_to_scope(node_name, node_id, "PARAM_OBJ")
-            now_objs = [added_obj]
-
-        return NodeHandleResult(obj_nodes=now_objs)
-        '''
-
     elif cur_type == "AST_ASSIGN":
         return handle_assign(G, node_id, extra)
     
@@ -624,13 +604,15 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             added_obj = G.add_obj_node(node_id, "array")
 
         used_objs = set()
+        children = G.get_ordered_ast_child_nodes(node_id)
 
-        for child in G.get_ordered_ast_child_nodes(node_id):
+        for child in children:
             result = handle_node(G, child, ExtraInfo(extra,
                 parent_obj=added_obj))
             used_objs.update(result.used_objs)
 
-        G.remove_nodes_from(G.get_node_by_attr('labels:label', 'VIRTUAL'))
+        G.add_obj_as_prop(prop_name='length', js_type='number',
+            value=len(children), parent_obj=added_obj)
 
         return NodeHandleResult(obj_nodes=[added_obj],
                                 used_objs=list(used_objs))
@@ -651,10 +633,8 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             if key is not None:
                 key = key.strip("'\"")
             else:
-                try:
-                    key = int(G.get_node_attr(node_id).get('childnum:int'))
-                except ValueError:
-                    pass
+                # shouldn't convert it to int
+                key = G.get_node_attr(node_id).get('childnum:int')
             if key is None:
                 key = '*'
             handled_value = handle_node(G, value_node, extra)
@@ -822,11 +802,67 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             values=h1.values+h2.values, used_objs=h1.used_objs+h2.used_objs,
             name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id)
 
-    # handle registered functions
-    if "HAVE_FUNC" in cur_node_attr:
-        for func_decl_id in registered_func[node_id]:
-            logger.info(sty.ef.inverse + sty.fg.red + "RUN register {}".format(func_decl_id) + sty.rs.all)
-            handle_node(G, func_decl_id, extra)
+    elif cur_type == 'AST_EXPR_LIST':
+        for child in G.get_ordered_ast_child_nodes(node_id):
+            handle_node(G, child, extra)
+
+    elif cur_type == 'AST_FOR':
+        init, cond, inc, body = G.get_ordered_ast_child_nodes(node_id)[:4]
+        cond = G.get_ordered_ast_child_nodes(cond)[0]
+        parent_scope = G.cur_scope
+        G.cur_scope = \
+            G.add_scope('BLOCK_SCOPE', decl_ast=body,
+                        scope_name=G.call_counter.gets(f'Block{body}'))
+        handle_node(G, init, extra) # init
+        d = peek_variables(G, ast_node=inc, handling_func=handle_var,
+            extra=extra) # check increment to determine loop variables
+        counter = 0
+        while True:
+            logger.debug('For loop variables:')
+            for name, obj_nodes in d.items():
+                logger.debug(sty.ef.i + name + sty.rs.all + ': ' +
+                    ', '.join(['{}: {}'.format(obj,
+                    val_to_str(G.get_node_attr(obj).get('code'))) for obj in obj_nodes]))
+            # logger.debug(log)
+            simurun_block(G, body, branches=extra.branches)
+            handle_node(G, inc, extra)
+            check_result = check_condition(G, cond, extra,
+                handling_func=handle_node)
+            logger.debug('Check condition {} result: {}'.format(sty.ef.i +
+                G.get_node_attr(cond).get('code') + sty.rs.all, check_result))
+            if counter > 10000 or check_result == 0:
+                break
+            counter += 1
+        G.cur_scope = parent_scope
+
+    elif cur_type in ['AST_PRE_INC', 'AST_POST_INC', 'AST_PRE_DEC', 'AST_POST_DEC']:
+        child = G.get_ordered_ast_child_nodes(node_id)[0]
+        handled_child = handle_node(G, child, extra)
+        returned_values = []
+        source = []
+        for obj in handled_child.obj_nodes:
+            v = G.get_node_attr(obj).get('code')
+            n = val_to_float(v)
+            if 'POST' in cur_type:
+                returned_values.append(n)
+            else:
+                if 'INC' in cur_type:
+                    returned_values.append(n + 1)
+                else:
+                    returned_values.append(n - 1)
+            source.append([obj])
+            if 'INC' in cur_type:
+                G.set_node_attr(obj, ('code', n + 1))
+            else:
+                G.set_node_attr(obj, ('code', n - 1))
+            G.set_node_attr(obj, ('type', 'number'))
+        return NodeHandleResult(values=returned_values, value_sources=source)
+
+    # handle registered functions      # deprecated
+    # if "HAVE_FUNC" in cur_node_attr:
+    #     for func_decl_id in registered_func[node_id]:
+    #         logger.info(sty.ef.inverse + sty.fg.red + "RUN register {}".format(func_decl_id) + sty.rs.all)
+    #         handle_node(G, func_decl_id, extra)
 
     return NodeHandleResult()
 
@@ -892,7 +928,8 @@ def simurun_function(G, func_decl_ast_node, branches=BranchTagContainer()):
     G.call_stack.pop()
     return returned_objs, used_objs
 
-def simurun_block(G, ast_node, parent_scope, branches=BranchTagContainer(), block_scope=True):
+def simurun_block(G, ast_node, parent_scope=None, branches=BranchTagContainer(),
+    block_scope=True):
     """
     Simurun a block by running its statements one by one.
     A block is a BlockStatement in JavaScript,
