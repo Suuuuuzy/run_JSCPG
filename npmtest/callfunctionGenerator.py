@@ -41,6 +41,8 @@ def get_list_of_packages(path, limit=None):
     
     all_packages = []
     for package in possible_packages:
+        if not os.path.isdir(package):
+            continue
         if package.split('/')[-1][0] == '@' and (not validate_package(package)):
             #should have sub dir
             sub_packages = [os.path.join(package, name) for name in os.listdir(package)]
@@ -145,6 +147,11 @@ def unit_check_log(G, vul_type, package=None):
         with open("found_path_{}".format(vul_type), 'a+') as fp:
             fp.write("{} called".format(caller_list))
             fp.write("Found path from {}: {}\n".format(package, checking_res))
+    else:
+        with open("not_found_path_{}".format(vul_type), 'a+') as fp:
+            fp.write("{} called".format(caller_list))
+            fp.write("Not Found path from {}: {}\n".format(package, checking_res))
+
 
 def test_package(package_path):
     # TODO: change the return value
@@ -228,8 +235,9 @@ def test_file(file_path):
     del G
     return 1
 
-root_path = "/media/data/lsong18/data/npmpackages/"
+#root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
+root_path = "/media/data/lsong18/data/vulPackages/packages/"
 
 def main():
     packages = get_list_of_packages(root_path, limit = 50000)
@@ -273,6 +281,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package(os.path.join(root_path, 'tmp'))
-test_package(os.path.join(root_path, 'are-we-there-yet'))
+test_package(os.path.join(root_path, 'yui@3.18.1'))
+#test_package(os.path.join(root_path, 'are-we-there-yet'))
 #main()
