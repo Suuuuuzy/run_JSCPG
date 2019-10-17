@@ -7,7 +7,7 @@ import json
 from .logger import *
 from . import modeled_js_builtins, modeled_builtin_modules
 from .helpers import to_values, to_obj_nodes, peek_variables
-from .helpers import check_condition, val_to_str, val_to_float
+from .helpers import check_condition, val_to_str, val_to_float, is_int
 from .esprima import esprima_parse, esprima_search
 
 registered_func = {}
@@ -809,11 +809,12 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type == 'AST_FOR':
         init, cond, inc, body = G.get_ordered_ast_child_nodes(node_id)[:4]
         cond = G.get_ordered_ast_child_nodes(cond)[0]
+        # switch scopes
         parent_scope = G.cur_scope
         G.cur_scope = \
             G.add_scope('BLOCK_SCOPE', decl_ast=body,
                         scope_name=G.call_counter.gets(f'Block{body}'))
-        handle_node(G, init, extra) # init
+        handle_node(G, init, extra) # init loop variables
         d = peek_variables(G, ast_node=inc, handling_func=handle_var,
             extra=extra) # check increment to determine loop variables
         counter = 0
@@ -821,18 +822,65 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             logger.debug('For loop variables:')
             for name, obj_nodes in d.items():
                 logger.debug(sty.ef.i + name + sty.rs.all + ': ' +
-                    ', '.join(['{}: {}'.format(obj,
+                    ', '.join([(sty.fg.green+'{}'+sty.rs.all+'{}').format(obj,
                     val_to_str(G.get_node_attr(obj).get('code'))) for obj in obj_nodes]))
-            # logger.debug(log)
-            simurun_block(G, body, branches=extra.branches)
-            handle_node(G, inc, extra)
+
+            simurun_block(G, body, branches=extra.branches) # run the body
+            handle_node(G, inc, extra) # do the inc
             check_result = check_condition(G, cond, extra,
-                handling_func=handle_node)
+                handling_func=handle_node) # check if the condition is met
             logger.debug('Check condition {} result: {}'.format(sty.ef.i +
                 G.get_node_attr(cond).get('code') + sty.rs.all, check_result))
+            # avoid infinite loop
             if counter > 10000 or check_result == 0:
+                logger.debug('For loop {} finished'.format(node_id))
                 break
             counter += 1
+        # switch back the scope
+        G.cur_scope = parent_scope
+
+    elif cur_type == 'AST_FOREACH':
+        obj, value, key, body = G.get_ordered_ast_child_nodes(node_id)
+        handled_obj = handle_node(G, obj, extra)
+        # switch scopes
+        parent_scope = G.cur_scope
+        G.cur_scope = \
+            G.add_scope('BLOCK_SCOPE', decl_ast=body,
+                        scope_name=G.call_counter.gets(f'Block{body}'))
+        has_branches = (len(handled_obj.obj_nodes) > 1)
+        for obj in handled_obj.obj_nodes:
+            if G.get_node_attr(node_id).get('flags:string[]') == 'JS_FOR_IN':
+                # handle and declare the loop variable
+                handled_key = handle_node(G, key, extra)
+                # loop through object's property names
+                for k in G.get_prop_names(obj):
+                    if G.get_node_attr(obj).get('type') == 'array' and \
+                        not is_int(k):
+                        continue
+                    # assign the name to the loop variable as a new 
+                    # literal object
+                    added_obj = G.add_obj_node(ast_node=node_id,
+                        js_type='string', value=k)
+                    logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{added_obj}{sty.rs.all}: {k}')
+                    G.assign_obj_nodes_to_name_node(handled_key.name_nodes[0],
+                        [added_obj], branches=extra.branches)
+                    # run the body
+                    simurun_block(G, body, branches=extra.branches)
+                logger.debug('For-in loop {} finished'.format(node_id))
+            elif G.get_node_attr(node_id).get('flags:string[]') == 'JS_FOR_OF':
+                # handle and declare the loop variable
+                handled_value = handle_node(G, value, extra)
+                # loop through object's property object nodes
+                for v in G.get_prop_obj_nodes(obj, branches=extra.branches,
+                    exclude_non_numeric=True):
+                    # assign the object node to the loop variable
+                    logger.debug(f'For-of loop variables: {sty.ef.i}{handled_value.name}{sty.rs.all}: {sty.fg.green}{v}{sty.rs.all}: {G.get_node_attr(v).get("code")}')
+                    G.assign_obj_nodes_to_name_node(handled_value.name_nodes[0],
+                        [v], branches=extra.branches)
+                    # run the body
+                    simurun_block(G, body, branches=extra.branches)
+                logger.debug('For-of loop {} finished'.format(node_id))
+        # switch back the scope
         G.cur_scope = parent_scope
 
     elif cur_type in ['AST_PRE_INC', 'AST_POST_INC', 'AST_PRE_DEC', 'AST_POST_DEC']:
@@ -898,7 +946,7 @@ def decl_vars_and_funcs(G, ast_node):
             func_obj = decl_function(G, stmt)
         elif node_type == 'AST_STMT_LIST':
             decl_vars_and_funcs(G, stmt)
-        elif node_type in ['AST_IF_ELEM', 'AST_FOR', 'AST_FOR_EACH',
+        elif node_type in ['AST_IF_ELEM', 'AST_FOR', 'AST_FOREACH',
             'AST_WHILE', 'AST_SWITCH_CASE']:
             decl_vars_and_funcs(G, stmt)
 

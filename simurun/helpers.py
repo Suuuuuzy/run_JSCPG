@@ -318,3 +318,9 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
     # print(f'Compare result: {true_num / total_num}')
     return true_num / total_num
 
+def is_int(x):
+    try: # check if x is an integer
+        _ = int(x)
+    except ValueError:
+        return False
+    return True

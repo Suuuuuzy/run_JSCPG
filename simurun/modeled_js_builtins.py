@@ -1,7 +1,7 @@
 from .graph import Graph
 from .utilities import NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
 from . import objectGraphGenerator
-from .helpers import to_values, to_obj_nodes, val_to_str
+from .helpers import to_values, to_obj_nodes, val_to_str, is_int
 import sty
 import re
 from .logger import *
@@ -193,11 +193,8 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
             .set_marks('P')
         for name_node in name_nodes:
             name = G.get_node_attr(name_node).get('name')
-            if name != '*':
-                try: # check if the index is an integer
-                    _ = int(name)
-                except ValueError:
-                    continue
+            if name != '*' and not is_int(name):
+                continue # check if the index is an integer
             for obj in G.get_obj_nodes(name_node, branches=branches):
                 objs.append(obj)
                 names.append(name)

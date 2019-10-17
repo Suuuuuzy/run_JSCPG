@@ -727,10 +727,12 @@ class Graph:
             return []
         return self.get_objs_by_name_node(name_node, branches)
 
-    def get_prop_names(self, parent_obj):
+    def get_prop_names(self, parent_obj, exclude_proto=True):
         s = set()
         for name_node in self.get_prop_name_nodes(parent_obj):
             name = self.get_node_attr(name_node).get('name')
+            if exclude_proto and name == '__proto__':
+                continue
             if name is not None:
                 s.add(name)
         return list(s)
@@ -746,7 +748,9 @@ class Graph:
                 return name_node
         return None
 
-    def get_prop_obj_nodes(self, parent_obj, prop_name=None, branches: List[BranchTag]=[], exclude_proto=True):
+    def get_prop_obj_nodes(self, parent_obj, prop_name=None,
+        branches: List[BranchTag]=[], exclude_proto=True,
+        exclude_non_numeric=False):
         '''
         Get object nodes of an object's property.
         
@@ -771,6 +775,14 @@ class Graph:
                     lambda x: self.get_node_attr(x).get('name') not in
                         ['prototype', '__proto__'],
                     name_nodes)
+            if exclude_non_numeric:
+                def is_int(x):
+                    try: # check if x is an integer
+                        _ = int(x)
+                    except ValueError:
+                        return False
+                    return True
+                name_nodes = filter(is_int, name_nodes)
             for name_node in name_nodes:
                 s.update(self.get_obj_nodes(name_node, branches))
         else:

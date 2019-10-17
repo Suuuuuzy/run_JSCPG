@@ -2012,12 +2012,13 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 };
                 break;
             } else if (outputStyle == 'php') {
-                // right
+                // right (object)
                 nodeIdCounter++;
                 childNumberCounter++;
                 relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                 dfs(currentNode.right, nodeIdCounter, currentId, 0, currentFunctionId, null);
                 if (currentNode.type == 'ForInStatement') {
+                    phpflag = 'JS_FOR_IN';
                     // null (value)
                     nodeIdCounter++;
                     relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
@@ -2034,6 +2035,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         // make AST_VAR virtual node
                         nodeIdCounter++;
                         let vAstVarId = nodeIdCounter;
+                        relsStream.push([currentId, vAstVarId, parentOf].join(delimiter) + '\n');
                         nodes[vAstVarId] = {
                             label: 'AST_V',
                             type: 'VariableDeclarator',
@@ -2059,11 +2061,13 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         console.error('Abnormal for loop that program cannot handle.')
                     }
                 } else if (currentNode.type == 'ForOfStatement') {
+                    phpflag = 'JS_FOR_OF';
                     // left (value)
                     if (currentNode.left.declarations && currentNode.left.declarations[0]) {
                         // make AST_VAR virtual node
                         nodeIdCounter++;
                         let vAstVarId = nodeIdCounter;
+                        relsStream.push([currentId, vAstVarId, parentOf].join(delimiter) + '\n');
                         nodes[vAstVarId] = {
                             label: 'AST_V',
                             type: 'VariableDeclarator',
@@ -2109,6 +2113,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     label: 'AST',
                     type: currentNode.type,
                     phptype: 'AST_FOREACH',
+                    phpflag: phpflag,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: childNum,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
