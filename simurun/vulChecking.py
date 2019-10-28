@@ -116,6 +116,7 @@ def vul_checking(G, pathes, vul_type):
 
     rule_lists = vul_type_map[vul_type]
     success_pathes = []
+    print(pathes)
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)
     return success_pathes

@@ -106,6 +106,7 @@ def get_entrance_files_of_package(package_path):
         entrance_files.append(main_file)
 
     main_file_pathes = ["{}/{}".format(package_path, main_file) for main_file in entrance_files]
+    print("Entrance Files ", main_file_pathes)
 
     return main_file_pathes
 
@@ -196,6 +197,7 @@ def test_file(file_path):
             -2, not found. package parse error
             -3, graph generation error
     """
+    print("Testing", file_path)
     if file_path is None:
         npm_test_logger.error("{} not found".format(file_path))
         return -2
@@ -226,7 +228,7 @@ def test_file(file_path):
     unit_check_log(G, 'os_command', file_path)
 
     try:
-        os.remove("run_log.log")
+        #os.remove("run_log.log")
         os.remove("out.dat")
     except:
         pass
@@ -281,6 +283,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'yui@3.18.1'))
+test_package(os.path.join(root_path, 'addax@1.0.6'))
 #test_package(os.path.join(root_path, 'are-we-there-yet'))
 #main()
