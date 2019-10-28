@@ -28,6 +28,7 @@ class Graph:
         self.object_prototype = None
         self.array_prototype = None
         self.number_prototype = None
+        self.string_prototype = None
         self.boolean_prototype = None
         self.regexp_prototype = None
 
@@ -541,8 +542,14 @@ class Graph:
                 obj_node, tobe_added_obj=self.object_prototype)
         elif js_type == "array":
             js_type = 'object'
-            self.add_obj_as_prop(prop_name="__proto__", parent_obj=obj_node,
-            tobe_added_obj=self.array_prototype)
+            if self.array_prototype is not None:
+                self.add_obj_as_prop(prop_name="__proto__", parent_obj=
+                obj_node, tobe_added_obj=self.array_prototype)
+        elif js_type == "string":
+            if self.string_prototype is not None:
+                # prevent setting __proto__ before setup_object_and_function runs
+                self.add_obj_as_prop(prop_name="__proto__", parent_obj=
+                obj_node, tobe_added_obj=self.string_prototype)
 
         self.set_node_attr(obj_node, ('type', js_type))
 
@@ -767,7 +774,7 @@ class Graph:
 
     def get_prop_obj_nodes(self, parent_obj, prop_name=None,
         branches: List[BranchTag]=[], exclude_proto=True,
-        exclude_non_numeric=False):
+        numeric_only=False):
         '''
         Get object nodes of an object's property.
         
@@ -792,7 +799,7 @@ class Graph:
                     lambda x: self.get_node_attr(x).get('name') not in
                         ['prototype', '__proto__'],
                     name_nodes)
-            if exclude_non_numeric:
+            if numeric_only:
                 def is_int(x):
                     try: # check if x is an integer
                         _ = int(x)

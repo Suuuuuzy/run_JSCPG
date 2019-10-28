@@ -872,7 +872,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
                 handled_value = handle_node(G, value, extra)
                 # loop through object's property object nodes
                 for v in G.get_prop_obj_nodes(obj, branches=extra.branches,
-                    exclude_non_numeric=True):
+                    numeric_only=True):
                     # assign the object node to the loop variable
                     logger.debug(f'For-of loop variables: {sty.ef.i}{handled_value.name}{sty.rs.all}: {sty.fg.green}{v}{sty.rs.all}: {G.get_node_attr(v).get("code")}')
                     G.assign_obj_nodes_to_name_node(handled_value.name_nodes[0],

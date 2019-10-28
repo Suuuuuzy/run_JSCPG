@@ -5,6 +5,7 @@ from .helpers import to_values, to_obj_nodes, val_to_str, is_int
 import sty
 import re
 from .logger import *
+from itertools import chain
 
 
 logger = create_logger("main_logger", output_type="file")
@@ -31,9 +32,11 @@ def setup_string(G: Graph):
     # built-in functions for regexp
     G.add_blank_func_as_prop('match', string_prototype, None)
     G.add_blank_func_as_prop('matchAll', string_prototype, None)
-    G.add_blank_func_as_prop('replace', string_prototype, None)
-    G.add_blank_func_as_prop('search', string_prototype, None)
-    G.add_blank_func_as_prop('split', string_prototype, None)
+    G.add_blank_func_as_prop('replace', string_prototype, string_p_replace)
+    G.add_blank_func_as_prop('search', string_prototype, string_p_match)
+    G.add_blank_func_as_prop('split', string_prototype, string_p_split)
+    G.add_blank_func_as_prop('toLowerCase', string_prototype, string_p_to_lower_case)
+    G.add_blank_func_as_prop('toUpperCase', string_prototype, string_p_to_upper_case)
 
 
 def setup_number(G: Graph):
@@ -51,15 +54,15 @@ def setup_array(G: Graph):
     # Array.prototype.__proto__ = Object.prototype
     G.add_obj_as_prop(None, None, '__proto__', parent_obj=array_prototype, tobe_added_obj=G.object_prototype)
     # built-in functions
-    G.add_blank_func_as_prop('push', array_prototype, array_push)
-    G.add_blank_func_as_prop('pop', array_prototype, array_pop)
-    G.add_blank_func_as_prop('unshift', array_prototype, array_push)
-    G.add_blank_func_as_prop('shift', array_prototype, array_pop)
-    G.add_blank_func_as_prop('join', array_prototype, array_join)
-    G.add_blank_func_as_prop('forEach', array_prototype, array_for_each_static_new)
-    G.add_blank_func_as_prop('keys', array_prototype, array_keys)
-    G.add_blank_func_as_prop('values', array_prototype, array_values)
-    G.add_blank_func_as_prop('entries', array_prototype, array_entries)
+    G.add_blank_func_as_prop('push', array_prototype, array_p_push)
+    G.add_blank_func_as_prop('pop', array_prototype, array_p_pop)
+    G.add_blank_func_as_prop('unshift', array_prototype, array_p_push)
+    G.add_blank_func_as_prop('shift', array_prototype, array_p_pop)
+    G.add_blank_func_as_prop('join', array_prototype, array_p_join)
+    G.add_blank_func_as_prop('forEach', array_prototype, array_p_for_each_static_new)
+    G.add_blank_func_as_prop('keys', array_prototype, array_p_keys)
+    G.add_blank_func_as_prop('values', array_prototype, array_p_values)
+    G.add_blank_func_as_prop('entries', array_prototype, array_p_entries)
     G.add_blank_func_as_prop('slice', array_prototype, this_returning_func)
     G.add_blank_func_as_prop('filter', array_prototype, this_returning_func)
 
@@ -145,7 +148,7 @@ def setup_global_functions(G: Graph):
     clear_interval = G.add_blank_func_to_scope('clearInterval', G.BASE_SCOPE, blank_func)
 
 
-def array_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult()):
+def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult()):
     branches = extra.branches
     for arr in array.obj_nodes:
         elements = G.get_prop_obj_nodes(arr, branches=branches)
@@ -162,7 +165,7 @@ def array_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), callba
     return NodeHandleResult()
 
 
-def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, callback=NodeHandleResult()):
+def array_p_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, callback=NodeHandleResult()):
     branches = extra.branches
     objs = set()
     for arr in array.obj_nodes:
@@ -180,7 +183,7 @@ def array_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult, 
     return NodeHandleResult()
 
 
-def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResult, callback=NodeHandleResult(), this=NodeHandleResult()):
+def array_p_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResult, callback=NodeHandleResult(), this=NodeHandleResult()):
     branches = extra.branches
     objs = []
     names = []
@@ -215,7 +218,7 @@ def array_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleResu
     return NodeHandleResult()
 
 
-def array_push(G: Graph, caller_ast, extra, array: NodeHandleResult, *tobe_added_objs: NodeHandleResult):
+def array_p_push(G: Graph, caller_ast, extra, array: NodeHandleResult, *tobe_added_objs: NodeHandleResult):
     obj_nodes = set()
     used_objs = set()
     for arr in array.obj_nodes:
@@ -228,7 +231,7 @@ def array_push(G: Graph, caller_ast, extra, array: NodeHandleResult, *tobe_added
     return NodeHandleResult(used_objs=used_objs)
 
 
-def array_pop(G: Graph, caller_ast, extra, array: NodeHandleResult):
+def array_p_pop(G: Graph, caller_ast, extra, array: NodeHandleResult):
     branches = extra.branches
     returned_objs = set()
     for arr in array.obj_nodes:
@@ -237,7 +240,7 @@ def array_pop(G: Graph, caller_ast, extra, array: NodeHandleResult):
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
-def array_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep=None):
+def array_p_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep=None):
     returned_objs = []
     used_objs = set()
     for arr in array.obj_nodes:
@@ -250,13 +253,13 @@ def array_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep=None):
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
 
 
-def object_keys(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=False):
+def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
         arr = G.add_obj_node(None, 'array')
         for i, name_node in enumerate(G.get_prop_name_nodes(obj)):
-            name = G.get_node_attr(name_node).get('code')
-            if name is None:
+            name = G.get_node_attr(name_node).get('name')
+            if name is None or name == '__proto__':
                 continue
             if for_array and not (name.isdigit() or name == '*'):
                 continue # Array only returns numeric keys/corresponding values
@@ -266,13 +269,13 @@ def object_keys(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=Fa
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def object_values(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=False):
+def object_values(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
         arr = G.add_obj_node(None, 'array')
         for i, name_node in enumerate(G.get_prop_name_nodes(obj)):
-            name = G.get_node_attr(name_node).get('code')
-            if name is None:
+            name = G.get_node_attr(name_node).get('name')
+            if name is None or name == '__proto__':
                 continue
             if for_array and not (name.isdigit() or name == '*'):
                 continue # Array only returns numeric keys/corresponding values
@@ -306,15 +309,15 @@ def object_entries(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def array_keys(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
+def array_p_keys(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
     return object_keys(G, caller_ast, extra, this, True)
 
 
-def array_values(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
+def array_p_values(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
     return object_values(G, caller_ast, extra, this, True)
 
 
-def array_entries(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
+def array_p_entries(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
     return object_entries(G, caller_ast, extra, this, True)
 
 
@@ -511,7 +514,7 @@ def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=None, flags=None)
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def string_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
+def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
     substrs=NodeHandleResult(), new_sub_strs=NodeHandleResult()):
     returned_objs = []
     for s in strs.obj_nodes:
@@ -544,7 +547,7 @@ def string_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
         + strs.used_objs + substrs.used_objs + new_sub_strs.used_objs)))
 
 
-def string_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps=None):
+def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps=None):
     if regexps is None or not regexps.obj_nodes:
         added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
         G.add_obj_as_prop(ast_node=caller_ast, js_type='string', value='', parent_obj=added_array)
@@ -599,12 +602,64 @@ def string_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps=N
         used_objs=list(set(strs.obj_nodes + strs.used_objs + regexps.obj_nodes + regexps.used_objs)))
 
 
-def string_split(G: Graph, caller_ast, extra, strs, separators):
-    pass
+def string_p_split(G: Graph, caller_ast, extra, strs, separators):
+    values, s1, _ = to_values(G, strs, caller_ast)
+    sep, s2, _ = to_values(G, strs, caller_ast)
+    returned_objs = []
+    used_objs = set()
+    for i, s in enumerate(values):
+        for j, p in enumerate(sep):
+            arr = G.add_obj_node(ast_node=caller_ast, js_type='array')
+            if s is None or p is None:
+                v = G.add_obj_as_prop(prop_name='*', ast_node=caller_ast,
+                    js_type='string', value=None, parent_obj=arr)
+                for ss in s1[i]:
+                    G.add_edge(ss, v, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    G.add_edge(ss, arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                for ss in s2[j]:
+                    G.add_edge(ss, v, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    G.add_edge(ss, arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+            else:
+                for k, d in enumerate(s.split(p)):
+                    v = G.add_obj_as_prop(prop_name=str(k), value=d,
+                        ast_node=caller_ast, js_type='string', parent_obj=arr)
+                    for ss in s1[i]:
+                        G.add_edge(ss, v, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        G.add_edge(ss, arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    for ss in s2[j]:
+                        G.add_edge(ss, v, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        G.add_edge(ss, arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+            returned_objs.append(arr)
+            used_objs.update(s1[i])
+            used_objs.update(s2[j])
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
 
 
+def string_p_to_lower_case(G: Graph, caller_ast, extra, strs):
+    values, sources, _ = to_values(G, strs, caller_ast)
+    returned_values = []
+    for s in values:
+        if values is not None:
+            returned_values.append(str(s).lower())
+        else:
+            returned_values.append(None)
+    return NodeHandleResult(values=returned_values, value_sources=sources,
+        used_objs=list(chain(*sources)))
 
-def split_regexp(code) -> [str, str]:
+
+def string_p_to_upper_case(G: Graph, caller_ast, extra, strs):
+    values, sources, _ = to_values(G, strs, caller_ast)
+    returned_values = []
+    for s in values:
+        if values is not None:
+            returned_values.append(str(s).upper())
+        else:
+            returned_values.append(None)
+    return NodeHandleResult(values=returned_values, value_sources=sources,
+        used_objs=list(chain(*sources)))
+
+
+def split_regexp(code) -> (str, str):
     if code is None:
         return None, None
     match = re.match(r'^/(.*)/(\w*)$', code)
@@ -614,7 +669,7 @@ def split_regexp(code) -> [str, str]:
         return None, None
 
 
-def convert_to_python_re(code) -> [re.Pattern, bool, bool]:
+def convert_to_python_re(code) -> (re.Pattern, bool, bool):
     pattern, flags = split_regexp(code)
     glob, sticky = False, False
     if pattern is not None:
