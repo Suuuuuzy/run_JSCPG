@@ -822,7 +822,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             logger.debug('For loop variables:')
             for name, obj_nodes in d.items():
                 logger.debug(sty.ef.i + name + sty.rs.all + ': ' +
-                    ', '.join([(sty.fg.green+'{}'+sty.rs.all+'{}').format(obj,
+                    ', '.join([(sty.fg.green+'{}'+sty.rs.all+' {}').format(obj,
                     val_to_str(G.get_node_attr(obj).get('code'))) for obj in obj_nodes]))
 
             simurun_block(G, body, branches=extra.branches) # run the body
@@ -832,7 +832,8 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             logger.debug('Check condition {} result: {}'.format(sty.ef.i +
                 G.get_node_attr(cond).get('code') + sty.rs.all, check_result))
             # avoid infinite loop
-            if counter > 10000 or check_result == 0:
+            if counter > 10000 or check_result == 0 or \
+                (check_result is None and counter > 3):
                 logger.debug('For loop {} finished'.format(node_id))
                 break
             counter += 1
@@ -870,9 +871,11 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             elif G.get_node_attr(node_id).get('flags:string[]') == 'JS_FOR_OF':
                 # handle and declare the loop variable
                 handled_value = handle_node(G, value, extra)
+                # if the object is an array, only use numeric indices
+                numeric_only = (G.get_node_attr(obj).get('type') == 'array')
                 # loop through object's property object nodes
                 for v in G.get_prop_obj_nodes(obj, branches=extra.branches,
-                    numeric_only=True):
+                    numeric_only=numeric_only):
                     # assign the object node to the loop variable
                     logger.debug(f'For-of loop variables: {sty.ef.i}{handled_value.name}{sty.rs.all}: {sty.fg.green}{v}{sty.rs.all}: {G.get_node_attr(v).get("code")}')
                     G.assign_obj_nodes_to_name_node(handled_value.name_nodes[0],

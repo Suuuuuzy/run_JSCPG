@@ -215,6 +215,8 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
 
             true_num = 0
             total_num = len(left_values) * len(right_values)
+            if total_num == 0:
+                return None # Value is unknown, cannot check
             if op_type == 'BINARY_IS_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
@@ -295,6 +297,8 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
         handled = handling_func(G, ast_node, extra)
         true_num = 0
         total_num = len(handled.obj_nodes) + len(handled.values)
+        if total_num == 0:
+            return None # Value is unknown, cannot check
         for obj in handled.obj_nodes:
             if obj in [G.undefined_obj, G.null_obj, G.false_obj]:
                 pass
