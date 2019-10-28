@@ -2031,7 +2031,14 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         funcId: currentFunctionId
                     };
                     // left (key)
-                    if (currentNode.left.declarations && currentNode.left.declarations[0]) {
+                    let leftIdentifier;
+                    if (currentNode.left.type == 'VariableDeclaration' &&
+                        currentNode.left.declarations && currentNode.left.declarations[0]){
+                        leftIdentifier = currentNode.left.declarations[0].id;
+                    } else if (currentNode.left.type == 'Identifier'){
+                        leftIdentifier = currentNode.left;
+                    }
+                    if (leftIdentifier != undefined){
                         // make AST_VAR virtual node
                         nodeIdCounter++;
                         let vAstVarId = nodeIdCounter;
@@ -2051,10 +2058,10 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                             label: 'AST',
                             type: 'Identifier',
                             phptype: 'string',
-                            name: currentNode.left.declarations[0].id.name,
+                            name: leftIdentifier.name,
                             lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                             childNum: 0,
-                            code: currentNode.left.declarations[0].id.name,
+                            code: leftIdentifier.name,
                             funcId: currentFunctionId
                         };
                     } else {
@@ -2063,7 +2070,13 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 } else if (currentNode.type == 'ForOfStatement') {
                     phpflag = 'JS_FOR_OF';
                     // left (value)
-                    if (currentNode.left.declarations && currentNode.left.declarations[0]) {
+                    if (currentNode.left.type == 'VariableDeclaration' &&
+                        currentNode.left.declarations && currentNode.left.declarations[0]){
+                        leftIdentifier = currentNode.left.declarations[0].id;
+                    } else if (currentNode.left.type == 'Identifier'){
+                        leftIdentifier = currentNode.left;
+                    }
+                    if (leftIdentifier != undefined){
                         // make AST_VAR virtual node
                         nodeIdCounter++;
                         let vAstVarId = nodeIdCounter;
@@ -2083,10 +2096,10 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                             label: 'AST',
                             type: 'Identifier',
                             phptype: 'string',
-                            name: currentNode.left.declarations[0].id.name,
+                            name: leftIdentifier.name,
                             lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                             childNum: 0,
-                            code: currentNode.left.declarations[0].id.name,
+                            code: leftIdentifier.name,
                             funcId: currentFunctionId
                         };
                     } else {

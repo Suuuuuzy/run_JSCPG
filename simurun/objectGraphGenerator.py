@@ -378,19 +378,66 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
         # if only have left side
         return handle_node(G, ast_children[0], extra)
 
+    # get branch tags
+    branches = extra.branches if extra else BranchTagContainer()
+
     # recursively handle both sides
+    # handle right first
     if right_override is None:
-        handled_right = handle_node(G, right, ExtraInfo(extra, side='right'))
+        handled_right = \
+            handle_node(G, right, ExtraInfo(extra, side='right'))
     else:
         handled_right = right_override
-    handled_left = handle_node(G, left, ExtraInfo(extra, side='left'))
+    # handle left
+    if G.get_node_attr(left).get('type') == 'AST_ARRAY':
+        # destructuring assignment
+        # handle left item by item
+        children = G.get_ordered_ast_child_nodes(left)
+        if G.get_node_attr(left).get('flags:string[]') == 'JS_OBJECT':
+            # ObjectPattern assignments
+            added_obj = G.add_obj_node(ast_node=ast_node, js_type='object')
+            for child in children:
+                handled_left = \
+                    handle_var(G, child, ExtraInfo(extra, side='left'))
+                for obj in handled_right.obj_nodes:
+                    prop_obj_nodes= G.get_prop_obj_nodes(parent_obj=obj,
+                        prop_name=handled_left.name, branches=branches)
+                    for o in prop_obj_nodes:
+                        G.add_obj_as_prop(parent_obj=added_obj,
+                            prop_name=handled_left.name, tobe_added_obj=o)
+                    do_assign(G, handled_left, NodeHandleResult(
+                        obj_nodes=prop_obj_nodes), branches, ast_node)
+            return NodeHandleResult(obj_nodes=[added_obj])
+        else:
+            # ArrayPattern assignments
+            added_obj = G.add_obj_node(ast_node=ast_node, js_type='array')
+            for i, child in enumerate(children):
+                handled_left = \
+                    handle_var(G, child, ExtraInfo(extra, side='left'))
+                for obj in handled_right.obj_nodes:
+                    prop_obj_nodes= G.get_prop_obj_nodes(parent_obj=obj,
+                        prop_name=str(i), branches=branches)
+                    for o in prop_obj_nodes:
+                        G.add_obj_as_prop(parent_obj=added_obj,
+                            prop_name=str(i), tobe_added_obj=o)
+                    do_assign(G, handled_left, NodeHandleResult(
+                        obj_nodes=prop_obj_nodes), branches, ast_node)
+            G.add_obj_as_prop(parent_obj=added_obj, prop_name='length',
+                js_type='number', value=len(children))
+            return NodeHandleResult(obj_nodes=[added_obj])
+    else:
+        # normal assignment
+        handled_left = handle_node(G, left, ExtraInfo(extra, side='left'))
+        return do_assign(G, handled_left, handled_right, branches, ast_node)
 
+def do_assign(G, handled_left, handled_right, branches=BranchTagContainer(),
+    ast_node=None):
     if not handled_left:
-        logger.warning("Left side handling error at statement {}, child {}".format(ast_node, left))
+        logger.warning("Left side handling error at statement {}".format(ast_node))
         return NodeHandleResult()
 
     if not handled_right:
-        logger.warning("Right side handling error at statement {}, child {}".format(ast_node, right))
+        logger.warning("Right side handling error at statement {}".format(ast_node))
         return NodeHandleResult()
 
     right_objs = to_obj_nodes(G, handled_right, ast_node)
@@ -398,9 +445,6 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
     if not right_objs:
         logger.debug("Right OBJ not found")
         right_objs = [G.undefined_obj]
-
-    # get branch tags
-    branches = extra.branches if extra else BranchTagContainer()
 
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
@@ -843,7 +887,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             logger.debug('For loop variables:')
             for name, obj_nodes in d.items():
                 logger.debug(sty.ef.i + name + sty.rs.all + ': ' +
-                    ', '.join([(sty.fg.green+'{}'+sty.rs.all+'{}').format(obj,
+                    ', '.join([(sty.fg.green+'{}'+sty.rs.all+' {}').format(obj,
                     val_to_str(G.get_node_attr(obj).get('code'))) for obj in obj_nodes]))
 
             simurun_block(G, body, branches=extra.branches) # run the body
@@ -853,7 +897,8 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             logger.debug('Check condition {} result: {}'.format(sty.ef.i +
                 G.get_node_attr(cond).get('code') + sty.rs.all, check_result))
             # avoid infinite loop
-            if counter > 10000 or check_result == 0:
+            if counter > 10000 or check_result == 0 or \
+                (check_result is None and counter > 3):
                 logger.debug('For loop {} finished'.format(node_id))
                 break
             counter += 1
@@ -891,9 +936,11 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             elif G.get_node_attr(node_id).get('flags:string[]') == 'JS_FOR_OF':
                 # handle and declare the loop variable
                 handled_value = handle_node(G, value, extra)
+                # if the object is an array, only use numeric indices
+                numeric_only = (G.get_node_attr(obj).get('type') == 'array')
                 # loop through object's property object nodes
                 for v in G.get_prop_obj_nodes(obj, branches=extra.branches,
-                    numeric_only=True):
+                    numeric_only=numeric_only):
                     # assign the object node to the loop variable
                     logger.debug(f'For-of loop variables: {sty.ef.i}{handled_value.name}{sty.rs.all}: {sty.fg.green}{v}{sty.rs.all}: {G.get_node_attr(v).get("code")}')
                     G.assign_obj_nodes_to_name_node(handled_value.name_nodes[0],
@@ -971,7 +1018,8 @@ def decl_vars_and_funcs(G, ast_node):
             'AST_WHILE', 'AST_SWITCH_CASE']:
             decl_vars_and_funcs(G, stmt)
 
-def simurun_function(G, func_decl_ast_node, branches=BranchTagContainer()):
+def simurun_function(G, func_decl_ast_node, branches=BranchTagContainer(),
+    block_scope=True):
     """
     Simurun a function by running its body.
     """
@@ -991,7 +1039,8 @@ def simurun_function(G, func_decl_ast_node, branches=BranchTagContainer()):
     returned_objs, used_objs = [], []
     for child in G.get_child_nodes(func_decl_ast_node, child_type='AST_STMT_LIST'):
         returned_objs, used_objs = simurun_block(G, child,
-            parent_scope=G.cur_scope, branches=branches)
+            parent_scope=G.cur_scope, branches=branches,
+            block_scope=block_scope)
         break
 
     G.call_stack.pop()
@@ -1249,7 +1298,7 @@ def run_toplevel_file(G: Graph, node_id):
     G.add_obj_to_scope(name="this", tobe_added_obj=added_module_exports)
 
     # simurun the file
-    simurun_function(G, node_id)
+    simurun_function(G, node_id, block_scope=False)
 
     # get current module.exports
     # because module.exports may be assigned to another object

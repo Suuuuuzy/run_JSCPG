@@ -542,7 +542,7 @@ class Graph:
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.object_prototype)
         elif js_type == "array":
-            js_type = 'object'
+            # js_type = 'object' # don't change, keep 'array' type in graph
             if self.array_prototype is not None:
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.array_prototype)
@@ -801,13 +801,13 @@ class Graph:
                         ['prototype', '__proto__'],
                     name_nodes)
             if numeric_only:
-                def is_int(x):
+                def is_name_int(node):
                     try: # check if x is an integer
-                        _ = int(x)
+                        _ = int(self.get_node_attr(node).get('name'))
                     except ValueError:
                         return False
                     return True
-                name_nodes = filter(is_int, name_nodes)
+                name_nodes = filter(is_name_int, name_nodes)
             for name_node in name_nodes:
                 s.update(self.get_obj_nodes(name_node, branches))
         else:
