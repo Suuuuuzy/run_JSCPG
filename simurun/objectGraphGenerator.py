@@ -397,14 +397,16 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
             # ObjectPattern assignments
             added_obj = G.add_obj_node(ast_node=ast_node, js_type='object')
             for child in children:
+                value, key = G.get_ordered_ast_child_nodes(child)
                 handled_left = \
-                    handle_var(G, child, ExtraInfo(extra, side='left'))
+                    handle_var(G, value, ExtraInfo(extra, side='left'))
+                _key = G.get_name_from_child(key)
                 for obj in handled_right.obj_nodes:
                     prop_obj_nodes= G.get_prop_obj_nodes(parent_obj=obj,
-                        prop_name=handled_left.name, branches=branches)
+                        prop_name=_key, branches=branches)
                     for o in prop_obj_nodes:
                         G.add_obj_as_prop(parent_obj=added_obj,
-                            prop_name=handled_left.name, tobe_added_obj=o)
+                            prop_name=_key, tobe_added_obj=o)
                     do_assign(G, handled_left, NodeHandleResult(
                         obj_nodes=prop_obj_nodes), branches, ast_node)
             return NodeHandleResult(obj_nodes=[added_obj])
