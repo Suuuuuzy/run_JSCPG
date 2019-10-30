@@ -10,7 +10,7 @@ function searchModule(moduleName, requiredBy) {
     if (builtInModules.includes(moduleName)) {
         // console.error(`${moduleName.blue.bright} is a built-in module.`);
         let searchPaths = new Set();
-        let currentSearchPath = path.resolve(requiredBy, '.');
+        let currentSearchPath = __dirname;
         // search JavaScript-modeled built-in modules
         while (currentSearchPath != path.resolve(currentSearchPath, '..')) {
             searchPaths.add(path.resolve(currentSearchPath, 'builtin_packages'));
