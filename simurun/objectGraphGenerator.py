@@ -1672,8 +1672,8 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if def_cpg_node == cur_stmt: continue
         def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')
         logger.info(sty.fg.li_magenta + sty.ef.inverse + "OBJ REACHES" + sty.rs.all +
-        " {} (Line {}) -> {} (Line {})".format(def_cpg_node, def_lineno,
-        cur_stmt, cur_lineno))
+        " {} (Line {}) -> {} (Line {}), by OBJ {}".format(def_cpg_node,
+        def_lineno, cur_stmt, cur_lineno, obj))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
 
 def print_handle_result(handle_result: NodeHandleResult):
