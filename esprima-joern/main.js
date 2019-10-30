@@ -274,7 +274,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 for (var child of currentNode.declarations) {
                     nodeIdCounter++;
                     relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    dfs(child, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, null, null);
+                    dfs(child, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, {
+                        kind: currentNode.kind
+                    });
                     childNumberCounter++;
                 }
                 nodes[currentId] = {

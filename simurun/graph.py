@@ -956,7 +956,8 @@ class Graph:
             self.set_node_attr(new_scope_node, ('func_name', func_name))
         return new_scope_node
 
-    def find_ancestor_scope(self, scope_type='FUNC_SCOPE', cur_scope=None):
+    def find_ancestor_scope(self, scope_types=['FUNC_SCOPE', 'FILE_SCOPE'],
+        cur_scope=None):
         '''
         Find ancestor (file/function) scope from the current (block)
         scope.
@@ -964,7 +965,7 @@ class Graph:
         if cur_scope is None:
             cur_scope = self.cur_scope
         while True:
-            if self.get_node_attr(cur_scope).get('type') == scope_type:
+            if self.get_node_attr(cur_scope).get('type') in scope_types:
                 return cur_scope
             edges = self.get_in_edges(cur_scope, edge_type='PARENT_SCOPE_OF')
             if edges:
@@ -1138,7 +1139,7 @@ class Graph:
 
     def get_cur_file_path(self, cur_scope=None):
         file_scope = self.find_ancestor_scope(cur_scope=cur_scope,
-            scope_type='FILE_SCOPE')
+            scope_types=['FILE_SCOPE'])
         file_ast = self.get_out_edges(file_scope,
                         edge_type='SCOPE_TO_AST')[0][1]
         return self.get_node_attr(file_ast).get('name')

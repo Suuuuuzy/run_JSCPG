@@ -961,24 +961,23 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
     return NodeHandleResult()
 
-def decl_vars_and_funcs(G, ast_node):
+def decl_vars_and_funcs(G, ast_node, var=True, func=True):
     # pre-declare variables and functions
-    # TODO: multiple possibilities?
     func_scope = G.find_ancestor_scope()
-    stmts = G.get_ordered_ast_child_nodes(ast_node)
-    for stmt in stmts:
-        node_type = G.get_node_attr(stmt)['type']
-        if node_type == 'AST_VAR' and \
-            G.get_node_attr(stmt)['flags:string[]'] == 'JS_DECL_VAR':
+    children = G.get_ordered_ast_child_nodes(ast_node)
+    for child in children:
+        node_type = G.get_node_attr(child)['type']
+        if var and node_type == 'AST_VAR' and \
+            G.get_node_attr(child)['flags:string[]'] == 'JS_DECL_VAR':
             # var a;
-            name = G.get_name_from_child(stmt)
+            name = G.get_name_from_child(child)
             if G.get_name_node(name, scope=func_scope,
                 follow_scope_chain=False) is None:
                 G.add_obj_to_scope(name=name, scope=func_scope,
                                    tobe_added_obj=G.undefined_obj)
-        elif node_type == 'AST_ASSIGN':
+        elif var and node_type == 'AST_ASSIGN':
             # var a = ...;
-            children = G.get_ordered_ast_child_nodes(stmt)
+            children = G.get_ordered_ast_child_nodes(child)
             if G.get_node_attr(children[0])['type'] == 'AST_VAR' and \
                 G.get_node_attr(children[0])['flags:string[]'] == 'JS_DECL_VAR':
                 name = G.get_name_from_child(children[0])
@@ -988,35 +987,37 @@ def decl_vars_and_funcs(G, ast_node):
                     follow_scope_chain=False) is None:
                     G.add_obj_to_scope(name=name, scope=func_scope,
                                        tobe_added_obj=G.undefined_obj)
-        elif node_type == 'AST_FUNC_DECL':
-            func_name = G.get_name_from_child(stmt)
-            func_obj = decl_function(G, stmt)
+                else:
+                    pass
+        elif func and node_type == 'AST_FUNC_DECL':
+            func_name = G.get_name_from_child(child)
+            func_obj = decl_function(G, child, obj_parent_scope=func_scope)
         elif node_type == 'AST_STMT_LIST':
-            decl_vars_and_funcs(G, stmt)
-        elif node_type in ['AST_IF_ELEM', 'AST_FOR', 'AST_FOREACH',
-            'AST_WHILE', 'AST_SWITCH_CASE']:
-            decl_vars_and_funcs(G, stmt)
+            decl_vars_and_funcs(G, child, var=var, func=func)
+        elif node_type in ['AST_IF', 'AST_IF_ELEM', 'AST_FOR', 'AST_FOREACH',
+            'AST_WHILE', 'AST_SWITCH', 'AST_SWITCH_CASE', 'AST_EXPR_LIST']:
+            decl_vars_and_funcs(G, child, var=var, func=False)
 
-def simurun_function(G, func_decl_ast_node, branches=BranchTagContainer(),
+def simurun_function(G, func_ast, branches=BranchTagContainer(),
     block_scope=True):
     """
     Simurun a function by running its body.
     """
-    if func_decl_ast_node in G.call_stack:
-        logger.warning(f'Function {func_decl_ast_node} in call stack, skip simulating')
+    if func_ast in G.call_stack:
+        logger.warning(f'Function {func_ast} in call stack, skip simulating')
         return [], []
-    G.call_stack.append(func_decl_ast_node)
+    G.call_stack.append(func_ast)
 
-    decl_vars_and_funcs(G, func_decl_ast_node)
-    func_decl_obj = G.get_func_decl_objs_by_ast_node(func_decl_ast_node)[0]
-    func_name = G.get_node_attr(func_decl_obj).get('name')
+    decl_vars_and_funcs(G, func_ast)
+    func_obj = G.get_func_decl_objs_by_ast_node(func_ast)[0]
+    func_name = G.get_node_attr(func_obj).get('name')
     logger.info(sty.ef.inverse + sty.fg.green +
         "FUNCTION {} {} STARTS, SCOPE {}, DECL OBJ {}, this OBJs {}, branches {}"
-        .format(func_decl_ast_node, func_name or '{anonymous}',
-        G.cur_scope, func_decl_obj, G.cur_objs,
+        .format(func_ast, func_name or '{anonymous}',
+        G.cur_scope, func_obj, G.cur_objs,
         branches) + sty.rs.all)
     returned_objs, used_objs = [], []
-    for child in G.get_child_nodes(func_decl_ast_node, child_type='AST_STMT_LIST'):
+    for child in G.get_child_nodes(func_ast, child_type='AST_STMT_LIST'):
         returned_objs, used_objs = simurun_block(G, child,
             parent_scope=G.cur_scope, branches=branches,
             block_scope=block_scope)
@@ -1032,7 +1033,6 @@ def simurun_block(G, ast_node, parent_scope=None, branches=BranchTagContainer(),
     A block is a BlockStatement in JavaScript,
     or an AST_STMT_LIST in PHP.
     """
-    logger.log(ATTENTION, 'BLOCK {} STARTS'.format(ast_node))
     returned_objs = set()
     used_objs = set()
     if parent_scope == None:
@@ -1041,6 +1041,8 @@ def simurun_block(G, ast_node, parent_scope=None, branches=BranchTagContainer(),
         G.cur_scope = \
             G.add_scope('BLOCK_SCOPE', decl_ast=ast_node,
                         scope_name=G.call_counter.gets(f'Block{ast_node}'))
+    logger.log(ATTENTION, 'BLOCK {} STARTS, SCOPE {}'.format(ast_node, G.cur_scope))
+    decl_vars_and_funcs(G, ast_node, var=False)
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     # simulate statements
     for stmt in stmts:
@@ -1197,7 +1199,8 @@ def call_callback_function(G, caller_ast, func_decl, func_scope, args=None,
     # add call edge
     G.add_edge_if_not_exist(caller_ast, func_decl, {"type:TYPE": "CALLS"})
 
-def decl_function(G, node_id, func_name=None, parent_scope=None):
+def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
+    scope_parent_scope=None):
     '''
     Declare a function as an object node.
     
@@ -1206,8 +1209,11 @@ def decl_function(G, node_id, func_name=None, parent_scope=None):
         node_id: The function's AST node (AST_FUNC_DECL).
         func_name (str, optional): The function's name. Defaults to
             None, which means getting name from its AST children.
-        parent_scope (optional): The parent scope of the function's
-            prospective scope(s). Defaults to current scope.
+        obj_parent_scope (optional): Which scope the function object
+            should be placed to. Defaults to current scope.
+        scope_parent_scope (optional): Where the function's scopes
+            should be put. See comments below. Defaults to current
+            scope.
     
     Returns:
         added_obj: The function's object node.
@@ -1216,21 +1222,26 @@ def decl_function(G, node_id, func_name=None, parent_scope=None):
     # if "VISITED" in G.get_node_attr(node_id):
     #     return None
 
-    if parent_scope is None:
-        parent_scope = G.cur_scope
+    if obj_parent_scope is None:
+        obj_parent_scope = G.cur_scope
+    if scope_parent_scope is None:
+        scope_parent_scope = G.cur_scope
     if func_name is None:
         func_name = G.get_name_from_child(node_id)
 
     # add function declaration object
     added_obj = G.add_obj_node(node_id, "function")
     G.set_node_attr(added_obj, ('name', func_name))
-    # record its parent scope
-    # when the function is called, we add scopes under this "parent scope",
-    # instead of current scope (which is where the function is called)
-    G.set_node_attr(added_obj, ('parent_scope', parent_scope))
+    # memorize its parent scope
+    # Function scopes are not created when the function is declared.
+    # Instead, they are created before each time the function is
+    # executed. Because the function can be called in any scope but its
+    # scope should be put under where it is defined, we need to memorize
+    # its original parent scope.
+    G.set_node_attr(added_obj, ('parent_scope', scope_parent_scope))
 
     if func_name is not None and func_name != '{closure}':
-        G.add_obj_to_scope(name=func_name, scope=parent_scope,
+        G.add_obj_to_scope(name=func_name, scope=obj_parent_scope,
             tobe_added_obj=added_obj)
 
     # G.set_node_attr(node_id, ("VISITED", "1"))
@@ -1255,7 +1266,8 @@ def run_toplevel_file(G: Graph, node_id):
     logger.info(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(file_path) + sty.rs.all)
 
     # add function object and scope
-    func_decl_obj = decl_function(G, node_id, func_name=file_path, parent_scope=G.BASE_SCOPE)
+    func_decl_obj = decl_function(G, node_id, func_name=file_path,
+        obj_parent_scope=G.BASE_SCOPE, scope_parent_scope=G.BASE_SCOPE)
     func_scope = G.add_scope(scope_type='FILE_SCOPE', decl_ast=node_id,
         scope_name=G.call_counter.gets(f'File{node_id}'),
         decl_obj=func_decl_obj, func_name=file_path, parent_scope=G.BASE_SCOPE)
@@ -1549,7 +1561,7 @@ def call_function(G, func_objs, args=[], this=None, extra=ExtraInfo(),
             not in ['AST_FUNC_DECL', 'AST_CLOSURE']:
                 G.add_blank_func_with_og_nodes(func_name, func_obj)
                 func_ast = G.get_obj_def_ast_node(func_obj)
-            # add function scope
+            # add function scope (see comments in decl_function)
             parent_scope = G.get_node_attr(func_obj).get('parent_scope')
             func_scope = G.add_scope('FUNC_SCOPE', func_ast,
                 f'Function{func_ast}:{caller_ast}', func_obj,
