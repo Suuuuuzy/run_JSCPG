@@ -106,7 +106,8 @@ def vul_checking(G, pathes, vul_type):
             ]
     os_command_rule_lists = [
             [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_exec_hqbpillvul'])],
-            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_execFile_hqbpillvul'])]
+            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_execFile_hqbpillvul'])],
+            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_execSync_hqbpillvul'])]
             ]
 
     vul_type_map = {

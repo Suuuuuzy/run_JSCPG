@@ -283,6 +283,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'addax@1.0.6'))
+test_package(os.path.join(root_path, 'apex-publish-static-files@2.0.0'))
 #test_package(os.path.join(root_path, 'are-we-there-yet'))
 #main()
