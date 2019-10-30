@@ -610,7 +610,7 @@ def string_p_split(G: Graph, caller_ast, extra, strs, separators):
     for i, s in enumerate(values):
         for j, p in enumerate(sep):
             arr = G.add_obj_node(ast_node=caller_ast, js_type='array')
-            if s is None or p is None:
+            if s is None or p is None or len(p) == 0:
                 v = G.add_obj_as_prop(prop_name='*', ast_node=caller_ast,
                     js_type='string', value=None, parent_obj=arr)
                 for ss in s1[i]:

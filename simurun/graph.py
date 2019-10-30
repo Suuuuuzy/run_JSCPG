@@ -378,6 +378,7 @@ class Graph:
                             key=lambda x: int(x[0]))
         if children:
             children = list(zip(*children))[1]
+
         return children
 
     def get_child_nodes(self, node_id, edge_type=None, child_name=None, child_type=None):

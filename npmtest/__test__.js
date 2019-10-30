@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/packages/yui@3.18.1/axis-time/debug.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/packages/apex-publish-static-files@2.0.0/index.js');

@@ -320,6 +320,8 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             if value:
                 true_num += 1
     # print(f'Compare result: {true_num / total_num}')
+    if 0 == total_num:
+        return 0
     return true_num / total_num
 
 def is_int(x):

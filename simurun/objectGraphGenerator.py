@@ -641,6 +641,16 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
     elif cur_type == "AST_ASSIGN":
         return handle_assign(G, node_id, extra)
     
+    elif cur_type == "AST_TRY":
+        stmt_node = G.get_ordered_ast_child_nodes(node_id)[0]
+        childern = G.get_ordered_ast_child_nodes(stmt_node)
+        for child in childern:
+            handle_node(G, child)
+
+    elif cur_type == "AST_YIELD":
+        # for a await, we run it immediately
+        return handle_node(G, G.get_ordered_ast_child_nodes(node_id)[0])
+
     elif cur_type == 'AST_ARRAY':
         if G.get_node_attr(node_id).get('flags:string[]') == 'JS_OBJECT':
             added_obj = G.add_obj_node(node_id, "object")
@@ -688,6 +698,15 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
                 G.add_obj_as_prop(key, node_id,
                     parent_obj=extra.parent_obj, tobe_added_obj=obj)
         return NodeHandleResult(obj_nodes=value_objs, used_objs=used_objs)
+
+    elif cur_type == "AST_ENCAPS_LIST":
+        children = G.get_ordered_ast_child_nodes(node_id)
+        obj_nodes = []
+        for child in children:
+            handle_res = handle_node(G, child)
+            if len(handle_res.obj_nodes) != 0:
+                obj_nodes += handle_res.obj_nodes
+        return NodeHandleResult(obj_nodes=obj_nodes)
 
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
         return handle_var(G, node_id, extra)
@@ -1289,7 +1308,7 @@ def run_toplevel_file(G: Graph, node_id):
     G.add_obj_to_scope(name="this", tobe_added_obj=added_module_exports)
 
     # simurun the file
-    simurun_function(G, node_id, block_scope=False)
+    simurun_function(G, node_id, block_scope=True)
 
     # get current module.exports
     # because module.exports may be assigned to another object
@@ -1421,15 +1440,21 @@ def ast_call_function(G, ast_node, extra):
     
     if handled_callee.name == 'require':
         module_exports_objs = handle_require(G, ast_node)
-        # print(export_obj, G.get_name_from_child(ast_node), G.get_node_file_path(ast_node), G.get_node_line_code(ast_node))
+        # print(G.get_name_from_child(ast_node), module_exports_objs, G.get_node_file_path(ast_node))
         # run the exported objs immediately
         if module_exports_objs:
             exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
+            #print(exported_objs)
+            if len(exported_objs) == 0:
+                # we only have one exported funcs
+                exported_objs = module_exports_objs
+
             for obj in exported_objs:
                 if G.get_node_attr(obj).get("init_run") is not None:
                     continue
                 if G.get_node_attr(obj).get('type') != 'function':
                     continue
+                #print("Run", obj)
                 call_function(G, [obj])
                 G.set_node_attr(obj, ('init_run', "True"))
         return module_exports_objs, []
@@ -1703,7 +1728,6 @@ def generate_obj_graph(G, entry_nodeid):
         register_func(G, node[0])
     handle_node(G, entry_nodeid)
     add_edges_between_funcs(G)
-
 
 def analyze_files(G, path, start_node_id=0, check_signatures=[]):
     """

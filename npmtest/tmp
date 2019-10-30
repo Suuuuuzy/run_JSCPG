@@ -1,0 +1,79 @@
+Entrance Files  ['/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/.eslintrc.js', '/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/index.js']
+Testing /media/data/lsong18/data/vulPackages/packages/addax@1.0.6/.eslintrc.js
+Testing /media/data/lsong18/data/vulPackages/packages/addax@1.0.6/index.js
+['__test__.js']
+['__test__.js', '/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/index.js']
+{anonymous}
+{anonymous}
+{anonymous}
+['__test__.js', '/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/index.js', '/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/server.js']
+['__test__.js', '/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/index.js', '/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/server.js', '/media/data/lsong18/data/builtin_packages/child_process.js']
+{anonymous}
+sink_exec_hqbpillvul
+callback
+{anonymous}
+sink_execFile_hqbpillvul
+callback
+['__test__.js', '/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/index.js', '/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/server.js', '/media/data/lsong18/data/vulPackages/packages/addax@1.0.6/authentication.js']
+{anonymous}
+path.join
+Promise
+{anonymous}
+fs.access
+{anonymous}
+resolve
+fs.readFile
+{anonymous}
+reject
+JSON.parse
+resolve
+{anonymous}
+Promise
+{anonymous}
+path.join
+JSON.stringify
+fs.writeFile
+{anonymous}
+reject
+resolve
+program.command
+program  .command('adduser <directory>').action
+{anonymous}
+console.log
+program.command
+program  .command('rmuser <directory>').action
+{anonymous}
+console.log
+program.command
+program  .command('sign <directory> <filepath>').action
+{anonymous}
+console.log
+program.command
+program  .command('start [port]').action
+{anonymous}
+console.log
+startServer
+express
+app.get
+{anonymous}
+res.sendStatus
+app.get
+{anonymous}
+res.sendStatus
+app.listen
+program.command
+program  .command('*').action
+{anonymous}
+console.error
+console.log
+console.log
+console.log
+console.log
+console.log
+fs.access
+{anonymous}
+console.error
+fs.readFile
+{anonymous}
+[]
+[['1516'], ['1574']]
