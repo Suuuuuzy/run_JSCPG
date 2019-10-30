@@ -703,12 +703,15 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
 
     elif cur_type == "AST_ENCAPS_LIST":
         children = G.get_ordered_ast_child_nodes(node_id)
-        obj_nodes = []
+        used_objs = set()
+        added_obj = G.add_obj_node(ast_node=node_id, js_type='string')
         for child in children:
             handle_res = handle_node(G, child)
-            if len(handle_res.obj_nodes) != 0:
-                obj_nodes += handle_res.obj_nodes
-        return NodeHandleResult(obj_nodes=obj_nodes)
+            used_objs.update(handle_res.obj_nodes)
+            used_objs.update(handle_res.used_objs)
+            for obj in handle_res.obj_nodes:
+                G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+        return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
 
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
         return handle_var(G, node_id, extra)
