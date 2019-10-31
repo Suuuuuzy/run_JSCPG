@@ -1328,7 +1328,7 @@ class Graph:
                         visited.add(child)
                         if depth_now > 1:
 
-                            edge_group = self.get_in_edges(start, edge_type=edge_type)
+                            edge_group = self.get_in_edges(child, edge_type=edge_type)
                             nodes_group = [edge[0] for edge in edge_group]
 
                             stack.append((child, depth_now - 1, iter(nodes_group)))
