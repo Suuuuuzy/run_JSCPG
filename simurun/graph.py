@@ -455,14 +455,6 @@ class Graph:
                 return node_id 
             node_id = parent_node
 
-    def handle_property(self, node_id):
-        """deprecated"""
-        return self.get_ordered_ast_child_nodes(node_id)
-
-    def handle_method_call(self, node_id):
-        """deprecated"""
-        return self.get_ordered_ast_child_nodes(node_id)
-
     def get_all_child_nodes(self, node_id, max_depth = None):
         """
         return a list of child node id, by bfs order
@@ -593,7 +585,7 @@ class Graph:
         return new_name_node
 
     def add_obj_as_prop(self, prop_name=None, ast_node=None, js_type='object', 
-        value=None, parent_obj=None, tobe_added_obj=None):
+        value=None, parent_obj=None, tobe_added_obj=None, combined=True):
         """
         add (or put) an obj as a property of another obj
         parent_obj -> name node -> new obj / tobe_added_obj
@@ -611,11 +603,14 @@ class Graph:
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
+        if combined and parent_obj == self.BASE_OBJ:
+            self.add_obj_to_scope(name=prop_name, scope=self.BASE_SCOPE,
+                tobe_added_obj=tobe_added_obj, combined=False)
         return tobe_added_obj
 
 
     def add_obj_to_scope(self, name=None, ast_node=None, js_type='object',
-        value=None, scope=None, tobe_added_obj=None):
+        value=None, scope=None, tobe_added_obj=None, combined=True):
         """
         add a obj to a scope, if scope is None, add to current scope
         return the added node id
@@ -638,19 +633,24 @@ class Graph:
             tobe_added_obj = self.add_obj_node(ast_node, js_type, value)
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
+
+        if combined and scope == self.BASE_SCOPE:
+            self.add_obj_as_prop(prop_name=name, parent_obj=self.BASE_OBJ,
+                tobe_added_obj=tobe_added_obj, combined=False)
+
         return tobe_added_obj
 
     add_obj_to_name = add_obj_to_scope
 
     def add_obj_to_name_node(self, name_node, ast_node=None, js_type='object',
-        tobe_added_obj=None):
+        value=None, tobe_added_obj=None):
         """
         Add a new object (or put a existing object) under a name node.
 
         name node -> new obj / tobe_added_obj
         """
         if tobe_added_obj is None:
-            tobe_added_obj = self.add_obj_node(ast_node, js_type)
+            tobe_added_obj = self.add_obj_node(ast_node, js_type, value)
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
@@ -802,11 +802,15 @@ class Graph:
                     name_nodes)
             if numeric_only:
                 def is_name_int(node):
-                    try: # check if x is an integer
-                        _ = int(self.get_node_attr(node).get('name'))
-                    except ValueError:
-                        return False
-                    return True
+                    name = self.get_node_attr(node).get('name')
+                    if name == '*':
+                        return True
+                    else:
+                        try: # check if x is an integer
+                            _ = int(name)
+                        except ValueError:
+                            return False
+                        return True
                 name_nodes = filter(is_name_int, name_nodes)
             for name_node in name_nodes:
                 s.update(self.get_obj_nodes(name_node, branches))
@@ -880,10 +884,12 @@ class Graph:
             return tmp_edge[0][1]
 
 
-    def copy_obj(self, obj_node, ast_node=None, copied=set()):
+    def copy_obj(self, obj_node, ast_node=None, copied=None):
         '''
         Copy an object and its properties.
         '''
+        if copied is None:
+            copied = set()
         # copy object node
         new_obj_node = str(self._get_new_nodeid())
         self.add_node(new_obj_node, self.get_node_attr(obj_node))
@@ -897,6 +903,10 @@ class Graph:
             self.add_edge(new_obj_node, new_prop_name_node,
                           {'type:TYPE': 'OBJ_TO_PROP'})
             if self.get_node_attr(prop_name_node).get('name') == '__proto__':
+                for j in self.get_out_edges(prop_name_node, edge_type=
+                    'NAME_TO_OBJ'):
+                    self.add_edge(new_prop_name_node, j[1],
+                        {'type:TYPE': 'NAME_TO_OBJ'})
                 continue
             # copy property object nodes
             for j in self.get_out_edges(prop_name_node, edge_type=
@@ -909,7 +919,7 @@ class Graph:
                 new_prop_obj_node = self.copy_obj(j[1], ast_node, copied)
                 # self.add_node(new_prop_obj_node, self.get_node_attr(j[1])) # ?
                 self.add_edge(new_prop_name_node, new_prop_obj_node,
-                    {'type:TYPE': 'OBJ_DECL'})
+                    {'type:TYPE': 'NAME_TO_OBJ'})
         # copy OBJ_DECL edges
         for e in self.get_out_edges(obj_node, edge_type='OBJ_DECL'):
             self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_DECL'})
@@ -1192,14 +1202,9 @@ class Graph:
         # base scope is not related to any file
         self.BASE_SCOPE = self.add_scope("BASE_SCOPE")
 
-        # what is base object?
-        cur_nodeid = str(self._get_new_nodeid())
-        self.add_node(cur_nodeid)
-        self.set_node_attr(cur_nodeid, ('type', 'object'))
-        self.set_node_attr(cur_nodeid, ('labels:label', 'Object'))
-        self.set_node_attr(cur_nodeid, ('name', 'BASE_OBJ'))
-        self.add_edge(cur_nodeid, self.BASE_SCOPE, {"type:TYPE": "OBJ_TO_SCOPE"})
-        # self.cur_obj = cur_nodeid    # this is incorrect
+        self.BASE_OBJ = self.add_obj_to_scope(name='global',
+                            scope=self.BASE_SCOPE, combined=False)
+        self.cur_obj = self.BASE_OBJ
 
         # setup JavaScript built-in values
         self.null_obj = self.add_obj_node(None, 'object', value='null')

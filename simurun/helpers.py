@@ -1,5 +1,5 @@
 from .graph import Graph
-from .utilities import NodeHandleResult, ExtraInfo
+from .utilities import NodeHandleResult, ExtraInfo, BranchTag
 import math
 from typing import Callable
 
@@ -330,3 +330,44 @@ def is_int(x):
     except ValueError:
         return False
     return True
+
+def convert_prop_names_to_wildcard(G: Graph, obj, exclude_length=False, exclude_proto=True):
+    wildcard_name_node = G.add_prop_name_node('*', obj)
+    for e1 in G.get_out_edges(obj, edge_type='OBJ_TO_PROP'):
+        name_node = e1[1]
+        if exclude_length and G.get_node_attr(name_node).get('name') == 'length':
+            continue
+        if exclude_proto and G.get_node_attr(name_node).get('name') == '__proto__':
+            continue
+        for e2 in G.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
+            _, obj, _, data = e2
+            G.add_edge(wildcard_name_node, obj, data)
+    for e1 in G.get_out_edges(obj, edge_type='OBJ_TO_PROP'):
+        G.remove_all_edges_between(e1[0], e1[1])    
+
+def copy_objs_for_branch(G: Graph, handle_result: NodeHandleResult, branch,
+    ast_node=None):
+    returned_objs = list()
+    for obj in handle_result.obj_nodes:
+        copied_obj = None
+        for e in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
+            name_node, _, _, data = e
+            eb = data.get('branch')
+            if name_node in handle_result.name_nodes and (eb is None or
+                (eb.point == branch.point and eb.branch != branch.branch)):
+                if copied_obj is None: # the object is copied only once
+                    copied_obj = G.copy_obj(obj, ast_node)
+                    returned_objs.append(copied_obj)
+                # assign the name node to the copied object and mark the
+                # previous edge as deleted (D)
+                edge_attr_a = dict(data)
+                edge_attr_a['branch'] = BranchTag(branch, mark='A')
+                edge_attr_d = dict(data)
+                edge_attr_d['branch'] = BranchTag(branch, mark='D')
+                G.add_edge(name_node, copied_obj, edge_attr_a)
+                G.add_edge(name_node, obj, edge_attr_d)
+        if copied_obj is None: # ?
+            returned_objs.append(obj)
+
+    return NodeHandleResult(obj_nodes=returned_objs, name=handle_result.name,
+        name_node=handle_result.name_nodes)

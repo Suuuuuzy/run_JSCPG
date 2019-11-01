@@ -244,20 +244,53 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                                 else:
                                     relations[obj] = [parent_obj]
         if not name_node_found and not in_proto and prop_name != '*':
+            # try wildcard (*)
+            r1, r2, r3 = find_prop(G, [parent_obj], '*', branches, side,
+                parent_name, in_proto, depth, prop_name_for_tags,
+                return_relations)
+            if r2:
+                name_node_found = True
+                prop_name_nodes.update(r1)
+                prop_obj_nodes.update(r2)
+                if return_relations:
+                    for obj in r3:
+                        if obj in relations:
+                            relations[obj].extend(r3[obj])
+                        else:
+                            relations[obj] = r3[obj]
+        if not name_node_found and not in_proto and prop_name != '*':
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
             if side == 'right':
                 return [], []
             else:
-                # only add a name node
-                added_name_node = G.add_prop_name_node(prop_name, parent_obj)
-                prop_name_nodes.add(added_name_node)
-                if prop_name_for_tags:
-                    G.set_node_attr(added_name_node,
-                                    ('for_tags', prop_name_for_tags))
-                logger.debug(sty.ef.b +
-                 'Add prop name node' + sty.rs.all + ' '
-                f'{parent_name}.{prop_name} ({parent_obj}->{added_name_node})')
+                if G.get_node_attr(parent_obj).get('code') == '*':
+                    # if this is an wildcard (unknown) object, add another
+                    # wildcard object as its property
+                    added_name_node = G.add_prop_name_node('*', parent_obj)
+                    prop_name_nodes.add(added_name_node)
+                    added_obj = G.add_obj_to_name_node(added_name_node,
+                        js_type=None, value='*')                    
+                    prop_obj_nodes.add(added_obj)
+                    logger.debug('{} is a wildcard object, creating a wildcard'
+                        ' object {} for its properties'.format(parent_obj,
+                        added_obj))
+                    if return_relations:
+                        relations[added_obj] = [parent_obj]
+                    if prop_name_for_tags:
+                        G.set_node_attr(added_name_node,
+                            ('for_tags', prop_name_for_tags))
+                else: # normal (known) object
+                    # only add a name node
+                    added_name_node = \
+                        G.add_prop_name_node(prop_name, parent_obj)
+                    prop_name_nodes.add(added_name_node)
+                    if prop_name_for_tags:
+                        G.set_node_attr(added_name_node,
+                                        ('for_tags', prop_name_for_tags))
+                    logger.debug(f'{sty.ef.b}Add prop name node{sty.rs.all} '
+                    f'{parent_name}.{prop_name} '
+                    f'({parent_obj}->{added_name_node})')
     return prop_name_nodes, prop_obj_nodes, relations
 
 def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
@@ -317,9 +350,9 @@ def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
             if parent_name_nodes:
                 parent_objs = []
                 for name_node in parent_name_nodes:
-                    obj = G.add_obj_to_name_node(name_node, ast_node, None)
+                    obj = G.add_obj_to_name_node(name_node, ast_node,
+                        js_type=None, value='*')
                     parent_objs.append(obj)
-
             else:
                 obj = G.add_obj_to_scope(parent_name, ast_node, None,
                                          scope=G.BASE_SCOPE)
@@ -351,11 +384,13 @@ def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
                     else:
                         relations[obj] = parents
 
-    if not prop_name_nodes and not prop_obj_nodes:
-        # try wildcard (*)
-        prop_name_nodes, prop_obj_nodes, relations = find_prop(G,
-            parent_objs, '*', branches, side, parent_name,
-            return_relations=return_relations)
+    # wildcard is now implemented in find_prop
+
+    # if not prop_name_nodes and not prop_obj_nodes:
+    #     # try wildcard (*)
+    #     prop_name_nodes, prop_obj_nodes, relations = find_prop(G,
+    #         parent_objs, '*', branches, side, parent_name,
+    #         return_relations=return_relations)
 
     if len(prop_names) == 1:
         name = f'{parent_name}.{prop_names[0]}'
@@ -573,7 +608,7 @@ def handle_var(G: Graph, ast_node, extra=ExtraInfo()):
         name_node = G.get_name_node(var_name)
         if name_node is not None:
             now_objs = list(
-                set(G.get_objs_by_name(var_name, branches=branches)))
+                set(G.get_objs_by_name_node(name_node, branches=branches)))
         elif not (extra and extra.side == 'right'):
             logger.log(ATTENTION, f'Name node {var_name} not found, create name node')
             if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
@@ -588,6 +623,8 @@ def handle_var(G: Graph, ast_node, extra=ExtraInfo()):
                 # only if the variable is not defined and doesn't have
                 # 'var', 'let' or 'const', we define it in the global scope
                 name_node = G.add_name_node(var_name, scope=G.BASE_SCOPE)
+        # else:
+        #     now_objs = [G.undefined_obj]
 
     name_nodes = [name_node] if name_node is not None else []
 
@@ -755,8 +792,8 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
             # calculate values
-            values1, source1, tags1 = to_values(G, handled_left, node_id)
-            values2, source2, tags2 = to_values(G, handled_right, node_id)
+            values1, sources1, tags1 = to_values(G, handled_left, node_id)
+            values2, sources2, tags2 = to_values(G, handled_right, node_id)
             results = []
             result_sources = []
             result_tags = []
@@ -767,7 +804,13 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
                     else:
                         results.append(None)
                     result_tags.append(tags1 + tags2)
-                    result_sources.append(source1[i] or [] + source2[j] or [])
+                    result_sources.append(sources1[i] or [] + sources2[j] or [])
+            if len(values1) * len(values2) == 0:
+                results.append(None)
+                sources = set()
+                for s in sources1 + sources2:
+                    sources.update(s)
+                result_sources.append(list(sources))
             return NodeHandleResult(values=results, used_objs=used_objs,
                 value_sources=result_sources)
 
@@ -780,7 +823,7 @@ def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
         used_objs.extend(handled_left.obj_nodes)
         used_objs.extend(handled_right.used_objs)
         used_objs.extend(handled_right.obj_nodes)
-        added_obj = G.add_obj_node(node_id)
+        added_obj = G.add_obj_node(node_id, value='*')
         used_objs = list(set(used_objs))
         for obj in used_objs:
             G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
@@ -1648,8 +1691,7 @@ def call_function(G, func_objs, args=[], this=None, extra=ExtraInfo(),
                 if _this:
                     G.cur_objs = _this.obj_nodes
                 else:
-                    # TODO: this is incorrect
-                    G.cur_objs = relations.get(func_obj, [])
+                    G.cur_objs = [G.BASE_OBJ]
                 branch_returned_objs, branch_used_objs = simurun_function(
                     G, func_ast, branches=next_branches)
                 G.cur_objs = backup_objs
@@ -1663,8 +1705,8 @@ def call_function(G, func_objs, args=[], this=None, extra=ExtraInfo(),
                 for h in args:
                     branch_used_objs.extend(h.obj_nodes)
                     branch_used_objs.extend(h.used_objs)
-                # add a blank object as return objects
-                returned_obj = G.add_obj_node(caller_ast, "object")
+                # add a blank object as return objects"
+                returned_obj = G.add_obj_node(caller_ast, "object", "*")
                 for obj in branch_used_objs:
                     G.add_edge(obj, returned_obj,
                         {'type:TYPE': 'CONTRIBUTES_TO'})

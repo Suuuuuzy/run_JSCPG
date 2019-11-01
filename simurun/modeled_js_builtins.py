@@ -2,6 +2,7 @@ from .graph import Graph
 from .utilities import NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
 from . import objectGraphGenerator
 from .helpers import to_values, to_obj_nodes, val_to_str, is_int
+from .helpers import convert_prop_names_to_wildcard, copy_objs_for_branch
 import sty
 import re
 from .logger import *
@@ -218,25 +219,60 @@ def array_p_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleRe
     return NodeHandleResult()
 
 
-def array_p_push(G: Graph, caller_ast, extra, array: NodeHandleResult, *tobe_added_objs: NodeHandleResult):
-    obj_nodes = set()
+def array_p_push(G: Graph, caller_ast, extra, arrays: NodeHandleResult, *tobe_added_objs: NodeHandleResult):
     used_objs = set()
-    for arr in array.obj_nodes:
-        for obj in tobe_added_objs:
-            used_objs = used_objs.union(set(obj.used_objs))
-            obj_nodes = obj_nodes.union(set(obj.obj_nodes))
-            for obj in obj.obj_nodes:
-                G.add_obj_as_prop(prop_name='*', parent_obj=arr, tobe_added_obj=obj)
-    used_objs = list(obj_nodes.union(used_objs))
-    return NodeHandleResult(used_objs=used_objs)
+    if extra.branches:
+        logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
+        arrays = copy_objs_for_branch(G, arrays,
+            branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
+    for arr in arrays.obj_nodes:
+        length_objs = G.get_prop_obj_nodes(parent_obj=arr, prop_name='length', branches=extra.branches)
+        if len(length_objs) != 1:
+            logger.warning('Array {} has {} length object nodes'.format(arr, len(length_objs)))
+        length = G.get_node_attr(length_objs[0]).get('code')
+        if length is not None:
+            try:
+                length = int(length)
+                for i, objs in enumerate(tobe_added_objs):
+                    obj_nodes = to_obj_nodes(G, objs, caller_ast)
+                    used_objs.update(obj_nodes)
+                    for obj in obj_nodes:
+                        G.add_obj_as_prop(prop_name=str(length+i), parent_obj=arr, tobe_added_obj=obj)
+                G.set_node_attr(length_objs[0], ('code', length + len(tobe_added_objs)))
+            except ValueError:
+                logger.error('Array {} length error'.format(arr))
+        else:
+            convert_prop_names_to_wildcard(G, arr, exclude_length=True) # convert indices to wildcard
+            for i, objs in enumerate(tobe_added_objs):
+                obj_nodes = to_obj_nodes(G, objs, caller_ast)
+                used_objs.update(obj_nodes)
+                for obj in obj_nodes:
+                    G.add_obj_as_prop(prop_name='*', parent_obj=arr, tobe_added_obj=obj)
+    return NodeHandleResult(used_objs=list(used_objs))
 
 
-def array_p_pop(G: Graph, caller_ast, extra, array: NodeHandleResult):
-    branches = extra.branches
+def array_p_pop(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
     returned_objs = set()
-    for arr in array.obj_nodes:
-        elements = G.get_prop_obj_nodes(arr, branches=branches)
-        returned_objs.update(elements)
+    if extra.branches:
+        logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
+        arrays = copy_objs_for_branch(G, arrays,
+            branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
+    for arr in arrays.obj_nodes:
+        length_objs = G.get_prop_obj_nodes(parent_obj=arr, prop_name='length', branches=extra.branches)
+        if len(length_objs) != 1:
+            logger.warning('Array {} has {} length object nodes'.format(arr, len(length_objs)))
+        length = G.get_node_attr(length_objs[0]).get('code')
+        if length is not None:
+            try:
+                length = int(length)
+                returned_objs.update(G.get_prop_obj_nodes(parent_obj=arr, prop_name=str(length-1), branches=extra.branches))
+                name_node = G.get_prop_name_node(prop_name=str(length-1), parent_obj=arr)
+                G.remove_all_edges_between(arr, name_node)
+                G.set_node_attr(length_objs[0], ('code', length - 1))
+            except ValueError:
+                logger.error('Array {} length error'.format(arr))
+        else:
+            returned_objs.update(G.get_prop_obj_nodes(parent_obj=arr, branches=extra.branches))
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
@@ -246,7 +282,7 @@ def array_p_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep=None)
     for arr in array.obj_nodes:
         new_literal = G.add_obj_node(caller_ast, 'string')
         returned_objs.append(new_literal)
-        members = G.get_prop_obj_nodes(parent_obj=arr)
+        members = G.get_prop_obj_nodes(parent_obj=arr, numeric_only=True)
         used_objs.update(members)
         for obj in members:
             G.add_edge(obj, new_literal, {'type:TYPE': 'CONTRIBUTES_TO'})
