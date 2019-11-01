@@ -401,10 +401,12 @@ def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
         name=f'{name}', name_nodes=list(prop_name_nodes),
         ast_node=ast_node), handled_parent, relations
 
-def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
+def handle_assign(G, ast_node, extra=None, right_override=None):
     '''
     Handle assignment statement.
     '''
+    if extra is None:
+        extra = ExtraInfo()
     # get AST children (left and right sides)
     ast_children = G.get_ordered_ast_child_nodes(ast_node)
     try:
@@ -467,8 +469,10 @@ def handle_assign(G, ast_node, extra=ExtraInfo(), right_override=None):
         handled_left = handle_node(G, left, ExtraInfo(extra, side='left'))
         return do_assign(G, handled_left, handled_right, branches, ast_node)
 
-def do_assign(G, handled_left, handled_right, branches=BranchTagContainer(),
-    ast_node=None):
+def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
+    if branches is None:
+        branches = BranchTagContainer()
+
     if not handled_left:
         logger.warning("Left side handling error at statement {}".format(ast_node))
         return NodeHandleResult()
@@ -549,8 +553,7 @@ def has_else(G, if_ast_node):
             return True
     return False
 
-def instantiate_obj(G, exp_ast_node, constructor_decl,
-    branches=BranchTagContainer()):
+def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     '''
     Instantiate an object (create a new object).
     
@@ -588,7 +591,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl,
 
     return created_obj
 
-def handle_var(G: Graph, ast_node, extra=ExtraInfo()):
+def handle_var(G: Graph, ast_node, extra=None):
     cur_node_attr = G.get_node_attr(ast_node)
     var_name = G.get_name_from_child(ast_node)
 
@@ -632,7 +635,7 @@ def handle_var(G: Graph, ast_node, extra=ExtraInfo()):
 
     # add from_branches information
     from_branches = []
-    cur_branches = extra.branches
+    cur_branches = extra.branches if extra else BranchTagContainer()
     for obj in now_objs:
         from_branches.append(cur_branches.get_matched_tags(
             G.get_node_attr(obj).get('for_tags') or []))
@@ -641,7 +644,7 @@ def handle_var(G: Graph, ast_node, extra=ExtraInfo()):
         name_nodes=name_nodes, from_branches=from_branches,
         ast_node=ast_node)
 
-def handle_node(G: Graph, node_id, extra=ExtraInfo()) -> NodeHandleResult:
+def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     """
     for different node type, do different actions to handle this node
     """
@@ -1065,11 +1068,13 @@ def decl_vars_and_funcs(G, ast_node, var=True, func=True):
             'AST_WHILE', 'AST_SWITCH', 'AST_SWITCH_CASE', 'AST_EXPR_LIST']:
             decl_vars_and_funcs(G, child, var=var, func=False)
 
-def simurun_function(G, func_ast, branches=BranchTagContainer(),
-    block_scope=True):
+def simurun_function(G, func_ast, branches=None, block_scope=True):
     """
     Simurun a function by running its body.
     """
+    if branches is None:
+        branches = BranchTagContainer()
+
     if func_ast in G.call_stack:
         logger.warning(f'Function {func_ast} in call stack, skip simulating')
         return [], []
@@ -1093,7 +1098,7 @@ def simurun_function(G, func_ast, branches=BranchTagContainer(),
     G.call_stack.pop()
     return returned_objs, used_objs
 
-def simurun_block(G, ast_node, parent_scope=None, branches=BranchTagContainer(),
+def simurun_block(G, ast_node, parent_scope=None, branches=None,
     block_scope=True):
     """
     Simurun a block by running its statements one by one.
@@ -1223,7 +1228,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
                             G.graph.remove_edge(u, v, key)
 
 def call_callback_function(G, caller_ast, func_decl, func_scope, args=None,
-    branches=BranchTagContainer()):
+    branches=None):
     '''
     Deprecated
     '''
@@ -1374,7 +1379,7 @@ def run_toplevel_file(G: Graph, node_id):
 
     return module_exports_objs
 
-def handle_require(G, node_id, extra=ExtraInfo()):
+def handle_require(G, node_id, extra=None):
     '''
     Returns:
         List: returned module.exports objects.
@@ -1548,7 +1553,7 @@ def ast_call_function(G, ast_node, extra):
         extra, caller_ast=ast_node, is_new=is_new, stmt_id=stmt_id,
         func_name=func_name, relations=relations)
 
-def call_function(G, func_objs, args=[], this=None, extra=ExtraInfo(),
+def call_function(G, func_objs, args=[], this=None, extra=None,
     caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}',
     relations={}):
     '''
@@ -1578,6 +1583,9 @@ def call_function(G, func_objs, args=[], this=None, extra=ExtraInfo(),
     if not func_objs:
         logger.error(f'No definition found for function {func_name}')
         return [], []
+
+    if extra is None:
+        extra = ExtraInfo()
 
     # process arguments
     args_used_objs = set() # only for unmodeled built-in functions
