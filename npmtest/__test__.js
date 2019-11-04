@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/packages/dns-sync@0.1.0/index.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/packages/command-exists@1.2.3/index.js');

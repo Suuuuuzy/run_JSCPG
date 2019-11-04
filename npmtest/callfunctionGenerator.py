@@ -285,5 +285,5 @@ def main():
     
 
 #test_package(os.path.join(root_path, 'apex-publish-static-files@2.0.0'))
-test_package(os.path.join(root_path, 'dns-sync@0.1.0'))
+test_package(os.path.join(root_path, 'command-exists@1.2.3'))
 #main()

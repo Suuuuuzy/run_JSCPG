@@ -179,3 +179,6 @@
 [] calledNot Found path from /media/data/lsong18/data/vulPackages/packages/command-exists@1.2.3/test/test.js: []
 [] calledNot Found path from /media/data/lsong18/data/vulPackages/packages/command-exists@1.2.3/test/test.js: []
 ['99 called write'] calledNot Found path from /media/data/lsong18/data/vulPackages/packages/dns-sync@0.1.0/scripts/dns-lookup-script.js: []
+[] calledNot Found path from /media/data/lsong18/data/vulPackages/packages/egg-scripts@2.8.0/bin/egg-scripts.js: []
+[] calledNot Found path from /media/data/lsong18/data/vulPackages/packages/command-exists@1.2.3/test/test.js: []
+[] calledNot Found path from /media/data/lsong18/data/vulPackages/packages/command-exists@1.2.3/test/test.js: []
