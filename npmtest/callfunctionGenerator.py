@@ -218,6 +218,7 @@ def test_file(file_path):
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
+        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         return -3
 
     if G is None:
@@ -228,7 +229,7 @@ def test_file(file_path):
     unit_check_log(G, 'os_command', file_path)
 
     try:
-        #os.remove("run_log.log")
+        os.remove("run_log.log")
         os.remove("out.dat")
     except:
         pass
@@ -283,6 +284,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'apex-publish-static-files@2.0.0'))
-#test_package(os.path.join(root_path, 'are-we-there-yet'))
+#test_package(os.path.join(root_path, 'apex-publish-static-files@2.0.0'))
+test_package(os.path.join(root_path, 'dns-sync@0.1.0'))
 #main()
