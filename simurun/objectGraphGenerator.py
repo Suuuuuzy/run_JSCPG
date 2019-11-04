@@ -1608,8 +1608,14 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
     returned_objs = set()
     used_objs = set()
 
+    any_func_run = False
     # for each possible function declaration
     for i, func_obj in enumerate(func_objs):
+        if func_obj in G.internal_objs.values():
+            logger.warning('Error: Trying to run an internal obj {} {}'
+                ', skipped'.format(func_obj, G.inv_internal_objs[func_obj]))
+        any_func_run = True
+
         _this = this
         _args = list(args) if args is not None else None
         # bound functions
@@ -1734,7 +1740,9 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
     if has_branches:
         merge(G, stmt_id, len(func_objs), parent_branch)
 
-    # TODO: add values
+    if not any_func_run:
+        logger.error('Error: No function was run during this function call')
+
     return list(returned_objs), list(used_objs)
 
 def build_df_by_def_use(G, cur_stmt, used_objs):

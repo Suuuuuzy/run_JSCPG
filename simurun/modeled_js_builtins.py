@@ -36,8 +36,14 @@ def setup_string(G: Graph):
     G.add_blank_func_as_prop('replace', string_prototype, string_p_replace)
     G.add_blank_func_as_prop('search', string_prototype, string_p_match)
     G.add_blank_func_as_prop('split', string_prototype, string_p_split)
+    G.add_blank_func_as_prop('substr', string_prototype, string_p_substr)
+    G.add_blank_func_as_prop('substring', string_prototype, string_p_substring)
+    G.add_blank_func_as_prop('reverse', string_prototype, string_p_reverse)
     G.add_blank_func_as_prop('toLowerCase', string_prototype, string_p_to_lower_case)
     G.add_blank_func_as_prop('toUpperCase', string_prototype, string_p_to_upper_case)
+    G.add_blank_func_as_prop('trim', string_prototype, string_p_to_trim)
+    G.add_blank_func_as_prop('trimEnd', string_prototype, string_p_to_trim_end)
+    G.add_blank_func_as_prop('trimStart', string_prototype, string_p_to_trim_start)
 
 
 def setup_number(G: Graph):
@@ -221,7 +227,7 @@ def array_p_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleRe
 
 def array_p_push(G: Graph, caller_ast, extra, arrays: NodeHandleResult, *tobe_added_objs: NodeHandleResult):
     used_objs = set()
-    if extra.branches:
+    if extra.branches.get_last_choice_tag():
         logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
         arrays = copy_objs_for_branch(G, arrays,
             branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
@@ -671,6 +677,78 @@ def string_p_split(G: Graph, caller_ast, extra, strs, separators):
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
 
 
+def string_p_reverse(G: Graph, caller_ast, extra, strs):
+    values, sources, _ = to_values(G, strs, caller_ast)
+    returned_values = []
+    for s in values:
+        if values is not None:
+            returned_values.append(str(s)[::-1])
+        else:
+            returned_values.append(None)
+    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+    return NodeHandleResult(values=returned_values, value_sources=sources,
+        used_objs=used_objs)
+
+
+def string_p_substring(G: Graph, caller_ast, extra, strs, indices_start, indices_end=NodeHandleResult(values=[None])):
+    values, source1, _ = to_values(G, strs, caller_ast)
+    i_starts, source2, _ = to_values(G, strs, indices_start)
+    i_ends, source3, _ = to_values(G, strs, indices_end)
+    returned_values = []
+    returned_sources = []
+    used_objs = set()
+    for i, s in enumerate(values):
+        for j, i_start in enumerate(i_starts):
+            for k, i_end in enumerate(i_ends):
+                flag = False
+                if s is not None:
+                    if i_start is not None:
+                        try:
+                            if i_end is not None:
+                                returned_values.append(str(s)[int(i_start):int(i_end)])
+                            else:
+                                returned_values.append(str(s)[int(i_start):])
+                            flag = True
+                        except ValueError:
+                            logger.warning('string.prototype.substring error, '
+                                'values {} {} {}'.format(s, i_start, i_end))
+                if not flag:
+                    returned_values.append(None)
+                returned_sources.append(source1[i] + source2[j] + source3[k])
+    return NodeHandleResult(values=returned_values,
+        value_sources=returned_sources, used_objs=used_objs)
+
+
+def string_p_substr(G: Graph, caller_ast, extra, strs, indices_start, indices_end=NodeHandleResult(values=[None])):
+    values, source1, _ = to_values(G, strs, caller_ast)
+    i_starts, source2, _ = to_values(G, strs, indices_start)
+    lengths, source3, _ = to_values(G, strs, indices_end)
+    returned_values = []
+    returned_sources = []
+    used_objs = set()
+    for i, s in enumerate(values):
+        for j, i_start in enumerate(i_starts):
+            for k, length in enumerate(lengths):
+                flag = False
+                if s is not None:
+                    if i_start is not None:
+                        try:
+                            if length is not None:
+                                returned_values.append(str(s)
+                                    [int(i_start):int(i_start)+int(length)])
+                            else:
+                                returned_values.append(str(s)[int(i_start):])
+                            flag = True
+                        except ValueError:
+                            logger.warning('string.prototype.substr error, '
+                                'values {} {} {}'.format(s, i_start, length))
+                if not flag:
+                    returned_values.append(None)
+                returned_sources.append(source1[i] + source2[j] + source3[k])
+    return NodeHandleResult(values=returned_values,
+        value_sources=returned_sources, used_objs=used_objs)
+
+
 def string_p_to_lower_case(G: Graph, caller_ast, extra, strs):
     values, sources, _ = to_values(G, strs, caller_ast)
     returned_values = []
@@ -679,8 +757,9 @@ def string_p_to_lower_case(G: Graph, caller_ast, extra, strs):
             returned_values.append(str(s).lower())
         else:
             returned_values.append(None)
+    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
     return NodeHandleResult(values=returned_values, value_sources=sources,
-        used_objs=list(chain(*sources)))
+        used_objs=used_objs)
 
 
 def string_p_to_upper_case(G: Graph, caller_ast, extra, strs):
@@ -691,8 +770,48 @@ def string_p_to_upper_case(G: Graph, caller_ast, extra, strs):
             returned_values.append(str(s).upper())
         else:
             returned_values.append(None)
+    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
     return NodeHandleResult(values=returned_values, value_sources=sources,
-        used_objs=list(chain(*sources)))
+        used_objs=used_objs)
+
+
+def string_p_to_trim(G: Graph, caller_ast, extra, strs, *args):
+    values, sources, _ = to_values(G, strs, caller_ast)
+    returned_values = []
+    for s in values:
+        if values is not None:
+            returned_values.append(str(s).strip())
+        else:
+            returned_values.append(None)
+    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+    return NodeHandleResult(values=returned_values, value_sources=sources,
+        used_objs=used_objs)
+
+
+def string_p_to_trim_end(G: Graph, caller_ast, extra, strs, *args):
+    values, sources, _ = to_values(G, strs, caller_ast)
+    returned_values = []
+    for s in values:
+        if values is not None:
+            returned_values.append(str(s).rstrip())
+        else:
+            returned_values.append(None)
+    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+    return NodeHandleResult(values=returned_values, value_sources=sources,
+        used_objs=used_objs)
+
+
+def string_p_to_trim_start(G: Graph, caller_ast, extra, strs, *args):
+    values, sources, _ = to_values(G, strs, caller_ast)
+    returned_values = []
+    for s in values:
+        if values is not None:
+            returned_values.append(str(s).lstrip())
+        else:
+            returned_values.append(None)
+    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+    return NodeHandleResult(values=returned_values, value_sources=sources,
+        used_objs=used_objs)
 
 
 def split_regexp(code) -> (str, str):
