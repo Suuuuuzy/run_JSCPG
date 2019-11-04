@@ -30,6 +30,7 @@ function searchModule(moduleName, requiredBy) {
     if (fs.existsSync(requiredBy) && fs.statSync(requiredBy).isFile()) {
         requiredBy = path.resolve(requiredBy, '..');
     }
+    searchPaths.add(requiredBy);
     let currentSearchPath = requiredBy;
     while (currentSearchPath != path.resolve(currentSearchPath, '..')) { // this probably will only work under Linux/Unix
         searchPaths.add(path.resolve(currentSearchPath, 'node_modules'));
@@ -42,32 +43,22 @@ function searchModule(moduleName, requiredBy) {
     console.error(`Searching ${moduleName.blue.bright} in ${Array.from(searchPaths).toString().green}`);
     let found = false;
     let mainPath, modulePath;
-    if (moduleName.match(/\/|\\/)) { // module name is a path
-        let currentPath = path.resolve(requiredBy, moduleName);
+    for (let p of searchPaths) {
+        let currentPath = path.resolve(p, moduleName);
         // search file
         if (!moduleName.endsWith('.js'))
             currentPath += '.js';
+        // console.error(currentPath);
         if (fs.existsSync(currentPath) && fs.statSync(currentPath).isFile()) {
             console.error(`Package ${moduleName} found at ${currentPath}`.white.inverse);
             found = true;
             modulePath = currentPath;
             mainPath = currentPath;
+            break;
         }
         if (!found) {
             // search directory
-            currentPath = path.resolve(requiredBy, moduleName);
-            if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
-                mainPath = searchMain(currentPath);
-                if (mainPath != null) {
-                    console.error(`Package ${moduleName} found at ${mainPath}.`.white.inverse);
-                    found = true;
-                    modulePath = currentPath;
-                }
-            }
-        }
-    } else { // module name is a name (not a path)
-        for (let p of searchPaths) {
-            let currentPath = path.resolve(p, moduleName);
+            currentPath = path.resolve(p, moduleName);
             if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
                 mainPath = searchMain(currentPath);
                 if (mainPath != null) {
@@ -112,7 +103,7 @@ module.exports.searchMain = searchMain;
 
 if (require.main === module) {
     if (process.argv.length != 4) {
-        console.error('Wrong arguments, usage: search.js <module name> <search path');
+        console.error('Wrong arguments, usage: search.js <module name> <search path>');
     } else {
         var mainPath, modulePath;
         [mainPath, modulePath] = searchModule(process.argv[2], process.argv[3]);

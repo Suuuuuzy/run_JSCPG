@@ -1238,7 +1238,7 @@ class Graph:
         }
         self.inv_internal_objs = {v: k for k, v in self.internal_objs.items()}
         self.logger.debug(sty.ef.inverse + 'Internal objects\n' + 
-            self.internal_objs[1:-1] + sty.rs.all)
+            str(self.internal_objs)[1:-1] + sty.rs.all)
 
     def get_parent_object_def(self, node_id):
         """
