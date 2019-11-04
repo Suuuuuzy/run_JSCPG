@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/packages/command-exists@1.2.3/index.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/packages/wxchangba@1.0.3/src/server/app.js');
