@@ -496,7 +496,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
         if not nn_for_tags: # empty array or None
             G.assign_obj_nodes_to_name_node(name_node, right_objs,
                 branches=branches)
-            returned_objs = right_objs
+            returned_objs.extend(right_objs)
         else:
             logger.debug(f"  name node's for tags {nn_for_tags}")
             for obj in right_objs:
