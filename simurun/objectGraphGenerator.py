@@ -1785,7 +1785,7 @@ def generate_obj_graph(G, entry_nodeid):
     generate the object graph of a program
     """
     G.setup1()
-    # modeled_js_builtins.setup_js_builtins(G)
+    modeled_js_builtins.setup_js_builtins(G)
     G.setup2()
     NodeHandleResult.print_callback = print_handle_result
     logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
