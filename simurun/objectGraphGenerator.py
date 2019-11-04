@@ -972,13 +972,16 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     if G.get_node_attr(obj).get('type') == 'array' and \
                         not is_int(k):
                         continue
-                    # assign the name to the loop variable as a new 
-                    # literal object
-                    added_obj = G.add_obj_node(ast_node=node_id,
-                        js_type='string', value=k)
-                    logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{added_obj}{sty.rs.all}: {k}')
+                    if str(k).startswith('Obj#'): # object-based keys
+                        key_obj = k[4:]
+                    else:
+                        # assign the name to the loop variable as a new 
+                        # literal object
+                        key_obj = G.add_obj_node(ast_node=node_id,
+                            js_type='string', value=k)
+                    logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{key_obj}{sty.rs.all}: {k}')
                     G.assign_obj_nodes_to_name_node(handled_key.name_nodes[0],
-                        [added_obj], branches=extra.branches)
+                        [key_obj], branches=extra.branches)
                     # run the body
                     simurun_block(G, body, branches=extra.branches)
                 logger.debug('For-in loop {} finished'.format(node_id))
