@@ -1,0 +1,20 @@
+ascii-art: 
+  apply function built in unimplemented
+eggscript:
+  can not find mz/child_process
+command-exists:
+  success but error when processing lib/command-exists.js
+dns-sync:
+  array_p_push error
+
+
+cocos-utils:
+  problems of esprima
+codem:
+  problems of esprima
+
+
+dot.js:
+  can not find how to do the exploit
+buttle:
+  can not find how to do the exploit
