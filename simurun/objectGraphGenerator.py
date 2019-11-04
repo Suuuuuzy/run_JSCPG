@@ -76,7 +76,7 @@ def add_edges_between_funcs(G):
         ln1 = G.get_node_attr(CPG_caller_id).get('lineno:int')
         ln2 = G.get_node_attr(list(G.get_in_edges(entry_edge[1]))[0][0]).get('lineno:int')
         ln2 = 'Line ' + ln2 if ln2 else 'Built-in'
-        logger.info(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} (Line {}) -> {} ({})'.format(CPG_caller_id, ln1, entry_edge[1], ln2))
+        logger.info(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {} (Line {} -> {})'.format(CPG_caller_id, entry_edge[1], ln1, ln2))
         # assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
         # assert entry_edge[1] != None, "Failed to add CFG edge. Callee ENTRY is None."
         added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
@@ -87,7 +87,7 @@ def add_edges_between_funcs(G):
         callee_paras = get_argids_from_funcallee(G, callee_id)
         for idx in range(min(len(callee_paras), len(caller_para_names))):
             ln2 = G.get_node_attr(callee_paras[idx]).get('lineno:int')
-            logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} (Line {}) -> {} (Line {})'.format(CPG_caller_id, ln1, callee_paras[idx], ln2))
+            logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(CPG_caller_id, callee_paras[idx], ln1, ln2))
             assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
             assert callee_paras[idx] != None, f"Failed to add CFG edge. callee_paras[{idx}] is None."
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
@@ -99,7 +99,7 @@ def add_edges_between_funcs(G):
                     if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
                         ln1 = G.get_node_attr(stmt).get('lineno:int')
                         ln2 = G.get_node_attr(CPG_caller_id).get('lineno:int')
-                        logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} (Line {}) -> {} (Line {})'.format(stmt, ln1, CPG_caller_id, ln2))
+                        logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(stmt, CPG_caller_id, ln1, ln2))
                         assert stmt != None, "Failed to add CFG edge. Statement ID is None."
                         assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
                         added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
@@ -1687,8 +1687,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 next_branches = branches
             # if the function is defined in a for loop, restore the branches
             for_tags = \
-                G.get_node_attr(func_obj).get('for_tags', BranchTagContainer()
-                ).get_creating_for_tags()
+                BranchTagContainer(G.get_node_attr(func_obj).get('for_tags',
+                BranchTagContainer())).get_creating_for_tags()
             if for_tags:
                 for_tags = [BranchTag(i, mark=None) for i in for_tags]
                 next_branches.extend(for_tags)
@@ -1760,8 +1760,8 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if def_cpg_node == cur_stmt: continue
         def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')
         logger.info(sty.fg.li_magenta + sty.ef.inverse + "OBJ REACHES" + sty.rs.all +
-        " {} (Line {}) -> {} (Line {}), by OBJ {}".format(def_cpg_node,
-        def_lineno, cur_stmt, cur_lineno, obj))
+        " {} -> {} (Line {} -> Line {}), by OBJ {}".format(def_cpg_node,
+        cur_stmt, def_lineno, cur_lineno, obj))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
 
 def print_handle_result(handle_result: NodeHandleResult):
