@@ -285,5 +285,5 @@ def main():
     
 
 #test_package(os.path.join(root_path, 'apex-publish-static-files@2.0.0'))
-test_package(os.path.join(root_path, 'wxchangba@1.0.3'))
+test_package(os.path.join(root_path, 'http-file-server@0.2.6'))
 #main()

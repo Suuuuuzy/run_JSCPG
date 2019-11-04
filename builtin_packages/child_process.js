@@ -3,7 +3,7 @@ function exec(command, options='nothing',callback='nobk') {
   var stdout = 'stdout';
   var stderr = 'stderr';
   var sink = command;
-  sink_exec_hqbpillvul(sink);
+  sink_hqbpillvul_exec(sink);
   callback(err, stdout, stderr);
 }
 
@@ -12,7 +12,7 @@ function execSync(command, options='nothing',callback='nobk') {
   var stdout = 'stdout';
   var stderr = 'stderr';
   var sink = command;
-  sink_execSync_hqbpillvul(sink);
+  sink_hqbpillvul_execSync(sink);
   callback(err, stdout, stderr);
 }
 
@@ -21,7 +21,7 @@ function execFile(command, options='nothing', dict='nothing', callback='nobk') {
   var stdout = 'stdout';
   var stderr = 'stderr';
   var sink = command;
-  sink_execFile_hqbpillvul(sink);
+  sink_hqbpillvul_execFile(sink);
   callback(err, stdout, stderr);
 }
 

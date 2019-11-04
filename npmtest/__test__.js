@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/packages/wxchangba@1.0.3/src/server/app.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/packages/http-file-server@0.2.6/http-file-server.js');

@@ -101,13 +101,13 @@ def vul_checking(G, pathes, vul_type):
     xss_rule_lists = [
             [('exist_func', ['createServer']), ('not_exist_func', ['parseInt']), ('end_with_func', ['write'])],
             [('exist_func', ['createServer']), ('not_exist_func', ['parseInt']), ('end_with_func', ['send'])],
-            [('start_within_file', ['http.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['write'])],
-            [('start_within_file', ['http.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['send'])]
+            [('start_within_file', ['http.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_http_write'])],
+            [('start_within_file', ['http.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_http_setHeader'])]
             ]
     os_command_rule_lists = [
-            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_exec_hqbpillvul'])],
-            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_execFile_hqbpillvul'])],
-            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_execSync_hqbpillvul'])]
+            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_exec'])],
+            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_execFile'])],
+            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_execSync'])]
             ]
 
     vul_type_map = {

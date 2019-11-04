@@ -62,7 +62,7 @@ def main():
         generate_obj_graph(G, '0')
     # G.relabel_nodes()
     G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
-    res_path = traceback(G, "os_command")
+    res_path = traceback(G, "xss")
     logger.debug('ResPath0:')
     logger.debug(res_path[0])
     logger.debug('ResPath1:')
