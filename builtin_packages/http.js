@@ -28,10 +28,12 @@ var response_builtin_object = function() {
     sink_hqbpillvul_http_setHeader(value);
     return null;
   }
+
   this.write = function(value) {
     sink_hqbpillvul_http_write(value);
   }
-  this.end = function(vaule) {
+
+  this.end = function(value) {
     sink_hqbpillvul_http_write(value);
     return null;
   }
