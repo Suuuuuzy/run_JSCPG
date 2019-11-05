@@ -20,6 +20,7 @@ class Graph:
         self.entry_file_path = None
         self.cur_file_path = None # deprecated, use G.get_cur_file_path()
         self.multi = False
+        self.run_all = True
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
 
@@ -543,6 +544,9 @@ class Graph:
                 # prevent setting __proto__ before setup_object_and_function runs
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.string_prototype)
+            length = len(value) if value is not None else None
+            self.add_obj_as_prop(prop_name="length", parent_obj=
+            obj_node, js_type='number', value=length)
 
         self.set_node_attr(obj_node, ('type', js_type))
 
@@ -1220,7 +1224,7 @@ class Graph:
                              tobe_added_obj=self.infinity_obj)
         self.negative_infinity_obj = self.add_obj_node(None, 'number',
                                                        '-Infinity')
-        self.nan_obj = self.add_obj_node(None, 'number', 'NaN')
+        self.nan_obj = self.add_obj_node(None, 'number', float('nan'))
         self.add_obj_to_name('NaN', scope=self.BASE_SCOPE,
                              tobe_added_obj=self.nan_obj)
         self.true_obj = self.add_obj_node(None, 'boolean', 'true')

@@ -816,6 +816,40 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 result_sources.append(list(sources))
             return NodeHandleResult(values=results, used_objs=used_objs,
                 value_sources=result_sources)
+        elif flag == 'BINARY_SUB':
+            handled_left = handle_node(G, left_child, extra)
+            handled_right = handle_node(G, right_child, extra)
+            used_objs = []
+            used_objs.extend(handled_left.used_objs)
+            used_objs.extend(handled_left.obj_nodes)
+            used_objs.extend(handled_right.used_objs)
+            used_objs.extend(handled_right.obj_nodes)
+            used_objs = list(set(used_objs))
+            # calculate values
+            values1, sources1, tags1 = to_values(G, handled_left, node_id)
+            values2, sources2, tags2 = to_values(G, handled_right, node_id)
+            results = []
+            result_sources = []
+            result_tags = []
+            for i, v1 in enumerate(values1):
+                for j, v2 in enumerate(values2):
+                    if v1 is not None and v2 is not None:
+                        try:
+                            results.append(float(v1) - float(v2))
+                        except ValueError:
+                            results.append(float('nan'))
+                    else:
+                        results.append(None)
+                    result_tags.append(tags1 + tags2)
+                    result_sources.append(sources1[i] or [] + sources2[j] or [])
+            if len(values1) * len(values2) == 0:
+                results.append(None)
+                sources = set()
+                for s in sources1 + sources2:
+                    sources.update(s)
+                result_sources.append(list(sources))
+            return NodeHandleResult(values=results, used_objs=used_objs,
+                value_sources=result_sources)
 
     elif cur_type == 'AST_ASSIGN_OP':
         left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
@@ -844,18 +878,17 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 value = int(code, 2)
         elif cur_type == 'string':
             if G.get_node_attr(node_id).get('flags:string[]') == 'JS_REGEXP':
-                added_obj = G.add_obj_node(js_type='object', value=code)
+                added_obj = G.add_obj_node(js_type=None, value=code)
                 G.add_obj_as_prop('__proto__', parent_obj=added_obj,
                     tobe_added_obj=G.regexp_prototype)
-                return NodeHandleResult(obj_nodes=[added_obj], 
-                    ast_node=node_id)
+                return NodeHandleResult(obj_nodes=[added_obj])
             else:
                 value = code
         else:
             value = float(code)
         assert value is not None
         # added_obj = G.add_obj_node(node_id, js_type, code)
-        return NodeHandleResult(values=[value], ast_node=node_id)
+        return NodeHandleResult(values=[value])
 
     elif cur_type in ['AST_CALL', 'AST_METHOD_CALL', 'AST_NEW']:
         returned_objs, used_objs = ast_call_function(G, node_id, extra)
@@ -1128,7 +1161,7 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
             build_df_by_def_use(G, stmt, stmt_used_objs)
 
         if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
-            stmt_returned_objs = handled_res.obj_nodes
+            stmt_returned_objs = to_obj_nodes(G, handled_res, ast_node=stmt)
             stmt_used_objs = handled_res.used_objs
             if stmt_returned_objs:
                 returned_objs.update(stmt_returned_objs)
@@ -1505,14 +1538,15 @@ def ast_call_function(G, ast_node, extra):
                 # we only have one exported funcs
                 exported_objs = module_exports_objs
 
-            for obj in exported_objs:
-                if G.get_node_attr(obj).get("init_run") is not None:
-                    continue
-                if G.get_node_attr(obj).get('type') != 'function':
-                    continue
-                #print("Run", obj)
-                call_function(G, [obj])
-                G.set_node_attr(obj, ('init_run', "True"))
+            if G.run_all:
+                for obj in exported_objs:
+                    if G.get_node_attr(obj).get("init_run") is not None:
+                        continue
+                    if G.get_node_attr(obj).get('type') != 'function':
+                        continue
+                    #print("Run", obj)
+                    call_function(G, [obj])
+                    G.set_node_attr(obj, ('init_run', "True"))
         return module_exports_objs, []
 
     # find function declaration objects
@@ -1642,8 +1676,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             else:
                 logger.log(ATTENTION, f'Running Python function {python_func}...')
                 # TODO: add branches info
-                h = python_func(G, caller_ast, extra, _this, *args)
-                branch_returned_objs = h.obj_nodes
+                h = python_func(G, caller_ast, extra, _this, *_args)
+                branch_returned_objs = to_obj_nodes(G, h, ast_node=caller_ast)
                 branch_used_objs = h.used_objs
         else: # JS function in AST
             # if AST cannot be found, create AST
@@ -1665,9 +1699,10 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                                                scope=func_scope)
             for j, param in enumerate(params):
                 param_name = G.get_name_from_child(param)
-                if j < len(args):
-                    logger.debug(f'add arg {param_name} <- {args[j].obj_nodes}, scope {func_scope}')
-                    for obj in to_obj_nodes(G, args[j], caller_ast):
+                if j < len(_args):
+                    arg_obj_nodes = to_obj_nodes(G, _args[j], caller_ast)
+                    logger.debug(f'add arg {param_name} <- {arg_obj_nodes}, scope {func_scope}')
+                    for obj in arg_obj_nodes:
                         G.add_obj_to_scope(name=param_name, scope=func_scope,
                             tobe_added_obj=obj)
                         G.add_obj_as_prop(prop_name=str(j),
@@ -1719,7 +1754,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 == 'Artificial_AST':
                 # logger.info(sty.fg.green + sty.ef.inverse + func_ast + ' is unmodeled built-in function.' + sty.rs.all)
                 # add arguments as used objects
-                for h in args:
+                for h in _args:
                     branch_used_objs.extend(h.obj_nodes)
                     branch_used_objs.extend(h.used_objs)
                 # add a blank object as return objects"
