@@ -13,13 +13,13 @@ logger = create_logger("main_logger", output_type="file")
 
 def get_module(G, name):
     if name in modeled_modules:
-        if name in setup_module:
-            return setup_module[name]
+        if name in G.builtin_modules:
+            return G.builtin_modules[name]
         else:
             logger.log(ATTENTION, 'Setting up built-in module {}...'
                 .format(name))
             module_exports = modeled_modules[name](G)
-            setup_module[name] = module_exports
+            G.builtin_modules[name] = module_exports
             return module_exports
     else:
         return None
@@ -73,5 +73,3 @@ def read_file_sync(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
 modeled_modules = {
     'fs': setup_fs
 }
-
-setup_module = {}
