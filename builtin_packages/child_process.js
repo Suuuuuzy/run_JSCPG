@@ -1,10 +1,11 @@
-function exec(command, options='nothing',callback='nobk') {
+function exec(command, callback1='nobk',callback2='nobk') {
   var err = 'err';
   var stdout = 'stdout';
   var stderr = 'stderr';
   var sink = command;
   sink_hqbpillvul_exec(sink);
-  callback(err, stdout, stderr);
+  callback1(err, stdout, stderr);
+  callback2(err, stdout, stderr);
 }
 
 function execSync(command, options='nothing',callback='nobk') {

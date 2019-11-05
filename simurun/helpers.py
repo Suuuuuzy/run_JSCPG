@@ -83,7 +83,7 @@ def to_obj_nodes(G: Graph, handle_result: NodeHandleResult, ast_node=None,
         returned_objs.extend(handle_result.obj_nodes)
     return returned_objs
 
-def to_values(G: Graph, handle_result: NodeHandleResult, ast_node=None,
+def to_values(G: Graph, handle_result: NodeHandleResult,
     incl_existing_values=True):
     '''
     Experimental. Get values ('code' fields) in object nodes.
