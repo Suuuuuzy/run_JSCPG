@@ -99,15 +99,11 @@ def vul_checking(G, pathes, vul_type):
         a list of xss pathes
     """
     xss_rule_lists = [
-            [('exist_func', ['createServer']), ('not_exist_func', ['parseInt']), ('end_with_func', ['write'])],
-            [('exist_func', ['createServer']), ('not_exist_func', ['parseInt']), ('end_with_func', ['send'])],
             [('start_within_file', ['http.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_http_write'])],
             [('start_within_file', ['http.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_http_setHeader'])]
             ]
     os_command_rule_lists = [
-            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_exec'])],
-            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_execFile'])],
-            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_execSync'])]
+            [('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt'])]
             ]
 
     vul_type_map = {

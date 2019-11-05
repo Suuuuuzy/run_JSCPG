@@ -2,7 +2,9 @@ signature_lists = {
         'os_command': [
             "sink_hqbpillvul_execFile",
             'sink_hqbpillvul_exec',
-            'sink_hqbpillvul_execSync'
+            'sink_hqbpillvul_execSync',
+            'sink_hqbpillvul_spawn',
+            'sink_hqbpillvul_spawnSync'
             ],
         'xss': [
             'sink_hqbpillvul_http_write',

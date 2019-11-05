@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/packages/http-file-server@0.2.6/http-file-server.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/buttle@0.3.1/index.js');

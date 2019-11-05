@@ -35,8 +35,6 @@ codem:
 
 dot.js:
 buttle:
-ps@1.0.0:
-shell-quote@1.6.0:
   can not find how to do the exploit
 
 ===================================================
@@ -65,12 +63,13 @@ success:
   whereis@0.4.0
   windows-cpu@0.1.4
   wizard-syncronizer@0.0.1
+  ps@0.0.2:
 
 
-Total: 43
-Success: 17
+Total: 42
+Success: 18
 long running time: 5
 Bug: 9
 function based: 6
 Esprima: 2
-Dont know how to attack: 4
+Dont know how to attack: 2

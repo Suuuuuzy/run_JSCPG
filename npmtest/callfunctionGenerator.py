@@ -240,7 +240,7 @@ def test_file(file_path):
 
 #root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-root_path = "/media/data/lsong18/data/vulPackages/packages/"
+root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 
 def main():
     packages = get_list_of_packages(root_path, limit = 50000)
@@ -285,5 +285,5 @@ def main():
     
 
 #test_package(os.path.join(root_path, 'apex-publish-static-files@2.0.0'))
-test_package(os.path.join(root_path, 'http-file-server@0.2.6'))
+test_package(os.path.join(root_path, 'buttle@0.3.1'))
 #main()
