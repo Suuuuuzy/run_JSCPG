@@ -3,6 +3,7 @@ from typing import List, Tuple, TypeVar, NoReturn
 from enum import Enum
 import math
 import secrets
+from collections import defaultdict
 
 class NodeHandleResult:
     '''
@@ -288,20 +289,14 @@ class ValueRange:
         self.type = kwargs.get('type', 'float')
 
 
-class DictCounter:
+class DictCounter(defaultdict):
     def __init__(self):
-        self.d = dict()
-    def get(self, key):
-        if key in self.d:
-            self.d[key] = self.d[key] + 1
-        else:
-            self.d[key] = 0
-        return self.d[key]
-    def gets(self, key, val=None):
-        if val is not None:
-            return f'{key}:{val}'
-        else:
-            return f'{key}:{self.get(key)}'
+        super().__init__(lambda: 0)
+    def gets(self, key, val=0):
+        value = super().get(key, val)
+        return f'{key}:{value}'
+    def __repr__(self):
+        return f'{self.__class__.__name__}({dict(self)})'
 
 
 def get_random_hex(length=6):
