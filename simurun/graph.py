@@ -33,11 +33,15 @@ class Graph:
         self.boolean_prototype = None
         self.regexp_prototype = None
 
-        self.call_counter = DictCounter()
+        self.scope_counter = DictCounter()
 
         # contains a list of node ids based on the ast id
-        self.call_stack = []
+        self.call_stack = set() # callers (instead of callees)
         self.file_stack = []
+        self.cur_stmt = None # for building data flows
+
+        # Python-modeled built-in modules
+        self.builtin_modules = {}
 
         csv.field_size_limit(2 ** 31 - 1)
 

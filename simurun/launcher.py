@@ -36,8 +36,8 @@ def main():
         'The object graph generator for JavaScript.')
     parser.add_argument('-p', '--print', action='store_true',
                         help='Print logs to console.')
-    parser.add_argument('-a', '--run-all', action='store_true',
-                        help='Run all exported functions.')
+    parser.add_argument('-a', '--dont-run-all', action='store_true',
+                        help="Don't run all exported functions.")
     parser.add_argument('input_file', action='store', nargs='?',
         help="Source code file (or directory) to generate object graph for. "
         "Use '-' to get source code from stdin. Ignore this argument to "
@@ -53,10 +53,10 @@ def main():
             level=logging.DEBUG)
         create_logger("graph_logger", output_type="console",
             level=logging.DEBUG)
-    if args.run_all:
-        G.run_all = True
-    else:
+    if args.dont_run_all:
         G.run_all = False
+    else:
+        G.run_all = True
     logger.info('Analysis starts at ' +
         datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S'))
     if args.input_file:

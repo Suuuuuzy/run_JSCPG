@@ -581,7 +581,8 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     # update current object (this)
     G.cur_objs = [created_obj]
 
-    simurun_function(G, constructor_decl, branches=branches)
+    simurun_function(G, constructor_decl, branches=branches,
+        caller_ast=exp_ast_node)
 
     G.cur_objs = backup_objs
 
@@ -960,7 +961,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         parent_scope = G.cur_scope
         G.cur_scope = \
             G.add_scope('BLOCK_SCOPE', decl_ast=body,
-                        scope_name=G.call_counter.gets(f'Block{body}'))
+                        scope_name=G.scope_counter.gets(f'Block{body}'))
         handle_node(G, init, extra) # init loop variables
         d = peek_variables(G, ast_node=inc, handling_func=handle_var,
             extra=extra) # check increment to determine loop variables
@@ -994,7 +995,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         parent_scope = G.cur_scope
         G.cur_scope = \
             G.add_scope('BLOCK_SCOPE', decl_ast=body,
-                        scope_name=G.call_counter.gets(f'Block{body}'))
+                        scope_name=G.scope_counter.gets(f'Block{body}'))
         has_branches = (len(handled_obj.obj_nodes) > 1)
         for obj in handled_obj.obj_nodes:
             if G.get_node_attr(node_id).get('flags:string[]') == 'JS_FOR_IN':
@@ -1104,17 +1105,20 @@ def decl_vars_and_funcs(G, ast_node, var=True, func=True):
             'AST_WHILE', 'AST_SWITCH', 'AST_SWITCH_CASE', 'AST_EXPR_LIST']:
             decl_vars_and_funcs(G, child, var=var, func=False)
 
-def simurun_function(G, func_ast, branches=None, block_scope=True):
+def simurun_function(G, func_ast, branches=None, block_scope=True,
+    caller_ast=None):
     """
     Simurun a function by running its body.
     """
     if branches is None:
         branches = BranchTagContainer()
 
-    if func_ast in G.call_stack:
-        logger.warning(f'Function {func_ast} in call stack, skip simulating')
-        return [], []
-    G.call_stack.append(func_ast)
+    if caller_ast is not None:
+        if caller_ast in G.call_stack:
+            logger.warning(f'Function {func_ast} in call stack, skip simulating')
+            return [], []
+        else:
+            G.call_stack.add(caller_ast)
 
     decl_vars_and_funcs(G, func_ast)
     func_obj = G.get_func_decl_objs_by_ast_node(func_ast)[0]
@@ -1131,7 +1135,8 @@ def simurun_function(G, func_ast, branches=None, block_scope=True):
             block_scope=block_scope)
         break
 
-    G.call_stack.pop()
+    if caller_ast is not None:
+        G.call_stack.remove(caller_ast)
     return returned_objs, used_objs
 
 def simurun_block(G, ast_node, parent_scope=None, branches=None,
@@ -1148,12 +1153,13 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     if block_scope:
         G.cur_scope = \
             G.add_scope('BLOCK_SCOPE', decl_ast=ast_node,
-                        scope_name=G.call_counter.gets(f'Block{ast_node}'))
+                        scope_name=G.scope_counter.gets(f'Block{ast_node}'))
     logger.log(ATTENTION, 'BLOCK {} STARTS, SCOPE {}'.format(ast_node, G.cur_scope))
     decl_vars_and_funcs(G, ast_node, var=False)
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     # simulate statements
     for stmt in stmts:
+        G.cur_stmt = stmt
         handled_res = handle_node(G, stmt, ExtraInfo(branches=branches))
 
         if handled_res:
@@ -1266,7 +1272,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
 def call_callback_function(G, caller_ast, func_decl, func_scope, args=None,
     branches=None):
     '''
-    Deprecated
+    Outdated
     '''
     # generate empty object for parameters of the callback function
     param_list_node = None
@@ -1377,7 +1383,7 @@ def run_toplevel_file(G: Graph, node_id):
     func_decl_obj = decl_function(G, node_id, func_name=file_path,
         obj_parent_scope=G.BASE_SCOPE, scope_parent_scope=G.BASE_SCOPE)
     func_scope = G.add_scope(scope_type='FILE_SCOPE', decl_ast=node_id,
-        scope_name=G.call_counter.gets(f'File{node_id}'),
+        scope_name=G.scope_counter.gets(f'File{node_id}'),
         decl_obj=func_decl_obj, func_name=file_path, parent_scope=G.BASE_SCOPE)
 
     backup_scope = G.cur_scope
@@ -1663,6 +1669,10 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             if func_obj_attrs.get('bound_args') is not None:
                 _args = func_obj_attrs.get('bound_args')
             func_obj = func_obj_attrs.get('target_func')
+        
+        # pass arguments' used objects to the function call
+        for arg in _args:
+            used_objs.update(arg.used_objs)
 
         branch_returned_objs = []
         branch_used_objs = []
@@ -1745,7 +1755,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 else:
                     G.cur_objs = [G.BASE_OBJ]
                 branch_returned_objs, branch_used_objs = simurun_function(
-                    G, func_ast, branches=next_branches)
+                    G, func_ast, branches=next_branches, caller_ast=caller_ast)
                 G.cur_objs = backup_objs
             # switch back scopes
             G.cur_scope = backup_scope
@@ -1810,9 +1820,9 @@ def print_handle_result(handle_result: NodeHandleResult):
         output += f', values={handle_result.values}'
     if handle_result.used_objs:
         output += f', used_objs={handle_result.used_objs}'
-    if handle_result.from_branches:
-        output += f'{sty.fg.li_black}, from_branches=' \
-            f'{handle_result.from_branches}{sty.rs.all}'
+    # if handle_result.from_branches:
+    #     output += f'{sty.fg.li_black}, from_branches=' \
+    #         f'{handle_result.from_branches}{sty.rs.all}'
     logger.debug(output)
 
 def generate_obj_graph(G, entry_nodeid):

@@ -600,6 +600,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         G.add_edge(new_sub_str, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
                     if G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
                         r, glob, sticky = convert_to_python_re(ssv)
+                        none_flag = False
                         def python_cb(m):
                             cb_returned_objs, _ = \
                                 objectGraphGenerator.call_function(G, [callback],
@@ -607,13 +608,22 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                                 extra=extra, caller_ast=caller_ast)
                             cb_returned_values, _, _ = \
                                 to_values(G, NodeHandleResult(obj_nodes=cb_returned_objs))
+                            cb_returned_values = \
+                                list(filter(lambda x: x is not None, cb_returned_values))
                             # multiple possibility is ignored here
+                            if len(cb_returned_values) > 1:
+                                logger.warning(f'Replace result has multiple possibilities: {cb_returned_values}')
+                            elif len(cb_returned_values) == 0:
+                                none_flag = True
+                                return None
                             return cb_returned_values[0]
                         if glob:
                             output = r.sub(python_cb, sv)
                         else:
                             output, _ = r.subn(python_cb, sv, count=1)
-                        logger.debug('Replace {} in {} -> {}'.format(ssv, sv, output))
+                        if none_flag:
+                            output = None
+                        logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
                         added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=output)
                         G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
                         G.add_edge(substr, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
@@ -637,7 +647,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                             returned_values.append(left_s + s1 + right_s)
                             # the part on the left of the match + substituted matched part + the part on the right of the match
                         for s2 in returned_values:
-                            logger.debug('Replace {} in {} -> {}'.format(ssv, sv, s2))
+                            logger.debug('string replace {} in {} -> {}'.format(ssv, sv, s2))
                             added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=s2)
                             G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
                             G.add_edge(substr, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
@@ -659,7 +669,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                                 output, _ = r.subn(nssv, sv, count=1)
                         else:
                             output = sv.replace(ssv, nssv)
-                        logger.debug('Replace {} in {} -> {}'.format(ssv, sv, output))
+                        logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
                         added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=output)
                         G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
                         G.add_edge(substr, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
@@ -727,13 +737,13 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
 
 def string_p_split(G: Graph, caller_ast, extra, strs, separators):
     values, s1, _ = to_values(G, strs, caller_ast)
-    sep, s2, _ = to_values(G, strs, caller_ast)
+    sep, s2, _ = to_values(G, separators, caller_ast)
     returned_objs = []
     used_objs = set()
     for i, s in enumerate(values):
         for j, p in enumerate(sep):
             arr = G.add_obj_node(ast_node=caller_ast, js_type='array')
-            if s is None or p is None or len(p) == 0:
+            if s is None or p is None:
                 v = G.add_obj_as_prop(prop_name='*', ast_node=caller_ast,
                     js_type='string', value=None, parent_obj=arr)
                 for ss in s1[i]:
@@ -743,6 +753,7 @@ def string_p_split(G: Graph, caller_ast, extra, strs, separators):
                     G.add_edge(ss, v, {'type:TYPE': 'CONTRIBUTES_TO'})
                     G.add_edge(ss, arr, {'type:TYPE': 'CONTRIBUTES_TO'})
             else:
+                logger.debug('string split {} -> {}'.format(s, s.split(p)))
                 for k, d in enumerate(s.split(p)):
                     v = G.add_obj_as_prop(prop_name=str(k), value=d,
                         ast_node=caller_ast, js_type='string', parent_obj=arr)
@@ -796,7 +807,7 @@ def string_p_substring(G: Graph, caller_ast, extra, strs, indices_start, indices
                 if not flag:
                     returned_values.append(None)
                 returned_sources.append(source1[i] + source2[j] + source3[k])
-    logger.debug('substring RETURNED VALUES: {}'.format(returned_values))
+    logger.debug('string substring RETURNED VALUES: {}'.format(returned_values))
     return NodeHandleResult(values=returned_values,
         value_sources=returned_sources, used_objs=list(used_objs))
 
@@ -830,7 +841,7 @@ def string_p_substr(G: Graph, caller_ast, extra, strs, indices_start, indices_en
                 used_objs.update(source1[i])
                 used_objs.update(source2[j])
                 used_objs.update(source3[k])
-    logger.debug('substr RETURNED VALUES: {}'.format(returned_values))
+    logger.debug('string substr RETURNED VALUES: {}'.format(returned_values))
     return NodeHandleResult(values=returned_values,
         value_sources=returned_sources, used_objs=list(used_objs))
 
@@ -844,7 +855,7 @@ def string_p_to_lower_case(G: Graph, caller_ast, extra, strs):
         else:
             returned_values.append(None)
     used_objs = list(filter(lambda x: x is not None, chain(*sources)))
-    logger.debug('toLowerCase RETURNED VALUES: {}'.format(returned_values))
+    logger.debug('string toLowerCase RETURNED VALUES: {}'.format(returned_values))
     return NodeHandleResult(values=returned_values, value_sources=sources,
         used_objs=used_objs)
 
@@ -858,7 +869,7 @@ def string_p_to_upper_case(G: Graph, caller_ast, extra, strs):
         else:
             returned_values.append(None)
     used_objs = list(filter(lambda x: x is not None, chain(*sources)))
-    logger.debug('toUpperCase RETURNED VALUES: {}'.format(returned_values))
+    logger.debug('string toUpperCase RETURNED VALUES: {}'.format(returned_values))
     return NodeHandleResult(values=returned_values, value_sources=sources,
         used_objs=used_objs)
 
