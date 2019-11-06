@@ -244,7 +244,7 @@ def test_file(file_path, vul_type='xss'):
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 root_path = "/media/data/lsong18/data/vulPackages/packages/"
-testing_packages = []
+testing_packages = [root_path + 'http_server@1.0.12', root_path + 'http-file-server@0.2.6']
 skip_packages = []
 
 def main():
@@ -284,6 +284,7 @@ def main():
         except Exception as e:
             print(e)
 
+        print(result)
         if 1 in result:
             success_list.append(package)
             npm_res_logger.info("{} found in {}".format(vul_type, package))

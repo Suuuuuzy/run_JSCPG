@@ -1759,6 +1759,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 G.cur_objs = backup_objs
             # switch back scopes
             G.cur_scope = backup_scope
+
             # if it's an unmodeled built-in function
             if G.get_node_attr(func_ast).get('labels:label') \
                 == 'Artificial_AST':
@@ -1769,6 +1770,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                     branch_used_objs.extend(h.used_objs)
                 # add a blank object as return objects"
                 returned_obj = G.add_obj_node(caller_ast, "object", "*")
+                returned_objs.add(returned_obj)
+                # returned_objs.update(returned_obj)
                 for obj in branch_used_objs:
                     G.add_edge(obj, returned_obj,
                         {'type:TYPE': 'CONTRIBUTES_TO'})

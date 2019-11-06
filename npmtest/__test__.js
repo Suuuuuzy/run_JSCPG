@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/packages/glance@3.0.7/index.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/packages/http-file-server@0.2.6/http-file-server.js');
