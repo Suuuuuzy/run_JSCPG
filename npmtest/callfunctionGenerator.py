@@ -242,14 +242,23 @@ def test_file(file_path, vul_type='xss'):
 
 #root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
-#root_path = "/media/data/lsong18/data/vulPackages/packages/"
+#root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+root_path = "/media/data/lsong18/data/vulPackages/packages/"
+testing_packages = []
+skip_packages = []
 
 def main():
-    packages = get_list_of_packages(root_path, limit = 50000)
+    if len(testing_packages) == 0:
+        packages = get_list_of_packages(root_path, limit = 50000)
+    else:
+        packages = testing_packages
+
+    if len(skip_packages) != 0:
+        packages = [package for package in packages if package not in skip_packages]
+
     tqdm_bar = tqdm(packages)
-    vul_type = 'os_command'
-    timeout = 300
+    vul_type = 'xss'
+    timeout = 120
 
     success_list = []
     skip_list = []
