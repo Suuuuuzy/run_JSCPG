@@ -5,6 +5,7 @@ import pygount
 import traceback as tb
 from tqdm import tqdm
 import subprocess
+from func_timeout import func_timeout, FunctionTimedOut
 
 sys.path.append("..")
 from simurun.launcher import unittest_main
@@ -14,6 +15,7 @@ from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
 npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmtest.log")
+npm_res_logger = create_logger("npmres", output_type = "file", file_name="npmres.log")
 
 def validate_package(package_path):
     """
@@ -148,13 +150,14 @@ def unit_check_log(G, vul_type, package=None):
         with open("found_path_{}".format(vul_type), 'a+') as fp:
             fp.write("{} called".format(caller_list))
             fp.write("Found path from {}: {}\n".format(package, checking_res))
+        return 1
     else:
         with open("not_found_path_{}".format(vul_type), 'a+') as fp:
             fp.write("{} called".format(caller_list))
             fp.write("Not Found path from {}: {}\n".format(package, checking_res))
+        return 0
 
-
-def test_package(package_path):
+def test_package(package_path, vul_type='xss'):
     # TODO: change the return value
     """
     test a specific package
@@ -181,11 +184,11 @@ def test_package(package_path):
     if package_main_files is None:
         return []
     for package_file in package_main_files:
-        res.append(test_file(package_file))
+        res.append(test_file(package_file, vul_type))
     npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
     return res
 
-def test_file(file_path):
+def test_file(file_path, vul_type='xss'):
     """
     test a specific file 
     Args:
@@ -193,7 +196,7 @@ def test_file(file_path):
     return:
         the result:
             1, success
-            -1, skipped
+            -1, -4, skipped
             -2, not found. package parse error
             -3, graph generation error
     """
@@ -207,10 +210,6 @@ def test_file(file_path):
     with open("__test__.js", 'w') as jcp:
         jcp.write(js_call_templete)
 
-    """
-    G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
-    """
-
     try:
         G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         #G = unittest_main('__test__.js', check_signatures=[])
@@ -218,15 +217,14 @@ def test_file(file_path):
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
-        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         return -3
 
     if G is None:
         npm_test_logger.error("Skip {} for no signature functions".format(file_path))
         return -4
 
-    unit_check_log(G, 'xss', file_path)
-    unit_check_log(G, 'os_command', file_path)
+    xss_res = unit_check_log(G, 'xss', file_path)
+    os_command_res = unit_check_log(G, 'os_command', file_path)
 
     try:
         os.remove("run_log.log")
@@ -236,15 +234,22 @@ def test_file(file_path):
 
     # not necessary but just in case
     del G
-    return 1
+    if vul_type == 'xss':
+        final_res = xss_res
+    elif vul_type == 'os_command':
+        final_res = os_command_res
+    return final_res
 
 #root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+#root_path = "/media/data/lsong18/data/vulPackages/packages/"
 
 def main():
     packages = get_list_of_packages(root_path, limit = 50000)
     tqdm_bar = tqdm(packages)
+    vul_type = 'os_command'
+    timeout = 300
 
     success_list = []
     skip_list = []
@@ -260,18 +265,28 @@ def main():
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package.split('/')[-1]))
         tqdm_bar.refresh()
-        result = test_package(package)
+        try:
+            result = func_timeout(timeout, test_package, args=(package, vul_type))
+            # result = test_package(package, vul_type)
+        except FunctionTimedOut:
+            npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))
+            skip_list.append(package)
+            continue
+        except Exception as e:
+            print(e)
+
         if 1 in result:
             success_list.append(package)
+            npm_res_logger.info("{} found in {}".format(vul_type, package))
         elif -1 in result:
             skip_list.append(package)
-            npm_test_logger.error("Skip {} for large file".format(package))
-        elif -2 in result:
+            npm_res_logger.error("Skip {} for other reasons".format(package))
+        elif -2 in result or -4 in result:
             not_found.append(package)
-            npm_test_logger.error("Skip {} for not found main".format(package))
+            npm_res_logger.error("Skip {} for not found main or not found signature functions".format(package))
         elif -3 in result:
             generate_error.append(package)
-            npm_test_logger.error("Generate {} error".format(package))
+            npm_res_logger.error("Generate {} error".format(package))
 
     npm_test_logger.info("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt,\
             len(success_list), total_cnt, len(skip_list), total_cnt - len(skip_list) - len(success_list)))
@@ -285,5 +300,5 @@ def main():
     
 
 #test_package(os.path.join(root_path, 'apex-publish-static-files@2.0.0'))
-test_package(os.path.join(root_path, 'buttle@0.3.1'))
-#main()
+#test_package(os.path.join(root_path, 'bootstrap@4.3.0'))
+main()

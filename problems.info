@@ -73,3 +73,15 @@ Bug: 9
 function based: 6
 Esprima: 2
 Dont know how to attack: 2
+
+========================================XSS====================================
+unknown vul:
+  bootbox
+Not a vul:
+  backbone
+
+Success:
+  anywhere@1.4.0
+
+Long running time:
+  ag-grid@18.1.2
