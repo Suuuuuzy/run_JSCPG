@@ -354,7 +354,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
 
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
         name=f'{name}', name_nodes=list(prop_name_nodes),
-        ast_node=ast_node), handled_parent
+        ast_node=ast_node, callback=get_df_callback(G)), handled_parent
 
 def handle_assign(G, ast_node, extra=None, right_override=None):
     '''
@@ -490,10 +490,11 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
                     returned_objs.append(copied_obj)
                     logger.debug(f'  copied from obj {obj} with tags {for_tags}')
 
-    used_objs = handled_right.used_objs
-    logger.debug(f'  assign used objs={used_objs}')
+    # used_objs = handled_right.used_objs
+    # logger.debug(f'  assign used objs={used_objs}')
     return NodeHandleResult(obj_nodes=handled_right.obj_nodes,
-        name_nodes=handled_left.name_nodes, used_objs=used_objs)
+        name_nodes=handled_left.name_nodes, # used_objs=used_objs,
+        callback=get_df_callback(G))
 
 def has_else(G, if_ast_node):
     '''
@@ -661,13 +662,14 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         for child in children:
             result = handle_node(G, child, ExtraInfo(extra,
                 parent_obj=added_obj))
-            used_objs.update(result.used_objs)
+            # used_objs.update(result.used_objs)
 
         G.add_obj_as_prop(prop_name='length', js_type='number',
             value=len(children), parent_obj=added_obj)
 
         return NodeHandleResult(obj_nodes=[added_obj],
-                                used_objs=list(used_objs))
+                                used_objs=list(used_objs),
+                                callback=get_df_callback(G))
 
     elif cur_type == 'AST_ARRAY_ELEM':
         if not (extra and extra.parent_obj is not None):
@@ -691,11 +693,12 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 key = '*'
             handled_value = handle_node(G, value_node, extra)
             value_objs = to_obj_nodes(G, handled_value, node_id)
-            used_objs = list(set(handled_value.used_objs))
+            # used_objs = list(set(handled_value.used_objs))
             for obj in value_objs:
                 G.add_obj_as_prop(key, node_id,
                     parent_obj=extra.parent_obj, tobe_added_obj=obj)
-        return NodeHandleResult(obj_nodes=value_objs, used_objs=used_objs)
+        return NodeHandleResult(obj_nodes=value_objs, # used_objs=used_objs,
+            callback=get_df_callback(G))
 
     elif cur_type == "AST_ENCAPS_LIST":
         children = G.get_ordered_ast_child_nodes(node_id)
@@ -704,10 +707,11 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         for child in children:
             handle_res = handle_node(G, child)
             used_objs.update(handle_res.obj_nodes)
-            used_objs.update(handle_res.used_objs)
+            # used_objs.update(handle_res.used_objs)
             for obj in handle_res.obj_nodes:
                 G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-        return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
+        return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs,
+            callback=get_df_callback(G))
 
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
         return handle_var(G, node_id, extra)
@@ -721,7 +725,6 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
 
     elif cur_type == 'AST_TOPLEVEL':
         module_exports_objs = run_toplevel_file(G, node_id)
-
         return NodeHandleResult(obj_nodes=module_exports_objs)
 
     elif cur_type in ['AST_FUNC_DECL', 'AST_CLOSURE']:
@@ -745,9 +748,9 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
             used_objs = []
-            used_objs.extend(handled_left.used_objs)
+            # used_objs.extend(handled_left.used_objs)
             used_objs.extend(handled_left.obj_nodes)
-            used_objs.extend(handled_right.used_objs)
+            # used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
             # calculate values
@@ -771,14 +774,14 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     sources.update(s)
                 result_sources.append(list(sources))
             return NodeHandleResult(values=results, used_objs=used_objs,
-                value_sources=result_sources)
+                value_sources=result_sources, callback=get_df_callback(G))
         elif flag == 'BINARY_SUB':
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
             used_objs = []
-            used_objs.extend(handled_left.used_objs)
+            # used_objs.extend(handled_left.used_objs)
             used_objs.extend(handled_left.obj_nodes)
-            used_objs.extend(handled_right.used_objs)
+            # used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
             # calculate values
@@ -805,22 +808,23 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     sources.update(s)
                 result_sources.append(list(sources))
             return NodeHandleResult(values=results, used_objs=used_objs,
-                value_sources=result_sources)
+                value_sources=result_sources, callback=get_df_callback(G))
 
     elif cur_type == 'AST_ASSIGN_OP':
         left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
         handled_left = handle_node(G, left_child, extra)
         handled_right = handle_node(G, right_child, extra)
         used_objs = []
-        used_objs.extend(handled_left.used_objs)
+        # used_objs.extend(handled_left.used_objs)
         used_objs.extend(handled_left.obj_nodes)
-        used_objs.extend(handled_right.used_objs)
+        # used_objs.extend(handled_right.used_objs)
         used_objs.extend(handled_right.obj_nodes)
         added_obj = G.add_obj_node(node_id, value='*')
         used_objs = list(set(used_objs))
         for obj in used_objs:
             G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-        right_override = NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs)
+        right_override = NodeHandleResult(obj_nodes=[added_obj],
+            used_objs=used_objs, callback=get_df_callback(G))
         return handle_assign(G, node_id, extra, right_override)
 
     elif cur_type in ['integer', 'double', 'string']:
@@ -849,7 +853,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     elif cur_type in ['AST_CALL', 'AST_METHOD_CALL', 'AST_NEW']:
         returned_objs, used_objs = ast_call_function(G, node_id, extra)
         return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs,
-            ast_node=node_id)
+            ast_node=node_id, callback=get_df_callback(G))
 
     elif cur_type == 'AST_RETURN':
         returned_exp = G.get_ordered_ast_child_nodes(node_id)[0]
@@ -879,8 +883,9 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     
     elif cur_type == 'AST_SWITCH':
         condition, switch_list = G.get_ordered_ast_child_nodes(node_id)
-        handle_node(G, condition, extra)
+        result = handle_node(G, condition, extra)
         handle_node(G, switch_list, extra)
+        return result
 
     elif cur_type == 'AST_SWITCH_LIST':
         stmt_id = "Switch" + node_id
@@ -902,12 +907,16 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         h1 = handle_node(G, consequent, extra)
         h2 = handle_node(G, alternate, extra)
         return NodeHandleResult(obj_nodes=h1.obj_nodes+h2.obj_nodes,
-            values=h1.values+h2.values, used_objs=h1.used_objs+h2.used_objs,
-            name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id)
+            # used_objs=h1.used_objs+h2.used_objs,
+            name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id,
+            values=h1.values+h2.values,
+            value_sources=h1.value_sources+h2.value_sources,
+            callback=get_df_callback(G))
 
     elif cur_type == 'AST_EXPR_LIST':
         for child in G.get_ordered_ast_child_nodes(node_id):
-            handle_node(G, child, extra)
+            result = handle_node(G, child, extra)
+        return result
 
     elif cur_type == 'AST_FOR':
         init, cond, inc, body = G.get_ordered_ast_child_nodes(node_id)[:4]
@@ -917,7 +926,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         G.cur_scope = \
             G.add_scope('BLOCK_SCOPE', decl_ast=body,
                         scope_name=G.scope_counter.gets(f'Block{body}'))
-        handle_node(G, init, extra) # init loop variables
+        result = handle_node(G, init, extra) # init loop variables
         d = peek_variables(G, ast_node=inc, handling_func=handle_var,
             extra=extra) # check increment to determine loop variables
         counter = 0
@@ -929,7 +938,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     val_to_str(G.get_node_attr(obj).get('code'))) for obj in obj_nodes]))
 
             simurun_block(G, body, branches=extra.branches) # run the body
-            handle_node(G, inc, extra) # do the inc
+            result = handle_node(G, inc, extra) # do the inc
             check_result = check_condition(G, cond, extra,
                 handling_func=handle_node) # check if the condition is met
             logger.debug('Check condition {} result: {}'.format(sty.ef.i +
@@ -1117,9 +1126,9 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         G.cur_stmt = stmt
         handled_res = handle_node(G, stmt, ExtraInfo(branches=branches))
 
-        if handled_res:
-            stmt_used_objs = handled_res.used_objs
-            build_df_by_def_use(G, stmt, stmt_used_objs)
+        # if handled_res:
+        #     stmt_used_objs = handled_res.used_objs
+        #     build_df_by_def_use(G, stmt, stmt_used_objs)
 
         if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
             stmt_returned_objs = to_obj_nodes(G, handled_res, ast_node=stmt)
@@ -1545,14 +1554,14 @@ def ast_call_function(G, ast_node, extra):
         handled_arg = handle_node(G, arg, extra)
         handled_args.append(handled_arg)
 
-    returned_objs, used_objs = call_function(G, func_decl_objs, handled_args,
+    return call_function(G, func_decl_objs, handled_args,
         handled_parent, extra, caller_ast=ast_node, is_new=is_new,
         stmt_id=stmt_id, func_name=func_name)
-    if handled_parent is not None:
-        used_objs.extend(handled_parent.used_objs)
-    if handled_callee is not None:
-        used_objs.extend(handled_callee.used_objs)
-    return returned_objs, used_objs
+    # if handled_parent is not None:
+    #     used_objs.extend(handled_parent.used_objs)
+    # if handled_callee is not None:
+    #     used_objs.extend(handled_callee.used_objs)
+    # return returned_objs, used_objs
 
 def call_function(G, func_objs, args=[], this=None, extra=None,
     caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}'):
@@ -1586,10 +1595,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
         extra = ExtraInfo()
 
     # process arguments
-    args_used_objs = set() # only for unmodeled built-in functions
     callback_functions = set() # only for unmodeled built-in functions
     for arg in args:
-        args_used_objs.update(arg.obj_nodes)
         # add callback functions
         for obj in arg.obj_nodes:
             if G.get_node_attr(obj).get('type') == 'function':
@@ -1626,8 +1633,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             func_obj = func_obj_attrs.get('target_func')
         
         # pass arguments' used objects to the function call
-        for arg in _args:
-            used_objs.update(arg.used_objs)
+        # for arg in _args:
+        #     used_objs.update(arg.used_objs)
 
         branch_returned_objs = []
         branch_used_objs = []
@@ -1722,7 +1729,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 # add arguments as used objects
                 for h in _args:
                     branch_used_objs.extend(h.obj_nodes)
-                    branch_used_objs.extend(h.used_objs)
+                    # branch_used_objs.extend(h.used_objs)
                 if this is not None:
                     for o in G.get_ancestors_in(func_obj, edge_types=[
                         'NAME_TO_OBJ', 'OBJ_TO_PROP'],
@@ -1756,12 +1763,15 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
 
     return list(returned_objs), list(used_objs)
 
+def get_df_callback(G):
+    return lambda result: build_df_by_def_use(G, G.cur_stmt, result.used_objs)
+
 def build_df_by_def_use(G, cur_stmt, used_objs):
     """
     Build data flows for objects used in current statement.
     The flow will be from the object's definition to current statement (current node).
     """
-    if not used_objs or cur_stmt == None:
+    if not used_objs or cur_stmt is None:
         return
     cur_lineno = G.get_node_attr(cur_stmt).get('lineno:int')
     for obj in used_objs:

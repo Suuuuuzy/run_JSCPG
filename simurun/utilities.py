@@ -45,6 +45,9 @@ class NodeHandleResult:
         self.ast_node = kwargs.get('ast_node')
         if self.ast_node:
             self.print_callback()
+        callback = kwargs.get('callback')
+        if callback:
+            callback(self)
 
     def __bool__(self):
         return bool(self.obj_nodes or self.values
