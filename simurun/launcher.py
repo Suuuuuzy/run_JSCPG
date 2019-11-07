@@ -77,20 +77,16 @@ def main():
         datetime.today().strftime('%Y-%m-%d %H:%M:%S') +
         ', Time spent: %.3fs' % (time.time() - start_time))
 
-    logger.debug(sty.ef.inverse + 'xss' + sty.rs.all)
-    res_path = traceback(G, "xss")
+    vul_type = 'xss'
+    
+    logger.debug(sty.ef.inverse + 'vul_type' + sty.rs.all)
+    res_path = traceback(G, vul_type)
+
     logger.debug('ResPath0:')
     logger.debug(res_path[0])
     logger.debug('ResPath1:')
     logger.debug(res_path[1])
 
-    logger.debug(sty.ef.inverse + 'os_command' + sty.rs.all)
-    res_path = traceback(G, "os_command")
-    logger.debug('ResPath0:')
-    logger.debug(res_path[0])
-    logger.debug('ResPath1:')
-    logger.debug(res_path[1])
-
-    res_pathes = vul_checking(G, res_path[0], 'os_command')
+    res_pathes = vul_checking(G, res_path[0], vul_type)
     print(res_pathes)
-    return res_path
+    return res_path 

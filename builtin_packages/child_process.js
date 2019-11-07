@@ -26,8 +26,20 @@ function execFile(command, options='nothing', dict='nothing', callback='nobk') {
   callback(err, stdout, stderr);
 }
 
+function spawn(command, args='nothing', options='nothion') {
+  sink_hqbpillvul_spawn(command);
+}
+
+function spawnSync(command, args='nothing', options='nothion') {
+  sink_hqbpillvul_spawnSync(args);
+  sink_hqbpillvul_spawnSync(command);
+}
+
+
 module.exports = {
   exec,
   execFile,
-  execSync
+  execSync,
+  spawn,
+  spawnSync
 }

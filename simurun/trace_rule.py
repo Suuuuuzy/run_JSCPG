@@ -65,6 +65,18 @@ class TraceRule:
                     return cur_func in func_names 
         return False
 
+    def not_start_with_func(self, func_names, path):
+        """
+        check whether a path starts with a function
+
+        Args:
+            func_names: the possible function names
+            path: the path needed to be checked
+        Return:
+            True or False
+        """
+        return not self.start_with_func(func_names, path)
+
     def not_start_within_file(self, file_names, path):
         """
         check whether a path starts within a file
@@ -147,6 +159,7 @@ class TraceRule:
                 "exist_func": self.exist_func,
                 "not_exist_func": self.not_exist_func,
                 "start_with_func": self.start_with_func,
+                "not_start_with_func": self.not_start_with_func,
                 "start_within_file": self.start_within_file,
                 "not_start_within_file": self.not_start_within_file,
                 "end_with_func": self.end_with_func
