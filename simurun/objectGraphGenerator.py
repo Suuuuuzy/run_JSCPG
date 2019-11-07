@@ -132,7 +132,7 @@ def register_func(G, node_id):
 
 def find_prop(G, parent_objs, prop_name, branches=None,
     side=None, parent_name='Unknown', in_proto=False, depth=0,
-    prop_name_for_tags=None):
+    prop_name_for_tags=None, ast_node=None):
     '''
     Recursively find a property under parent_objs and its __proto__.
     
@@ -245,7 +245,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     added_name_node = G.add_prop_name_node('*', parent_obj)
                     prop_name_nodes.add(added_name_node)
                     added_obj = G.add_obj_to_name_node(added_name_node,
-                        js_type=None, value='*')                    
+                        js_type=None, value='*', ast_node=ast_node)                    
                     prop_obj_nodes.add(added_obj)
                     logger.debug('{} is a wildcard object, creating a wildcard'
                         ' object {} for its properties'.format(parent_obj,
@@ -314,7 +314,8 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
 
     # create parent object if it doesn't exist
     if not parent_objs:
-        if not (extra and extra.side == 'right'):
+        if True:
+        # if not (extra and extra.side == 'right'):
             logger.debug("PARENT OBJ {} NOT DEFINED, creating object nodes".
                 format(parent_name))
             # we assume this happens when it's a built-in var name
@@ -341,7 +342,8 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
     for i, prop_name in enumerate(prop_names):
         name_nodes, obj_nodes = find_prop(G, parent_objs, 
             prop_name, branches, side, parent_name,
-            prop_name_for_tags=prop_name_tags[i])
+            prop_name_for_tags=prop_name_tags[i],
+            ast_node=ast_node)
         prop_name_nodes.extend(name_nodes)
         prop_obj_nodes.extend(obj_nodes)
 
