@@ -132,7 +132,7 @@ def register_func(G, node_id):
 
 def find_prop(G, parent_objs, prop_name, branches=None,
     side=None, parent_name='Unknown', in_proto=False, depth=0,
-    prop_name_for_tags=None, return_relations=False):
+    prop_name_for_tags=None):
     '''
     Recursively find a property under parent_objs and its __proto__.
     
@@ -150,15 +150,10 @@ def find_prop(G, parent_objs, prop_name, branches=None,
             Defaults to False.
         prop_name_for_tags (list, optional): Experimental. For-tags
             related to the property name. Defaults to None.
-        return_relations (boolean, optional): Experimental. If true,
-            returns a dict of relationships between property object
-            nodes and their parent object nodes. Otherwise, return an
-            empty dict. This is useful in method calls.
     
     Returns:
-        prop_name_nodes, prop_obj_nodes, objs_parents: two sets
-            containing possible name nodes and object nodes, and a dict
-            (see argument "return_relations").
+        prop_name_nodes, prop_obj_nodes: two sets containing possible
+            name nodes and object nodes.
     '''
     if depth == 5:
         return [], []
@@ -169,7 +164,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         logger.debug(f'  {parent_name}.{prop_name}')
     prop_name_nodes = set()
     prop_obj_nodes = set()
-    relations = {}
     for parent_obj in parent_objs:
         # filter out unrelated possibilities
         skip = False
@@ -208,12 +202,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 branches=branches)
             if prop_objs:
                 prop_obj_nodes.update(prop_objs)
-                if return_relations:
-                    for obj in prop_objs:
-                        if obj in relations:
-                            relations[obj].append(parent_obj)
-                        else:
-                            relations[obj] = [parent_obj]
         elif prop_name != '__proto__' and prop_name != '*':
             # if name node is not found, search the property under __proto__
             # note that we cannot search "__proto__" under __proto__
@@ -229,7 +217,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     __proto__obj_nodes = list(set(__proto__obj_nodes) -
                         set(parent_objs))
                 if __proto__obj_nodes:
-                    __name_nodes, __obj_nodes, _ = find_prop(G,
+                    __name_nodes, __obj_nodes = find_prop(G,
                         __proto__obj_nodes, prop_name, branches,
                         parent_name=parent_name + '.__proto__',
                         in_proto=True, depth=depth+1)
@@ -237,27 +225,14 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                         name_node_found = True
                         prop_name_nodes.update(__name_nodes)
                         prop_obj_nodes.update(__obj_nodes)
-                        if return_relations:
-                            for obj in prop_objs:
-                                if obj in relations:
-                                    relations[obj].append(parent_obj)
-                                else:
-                                    relations[obj] = [parent_obj]
         if not name_node_found and not in_proto and prop_name != '*':
             # try wildcard (*)
-            r1, r2, r3 = find_prop(G, [parent_obj], '*', branches, side,
-                parent_name, in_proto, depth, prop_name_for_tags,
-                return_relations)
+            r1, r2 = find_prop(G, [parent_obj], '*', branches, side,
+                parent_name, in_proto, depth, prop_name_for_tags)
             if r2:
                 name_node_found = True
                 prop_name_nodes.update(r1)
                 prop_obj_nodes.update(r2)
-                if return_relations:
-                    for obj in r3:
-                        if obj in relations:
-                            relations[obj].extend(r3[obj])
-                        else:
-                            relations[obj] = r3[obj]
         if not name_node_found and not in_proto and prop_name != '*':
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
@@ -275,8 +250,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     logger.debug('{} is a wildcard object, creating a wildcard'
                         ' object {} for its properties'.format(parent_obj,
                         added_obj))
-                    if return_relations:
-                        relations[added_obj] = [parent_obj]
                     if prop_name_for_tags:
                         G.set_node_attr(added_name_node,
                             ('for_tags', prop_name_for_tags))
@@ -291,9 +264,9 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     logger.debug(f'{sty.ef.b}Add prop name node{sty.rs.all} '
                     f'{parent_name}.{prop_name} '
                     f'({parent_obj}->{added_name_node})')
-    return prop_name_nodes, prop_obj_nodes, relations
+    return prop_name_nodes, prop_obj_nodes
 
-def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
+def handle_prop(G, ast_node, extra=ExtraInfo) \
     -> [NodeHandleResult, NodeHandleResult]:
     '''
     Handle property.
@@ -302,8 +275,6 @@ def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
         G (Graph): graph.
         ast_node ([type]): the MemberExpression (AST_PROP) AST node.
         extra (ExtraInfo, optional): Extra information. Defaults to {}.
-        return_relations (bool, optional): See return_relations in
-            find_prop. Defaults to False.
     
     Returns:
         handled property, handled parent
@@ -365,32 +336,16 @@ def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
     branches = extra.branches
     side = extra.side
     prop_name_nodes, prop_obj_nodes = [], []
-    relations = {}
 
     # find property name nodes and object nodes
     for i, prop_name in enumerate(prop_names):
-        name_nodes, obj_nodes, _relations = find_prop(G, parent_objs, 
+        name_nodes, obj_nodes = find_prop(G, parent_objs, 
             prop_name, branches, side, parent_name,
-            prop_name_for_tags=prop_name_tags[i],
-            return_relations=return_relations)
+            prop_name_for_tags=prop_name_tags[i])
         prop_name_nodes.extend(name_nodes)
         prop_obj_nodes.extend(obj_nodes)
-        if return_relations:
-            if _relations:
-                # combine dicts
-                for obj, parents in _relations.items():
-                    if obj in relations:
-                        relations[obj].extend(parents)
-                    else:
-                        relations[obj] = parents
 
     # wildcard is now implemented in find_prop
-
-    # if not prop_name_nodes and not prop_obj_nodes:
-    #     # try wildcard (*)
-    #     prop_name_nodes, prop_obj_nodes, relations = find_prop(G,
-    #         parent_objs, '*', branches, side, parent_name,
-    #         return_relations=return_relations)
 
     if len(prop_names) == 1:
         name = f'{parent_name}.{prop_names[0]}'
@@ -399,7 +354,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo, return_relations=False) \
 
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
         name=f'{name}', name_nodes=list(prop_name_nodes),
-        ast_node=ast_node), handled_parent, relations
+        ast_node=ast_node), handled_parent
 
 def handle_assign(G, ast_node, extra=None, right_override=None):
     '''
@@ -1525,10 +1480,8 @@ def ast_call_function(G, ast_node, extra):
     '''
     # handle the callee
     handled_parent = None
-    relations = {}
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
-        handled_callee, handled_parent, relations = \
-            handle_prop(G, ast_node, extra)
+        handled_callee, handled_parent = handle_prop(G, ast_node, extra)
     else:
         callee = G.get_ordered_ast_child_nodes(ast_node)[0]
         handled_callee = handle_node(G, callee, extra)
@@ -1594,11 +1547,10 @@ def ast_call_function(G, ast_node, extra):
 
     return call_function(G, func_decl_objs, handled_args, handled_parent,
         extra, caller_ast=ast_node, is_new=is_new, stmt_id=stmt_id,
-        func_name=func_name, relations=relations)
+        func_name=func_name)
 
 def call_function(G, func_objs, args=[], this=None, extra=None,
-    caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}',
-    relations={}):
+    caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}'):
     '''
     Directly call a function.
     
@@ -1616,8 +1568,6 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             use only. Defaults to 'Unknown'.
         func_name (str, optional): The function's name, for adding blank
             functions only. Defaults to '{anonymous}'.
-        relations (dict, optional): See return_relations in find_prop.
-            Defaults to {}.
     
     Returns:
         List, List: Lists of returned objects and used objects.
@@ -1767,6 +1717,11 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 for h in _args:
                     branch_used_objs.extend(h.obj_nodes)
                     branch_used_objs.extend(h.used_objs)
+                if this is not None:
+                    for o in G.get_predecessors_in(func_obj, edge_types=[
+                        'NAME_TO_OBJ', 'OBJ_TO_PROP'],
+                        candidates=this.obj_nodes, step=2):
+                        branch_used_objs.append(o)
                 # add a blank object as return objects"
                 returned_obj = G.add_obj_node(caller_ast, "object", "*")
                 for obj in branch_used_objs:

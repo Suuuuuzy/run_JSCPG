@@ -215,6 +215,28 @@ class Graph:
         subEdges = self.get_edges_by_type(edge_type)
         return nx.MultiDiGraph(subEdges)
 
+    def get_ancestors_in(self, node_id, edge_types=None, node_types=None,
+        candidates=None, step=1):
+        results = []
+        if step > 1:
+            _candidates = None
+        else:
+            _candidates = candidates
+        for edge_type in edge_types:
+            for e in self.get_in_edges(node_id, edge_type=edge_type):
+                node = e[1]
+                if _candidates is not None and node not in _candidates:
+                    continue
+                if node_types is not None and self.get_node_attr(node).get('type') \
+                    not in node_types:
+                    continue
+                if step == 1:
+                    results.append(node)
+                else:
+                    results.append(self.get_ancestors_in(node, edge_types,
+                        node_types, candidates, step - 1))
+        return results
+
     # traversal
 
     def dfs_edges(self, source, depth_limit = None):
