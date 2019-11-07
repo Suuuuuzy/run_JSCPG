@@ -1725,7 +1725,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         branch_used_objs.append(o)
                 # add a blank object as return objects"
                 returned_obj = G.add_obj_node(caller_ast, "object", "*")
-                returned_objs.add(returned_obj)
+                branch_returned_objs.append(returned_obj)
                 # returned_objs.update(returned_obj)
                 for obj in branch_used_objs:
                     G.add_edge(obj, returned_obj,
