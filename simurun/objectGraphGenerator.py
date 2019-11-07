@@ -1545,9 +1545,14 @@ def ast_call_function(G, ast_node, extra):
         handled_arg = handle_node(G, arg, extra)
         handled_args.append(handled_arg)
 
-    return call_function(G, func_decl_objs, handled_args, handled_parent,
-        extra, caller_ast=ast_node, is_new=is_new, stmt_id=stmt_id,
-        func_name=func_name)
+    returned_objs, used_objs = call_function(G, func_decl_objs, handled_args,
+        handled_parent, extra, caller_ast=ast_node, is_new=is_new,
+        stmt_id=stmt_id, func_name=func_name)
+    if handled_parent is not None:
+        used_objs.extend(handled_parent.used_objs)
+    if handled_callee is not None:
+        used_objs.extend(handled_callee.used_objs)
+    return returned_objs, used_objs
 
 def call_function(G, func_objs, args=[], this=None, extra=None,
     caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}'):
