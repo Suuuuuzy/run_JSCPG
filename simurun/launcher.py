@@ -79,7 +79,7 @@ def main():
 
     vul_type = 'xss'
     
-    logger.debug(sty.ef.inverse + 'vul_type' + sty.rs.all)
+    logger.debug(sty.ef.inverse + vul_type + sty.rs.all)
     res_path = traceback(G, vul_type)
 
     logger.debug('ResPath0:')

@@ -1719,7 +1719,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                     branch_used_objs.extend(h.obj_nodes)
                     branch_used_objs.extend(h.used_objs)
                 if this is not None:
-                    for o in G.get_predecessors_in(func_obj, edge_types=[
+                    for o in G.get_ancestors_in(func_obj, edge_types=[
                         'NAME_TO_OBJ', 'OBJ_TO_PROP'],
                         candidates=this.obj_nodes, step=2):
                         branch_used_objs.append(o)

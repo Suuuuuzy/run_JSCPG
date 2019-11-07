@@ -224,7 +224,7 @@ class Graph:
             _candidates = candidates
         for edge_type in edge_types:
             for e in self.get_in_edges(node_id, edge_type=edge_type):
-                node = e[1]
+                node = e[0]
                 if _candidates is not None and node not in _candidates:
                     continue
                 if node_types is not None and self.get_node_attr(node).get('type') \
@@ -233,7 +233,7 @@ class Graph:
                 if step == 1:
                     results.append(node)
                 else:
-                    results.append(self.get_ancestors_in(node, edge_types,
+                    results.extend(self.get_ancestors_in(node, edge_types,
                         node_types, candidates, step - 1))
         return results
 
