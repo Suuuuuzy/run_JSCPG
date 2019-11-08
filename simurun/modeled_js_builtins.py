@@ -2,11 +2,13 @@ from .graph import Graph
 from .utilities import NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
 from . import objectGraphGenerator
 from .helpers import to_values, to_obj_nodes, val_to_str, is_int
-from .helpers import convert_prop_names_to_wildcard, copy_objs_for_branch
+from .helpers import convert_prop_names_to_wildcard
+from .helpers import copy_objs_for_branch, copy_objs_for_parameters
+from .helpers import to_python_array, to_og_array
 import sty
 import re
 from .logger import *
-from itertools import chain
+from itertools import chain, product
 
 
 logger = create_logger("main_logger", output_type="file")
@@ -71,7 +73,8 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('keys', array_prototype, array_p_keys)
     G.add_blank_func_as_prop('values', array_prototype, array_p_values)
     G.add_blank_func_as_prop('entries', array_prototype, array_p_entries)
-    G.add_blank_func_as_prop('slice', array_prototype, this_returning_func)
+    G.add_blank_func_as_prop('splice', array_prototype, array_p_splice)
+    G.add_blank_func_as_prop('slice', array_prototype, array_p_slice)
     G.add_blank_func_as_prop('filter', array_prototype, this_returning_func)
 
 
@@ -309,6 +312,126 @@ def array_p_pop(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
+def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts: NodeHandleResult, delete_counts=NodeHandleResult(values=[None]), *items: NodeHandleResult):
+    used_objs = set()
+    start_values, start_sources, _ = to_values(G, starts)
+    dc_values, dc_sources, _ = to_values(G, delete_counts)
+    returned_arrays = []
+    for arr in arrays.obj_nodes:
+        copies = []
+        delete = True
+        for i, start in enumerate(start_values):
+            for j, dc in enumerate(dc_values):
+                if start is not None:
+                    try:
+                        start = int(start)
+                        dc = int(dc) if dc is not None else None
+                        elements, data = to_python_array(G, arr)
+                        left_part_e = elements[:start]
+                        left_part_d = data[:start]
+                        if dc is not None:
+                            returned_part_e = elements[start:start+dc]
+                            returned_part_d = data[start:start+dc]
+                            right_part_e = elements[start+dc:]
+                            right_part_d = data[start+dc:]
+                        else:
+                            returned_part_e = elements[start:]
+                            returned_part_d = data[start:]
+                            right_part_e = []
+                            right_part_d = []
+                        inserted_part_e = []
+                        inserted_part_d = []
+                        for item in items:
+                            item_obj_nodes = to_obj_nodes(G, item, caller_ast)
+                            inserted_part_e.append(item_obj_nodes)
+                            l = len(item_obj_nodes)
+                            inserted_part_d.append([
+                                {'branch': BranchTagContainer(extra.branches)
+                                .get_last_choice_tag()}] * l)
+                            used_objs.update(item_obj_nodes)
+                        new_arr = to_og_array(G,
+                            left_part_e + inserted_part_e + right_part_e,
+                            left_part_d + inserted_part_d + right_part_d,
+                            caller_ast)
+                        returned_arr = to_og_array(G, returned_part_e,
+                            returned_part_d, caller_ast)
+                        for s in start_sources[i]:
+                            G.add_edge(s, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            G.add_edge(s, returned_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        for s in dc_sources[j]:
+                            G.add_edge(s, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            G.add_edge(s, returned_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        for item in items:
+                            item_obj_nodes = to_obj_nodes(G, item, caller_ast)
+                            # for obj in item_obj_nodes:
+                            #     G.add_edge(obj, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            used_objs.update(item_obj_nodes)
+                        G.add_edge(arr, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        G.add_edge(arr, returned_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        copies.append(new_arr)
+                        returned_arrays.append(returned_arr)
+                    except ValueError:
+                        start = None
+                        dc = None
+                if start is None:
+                    returned_arr = G.add_obj_node(ast_node=caller_ast, js_type='array')
+                    G.add_edge(arr, returned_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    for obj in G.get_prop_obj_nodes(arr, numeric_only=True):
+                        G.add_obj_as_prop(prop_name='*', parent_obj=returned_arr,
+                            tobe_added_obj=obj)
+                    if items:
+                        new_arr = G.copy_obj(arr, caller_ast)
+                        convert_prop_names_to_wildcard(G, new_arr, exclude_length=True)
+                        G.add_edge(arr, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        for item in items:
+                            for obj in item.obj_nodes:
+                                G.add_obj_as_prop(prop_name='*',
+                                    parent_obj=new_arr, tobe_added_obj=obj)
+                        copies.append(new_arr)
+                    else:
+                        delete = False
+        for e in G.get_in_edges(arr, edge_type='NAME_TO_OBJ'):
+            name_node, _, k, data = e
+            if name_node in arrays.name_nodes:
+                if delete and copies:
+                    G.graph.remove_edge(name_node, arr, k)
+                for obj in copies:
+                    G.add_edge(name_node, obj, data)
+    used_objs.update(arrays.obj_nodes + list(filter(lambda x: x is not None,
+        chain(*start_sources, *dc_sources))))
+    return NodeHandleResult(obj_nodes=returned_arrays, used_objs=list(used_objs))
+
+
+def array_p_slice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts=NodeHandleResult(values=[None]), ends=NodeHandleResult(values=[None])):
+    start_values, start_sources, _ = to_values(G, starts)
+    end_values, end_sources, _ = to_values(G, ends)
+    returned_arrays = []
+    used_objs = set()
+    for arr in arrays.obj_nodes:
+        for i, start in enumerate(start_values):
+            for j, end in enumerate(end_values):
+                if start is not None:
+                    try:
+                        start = int(start)
+                        end = int(end) if end is not None else None
+                        a, d = to_python_array(G, arr)
+                        a = a[start:end]
+                        d = d[start:end]
+                        return_arr = to_og_array(G, a, d, caller_ast)
+                    except ValueError:
+                        start = None
+                if start is None:
+                    return_arr = G.copy_obj(arr, caller_ast)
+                for s in start_sources[i]:
+                    G.add_edge(s, return_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                for s in end_sources[j]:
+                    G.add_edge(s, return_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                G.add_edge(arr, return_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                returned_arrays.append(return_arr)
+    used_objs.update(chain(*start_sources, *end_sources, arrays.obj_nodes))
+    return NodeHandleResult(obj_nodes=returned_arrays, used_objs=list(used_objs))
+
+
 def array_p_join(G: Graph, caller_ast, extra, array: NodeHandleResult, sep=None):
     returned_objs = []
     used_objs = set()
@@ -521,7 +644,10 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
         used_objs.update(arg.used_objs)
         values = list(map(str, arg.values))
         for obj in arg.obj_nodes:
-            value = G.get_node_attr(obj).get('code')
+            if G.get_node_attr(obj).get('type') == 'array':
+                value = to_python_array(G, obj, value=True)[0]
+            else:
+                value = G.get_node_attr(obj).get('code')
             values.append(f'{sty.fg.li_black}{obj}{sty.rs.all}: {val_to_str(value)}')
         logger.debug(f'Argument {i} values: ' + ', '.join(values))
     return NodeHandleResult(obj_nodes=[G.undefined_obj], used_objs=list(used_objs))

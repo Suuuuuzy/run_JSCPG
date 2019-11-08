@@ -1,7 +1,7 @@
 from .graph import Graph
 from .utilities import NodeHandleResult, ExtraInfo, BranchTag
 import math
-from typing import Callable
+from typing import Callable, List
 
 def eval_value(G: Graph, s: str, return_obj_node=False, ast_node=None):
     '''
@@ -346,7 +346,7 @@ def convert_prop_names_to_wildcard(G: Graph, obj, exclude_length=False, exclude_
         G.remove_all_edges_between(e1[0], e1[1])    
 
 def copy_objs_for_branch(G: Graph, handle_result: NodeHandleResult, branch,
-    ast_node=None):
+    ast_node=None) -> NodeHandleResult:
     returned_objs = list()
     for obj in handle_result.obj_nodes:
         copied_obj = None
@@ -366,8 +366,57 @@ def copy_objs_for_branch(G: Graph, handle_result: NodeHandleResult, branch,
                 edge_attr_d['branch'] = BranchTag(branch, mark='D')
                 G.add_edge(name_node, copied_obj, edge_attr_a)
                 G.add_edge(name_node, obj, edge_attr_d)
-        if copied_obj is None: # ?
+        if copied_obj is None: # if the object is not copied, return it
             returned_objs.append(obj)
 
     return NodeHandleResult(obj_nodes=returned_objs, name=handle_result.name,
         name_node=handle_result.name_nodes)
+
+def copy_objs_for_parameters(G: Graph, handle_result: NodeHandleResult,
+    ast_node=None, number_of_copies=1, delete_original=True) -> List[List]:
+    returned_objs = list()
+    for obj in handle_result.obj_nodes:
+        copied_objs = []
+        for i in range(number_of_copies):
+            copied_objs.append(G.copy_obj(obj, ast_node))
+        for e in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
+            name_node, obj_node, k, data = e
+            if name_node in handle_result.name_nodes:
+                if delete_original:
+                    G.graph.remove_edge(name_node, obj_node, k)
+                for copied_obj in copied_objs:
+                    G.add_edge(name_node, copied_obj, data)
+        returned_objs.append(copied_objs)
+
+    return returned_objs
+
+def to_python_array(G: Graph, array_obj, value=False):
+    elements = []
+    data = []
+    for name_node in G.get_prop_name_nodes(array_obj):
+        name = G.get_node_attr(name_node).get('name')
+        try:
+            i = int(name)
+            while i >= len(elements):
+                elements.append([])
+                data.append([])
+            for e in G.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
+                if value:
+                    elements[i].append(G.get_node_attr(e[1]).get('code', '?'))
+                else:
+                    elements[i].append(e[1])
+                data[i].append(e[3])
+        except ValueError:
+            pass
+    return elements, data
+
+def to_og_array(G: Graph, array, data, ast_node=None):
+    added_array = G.add_obj_node(ast_node=ast_node, js_type='array')
+    for i, elem in enumerate(array):
+        name_node = G.add_prop_name_node(name=str(i), parent_obj=added_array)
+        for j, obj in enumerate(elem):
+            G.add_edge(name_node, obj,
+                {'type:TYPE': 'NAME_TO_OBJ', **data[i][j]})
+    G.add_obj_as_prop(prop_name='length', ast_node=ast_node, js_type='number',
+        value=len(array), parent_obj=added_array)
+    return added_array
