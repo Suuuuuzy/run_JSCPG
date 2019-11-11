@@ -1337,6 +1337,10 @@ def run_toplevel_file(G: Graph, node_id):
     """
     # switch current file path
     file_path = G.get_node_attr(node_id)['name']
+
+    # loop call
+    if file_path in G.file_stack:
+        return None
     G.file_stack.append(file_path)
     print(G.file_stack)
     previous_file_path = G.cur_file_path

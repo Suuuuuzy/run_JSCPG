@@ -147,12 +147,12 @@ def unit_check_log(G, vul_type, package=None):
     checking_res = vul_checking(G, line_path, vul_type)
     if (len(line_path) != 0 or len(caller_list) != 0) and len(checking_res) != 0:
         print("Found path from {}: {}\n".format(package, checking_res))
-        with open("found_path_{}".format(vul_type), 'a+') as fp:
+        with open("found_path_{}.log".format(vul_type), 'a+') as fp:
             fp.write("{} called".format(caller_list))
             fp.write("Found path from {}: {}\n".format(package, checking_res))
         return 1
     else:
-        with open("not_found_path_{}".format(vul_type), 'a+') as fp:
+        with open("not_found_path_{}.log".format(vul_type), 'a+') as fp:
             fp.write("{} called".format(caller_list))
             fp.write("Not Found path from {}: {}\n".format(package, checking_res))
         return 0
@@ -242,9 +242,10 @@ def test_file(file_path, vul_type='xss'):
 
 #root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-#root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
-root_path = "/media/data/lsong18/data/vulPackages/packages/"
-testing_packages = [root_path + 'http_server@1.0.12', root_path + 'http-file-server@0.2.6']
+root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+#root_path = "/media/data/lsong18/data/vulPackages/packages/"
+#testing_packages = [root_path + 'forms@1.2.0']
+testing_packages = []
 skip_packages = []
 
 def main():
@@ -257,8 +258,8 @@ def main():
         packages = [package for package in packages if package not in skip_packages]
 
     tqdm_bar = tqdm(packages)
-    vul_type = 'xss'
-    timeout = 120
+    vul_type = 'os_command'
+    timeout = 300
 
     success_list = []
     skip_list = []
@@ -287,7 +288,7 @@ def main():
         print(result)
         if 1 in result:
             success_list.append(package)
-            npm_res_logger.info("{} found in {}".format(vul_type, package))
+            npm_res_logger.info("{} successfully found in {}".format(vul_type, package))
         elif -1 in result:
             skip_list.append(package)
             npm_res_logger.error("Skip {} for other reasons".format(package))
