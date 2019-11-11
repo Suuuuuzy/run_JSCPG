@@ -4,9 +4,10 @@ from .utilities import BranchTag, BranchTagContainer
 import os
 import sty
 import json
+import re
 from .logger import *
 from . import modeled_js_builtins, modeled_builtin_modules
-from .helpers import to_values, to_obj_nodes, peek_variables
+from .helpers import to_values, to_obj_nodes, peek_variables, combine_values
 from .helpers import check_condition, val_to_str, val_to_float, is_int
 from .esprima import esprima_parse, esprima_search
 
@@ -313,6 +314,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
         prop_name_tags.append(for_tags)
 
     # create parent object if it doesn't exist
+    parent_objs = list(filter(lambda x: x != G.undefined_obj, parent_objs))
     if not parent_objs:
         if True:
         # if not (extra and extra.side == 'right'):
@@ -356,7 +358,8 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
 
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
         name=f'{name}', name_nodes=list(prop_name_nodes),
-        ast_node=ast_node, callback=get_df_callback(G)), handled_parent
+        ast_node=ast_node, callback=get_df_callback(G, ast_node)
+        ), handled_parent
 
 def handle_assign(G, ast_node, extra=None, right_override=None):
     '''
@@ -496,7 +499,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     # logger.debug(f'  assign used objs={used_objs}')
     return NodeHandleResult(obj_nodes=handled_right.obj_nodes,
         name_nodes=handled_left.name_nodes, # used_objs=used_objs,
-        callback=get_df_callback(G))
+        callback=get_df_callback(G, ast_node))
 
 def has_else(G, if_ast_node):
     '''
@@ -671,7 +674,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
 
         return NodeHandleResult(obj_nodes=[added_obj],
                                 used_objs=list(used_objs),
-                                callback=get_df_callback(G))
+                                callback=get_df_callback(G, node_id))
 
     elif cur_type == 'AST_ARRAY_ELEM':
         if not (extra and extra.parent_obj is not None):
@@ -700,7 +703,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 G.add_obj_as_prop(key, node_id,
                     parent_obj=extra.parent_obj, tobe_added_obj=obj)
         return NodeHandleResult(obj_nodes=value_objs, # used_objs=used_objs,
-            callback=get_df_callback(G))
+            callback=get_df_callback(G, node_id))
 
     elif cur_type == "AST_ENCAPS_LIST":
         children = G.get_ordered_ast_child_nodes(node_id)
@@ -713,7 +716,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             for obj in handle_res.obj_nodes:
                 G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
         return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs,
-            callback=get_df_callback(G))
+            callback=get_df_callback(G, node_id))
 
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
         return handle_var(G, node_id, extra)
@@ -756,8 +759,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
             # calculate values
-            values1, sources1, tags1 = to_values(G, handled_left, node_id)
-            values2, sources2, tags2 = to_values(G, handled_right, node_id)
+            values1, sources1, tags1 = combine_values(*to_values(G, handled_left, node_id))
+            values2, sources2, tags2 = combine_values(*to_values(G, handled_right, node_id))
             results = []
             result_sources = []
             result_tags = []
@@ -776,7 +779,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     sources.update(s)
                 result_sources.append(list(sources))
             return NodeHandleResult(values=results, used_objs=used_objs,
-                value_sources=result_sources, callback=get_df_callback(G))
+                value_sources=result_sources, callback=get_df_callback(G, node_id))
         elif flag == 'BINARY_SUB':
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
@@ -810,7 +813,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     sources.update(s)
                 result_sources.append(list(sources))
             return NodeHandleResult(values=results, used_objs=used_objs,
-                value_sources=result_sources, callback=get_df_callback(G))
+                value_sources=result_sources, callback=get_df_callback(G, node_id))
 
     elif cur_type == 'AST_ASSIGN_OP':
         left_child, right_child = G.get_ordered_ast_child_nodes(node_id)
@@ -826,7 +829,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         for obj in used_objs:
             G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
         right_override = NodeHandleResult(obj_nodes=[added_obj],
-            used_objs=used_objs, callback=get_df_callback(G))
+            used_objs=used_objs, callback=get_df_callback(G, node_id))
         return handle_assign(G, node_id, extra, right_override)
 
     elif cur_type in ['integer', 'double', 'string']:
@@ -855,7 +858,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     elif cur_type in ['AST_CALL', 'AST_METHOD_CALL', 'AST_NEW']:
         returned_objs, used_objs = ast_call_function(G, node_id, extra)
         return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs,
-            ast_node=node_id, callback=get_df_callback(G))
+            ast_node=node_id, callback=get_df_callback(G, node_id))
 
     elif cur_type == 'AST_RETURN':
         returned_exp = G.get_ordered_ast_child_nodes(node_id)[0]
@@ -913,7 +916,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id,
             values=h1.values+h2.values,
             value_sources=h1.value_sources+h2.value_sources,
-            callback=get_df_callback(G))
+            callback=get_df_callback(G, node_id))
 
     elif cur_type == 'AST_EXPR_LIST':
         for child in G.get_ordered_ast_child_nodes(node_id):
@@ -1065,8 +1068,8 @@ def decl_vars_and_funcs(G, ast_node, var=True, func=True):
         elif func and node_type == 'AST_FUNC_DECL':
             func_name = G.get_name_from_child(child)
             func_obj = decl_function(G, child, obj_parent_scope=func_scope)
-        elif node_type == 'AST_STMT_LIST':
-            decl_vars_and_funcs(G, child, var=var, func=func)
+        # elif node_type == 'AST_STMT_LIST':
+        #     decl_vars_and_funcs(G, child, var=var, func=func)
         elif node_type in ['AST_IF', 'AST_IF_ELEM', 'AST_FOR', 'AST_FOREACH',
             'AST_WHILE', 'AST_SWITCH', 'AST_SWITCH_CASE', 'AST_EXPR_LIST']:
             decl_vars_and_funcs(G, child, var=var, func=False)
@@ -1080,13 +1083,12 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
         branches = BranchTagContainer()
 
     if caller_ast is not None:
-        if caller_ast in G.call_stack:
-            logger.warning(f'Function {func_ast} in call stack, skip simulating')
+        if G.call_counter[caller_ast] >= 2:
+            logger.warning(f'{caller_ast}: Function {func_ast} in call stack {G.call_counter[caller_ast]}, skip simulating')
             return [], []
         else:
-            G.call_stack.add(caller_ast)
+            G.call_counter[caller_ast] += 1
 
-    decl_vars_and_funcs(G, func_ast)
     func_obj = G.get_func_decl_objs_by_ast_node(func_ast)[0]
     func_name = G.get_node_attr(func_obj).get('name')
     logger.info(sty.ef.inverse + sty.fg.green +
@@ -1098,15 +1100,15 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
     for child in G.get_child_nodes(func_ast, child_type='AST_STMT_LIST'):
         returned_objs, used_objs = simurun_block(G, child,
             parent_scope=G.cur_scope, branches=branches,
-            block_scope=block_scope)
+            block_scope=block_scope, decl_var=True)
         break
 
     if caller_ast is not None:
-        G.call_stack.remove(caller_ast)
+        G.call_counter[caller_ast] -= 1
     return returned_objs, used_objs
 
 def simurun_block(G, ast_node, parent_scope=None, branches=None,
-    block_scope=True):
+    block_scope=True, decl_var=False):
     """
     Simurun a block by running its statements one by one.
     A block is a BlockStatement in JavaScript,
@@ -1121,7 +1123,7 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
             G.add_scope('BLOCK_SCOPE', decl_ast=ast_node,
                         scope_name=G.scope_counter.gets(f'Block{ast_node}'))
     logger.log(ATTENTION, 'BLOCK {} STARTS, SCOPE {}'.format(ast_node, G.cur_scope))
-    decl_vars_and_funcs(G, ast_node, var=False)
+    decl_vars_and_funcs(G, ast_node, var=decl_var)
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     # simulate statements
     for stmt in stmts:
@@ -1186,16 +1188,19 @@ def merge(G, stmt, num_of_branches, parent_branch):
                 if i == False:
                     flag_deleted = False
 
+            # if flag_created or flag_deleted:
+            #     logger.debug(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
+
             # flatten Addition edges
+            # we'll delete edges, so we save them in a list
+            # otherwise the graph is changed and Python will raise an error
+            edges = list(G.graph[u][v].items())
+            for key, edge_attr in edges:
+                branch_tag = edge_attr.get('branch', BranchTag())
+                if branch_tag.point == stmt:
+                    G.graph.remove_edge(u, v, key)
             if flag_created:
                 # logger.debug(f'add edge {u}->{v}, branch={stmt}')
-                # we'll delete edges, so we save them in a list
-                # otherwise the graph is changed and Python will raise an error
-                edges = list(G.graph[u][v].items())
-                for key, edge_attr in edges:
-                    branch_tag = edge_attr.get('branch', BranchTag())
-                    if branch_tag.point == stmt:
-                        G.graph.remove_edge(u, v, key)
                 if parent_branch:
                     # add one addition edge with parent if/switch's (upper level's) tags
                     # logger.debug(f"create edge {u}->{v}, branch={BranchTag(parent_branch, mark='A')}")
@@ -1204,15 +1209,6 @@ def merge(G, stmt, num_of_branches, parent_branch):
                     # logger.debug(f'create edge {u}->{v}')
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ'})
 
-            # delete Addition edges
-            # logger.debug(f'delete edge {u}->{v}, branch={stmt}')
-            # we'll delete edges, so we save them in a list
-            # otherwise the graph is changed and Python will raise an error
-            edges = list(G.graph[u][v].items())
-            for key, edge_attr in edges:
-                branch_tag = edge_attr.get('branch', BranchTag())
-                if branch_tag.point == stmt:
-                    G.graph.remove_edge(u, v, key)
             if flag_deleted:
                 if parent_branch:
                     # find if there is an addition in parent if/switch (upper level)
@@ -1685,7 +1681,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                     # add dummy arguments
                     param_name = G.get_name_from_child(param)
                     added_obj = G.add_obj_to_scope(name=param_name,
-                        scope=func_scope)
+                        scope=func_scope, ast_node=caller_ast,
+                        js_type=None, value='*')
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
                     logger.debug(f'add arg {param_name} <- new obj {added_obj}, scope {func_scope}')
@@ -1765,8 +1762,12 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
 
     return list(returned_objs), list(used_objs)
 
-def get_df_callback(G):
-    return lambda result: build_df_by_def_use(G, G.cur_stmt, result.used_objs)
+def get_df_callback(G, ast_node=None):
+    if ast_node is None:
+        cpg_node = G.cur_stmt
+    else:
+        cpg_node = G.find_nearest_upper_CPG_node(ast_node)
+    return lambda result: build_df_by_def_use(G, cpg_node, result.used_objs)
 
 def build_df_by_def_use(G, cur_stmt, used_objs):
     """
@@ -1776,6 +1777,16 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     if not used_objs or cur_stmt is None:
         return
     cur_lineno = G.get_node_attr(cur_stmt).get('lineno:int')
+    # If an used object is a wildcard object, add its parent object as
+    # used object too, until it is not a wildcard object.
+    used_objs = list(used_objs)
+    for obj in used_objs:
+        node_attrs = G.get_node_attr(obj)
+        if node_attrs.get('type') == 'object' and node_attrs.get('code') == '*':
+            for e1 in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
+                for e2 in G.get_in_edges(e1[0], edge_type='OBJ_TO_PROP'):
+                    used_objs.append(e2[0])
+    used_objs = set(used_objs)
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
         def_cpg_node = G.find_nearest_upper_CPG_node(def_ast_node)
@@ -1863,7 +1874,10 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
 def analyze_json_python(G, json_str, extra=None, caller_ast=None):
     if json_str is None:
         return None
-    py_obj = json.loads(json_str)
-    logger.debug('Python JSON parse result: ' + str(py_obj))
+    try:
+        py_obj = json.loads(json_str)
+        logger.debug('Python JSON parse result: ' + str(py_obj))
+    except json.decoder.JSONDecodeError:
+        return None
     return G.generate_obj_graph_for_python_obj(py_obj, ast_node=caller_ast)
 

@@ -2,6 +2,7 @@ from .graph import Graph
 from .utilities import NodeHandleResult, ExtraInfo, BranchTag
 import math
 from typing import Callable, List
+from collections import defaultdict
 
 def eval_value(G: Graph, s: str, return_obj_node=False, ast_node=None):
     '''
@@ -107,7 +108,14 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
         values.append(value)
         sources.append([obj])
         tags.append(G.get_node_attr(obj).get('for_tags', []))
+    values, sources = combine_values(values, sources)
     return values, sources, tags
+
+def combine_values(values, sources, *arg):
+    d = defaultdict(lambda: [])
+    for i, v in enumerate(values):
+        d[v].extend(sources[i])
+    return (list(d.keys()), list(d.values()), *arg)
 
 def peek_variables(G: Graph, ast_node, handling_func: Callable,
     extra: ExtraInfo):
@@ -391,23 +399,26 @@ def copy_objs_for_parameters(G: Graph, handle_result: NodeHandleResult,
     return returned_objs
 
 def to_python_array(G: Graph, array_obj, value=False):
-    elements = []
-    data = []
+    elements = [[]]
+    data = [[]]
     for name_node in G.get_prop_name_nodes(array_obj):
         name = G.get_node_attr(name_node).get('name')
+        if name == 'length' or name == '__proto__':
+            continue
         try:
             i = int(name)
             while i >= len(elements):
                 elements.append([])
                 data.append([])
-            for e in G.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
-                if value:
-                    elements[i].append(G.get_node_attr(e[1]).get('code', '?'))
-                else:
-                    elements[i].append(e[1])
-                data[i].append(e[3])
         except ValueError:
-            pass
+            i = 0
+        for e in G.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
+            if value:
+                elements[i].append(val_to_str(G.get_node_attr(e[1])
+                    .get('code', '?')))
+            else:
+                elements[i].append(e[1])
+            data[i].append(e[3])
     return elements, data
 
 def to_og_array(G: Graph, array, data, ast_node=None):
