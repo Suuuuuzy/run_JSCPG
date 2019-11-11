@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/growl@1.9.2/test.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/dns-sync@0.1.0/test/test.js');

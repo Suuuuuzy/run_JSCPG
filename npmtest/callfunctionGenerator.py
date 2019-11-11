@@ -217,6 +217,7 @@ def test_file(file_path, vul_type='xss'):
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
+        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         return -3
 
     if G is None:
@@ -310,6 +311,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package(os.path.join(root_path, 'apex-publish-static-files@2.0.0'))
+test_package(os.path.join(root_path, 'dns-sync@0.1.0'))
 #test_package(os.path.join(root_path, 'bootstrap@4.3.0'))
-main()
+#main()

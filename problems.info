@@ -1,9 +1,4 @@
-ascii-art: 
-  apply function built in unimplemented
-eggscript:
   can not find mz/child_process
-command-exists:
-  success but error when processing lib/command-exists.js
 dns-sync:
   array_p_push error
 expressfs@0.2.10/test/jquery.min.js:
@@ -39,6 +34,8 @@ buttle:
 
 ===================================================
 long running time:
+  eggscript
+  dns-sync@0.1.0
   node-wifi@2.0.11
   libnmap@0.4.5
   opencv@6.0.0
@@ -46,6 +43,8 @@ long running time:
   wxchangba@1.0.3
 
 success:
+  command-exists@1.2.3
+  ascii-art@1.4.2
   addax@1.0.6
   apex-publish-static-files@2.0.0
   entitlements@1.2.0

@@ -1381,6 +1381,10 @@ def run_toplevel_file(G: Graph, node_id):
     module_obj = G.get_objs_by_name('module')[0]
     module_exports_objs = G.get_prop_obj_nodes(parent_obj=module_obj,
         prop_name='exports')
+    #final_exported_objs = []
+    #for obj in module_exports_objs:
+    #    final_exported_objs = final_exported_objs + G.get_prop_obj_nodes_recur(parent_obj=obj)
+
 
     # switch back scope, object and path
     G.cur_scope = backup_scope
@@ -1394,7 +1398,7 @@ def run_toplevel_file(G: Graph, node_id):
 def handle_require(G, node_id, extra=None):
     '''
     Returns:
-        List: returned module.exports objects.
+        List: returned module.exports objects. we need to list the exported functions recursively
     '''
     # handle module name
     arg_list = G.get_ordered_ast_child_nodes(
@@ -1513,14 +1517,20 @@ def ast_call_function(G, ast_node, extra):
                 exported_objs = module_exports_objs
 
             if G.run_all:
-                for obj in exported_objs:
+                while(len(exported_objs) != 0):
+                    obj = exported_objs.pop()
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
                     if G.get_node_attr(obj).get('type') != 'function':
                         continue
                     #print("Run", obj)
-                    call_function(G, [obj])
+                    newed_obj = call_function(G, [obj], caller_ast=ast_node, extra=extra, is_new=True)[0]
                     G.set_node_attr(obj, ('init_run', "True"))
+
+                    # we may have prototype functions:
+                    generated_objs = G.get_prop_obj_nodes(parent_obj=newed_obj, 
+                            prop_name='prototype')
+                    print("=============", generated_objs)
         return module_exports_objs, []
 
     # find function declaration objects
@@ -1600,7 +1610,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
     if extra is None:
         extra = ExtraInfo()
 
-    # process arguments
+    ##  process arguments
     callback_functions = set() # only for unmodeled built-in functions
     for arg in args:
         # add callback functions
@@ -1714,6 +1724,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             G.cur_scope = func_scope
             # run simulation -- create the object, or call the function
             if is_new:
+                print(caller_ast, func_ast, '-------------')
                 branch_returned_objs = [instantiate_obj(G, caller_ast,
                     func_ast, branches=next_branches)]
             else:
@@ -1809,7 +1820,7 @@ def generate_obj_graph(G, entry_nodeid):
     generate the object graph of a program
     """
     G.setup1()
-    modeled_js_builtins.setup_js_builtins(G)
+    # modeled_js_builtins.setup_js_builtins(G)
     G.setup2()
     NodeHandleResult.print_callback = print_handle_result
     logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
