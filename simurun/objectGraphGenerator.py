@@ -1083,7 +1083,7 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
         branches = BranchTagContainer()
 
     if caller_ast is not None:
-        if G.call_counter[caller_ast] >= 2:
+        if G.call_counter[caller_ast] >= G.call_limit:
             logger.warning(f'{caller_ast}: Function {func_ast} in call stack {G.call_counter[caller_ast]}, skip simulating')
             return [], []
         else:
