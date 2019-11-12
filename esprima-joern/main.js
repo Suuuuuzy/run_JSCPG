@@ -2757,6 +2757,7 @@ function analyze(filePath, parentNodeId) {
     }
     sourceCode = fs.readFileSync(filePath, 'utf8');
     sourceCode = sourceCode.replace(/^#!.*\n/, '\n');
+    sourceCode = sourceCode.replace(/\r\n/g, '\n');
     // initialize
     let currentId = nodeIdCounter;
     if (outputStyle == 'php') {
