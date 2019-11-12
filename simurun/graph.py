@@ -807,6 +807,35 @@ class Graph:
                 return name_node
         return None
 
+    def get_prop_obj_nodes_recur(self, parent_obj, prop_name=None,
+        branches: List[BranchTag]=[], exclude_proto=True,
+        numeric_only=False):
+        '''
+        Descrpted !!!!!!!!!!
+        Get object nodes of an object's property, recursively.
+        
+        Args:
+            parent_obj (optional): Defaults to None (current object).
+            prop_name (str, optional): Property name. Defaults to None,
+                which means get all properties' object nodes.
+            branches (List[BranchTag], optional): branch information.
+                Defaults to [].
+            exclude_proto (bool, optional): Whether exclude prototype
+                and __proto__ when getting all properties.
+                Defaults to True.
+        
+        Returns:
+            list: object nodes.
+        '''
+        res = []
+        cur_obj_nodes = self.get_prop_obj_nodes(parent_obj, prop_name=prop_name,
+                branches=branches, exclude_proto=exclude_proto, numeric_only=numeric_only)
+        res = res + cur_obj_nodes
+        for node in cur_obj_nodes:
+            res = res + self.get_prop_obj_nodes_recur(node, prop_name=prop_name,
+                branches=branches, exclude_proto=exclude_proto, numeric_only=numeric_only)
+        return res
+
     def get_prop_obj_nodes(self, parent_obj, prop_name=None,
         branches: List[BranchTag]=[], exclude_proto=True,
         numeric_only=False):

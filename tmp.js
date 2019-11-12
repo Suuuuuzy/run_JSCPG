@@ -1,12 +1,20 @@
-var http = require("http");
-//function parse(value){
-//  return value;
-//}
-
-var callback = function(req, res) {
-  var pathname = parse123(req.url).pathname;
-  pathname = decode(pathname.split('+').join(' '));
-  res.end(pathname);
+var callback = function() {
+  var req = "req";
+  this.foo = function() {
+    return req;
+  }
+  this.v = 123;
 }
 
-http.createServer(callback);
+callback.prototype = {
+  func_key: function() {
+    var c = this.v;
+    return c;
+  },
+  func_key_2: function() {
+    var d = "123";
+    return d;
+  }
+}
+
+exports.callback = callback;
