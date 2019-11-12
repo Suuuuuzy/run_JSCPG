@@ -84,6 +84,13 @@ def main():
         datetime.today().strftime('%Y-%m-%d %H:%M:%S') +
         ', Time spent: %.3fs' % (time.time() - start_time))
 
+    if G.proto_pollution:
+        logger.debug(sty.ef.inverse + 'prototype pollution' + sty.rs.all)
+        for ast_node in G.proto_pollution:
+            logger.debug('{}: {} Line {}'
+                .format(ast_node, G.get_node_file_path(ast_node),
+                    G.get_node_attr(ast_node).get('lineno:int')))
+
     vul_type = 'xss'
     if args.vul_type:
         vul_type = args.vul_type

@@ -85,7 +85,7 @@ def to_obj_nodes(G: Graph, handle_result: NodeHandleResult, ast_node=None,
     return returned_objs
 
 def to_values(G: Graph, handle_result: NodeHandleResult,
-    incl_existing_values=True):
+    incl_existing_values=True, for_prop=False):
     '''
     Experimental. Get values ('code' fields) in object nodes.
     Returns values, sources and tags in lists.
@@ -95,6 +95,8 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
     tags = []
     if incl_existing_values:
         values = list(handle_result.values)
+        if for_prop:
+            values = list(map(val_to_str, values))
         if handle_result.value_sources:
             sources = handle_result.value_sources
         else:
@@ -102,9 +104,18 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
         if handle_result.value_tags:
             tags = handle_result.value_tags
         else:
-            tags = [[]] * len(handle_result.values)
+            tags = [[] for i in range(len(handle_result.values))]
     for obj in handle_result.obj_nodes:
-        value = G.get_node_attr(obj).get('code')
+        attrs = G.get_node_attr(obj)
+        if for_prop:
+            if attrs.get('type') == 'object':
+                value = 'Obj#' + obj
+            elif attrs.get('code') is not None:
+                value = val_to_str(attrs.get('code'))
+            else:
+                value = None
+        else:
+            value = attrs.get('code')
         values.append(value)
         sources.append([obj])
         tags.append(G.get_node_attr(obj).get('for_tags', []))
@@ -154,7 +165,7 @@ def val_to_str(value, default=None):
         return '%g' % value
     else:
         if value == None:
-            value = default
+            return default
         return str(value)
 
 def val_to_float(value):
@@ -189,14 +200,16 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             should use handle_node.
 
     Returns:
-        float: A number (range [0, 1]) indicates how possible the
+        float, bool: A number (range [0, 1]) indicates how possible the
             condition is true. If both left side and right side are
             single possibility, it returns 0 for false, and 1 for true.
+            A boolean value if all results are not deterministic.
     '''
 
     node_type = G.get_node_attr(ast_node).get('type')
     op_type = G.get_node_attr(ast_node).get('flags:string[]')
     flag = True
+    deter_flag = True
     if node_type == 'AST_EXPR_LIST':
         child = G.get_ordered_ast_child_nodes(ast_node)[0]
         return check_condition(G, child, extra, handling_func)
@@ -235,6 +248,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                                 pass
                         else:
                             true_num += 0.5
+                            deter_flag = False
             elif op_type == 'BINARY_IS_IDENTICAL':
                 for v1 in left_values:
                     for v2 in right_values:
@@ -245,6 +259,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                                 pass
                         else:
                             true_num += 0.5
+                            deter_flag = False
             elif op_type == 'BINARY_IS_NOT_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
@@ -255,6 +270,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                                 true_num += 1
                         else:
                             true_num += 0.5
+                            deter_flag = False
             elif op_type == 'BINARY_IS_NOT_IDENTICAL':
                 for v1 in left_values:
                     for v2 in right_values:
@@ -265,6 +281,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                                 pass
                         else:
                             true_num += 0.5
+                            deter_flag = False
             elif op_type == 'BINARY_IS_SMALLER':
                 for v1 in left_values:
                     for v2 in right_values:
@@ -273,6 +290,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                                 true_num += 1
                         else:
                             true_num += 0.5
+                            deter_flag = False
             elif op_type == 'BINARY_IS_GREATER':
                 for v1 in left_values:
                     for v2 in right_values:
@@ -281,6 +299,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                                 true_num += 1
                         else:
                             true_num += 0.5
+                            deter_flag = False
             elif op_type == 'BINARY_IS_SMALLER_OR_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
@@ -289,6 +308,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                                 true_num += 1
                         else:
                             true_num += 0.5
+                            deter_flag = False
             elif op_type == 'BINARY_IS_GREATER_OR_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
@@ -297,6 +317,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                                 true_num += 1
                         else:
                             true_num += 0.5
+                            deter_flag = False
             else:
                 flag = False
     else:
@@ -306,7 +327,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
         true_num = 0
         total_num = len(handled.obj_nodes) + len(handled.values)
         if total_num == 0:
-            return None # Value is unknown, cannot check
+            return None, False # Value is unknown, cannot check
         for obj in handled.obj_nodes:
             if obj in [G.undefined_obj, G.null_obj, G.false_obj]:
                 pass
@@ -330,7 +351,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
     # print(f'Compare result: {true_num / total_num}')
     if 0 == total_num:
         return 0
-    return true_num / total_num
+    return true_num / total_num, deter_flag
 
 def is_int(x):
     try: # check if x is an integer

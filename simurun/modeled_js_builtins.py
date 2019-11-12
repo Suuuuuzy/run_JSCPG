@@ -265,9 +265,13 @@ def array_p_push(G: Graph, caller_ast, extra, arrays: NodeHandleResult, *tobe_ad
             branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
     for arr in arrays.obj_nodes:
         length_objs = G.get_prop_obj_nodes(parent_obj=arr, prop_name='length', branches=extra.branches)
-        if len(length_objs) != 1:
-            logger.warning('Array {} has {} length object nodes'.format(arr, len(length_objs)))
-        length = G.get_node_attr(length_objs[0]).get('code')
+        if len(length_objs) == 0:
+            logger.warning('Array {} has no length object nodes'.format(arr))
+            length = None
+        else:
+            if len(length_objs) != 1:
+                logger.warning('Array {} has {} length object nodes'.format(arr, len(length_objs)))
+            length = G.get_node_attr(length_objs[0]).get('code')
         if length is not None:
             try:
                 length = int(length)
@@ -297,9 +301,13 @@ def array_p_pop(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
             branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
     for arr in arrays.obj_nodes:
         length_objs = G.get_prop_obj_nodes(parent_obj=arr, prop_name='length', branches=extra.branches)
-        if len(length_objs) != 1:
-            logger.warning('Array {} has {} length object nodes'.format(arr, len(length_objs)))
-        length = G.get_node_attr(length_objs[0]).get('code')
+        if len(length_objs) == 0:
+            logger.warning('Array {} has no length object nodes'.format(arr))
+            length = None
+        else:
+            if len(length_objs) != 1:
+                logger.warning('Array {} has {} length object nodes'.format(arr, len(length_objs)))
+            length = G.get_node_attr(length_objs[0]).get('code')
         if length is not None:
             try:
                 length = int(length)
@@ -310,7 +318,7 @@ def array_p_pop(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
             except ValueError:
                 logger.error('Array {} length error'.format(arr))
         else:
-            returned_objs.update(G.get_prop_obj_nodes(parent_obj=arr, branches=extra.branches))
+            returned_objs.update(G.get_prop_obj_nodes(parent_obj=arr, branches=extra.branches, numeric_only=True))
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
@@ -624,7 +632,7 @@ def string_returning_func(G: Graph, caller_ast, extra, _, *args):
     used_objs = set()
     for arg in args:
         used_objs.update(arg.obj_nodes)
-        used_objs.update(arg.used_objs)
+        # used_objs.update(arg.used_objs)
         for obj in arg.obj_nodes:
             G.add_edge(obj, returned_string, {'type:TYPE': 'CONTRIBUTES_TO'})
     return NodeHandleResult(obj_nodes=[returned_string], used_objs=list(used_objs))
@@ -634,7 +642,7 @@ def boolean_returning_func(G: Graph, caller_ast, extra, _, *args):
     used_objs = set()
     for arg in args:
         used_objs.update(arg.obj_nodes)
-        used_objs.update(arg.used_objs)
+        # used_objs.update(arg.used_objs)
     return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj], used_objs=list(used_objs))
 
 
