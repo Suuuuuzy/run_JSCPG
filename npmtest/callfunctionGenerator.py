@@ -217,7 +217,6 @@ def test_file(file_path, vul_type='xss'):
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
-        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         return -3
 
     if G is None:
@@ -260,7 +259,7 @@ def main():
 
     tqdm_bar = tqdm(packages)
     vul_type = 'os_command'
-    timeout = 300
+    timeout = 600
 
     success_list = []
     skip_list = []
@@ -311,6 +310,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'ungit@0.8.4'))
+#test_package(os.path.join(root_path, 'wiki-plugin-datalog@0.1.5'))
 #test_package(os.path.join(root_path, 'bootstrap@4.3.0'))
-#main()
+main()

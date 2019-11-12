@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/ungit@0.8.4/source/server.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/wxchangba@1.0.3/src/server/app.js');
