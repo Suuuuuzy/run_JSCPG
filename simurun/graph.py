@@ -37,11 +37,15 @@ class Graph:
 
         # contains a list of node ids based on the ast id
         self.call_stack = set() # callers (instead of callees)
+        self.call_counter = DictCounter() # callers (instead of callees)
+        self.call_limit = 3
         self.file_stack = []
         self.cur_stmt = None # for building data flows
 
         # Python-modeled built-in modules
         self.builtin_modules = {}
+
+        self.proto_pollution = set()
 
         csv.field_size_limit(2 ** 31 - 1)
 

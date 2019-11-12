@@ -35,9 +35,15 @@ def main():
     parser = argparse.ArgumentParser(description=
         'The object graph generator for JavaScript.')
     parser.add_argument('-p', '--print', action='store_true',
-                        help='Print logs to console.')
+                        help='Print logs to console, instead of file.')
     parser.add_argument('-a', '--dont-run-all', action='store_true',
-                        help="Don't run all exported functions.")
+                        help="Don't run all exported functions. "
+                        "All functions in module.exports are run by default.")
+    parser.add_argument('-c', '--call-limit', default=3, type=int,
+                        help="Set the limit of a call statement. "
+                        "(Defaults to 3.)")
+    parser.add_argument('-t', '--vul-type',
+                        help="Set the vulnerability type to be checked.")
     parser.add_argument('input_file', action='store', nargs='?',
         help="Source code file (or directory) to generate object graph for. "
         "Use '-' to get source code from stdin. Ignore this argument to "
@@ -57,6 +63,7 @@ def main():
         G.run_all = False
     else:
         G.run_all = True
+    G.call_limit = args.call_limit
     logger.info('Analysis starts at ' +
         datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S'))
     if args.input_file:
@@ -78,6 +85,15 @@ def main():
         ', Time spent: %.3fs' % (time.time() - start_time))
 
     vul_type = 'os_command'
+    if G.proto_pollution:
+        logger.debug(sty.ef.inverse + 'prototype pollution' + sty.rs.all)
+        for ast_node in G.proto_pollution:
+            logger.debug('{}: {} Line {}'
+                .format(ast_node, G.get_node_file_path(ast_node),
+                    G.get_node_attr(ast_node).get('lineno:int')))
+
+    if args.vul_type:
+        vul_type = args.vul_type
     
     logger.debug(sty.ef.inverse + vul_type + sty.rs.all)
     res_path = traceback(G, vul_type)
