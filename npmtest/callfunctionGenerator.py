@@ -311,6 +311,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-test_package(os.path.join(root_path, 'dns-sync@0.1.0'))
+test_package(os.path.join(root_path, 'ungit@0.8.4'))
 #test_package(os.path.join(root_path, 'bootstrap@4.3.0'))
 #main()

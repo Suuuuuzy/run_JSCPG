@@ -1523,14 +1523,17 @@ def ast_call_function(G, ast_node, extra):
                         continue
                     if G.get_node_attr(obj).get('type') != 'function':
                         continue
-                    #print("Run", obj)
                     newed_obj = call_function(G, [obj], caller_ast=ast_node, extra=extra, is_new=True)[0]
                     G.set_node_attr(obj, ('init_run', "True"))
 
                     # we may have prototype functions:
-                    generated_objs = G.get_prop_obj_nodes(parent_obj=newed_obj, 
-                            prop_name='prototype')
-                    print("=============", generated_objs)
+                    proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 
+                            prop_name='__proto__')
+                    generated_objs = G.get_prop_obj_nodes(parent_obj=newed_obj)
+                    generated_objs += G.get_prop_obj_nodes(parent_obj=proto_obj)
+                    for obj in generated_objs:
+                        if G.get_node_attr(obj).get('type') == 'function':
+                            exported_objs.append(obj)
         return module_exports_objs, []
 
     # find function declaration objects
@@ -1724,7 +1727,6 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             G.cur_scope = func_scope
             # run simulation -- create the object, or call the function
             if is_new:
-                print(caller_ast, func_ast, '-------------')
                 branch_returned_objs = [instantiate_obj(G, caller_ast,
                     func_ast, branches=next_branches)]
             else:

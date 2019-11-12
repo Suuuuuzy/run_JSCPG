@@ -77,7 +77,7 @@ def main():
         datetime.today().strftime('%Y-%m-%d %H:%M:%S') +
         ', Time spent: %.3fs' % (time.time() - start_time))
 
-    vul_type = 'xss'
+    vul_type = 'os_command'
     
     logger.debug(sty.ef.inverse + vul_type + sty.rs.all)
     res_path = traceback(G, vul_type)

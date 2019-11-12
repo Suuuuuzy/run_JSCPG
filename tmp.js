@@ -1,3 +1,4 @@
+var cp = require('child_process');
 var callback = function() {
   var req = "req";
   this.foo = function() {
@@ -9,6 +10,7 @@ var callback = function() {
 callback.prototype = {
   func_key: function() {
     var c = this.v;
+    cp.exec(c);
     return c;
   },
   func_key_2: function() {
