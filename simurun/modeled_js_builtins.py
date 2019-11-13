@@ -753,7 +753,8 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         r, glob, sticky = convert_to_python_re(ssv)
                         none_flag = False
                         def python_cb(m):
-                            cb_returned_objs, _ = \
+                            nonlocal none_flag
+                            cb_returned_objs, _, _ = \
                                 objectGraphGenerator.call_function(G, [callback],
                                 args=[NodeHandleResult(values=[m.group(0)])],
                                 extra=extra, caller_ast=caller_ast)
@@ -788,7 +789,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         match_s = sv[start:start+len(ssv)]
                         left_s = sv[:start]
                         right_s = sv[start+len(ssv):]
-                        cb_returned_objs, _ = \
+                        cb_returned_objs, _, _ = \
                             objectGraphGenerator.call_function(G, [callback],
                             args=[NodeHandleResult(values=[match_s])],
                             extra=extra, caller_ast=caller_ast)

@@ -541,7 +541,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     backup_objs = G.cur_objs
     G.cur_objs = [created_obj]
 
-    cur_returned_objs, cur_used_objs = simurun_function(G, constructor_decl, branches=branches,
+    returned_objs, _ = simurun_function(G, constructor_decl, branches=branches,
         caller_ast=exp_ast_node)
 
     G.cur_objs = backup_objs
@@ -550,7 +550,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
                             {"type:TYPE": "CALLS"})
 
-    return created_obj, cur_returned_objs
+    return created_obj, returned_objs
 
 def handle_var(G: Graph, ast_node, extra=None):
     cur_node_attr = G.get_node_attr(ast_node)
@@ -1534,7 +1534,8 @@ def ast_call_function(G, ast_node, extra):
         handled_arg = handle_node(G, arg, extra)
         handled_args.append(handled_arg)
 
-    return call_function(G, func_decl_objs, handled_args,
+    returned_objs, created_objs, used_objs = \
+        call_function(G, func_decl_objs, handled_args,
         handled_parent, extra, caller_ast=ast_node, is_new=is_new,
         stmt_id=stmt_id, func_name=func_name)
     # if handled_parent is not None:
@@ -1542,6 +1543,10 @@ def ast_call_function(G, ast_node, extra):
     # if handled_callee is not None:
     #     used_objs.extend(handled_callee.used_objs)
     # return returned_objs, used_objs
+    if is_new:
+        return created_objs, used_objs
+    else:
+        return returned_objs, used_objs
 
 def call_function(G, func_objs, args=[], this=None, extra=None,
     caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}',
@@ -1565,7 +1570,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             functions only. Defaults to '{anonymous}'.
     
     Returns:
-        List, List: Lists of returned objects and used objects.
+        List, List, List: Lists of returned objects, created objects
+            and used objects.
     '''
     # No function objects found, return immediately
     if not func_objs:
@@ -1591,10 +1597,9 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
         stmt_id = caller_ast
 
     # initiate return values
-    returned_objs = []
-    # set()
-    used_objs = []
-    #set()
+    returned_objs = set()
+    used_objs = set()
+    created_objs = []
 
     any_func_run = False
     # for each possible function declaration
@@ -1620,6 +1625,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
         #     used_objs.update(arg.used_objs)
 
         branch_returned_objs = []
+        branch_created_obj = None
         branch_used_objs = []
         func_ast = G.get_obj_def_ast_node(func_obj)
         # check if python function exists
@@ -1694,9 +1700,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             backup_stmt = G.cur_stmt
             # run simulation -- create the object, or call the function
             if is_new:
-                created_obj, branch_returned_objs = instantiate_obj(G, caller_ast,
-                    func_ast, branches=next_branches)
-                branch_returned_objs = [created_obj] + branch_returned_objs
+                branch_created_obj, branch_returned_objs = instantiate_obj(G,
+                    caller_ast, func_ast, branches=next_branches)
             else:
                 backup_objs = G.cur_objs
                 if _this:
@@ -1723,13 +1728,18 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         'NAME_TO_OBJ', 'OBJ_TO_PROP'],
                         candidates=this.obj_nodes, step=2):
                         branch_used_objs.append(o)
-                # add a blank object as return objects"
+                # add a blank object as return object
                 returned_obj = G.add_obj_node(caller_ast, "object", "*")
                 branch_returned_objs.append(returned_obj)
-                # returned_objs.update(returned_obj)
                 for obj in branch_used_objs:
                     G.add_edge(obj, returned_obj,
                         {'type:TYPE': 'CONTRIBUTES_TO'})
+                # add a blank object as created object
+                if is_new and branch_created_obj is None:
+                    branch_created_obj = G.add_obj_node(caller_ast, "object", "*")
+                    for obj in branch_used_objs:
+                        G.add_edge(obj, branch_created_obj,
+                            {'type:TYPE': 'CONTRIBUTES_TO'})
                 # call all callback functions
                 if callback_functions:
                     logger.debug(sty.fg.green + sty.ef.inverse + 'callback functions = {}'.format(callback_functions) + sty.rs.all)
@@ -1737,8 +1747,10 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         extra=extra, stmt_id=stmt_id)
         assert type(branch_returned_objs) is list
         assert type(branch_used_objs) is list
-        returned_objs += branch_returned_objs
-        used_objs += branch_used_objs
+        returned_objs.update(branch_returned_objs)
+        used_objs.update(branch_used_objs)
+        if branch_created_obj is not None:
+            created_objs.append(branch_created_obj)
         # add call edge
         if caller_ast is not None:
             G.add_edge_if_not_exist(caller_ast, func_ast, {"type:TYPE": "CALLS"})
@@ -1749,7 +1761,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
     if not any_func_run:
         logger.error('Error: No function was run during this function call')
 
-    return list(returned_objs), list(used_objs)
+    return list(returned_objs), list(used_objs), created_objs
 
 def get_df_callback(G, ast_node=None):
     if ast_node is None:
