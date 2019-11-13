@@ -6,17 +6,11 @@ wiki-plugin-datalog@0.1.5:
   None object has no attribute point
 
 
-pdfinfojs@0.4.0:
-  APIs are methods of the exported function
-  or methods of class
-
-  
 cocos-utils:
 codem:
   problems of esprima
 
 
-buttle:
 shell-quote:
   can not find how to do the exploit
 
@@ -31,6 +25,8 @@ long running time:
   wxchangba@1.0.3
 
 success:
+  pdfinfojs@0.4.0
+  buttle@0.3.1
   gitlabhook@0.0.17
   expressfs@0.2.10
   tomato@0.0.7:
