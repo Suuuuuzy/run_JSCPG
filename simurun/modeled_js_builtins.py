@@ -194,8 +194,8 @@ def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult()
                 index_arg = NodeHandleResult(obj_nodes=[name_obj_node])
             else:
                 index_arg = NodeHandleResult(values=[float(name)])
-            # obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
-            # print(f'Array forEach callback arguments: index={name}, obj_nodes={obj_nodes_log}, array={arr}')
+            obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
+            logger.debug(f'Array forEach callback arguments: index={name}, obj_nodes={obj_nodes_log}, array={arr}')
             objectGraphGenerator.call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                     obj_nodes=obj_nodes), index_arg, 
@@ -563,7 +563,7 @@ def object_is(G: Graph, caller_ast, extra, _, value1: NodeHandleResult, value2: 
 
 
 def function_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
-    returned_objs, used_objs = objectGraphGenerator.call_function(
+    returned_objs, _, used_objs = objectGraphGenerator.call_function(
         G, func.obj_nodes, list(args), this, extra, caller_ast,
         stmt_id=f'Call{caller_ast}')
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)

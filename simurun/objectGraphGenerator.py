@@ -752,9 +752,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
             used_objs = []
-            # used_objs.extend(handled_left.used_objs)
             used_objs.extend(handled_left.obj_nodes)
-            # used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
             # calculate values
@@ -787,9 +785,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
             used_objs = []
-            # used_objs.extend(handled_left.used_objs)
             used_objs.extend(handled_left.obj_nodes)
-            # used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
             # calculate values
@@ -823,9 +819,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         handled_left = handle_node(G, left_child, extra)
         handled_right = handle_node(G, right_child, extra)
         used_objs = []
-        # used_objs.extend(handled_left.used_objs)
         used_objs.extend(handled_left.obj_nodes)
-        # used_objs.extend(handled_right.used_objs)
         used_objs.extend(handled_right.obj_nodes)
         added_obj = G.add_obj_node(node_id, value='*')
         used_objs = list(set(used_objs))
@@ -1480,21 +1474,23 @@ def ast_call_function(G, ast_node, extra):
                     if G.get_node_attr(obj).get('type') != 'function':
                         continue
                     #print("Run", obj)
-                    newed_obj = call_function(G, [obj], caller_ast=ast_node, 
-                            extra=extra, is_new=True, mark_fake_args=True)[0]
+                    returned_objs, newed_objs, _ = call_function(G, [obj],
+                            caller_ast=ast_node, 
+                            extra=extra, is_new=True, mark_fake_args=True)
                     G.set_node_attr(obj, ('init_run', "True"))
-                    if len(newed_obj) == 2:
-                        # include a newed object and a return object
-                        exported_objs.append(newed_obj[1])
-                        newed_obj = newed_obj[0]
+                    # include newed objects and return objects
+                    exported_objs.extend(returned_objs)
                     # we may have prototype functions:
-                    proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 
-                            prop_name='__proto__')
-                    generated_objs = G.get_prop_obj_nodes(parent_obj=newed_obj)
-                    generated_objs += G.get_prop_obj_nodes(parent_obj=proto_obj)
-                    for obj in generated_objs:
-                        if G.get_node_attr(obj).get('type') == 'function':
-                            exported_objs.append(obj)
+                    for newed_obj in newed_objs:
+                        proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 
+                                prop_name='__proto__')
+                        generated_objs = \
+                            G.get_prop_obj_nodes(parent_obj=newed_obj)
+                        generated_objs += \
+                            G.get_prop_obj_nodes(parent_obj=proto_obj)
+                        for obj in generated_objs:
+                            if G.get_node_attr(obj).get('type') == 'function':
+                                exported_objs.append(obj)
         return module_exports_objs, []
 
     # find function declaration objects
@@ -1538,11 +1534,6 @@ def ast_call_function(G, ast_node, extra):
         call_function(G, func_decl_objs, handled_args,
         handled_parent, extra, caller_ast=ast_node, is_new=is_new,
         stmt_id=stmt_id, func_name=func_name)
-    # if handled_parent is not None:
-    #     used_objs.extend(handled_parent.used_objs)
-    # if handled_callee is not None:
-    #     used_objs.extend(handled_callee.used_objs)
-    # return returned_objs, used_objs
     if is_new:
         return created_objs, used_objs
     else:
@@ -1576,7 +1567,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
     # No function objects found, return immediately
     if not func_objs:
         logger.error(f'No definition found for function {func_name}')
-        return [], []
+        return [], [], []
 
     if extra is None:
         extra = ExtraInfo()
@@ -1722,7 +1713,6 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 # add arguments as used objects
                 for h in _args:
                     branch_used_objs.extend(h.obj_nodes)
-                    # branch_used_objs.extend(h.used_objs)
                 if this is not None:
                     for o in G.get_ancestors_in(func_obj, edge_types=[
                         'NAME_TO_OBJ', 'OBJ_TO_PROP'],
@@ -1761,7 +1751,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
     if not any_func_run:
         logger.error('Error: No function was run during this function call')
 
-    return list(returned_objs), list(used_objs), created_objs
+    return list(returned_objs), created_objs, list(used_objs)
 
 def get_df_callback(G, ast_node=None):
     if ast_node is None:

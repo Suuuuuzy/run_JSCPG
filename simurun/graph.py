@@ -858,7 +858,7 @@ class Graph:
         s = set()
         if prop_name is None: # this caused inconsistent run results
             name_nodes = self.get_prop_name_nodes(parent_obj)
-            if exclude_proto:
+            if prop_name is None and exclude_proto:
                 name_nodes = filter(
                     lambda x: self.get_node_attr(x).get('name') not in
                         ['prototype', '__proto__'],
