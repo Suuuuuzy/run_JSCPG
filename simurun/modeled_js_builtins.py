@@ -194,8 +194,8 @@ def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult()
                 index_arg = NodeHandleResult(obj_nodes=[name_obj_node])
             else:
                 index_arg = NodeHandleResult(values=[float(name)])
-            # obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
-            # print(f'Array forEach callback arguments: index={name}, obj_nodes={obj_nodes_log}, array={arr}')
+            obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
+            logger.debug(f'Array forEach callback arguments: index={name}, obj_nodes={obj_nodes_log}, array={arr}')
             objectGraphGenerator.call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                     obj_nodes=obj_nodes), index_arg, 
@@ -753,6 +753,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         r, glob, sticky = convert_to_python_re(ssv)
                         none_flag = False
                         def python_cb(m):
+                            nonlocal none_flag
                             cb_returned_objs, _, _ = \
                                 objectGraphGenerator.call_function(G, [callback],
                                 args=[NodeHandleResult(values=[m.group(0)])],

@@ -752,9 +752,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
             used_objs = []
-            # used_objs.extend(handled_left.used_objs)
             used_objs.extend(handled_left.obj_nodes)
-            # used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
             # calculate values
@@ -787,9 +785,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             handled_left = handle_node(G, left_child, extra)
             handled_right = handle_node(G, right_child, extra)
             used_objs = []
-            # used_objs.extend(handled_left.used_objs)
             used_objs.extend(handled_left.obj_nodes)
-            # used_objs.extend(handled_right.used_objs)
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
             # calculate values
@@ -823,9 +819,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         handled_left = handle_node(G, left_child, extra)
         handled_right = handle_node(G, right_child, extra)
         used_objs = []
-        # used_objs.extend(handled_left.used_objs)
         used_objs.extend(handled_left.obj_nodes)
-        # used_objs.extend(handled_right.used_objs)
         used_objs.extend(handled_right.obj_nodes)
         added_obj = G.add_obj_node(node_id, value='*')
         used_objs = list(set(used_objs))
@@ -1542,11 +1536,6 @@ def ast_call_function(G, ast_node, extra):
         return created_objs, used_objs
     else:
         return returned_objs, used_objs
-    # if handled_parent is not None:
-    #     used_objs.extend(handled_parent.used_objs)
-    # if handled_callee is not None:
-    #     used_objs.extend(handled_callee.used_objs)
-    # return returned_objs, used_objs
 
 def call_function(G, func_objs, args=[], this=None, extra=None,
     caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}',
@@ -1722,7 +1711,6 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 # add arguments as used objects
                 for h in _args:
                     branch_used_objs.extend(h.obj_nodes)
-                    # branch_used_objs.extend(h.used_objs)
                 if this is not None:
                     for o in G.get_ancestors_in(func_obj, edge_types=[
                         'NAME_TO_OBJ', 'OBJ_TO_PROP'],
