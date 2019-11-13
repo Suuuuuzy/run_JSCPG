@@ -310,6 +310,6 @@ def main():
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     
 
-#test_package(os.path.join(root_path, 'wiki-plugin-datalog@0.1.5'))
+test_package(os.path.join(root_path, 'buttle@0.3.1'))
 #test_package(os.path.join(root_path, 'bootstrap@4.3.0'))
-main()
+#main()

@@ -527,6 +527,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     Returns:
         obj_node: The created object. Note that this function returns a
             single object (not an array of objects).
+        returned_obj: list, The return object of the function
     '''
     # create the instantiated object
     # js_type=None: avoid automatically adding prototype
@@ -540,7 +541,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     backup_objs = G.cur_objs
     G.cur_objs = [created_obj]
 
-    simurun_function(G, constructor_decl, branches=branches,
+    cur_returned_objs, cur_used_objs = simurun_function(G, constructor_decl, branches=branches,
         caller_ast=exp_ast_node)
 
     G.cur_objs = backup_objs
@@ -549,7 +550,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
                             {"type:TYPE": "CALLS"})
 
-    return created_obj
+    return created_obj, cur_returned_objs
 
 def handle_var(G: Graph, ast_node, extra=None):
     cur_node_attr = G.get_node_attr(ast_node)
@@ -1479,9 +1480,13 @@ def ast_call_function(G, ast_node, extra):
                     if G.get_node_attr(obj).get('type') != 'function':
                         continue
                     #print("Run", obj)
-                    newed_obj = call_function(G, [obj], caller_ast=ast_node, extra=extra, is_new=True, mark_fake_args=True)[0]
+                    newed_obj = call_function(G, [obj], caller_ast=ast_node, 
+                            extra=extra, is_new=True, mark_fake_args=True)[0]
                     G.set_node_attr(obj, ('init_run', "True"))
-
+                    if len(newed_obj) == 2:
+                        # include a newed object and a return object
+                        exported_objs.append(newed_obj[1])
+                        newed_obj = newed_obj[0]
                     # we may have prototype functions:
                     proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 
                             prop_name='__proto__')
@@ -1586,8 +1591,10 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
         stmt_id = caller_ast
 
     # initiate return values
-    returned_objs = set()
-    used_objs = set()
+    returned_objs = []
+    # set()
+    used_objs = []
+    #set()
 
     any_func_run = False
     # for each possible function declaration
@@ -1687,8 +1694,9 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             backup_stmt = G.cur_stmt
             # run simulation -- create the object, or call the function
             if is_new:
-                branch_returned_objs = [instantiate_obj(G, caller_ast,
-                    func_ast, branches=next_branches)]
+                created_obj, branch_returned_objs = instantiate_obj(G, caller_ast,
+                    func_ast, branches=next_branches)
+                branch_returned_objs = [created_obj] + branch_returned_objs
             else:
                 backup_objs = G.cur_objs
                 if _this:
@@ -1729,8 +1737,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         extra=extra, stmt_id=stmt_id)
         assert type(branch_returned_objs) is list
         assert type(branch_used_objs) is list
-        returned_objs.update(branch_returned_objs)
-        used_objs.update(branch_used_objs)
+        returned_objs += branch_returned_objs
+        used_objs += branch_used_objs
         # add call edge
         if caller_ast is not None:
             G.add_edge_if_not_exist(caller_ast, func_ast, {"type:TYPE": "CALLS"})
@@ -1797,7 +1805,7 @@ def generate_obj_graph(G, entry_nodeid):
     generate the object graph of a program
     """
     G.setup1()
-    # modeled_js_builtins.setup_js_builtins(G)
+    modeled_js_builtins.setup_js_builtins(G)
     G.setup2()
     NodeHandleResult.print_callback = print_handle_result
     logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
