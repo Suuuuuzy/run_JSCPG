@@ -148,6 +148,26 @@ class TraceRule:
             return False
         return path_start_var_name in var_names
 
+    def has_user_input(self, _, path):
+        """
+        check if any node in this path contains user input
+        user input is defined as in the http, process or 
+        the arguments of the module entrance functions
+
+        Args: 
+            path: the path
+        Return:
+            True or False
+        """
+        for node in path:
+            objs = self.graph.get_in_edges(node, edge_type='OBJ_TO_AST')
+            for obj in objes:
+                node_attr = self.graph.get_node_attr(obj)
+                if 'user_input' in node_attr and node_attr['user_input']:
+                    return True
+        if self.start_within_file(['http.js', 'process.js']):
+            return True
+        return False
 
     def check(self, path):
         """
@@ -162,7 +182,8 @@ class TraceRule:
                 "not_start_with_func": self.not_start_with_func,
                 "start_within_file": self.start_within_file,
                 "not_start_within_file": self.not_start_within_file,
-                "end_with_func": self.end_with_func
+                "end_with_func": self.end_with_func,
+                "has_user_input": self.has_user_input
                 }
 
         if self.key in key_map:
