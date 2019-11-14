@@ -482,7 +482,7 @@ class Graph:
                 return None
             parent_node = parent_edges[0][0]
             parent_node_attr = self.get_node_attr(parent_node)
-            if 'type' in parent_node_attr and parent_node_attr['type'] == "AST_STMT_LIST":
+            if parent_node_attr.get('type') in ["AST_STMT_LIST", "AST_PARAM_LIST"]:
                 return node_id 
             node_id = parent_node
 

@@ -547,8 +547,9 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     G.cur_objs = backup_objs
 
     # finally add call edge from caller to callee
-    G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
-                            {"type:TYPE": "CALLS"})
+    if exp_ast_node is not None:
+        G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
+                                {"type:TYPE": "CALLS"})
 
     return created_obj, returned_objs
 
@@ -1475,7 +1476,6 @@ def ast_call_function(G, ast_node, extra):
                         continue
                     #print("Run", obj)
                     returned_objs, newed_objs, _ = call_function(G, [obj],
-                            caller_ast=ast_node, 
                             extra=extra, is_new=True, mark_fake_args=True)
                     G.set_node_attr(obj, ('init_run', "True"))
                     # include newed objects and return objects
@@ -1663,10 +1663,11 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                     # add dummy arguments
                     param_name = G.get_name_from_child(param)
                     added_obj = G.add_obj_to_scope(name=param_name,
-                        scope=func_scope, ast_node=caller_ast,
+                        scope=func_scope, ast_node=param,
                         js_type=None, value='*')
-                    print("mark {} as userinput".format(added_obj))
-                    G.set_node_attr(added_obj, ('user_input', True))
+                    if mark_fake_args:
+                        print("mark {} as userinput".format(added_obj))
+                        G.set_node_attr(added_obj, ('user_input', True))
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
                     logger.debug(f'add arg {param_name} <- new obj {added_obj}, scope {func_scope}')

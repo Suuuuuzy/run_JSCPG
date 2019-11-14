@@ -49,7 +49,8 @@ def traceback(G, export_type):
                         continue
                     cur_path_str1 += cur_node_attr['lineno:int'] + '->'
                     start_lineno = int(cur_node_attr['lineno:int'])
-                    end_lineno = int(cur_node_attr['endlineno:int'])
+                    end_lineno = int(cur_node_attr['endlineno:int']
+                                    or start_lineno)
                     content = G.get_node_file_content(node)
                     if content is not None:
                         cur_path_str2 += "{}\t{}".format(start_lineno,
