@@ -1,6 +1,6 @@
-function foo(target, k1, k2, value) {
-  target[k1][k2] = value;
+var cp = require("child_process");
+function foo(var_test) {
+  var t = var_test;
+  cp.exec(t);
 }
 exports.foo = foo;
-//foo((1), '__proto__', 'toString', "sink");
-//console.log((1024).toString);
