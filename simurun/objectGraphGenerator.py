@@ -1666,7 +1666,6 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         scope=func_scope, ast_node=param,
                         js_type=None, value='*')
                     if mark_fake_args:
-                        print("mark {} as userinput".format(added_obj))
                         G.set_node_attr(added_obj, ('user_input', True))
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
@@ -1809,7 +1808,7 @@ def generate_obj_graph(G, entry_nodeid):
     generate the object graph of a program
     """
     G.setup1()
-    # modeled_js_builtins.setup_js_builtins(G)
+    modeled_js_builtins.setup_js_builtins(G)
     G.setup2()
     NodeHandleResult.print_callback = print_handle_result
     logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)

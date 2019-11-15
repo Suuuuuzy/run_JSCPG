@@ -163,7 +163,6 @@ class TraceRule:
             objs = self.graph.get_in_edges(node, edge_type='OBJ_TO_AST')
             for obj in objs:
                 node_attr = self.graph.get_node_attr(obj[0])
-                print(obj, node_attr)
                 if 'user_input' in node_attr and node_attr['user_input']:
                     return True
         if self.start_within_file(['http.js', 'process.js'], path):
