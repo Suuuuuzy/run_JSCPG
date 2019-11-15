@@ -1470,16 +1470,19 @@ def ast_call_function(G, ast_node, extra):
             if G.run_all:
                 while(len(exported_objs) != 0):
                     obj = exported_objs.pop()
+                    print("obj", obj, G.get_node_attr(obj))
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
                     if G.get_node_attr(obj).get('type') != 'function':
                         continue
-                    #print("Run", obj)
-                    returned_objs, newed_objs, _ = call_function(G, [obj],
+                    print("Run", obj, G.get_node_attr(obj))
+                    returned_objs, newed_objs, _ = call_function(G, [obj], 
+                            this=NodeHandleResult(obj_nodes=[obj]),
                             extra=extra, is_new=True, mark_fake_args=True)
                     G.set_node_attr(obj, ('init_run', "True"))
                     # include newed objects and return objects
-                    exported_objs.extend(returned_objs)
+                    newed_objs.extend(returned_objs)
+                    print("return {}".format(returned_objs))
                     # we may have prototype functions:
                     for newed_obj in newed_objs:
                         proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 
