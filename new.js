@@ -1,8 +1,9 @@
+var cp = require('child_process');
 function foo() {
   this.test = "123";
-  this.action = function() {
-    const self = this;
-    console.log(self.test);
+  foo.prototype.action = function() {
+    console.log(this.test);
+    cp.exec(this.test);
   }
 }
 

@@ -1470,6 +1470,15 @@ def ast_call_function(G, ast_node, extra):
             if G.run_all:
                 while(len(exported_objs) != 0):
                     obj = exported_objs.pop()
+
+                    parent_obj = None
+                    if type(obj) == type((1,2)):
+                        parent_obj = obj[0]
+                        obj = obj[1]
+                        print(parent_obj, obj, '=============')
+                    if not parent_obj:
+                        parent_obj = obj
+
                     print("obj", obj, G.get_node_attr(obj))
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
@@ -1477,7 +1486,7 @@ def ast_call_function(G, ast_node, extra):
                         continue
                     print("Run", obj, G.get_node_attr(obj))
                     returned_objs, newed_objs, _ = call_function(G, [obj], 
-                            this=NodeHandleResult(obj_nodes=[obj]),
+                            this=NodeHandleResult(obj_nodes=[parent_obj]),
                             extra=extra, is_new=True, mark_fake_args=True)
                     G.set_node_attr(obj, ('init_run', "True"))
                     # include newed objects and return objects
@@ -1493,7 +1502,7 @@ def ast_call_function(G, ast_node, extra):
                             G.get_prop_obj_nodes(parent_obj=proto_obj)
                         for obj in generated_objs:
                             if G.get_node_attr(obj).get('type') == 'function':
-                                exported_objs.append(obj)
+                                exported_objs.append((newed_obj, obj))
         return module_exports_objs, []
 
     # find function declaration objects

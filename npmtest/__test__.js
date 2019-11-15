@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/wizard-syncronizer@0.0.1/package.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/local-devices@2.0.0/src/index.js');
