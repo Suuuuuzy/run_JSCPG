@@ -119,12 +119,17 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
         values.append(value)
         sources.append([obj])
         tags.append(G.get_node_attr(obj).get('for_tags', []))
+    #print(values, sources)
     values, sources = combine_values(values, sources)
     return values, sources, tags
 
 def combine_values(values, sources, *arg):
     d = defaultdict(lambda: [])
     for i, v in enumerate(values):
+        if len(str(v)) == 0:
+            # tmp fix for unknown reason
+            # case ["123", ""], [['123']]
+            continue
         d[v].extend(sources[i])
     return (list(d.keys()), list(d.values()), *arg)
 
@@ -237,7 +242,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             true_num = 0
             total_num = len(left_values) * len(right_values)
             if total_num == 0:
-                return None # Value is unknown, cannot check
+                return None, False # Value is unknown, cannot check
             if op_type == 'BINARY_IS_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:

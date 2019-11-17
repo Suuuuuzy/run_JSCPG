@@ -303,12 +303,14 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
                             to_values(G, handled_prop, for_prop=True)
 
     # check possible prototype pollution
+    """
     if check_prototype_pollution(G, chain(*prop_name_sources)):
         logger.warning(sty.fg.li_red + sty.ef.inverse +
             'Possible prototype pollution with obj nodes {} at AST node {} (Line {})'
             .format(handled_prop.obj_nodes, ast_node,
             G.get_node_attr(ast_node).get('lineno:int')) + sty.rs.all)
         G.proto_pollution.add(ast_node)
+    """
 
     # create parent object if it doesn't exist
     parent_objs = list(filter(lambda x: x != G.undefined_obj, parent_objs))
@@ -1467,6 +1469,10 @@ def ast_call_function(G, ast_node, extra):
                 # we only have one exported funcs
                 exported_objs = module_exports_objs
 
+            # some times the returned obj only has one obj
+            exported_objs.append(module_exports_objs[0])
+
+            print("===============")
             if G.run_all:
                 while(len(exported_objs) != 0):
                     obj = exported_objs.pop()
@@ -1475,23 +1481,20 @@ def ast_call_function(G, ast_node, extra):
                     if type(obj) == type((1,2)):
                         parent_obj = obj[0]
                         obj = obj[1]
-                        print(parent_obj, obj, '=============')
                     if not parent_obj:
                         parent_obj = obj
 
-                    print("obj", obj, G.get_node_attr(obj))
+                    print(obj, G.get_node_attr(obj))
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
                     if G.get_node_attr(obj).get('type') != 'function':
                         continue
-                    print("Run", obj, G.get_node_attr(obj))
                     returned_objs, newed_objs, _ = call_function(G, [obj], 
                             this=NodeHandleResult(obj_nodes=[parent_obj]),
                             extra=extra, is_new=True, mark_fake_args=True)
                     G.set_node_attr(obj, ('init_run', "True"))
                     # include newed objects and return objects
                     newed_objs.extend(returned_objs)
-                    print("return {}".format(returned_objs))
                     # we may have prototype functions:
                     for newed_obj in newed_objs:
                         proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 
@@ -1500,8 +1503,11 @@ def ast_call_function(G, ast_node, extra):
                             G.get_prop_obj_nodes(parent_obj=newed_obj)
                         generated_objs += \
                             G.get_prop_obj_nodes(parent_obj=proto_obj)
+                        # newed obj haven't been run
+                        generated_objs.append(newed_obj)
                         for obj in generated_objs:
                             if G.get_node_attr(obj).get('type') == 'function':
+                                print(obj, G.get_node_attr(obj))
                                 exported_objs.append((newed_obj, obj))
         return module_exports_objs, []
 
