@@ -1472,7 +1472,7 @@ def ast_call_function(G, ast_node, extra):
             # some times the returned obj only has one obj
             exported_objs.append(module_exports_objs[0])
 
-            print("===============")
+            #print("===============")
             if G.run_all:
                 while(len(exported_objs) != 0):
                     obj = exported_objs.pop()
@@ -1484,7 +1484,7 @@ def ast_call_function(G, ast_node, extra):
                     if not parent_obj:
                         parent_obj = obj
 
-                    print(obj, G.get_node_attr(obj))
+                    #print(obj, G.get_node_attr(obj))
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
                     if G.get_node_attr(obj).get('type') != 'function':
@@ -1507,7 +1507,7 @@ def ast_call_function(G, ast_node, extra):
                         generated_objs.append(newed_obj)
                         for obj in generated_objs:
                             if G.get_node_attr(obj).get('type') == 'function':
-                                print(obj, G.get_node_attr(obj))
+                                #print(obj, G.get_node_attr(obj))
                                 exported_objs.append((newed_obj, obj))
         return module_exports_objs, []
 
