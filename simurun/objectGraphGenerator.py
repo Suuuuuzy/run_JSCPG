@@ -884,9 +884,13 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
 
     elif cur_type == 'AST_IF_ELEM':
         condition, body = G.get_ordered_ast_child_nodes(node_id)
-        handle_node(G, condition)
-        branches = extra.branches
-        simurun_block(G, body, G.cur_scope, branches)
+        possibility, deterministic = check_condition(G, condition, extra,
+            handling_func=handle_node, printing_func=logger.debug)
+        logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
+            G.get_node_attr(condition).get('code') + sty.rs.all, possibility,
+            deterministic))
+        if not (deterministic and possibility == 0):
+            simurun_block(G, body, G.cur_scope, extra.branches)
         return NodeHandleResult()
     
     elif cur_type == 'AST_SWITCH':
@@ -949,8 +953,9 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             result = handle_node(G, inc, extra) # do the inc
             check_result, deterministic = check_condition(G, cond, extra,
                 handling_func=handle_node) # check if the condition is met
-            logger.debug('Check condition {} result: {}'.format(sty.ef.i +
-                G.get_node_attr(cond).get('code') + sty.rs.all, check_result))
+            logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
+                G.get_node_attr(cond).get('code') + sty.rs.all, check_result,
+                deterministic))
             # avoid infinite loop
             if (not deterministic and counter > 3) or check_result == 0:
                 logger.debug('For loop {} finished'.format(node_id))
@@ -1593,7 +1598,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
     if extra is None:
         extra = ExtraInfo()
 
-    ##  process arguments
+    # process arguments
     callback_functions = set() # only for unmodeled built-in functions
     for arg in args:
         # add callback functions
@@ -1684,7 +1689,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                     # add dummy arguments
                     param_name = G.get_name_from_child(param)
                     added_obj = G.add_obj_to_scope(name=param_name,
-                        scope=func_scope, ast_node=param,
+                        scope=func_scope, ast_node=caller_ast,
                         js_type=None, value='*')
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('user_input', True))
@@ -1759,6 +1764,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         extra=extra, stmt_id=stmt_id)
         assert type(branch_returned_objs) is list
         assert type(branch_used_objs) is list
+        assert type(branch_created_obj) is not list
         returned_objs.update(branch_returned_objs)
         used_objs.update(branch_used_objs)
         if branch_created_obj is not None:

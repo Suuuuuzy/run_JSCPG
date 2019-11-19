@@ -126,10 +126,6 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
 def combine_values(values, sources, *arg):
     d = defaultdict(lambda: [])
     for i, v in enumerate(values):
-        if len(str(v)) == 0:
-            # tmp fix for unknown reason
-            # case ["123", ""], [['123']]
-            continue
         d[v].extend(sources[i])
     return (list(d.keys()), list(d.values()), *arg)
 
@@ -220,18 +216,27 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
         return check_condition(G, child, extra, handling_func)
     elif node_type == 'AST_UNARY_OP' and op_type == 'UNARY_BOOL_NOT':
         child = G.get_ordered_ast_child_nodes(ast_node)[0]
-        p = check_condition(G, child, extra, handling_func)
-        return 1 - p
+        p, d = check_condition(G, child, extra, handling_func)
+        if p is not None:
+            return 1 - p, d
+        else:
+            return None, d
     if node_type == 'AST_BINARY_OP':
         left, right = G.get_ordered_ast_child_nodes(ast_node)[:2]
         if op_type == 'BINARY_BOOL_OR':
-            lp = check_condition(G, left, extra, handling_func)
-            rp = check_condition(G, right, extra, handling_func)
-            return lp + rp - lp * rp
+            lp, ld = check_condition(G, left, extra, handling_func)
+            rp, rd = check_condition(G, right, extra, handling_func)
+            if lp is not None and rp is not None:
+                return lp + rp - lp * rp, ld and rd
+            else:
+                return None, False
         elif op_type == 'BINARY_BOOL_AND':
-            lp = check_condition(G, left, extra, handling_func)
-            rp = check_condition(G, right, extra, handling_func)
-            return lp * rp
+            lp, ld = check_condition(G, left, extra, handling_func)
+            rp, rd = check_condition(G, right, extra, handling_func)
+            if lp is not None and rp is not None:
+                return lp * rp, ld and rd
+            else:
+                return None, False
         else:
             handled_left = handling_func(G, left, extra)
             handled_right = handling_func(G, right, extra)
@@ -333,6 +338,14 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
         total_num = len(handled.obj_nodes) + len(handled.values)
         if total_num == 0:
             return None, False # Value is unknown, cannot check
+        for value in handled.values:
+            if value is None:
+                true_num += 0.5
+                deter_flag = False
+            elif value == 0:
+                pass
+            else:
+                true_num += 1
         for obj in handled.obj_nodes:
             if obj in [G.undefined_obj, G.null_obj, G.false_obj]:
                 pass
@@ -343,19 +356,28 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                 value = G.get_node_attr(obj).get('code')
                 typ = G.get_node_attr(obj).get('type')
                 if typ == 'number':
-                    if val_to_float(value) != 0:
+                    if value is None:
+                        true_num += 0.5
+                        deter_flag = False
+                    elif val_to_float(value) != 0:
                         true_num += 1
                 elif typ == 'string':
-                    if value:
+                    if value is None:
+                        true_num += 0.5
+                        deter_flag = False
+                    elif value:
                         true_num += 1
                 else:
-                    true_num += 1
+                    if value == '*':
+                        true_num += 0.5
+                        deter_flag = False
+                    else:
+                        true_num += 1
         for value in handled.values:
             if value:
                 true_num += 1
-    # print(f'Compare result: {true_num / total_num}')
     if 0 == total_num:
-        return 0
+        return None, False
     return true_num / total_num, deter_flag
 
 def is_int(x):
