@@ -5,6 +5,9 @@ local-devices@2.0.0:
 wiki-plugin-datalog@0.1.5:
   None object has no attribute point
 
+pdfinfojs@0.4.0
+  strange writing style
+
 
 cocos-utils:
 codem:
@@ -25,7 +28,6 @@ long running time:
   wxchangba@1.0.3
 
 success:
-  pdfinfojs@0.4.0
   buttle@0.3.1
   gitlabhook@0.0.17
   expressfs@0.2.10

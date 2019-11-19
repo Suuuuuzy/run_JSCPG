@@ -33,10 +33,15 @@ def traceback(G, export_type):
             G.logger.debug('Paths:')
 
             # give the end node one more chance, find the parent obj of the ending point
-            # for path in pathes:
-            #     last_node = path[-1]
-            #     upper_nodes = G._dfs_upper_by_edge_type(last_node, 
-            #             "OBJ_TO_PROP")
+            """
+            for path in pathes:
+                last_node = path[-1]
+                upper_nodes = G._dfs_upper_by_edge_type(last_node, 
+                        "OBJ_TO_PROP")
+                for uppernode in upper_nodes:
+                    path.append(uppernode)
+                #print('--', upper_nodes)
+            """
 
             for path in pathes:
                 ret_pathes.append(path)

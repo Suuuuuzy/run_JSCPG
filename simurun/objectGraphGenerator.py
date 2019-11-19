@@ -243,13 +243,14 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         if not name_node_found and not in_proto and prop_name != '*':
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
+            logger.debug("============{} {}".format(parent_obj, prop_name_sources))
             if side == 'right':
                 return [], []
             else:
                 if is_wildcard_obj(G, parent_obj):
                     # if this is an wildcard (unknown) object, add another
                     # wildcard object as its property
-                    added_name_node = G.add_prop_name_node('*', parent_obj)
+                    added_name_node = G.add_prop_name_node(prop_name, parent_obj)
                     prop_name_nodes.add(added_name_node)
                     added_obj = G.add_obj_to_name_node(added_name_node,
                         js_type=None, value='*', ast_node=ast_node)                    
@@ -257,7 +258,9 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     logger.debug('{} is a wildcard object, creating a wildcard'
                         ' object {} for its properties'.format(parent_obj,
                         added_obj))
+                    logger.debug("============{} {}".format(parent_obj, prop_name_sources))
                     for s in prop_name_sources:
+                        logger.debug('added contributes to from {} to {}'.format(s, added_obj))
                         G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
                     if prop_name_for_tags:
                         G.set_node_attr(added_name_node,
@@ -1464,15 +1467,15 @@ def ast_call_function(G, ast_node, extra):
         # run the exported objs immediately
         if module_exports_objs:
             exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
-            #print(exported_objs)
+            print(exported_objs)
             if len(exported_objs) == 0:
                 # we only have one exported funcs
                 exported_objs = module_exports_objs
 
             # some times the returned obj only has one obj
-            exported_objs.append(module_exports_objs[0])
+            # exported_objs.append(module_exports_objs[0])
 
-            #print("===============")
+            print("===============", exported_objs)
             if G.run_all:
                 while(len(exported_objs) != 0):
                     obj = exported_objs.pop()
@@ -1484,7 +1487,7 @@ def ast_call_function(G, ast_node, extra):
                     if not parent_obj:
                         parent_obj = obj
 
-                    #print(obj, G.get_node_attr(obj))
+                    print(obj, G.get_node_attr(obj))
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
                     if G.get_node_attr(obj).get('type') != 'function':
@@ -1687,7 +1690,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         G.set_node_attr(added_obj, ('user_input', True))
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
-                    logger.debug(f'add arg {param_name} <- new obj {added_obj}, scope {func_scope}')
+                    logger.debug(f'add arg {param_name} <- new obj {added_obj}, scope {func_scope}, ast node {param}')
             # manage branches
             branches = extra.branches
             parent_branch = branches.get_last_choice_tag()
@@ -1795,11 +1798,13 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if node_attrs.get('type') == 'object' and node_attrs.get('code') == '*':
             for e1 in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
                 for e2 in G.get_in_edges(e1[0], edge_type='OBJ_TO_PROP'):
+                    logger.debug("{}-----{}".format(cur_stmt, used_objs))
                     used_objs.append(e2[0])
     used_objs = set(used_objs)
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
         def_cpg_node = G.find_nearest_upper_CPG_node(def_ast_node)
+        logger.debug("{}-----{} {}".format(def_cpg_node, def_ast_node, obj))
         if def_cpg_node == None: continue
         if def_cpg_node == cur_stmt: continue
         def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')

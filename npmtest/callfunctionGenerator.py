@@ -217,6 +217,7 @@ def test_file(file_path, vul_type='xss'):
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
+        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         return -3
 
     if G is None:
@@ -245,8 +246,9 @@ def test_file(file_path, vul_type='xss'):
 root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
-testing_packages = ['gitlabhook@0.0.17', 'gm@1.20.0', 'kill-port@1.3.1', 'fs-git@1.0.1']
-testing_packages = [root_path + t for t in testing_packages]
+#testing_packages = ['gitlabhook@0.0.17', 'gm@1.20.0', 'kill-port@1.3.1', 'fs-git@1.0.1']
+#testing_packages = [root_path + t for t in testing_packages]
+testing_packages = []
 skip_packages = []
 
 def main():
