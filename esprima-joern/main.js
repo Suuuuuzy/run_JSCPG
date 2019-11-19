@@ -2784,8 +2784,15 @@ function analyze(filePath, parentNodeId) {
     try {
         var root = esprima.parseModule(sourceCode, {
             loc: true,
-            range: true
+            range: true,
+            tolerant: true
         });
+        if (root.errors && root.errors.length > 0){
+            console.log('Errors occurred when generating AST:'.lightRed.inverse);
+            for (err of root.errors){
+                console.log(err.toString().lightRed);
+            }
+        }
     } catch (e) {
         console.log(e);
     }
