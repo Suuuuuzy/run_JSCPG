@@ -1474,6 +1474,7 @@ def ast_call_function(G, ast_node, extra):
                 # we only have one exported funcs
                 exported_objs = module_exports_objs
 
+            print(exported_objs, '===========')
             # some times the returned obj only has one obj
             # exported_objs.append(module_exports_objs[0])
 
@@ -1488,17 +1489,24 @@ def ast_call_function(G, ast_node, extra):
                     if not parent_obj:
                         parent_obj = obj
 
-                    #print(obj, G.get_node_attr(obj))
+                    print(obj, G.get_node_attr(obj))
+                    newed_objs = None
+                    returned_objs = None
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
-                    if G.get_node_attr(obj).get('type') != 'function':
-                        continue
-                    returned_objs, newed_objs, _ = call_function(G, [obj], 
-                            this=NodeHandleResult(obj_nodes=[parent_obj]),
-                            extra=extra, is_new=True, mark_fake_args=True)
+                    if G.get_node_attr(obj).get('type') == 'function':
+                        # some times they write exports= new foo() eg. libnmap
+                        returned_objs, newed_objs, _ = call_function(G, [obj], 
+                                this=NodeHandleResult(obj_nodes=[parent_obj]),
+                                extra=extra, is_new=True, mark_fake_args=True)
+
+                    if newed_objs is None:
+                        newed_objs = [obj] 
+
                     G.set_node_attr(obj, ('init_run', "True"))
                     # include newed objects and return objects
-                    newed_objs.extend(returned_objs)
+                    if returned_objs is not None:
+                        newed_objs.extend(returned_objs)
                     # we may have prototype functions:
                     for newed_obj in newed_objs:
                         proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 

@@ -15,7 +15,11 @@ codem:
 
 
 shell-quote:
+dot:
   can not find how to do the exploit
+
+coffee written:
+  hubot-scripts@2.4.3
 
 ===================================================
 long running time:
@@ -43,7 +47,6 @@ success:
   fs-path@0.0.24
   gm@1.20.0
   growl@1.9.2
-  hubot-scripts@2.4.3
   libnotify@1.0.3
   macaddress@0.2.8
   open@0.0.5
