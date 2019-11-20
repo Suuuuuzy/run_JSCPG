@@ -115,7 +115,10 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
             else:
                 value = None
         else:
-            value = attrs.get('code')
+            if attrs.get('type') == 'object':
+                value = None
+            else:
+                value = attrs.get('code')
         values.append(value)
         sources.append([obj])
         tags.append(G.get_node_attr(obj).get('for_tags', []))

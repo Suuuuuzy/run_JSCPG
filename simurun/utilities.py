@@ -45,6 +45,8 @@ class NodeHandleResult:
         self.ast_node = kwargs.get('ast_node')
         if self.ast_node:
             self.print_callback()
+        if self.values and not self.value_sources:
+            self.value_sources = [[]] * len(self.values)
         callback = kwargs.get('callback')
         if callback:
             callback(self)

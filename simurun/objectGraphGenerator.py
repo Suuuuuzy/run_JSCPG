@@ -760,8 +760,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             used_objs.extend(handled_right.obj_nodes)
             used_objs = list(set(used_objs))
             # calculate values
-            values1, sources1, tags1 = combine_values(*to_values(G, handled_left, node_id))
-            values2, sources2, tags2 = combine_values(*to_values(G, handled_right, node_id))
+            values1, sources1, tags1 = to_values(G, handled_left, node_id)
+            values2, sources2, tags2 = to_values(G, handled_right, node_id)
             results = []
             result_sources = []
             result_tags = []
@@ -1382,6 +1382,10 @@ def handle_require(G, node_id, extra=None):
                 module_exports_objs = \
                     get_module_exports(G, file_path)
             # dynamic require (module name is a variable)
+            if module_name is None:
+                logger.error('{} trying to require unknown package.'
+                    .format(node_id))
+                continue
             if not module_exports_objs:
                 # check if the file's AST is in the graph
                 file_path, _ = \
