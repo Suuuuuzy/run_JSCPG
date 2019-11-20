@@ -6,6 +6,7 @@ import traceback as tb
 from tqdm import tqdm
 import subprocess
 from func_timeout import func_timeout, FunctionTimedOut
+import threading
 
 sys.path.append("..")
 from simurun.launcher import unittest_main
@@ -157,7 +158,7 @@ def unit_check_log(G, vul_type, package=None):
             fp.write("Not Found path from {}: {}\n".format(package, checking_res))
         return 0
 
-def test_package(package_path, vul_type='xss'):
+def test_package(package_path, vul_type='os_command'):
     # TODO: change the return value
     """
     test a specific package
@@ -184,7 +185,13 @@ def test_package(package_path, vul_type='xss'):
     if package_main_files is None:
         return []
     for package_file in package_main_files:
-        res.append(test_file(package_file, vul_type))
+        test_res = test_file(package_file, vul_type)
+        if test_res == 1:
+            # successfully found
+            res.append(test_res)
+            npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
+            return res
+
     npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
     return res
 
@@ -234,6 +241,7 @@ def test_file(file_path, vul_type='xss'):
         pass
 
     # not necessary but just in case
+    final_res = None
     del G
     if vul_type == 'xss':
         final_res = xss_res
@@ -246,15 +254,15 @@ def test_file(file_path, vul_type='xss'):
 root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
-#testing_packages = ['gitlabhook@0.0.17', 'gm@1.20.0', 'kill-port@1.3.1', 'fs-git@1.0.1']
-#testing_packages = [root_path + t for t in testing_packages]
-testing_packages = []
+#testing_packages = []
 skip_packages = []
 
 def main():
+    testing_packages = ['ascii-art@1.4.2']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, limit = 50000)
     else:
+        testing_packages = [root_path + t for t in testing_packages]
         packages = testing_packages
 
     if len(skip_packages) != 0:
@@ -270,6 +278,7 @@ def main():
     generate_error = []
     total_cnt = len(packages)
     cur_cnt = 0
+    thread_pool = {}
 
     for package in tqdm_bar:
         cur_cnt += 1
@@ -278,7 +287,12 @@ def main():
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package.split('/')[-1]))
         tqdm_bar.refresh()
+        ret_value = 100
         try:
+            thread_pool[package] = threading.Thread(target = test_package,
+                    args=(package, vul_type))
+            # thread_pool[package].start()
+            # thread_pool[package].join(timeout)
             result = func_timeout(timeout, test_package, args=(package, vul_type))
             # result = test_package(package, vul_type)
         except FunctionTimedOut:
@@ -286,9 +300,9 @@ def main():
             skip_list.append(package)
             continue
         except Exception as e:
+            npm_res_logger.error("{} ERROR generating".format(package))
             print(e)
 
-        print(result)
         if 1 in result:
             success_list.append(package)
             npm_res_logger.info("{} successfully found in {}".format(vul_type, package))

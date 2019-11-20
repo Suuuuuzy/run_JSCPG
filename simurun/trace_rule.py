@@ -168,7 +168,7 @@ class TraceRule:
                 node_attr = self.graph.get_node_attr(obj[0])
                 if 'user_input' in node_attr and node_attr['user_input']:
                     return True
-        if self.start_within_file(['http.js', 'process.js'], path):
+        if self.start_within_file(['http.js', 'process.js', 'yargs.js'], path):
             return True
         return False
 

@@ -1,13 +1,12 @@
 var cp = require("child_process");
 
-function foo(var_test) {
-  var test123 = var_test.real;
-  var cb = var_test;
-  cb(123);
-  cp.execSync('adn ' + test123);
+function foo() {
+  foo.prototype.worker = function(var_test) {
+    cp.exec(var_test);
+  }
 }
 
-module.exports = foo;
+module.exports = new foo();
 /*
 .foo = function(input){
   return new foo(input);

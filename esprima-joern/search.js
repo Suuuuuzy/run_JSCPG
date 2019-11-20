@@ -7,7 +7,8 @@ const builtInModules = require('module').builtinModules;
 const ansicolor = require('ansicolor').nice;
 
 function searchModule(moduleName, requiredBy) {
-    if (builtInModules.includes(moduleName)) {
+    var selfBuiltPackages = ['yargs']
+    if (builtInModules.includes(moduleName) || selfBuiltPackages.indexOf(moduleName) >= 0) {
         // console.error(`${moduleName.blue.bright} is a built-in module.`);
         let searchPaths = new Set();
         let currentSearchPath = __dirname;
