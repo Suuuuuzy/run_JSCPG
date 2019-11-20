@@ -482,7 +482,7 @@ class Graph:
                 return None
             parent_node = parent_edges[0][0]
             parent_node_attr = self.get_node_attr(parent_node)
-            if parent_node_attr.get('type') in ["AST_STMT_LIST", "AST_PARAM_LIST"]:
+            if parent_node_attr.get('type') in ["AST_STMT_LIST"]:
                 return node_id 
             node_id = parent_node
 
@@ -931,7 +931,7 @@ class Graph:
             else:
                 self.add_edge(name_node, obj, {"type:TYPE": "NAME_TO_OBJ"})
 
-    def get_obj_def_ast_node(self, obj_node):
+    def get_obj_def_ast_node(self, obj_node, aim_type=None):
         """
         Find where in the AST an object (especially a function) is
         defined.
@@ -939,11 +939,25 @@ class Graph:
         The AST node is the successor of the object node via the
         OBJ_TO_AST edge.
         """
+        aim_map = {
+                'function': ['AST_FUNC_DECL', 'AST_CLOSURE'],
+                }
         tmp_edge = self.get_out_edges(obj_node, data = True, keys = True,
             edge_type = "OBJ_TO_AST")
         if not tmp_edge:
             return None
         else:
+            if aim_type is not None:
+                for edge in tmp_edge:
+                    cur_type = self.get_node_attr(edge[1]).get('type')
+                    if cur_type in aim_map[aim_type]:
+                        return edge[1]
+            else:
+                for edge in tmp_edge:
+                    cur_type = self.get_node_attr(edge[1]).get('type')
+                    if cur_type not in aim_map['function']:
+                        return edge[1]
+
             return tmp_edge[0][1]
 
 
@@ -1123,11 +1137,17 @@ class Graph:
             # prevent setting __proto__ before setup_object_and_function runs
             self.add_obj_as_prop(prop_name="__proto__", parent_obj=obj,
             tobe_added_obj=self.function_prototype)
-        if func_ast is not None:
+
+        """
+        # for existing variable we do not need to remove obj to ast
             # remove old OBJ_TO_AST edges
+        if func_ast is not None:
             edges = self.get_out_edges(obj, edge_type="OBJ_TO_AST")
             for edge in edges:
                 self.graph.remove_edge(edge[0], edge[1])
+        """
+
+        if func_ast is not None:
             self.add_edge(obj, func_ast, {"type:TYPE": "OBJ_TO_AST"})
 
     def add_blank_func_with_og_nodes(self, func_name, func_obj=None):

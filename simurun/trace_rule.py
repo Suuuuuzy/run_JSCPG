@@ -160,7 +160,10 @@ class TraceRule:
             True or False
         """
         for node in path:
-            objs = self.graph.get_in_edges(node, edge_type='OBJ_TO_AST')
+            all_child = self.graph.get_all_child_nodes(node)
+            objs = []
+            for child in all_child:
+                objs += self.graph.get_in_edges(child, edge_type='OBJ_TO_AST')
             for obj in objs:
                 node_attr = self.graph.get_node_attr(obj[0])
                 if 'user_input' in node_attr and node_attr['user_input']:

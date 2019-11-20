@@ -243,7 +243,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         if not name_node_found and not in_proto and prop_name != '*':
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
-            logger.debug("============{} {}".format(parent_obj, prop_name_sources))
             if side == 'right':
                 return [], []
             else:
@@ -258,7 +257,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     logger.debug('{} is a wildcard object, creating a wildcard'
                         ' object {} for its properties'.format(parent_obj,
                         added_obj))
-                    logger.debug("============{} {}".format(parent_obj, prop_name_sources))
                     for s in prop_name_sources:
                         logger.debug('added contributes to from {} to {}'.format(s, added_obj))
                         G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
@@ -1472,7 +1470,6 @@ def ast_call_function(G, ast_node, extra):
         # run the exported objs immediately
         if module_exports_objs:
             exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
-            print(exported_objs)
             if len(exported_objs) == 0:
                 # we only have one exported funcs
                 exported_objs = module_exports_objs
@@ -1480,7 +1477,6 @@ def ast_call_function(G, ast_node, extra):
             # some times the returned obj only has one obj
             # exported_objs.append(module_exports_objs[0])
 
-            print("===============", exported_objs)
             if G.run_all:
                 while(len(exported_objs) != 0):
                     obj = exported_objs.pop()
@@ -1492,7 +1488,7 @@ def ast_call_function(G, ast_node, extra):
                     if not parent_obj:
                         parent_obj = obj
 
-                    print(obj, G.get_node_attr(obj))
+                    #print(obj, G.get_node_attr(obj))
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
                     if G.get_node_attr(obj).get('type') != 'function':
@@ -1644,7 +1640,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
         branch_returned_objs = []
         branch_created_obj = None
         branch_used_objs = []
-        func_ast = G.get_obj_def_ast_node(func_obj)
+        func_ast = G.get_obj_def_ast_node(func_obj, aim_type='function')
         # check if python function exists
         python_func = G.get_node_attr(func_obj).get('pythonfunc')
         if python_func: # special Python function
@@ -1662,7 +1658,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             if func_ast is None or G.get_node_attr(func_ast).get('type') \
             not in ['AST_FUNC_DECL', 'AST_CLOSURE']:
                 G.add_blank_func_with_og_nodes(func_name, func_obj)
-                func_ast = G.get_obj_def_ast_node(func_obj)
+                func_ast = G.get_obj_def_ast_node(func_obj, aim_type='function')
             # add function scope (see comments in decl_function)
             parent_scope = G.get_node_attr(func_obj).get('parent_scope')
             func_scope = G.add_scope('FUNC_SCOPE', func_ast,
@@ -1689,12 +1685,13 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                     # add dummy arguments
                     param_name = G.get_name_from_child(param)
                     added_obj = G.add_obj_to_scope(name=param_name,
-                        scope=func_scope, ast_node=caller_ast,
+                        scope=func_scope, ast_node=caller_ast or param,
                         js_type=None, value='*')
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('user_input', True))
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
+
                     logger.debug(f'add arg {param_name} <- new obj {added_obj}, scope {func_scope}, ast node {param}')
             # manage branches
             branches = extra.branches
