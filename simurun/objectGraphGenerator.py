@@ -913,15 +913,20 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     elif cur_type == 'AST_CONDITIONAL':
         test, consequent, alternate = G.get_ordered_ast_child_nodes(node_id)
         logger.debug(f'Ternary operator: {test} ? {consequent} : {alternate}')
-        handle_node(G, test, extra)
-        h1 = handle_node(G, consequent, extra)
-        h2 = handle_node(G, alternate, extra)
-        return NodeHandleResult(obj_nodes=h1.obj_nodes+h2.obj_nodes,
-            # used_objs=h1.used_objs+h2.used_objs,
-            name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id,
-            values=h1.values+h2.values,
-            value_sources=h1.value_sources+h2.value_sources,
-            callback=get_df_callback(G))
+        possibility, deterministic = check_condition(G, test, extra,
+            handling_func=handle_node)
+        if deterministic and possibility == 1:
+            return handle_node(G, consequent, extra)
+        elif deterministic and possibility == 0:
+            return handle_node(G, alternate, extra)
+        else:
+            h1 = handle_node(G, consequent, extra)
+            h2 = handle_node(G, alternate, extra)
+            return NodeHandleResult(obj_nodes=h1.obj_nodes+h2.obj_nodes,
+                name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id,
+                values=h1.values+h2.values,
+                value_sources=h1.value_sources+h2.value_sources,
+                callback=get_df_callback(G))
 
     elif cur_type == 'AST_EXPR_LIST':
         for child in G.get_ordered_ast_child_nodes(node_id):
