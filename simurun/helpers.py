@@ -370,6 +370,10 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                         deter_flag = False
                     elif value:
                         true_num += 1
+                elif typ == 'function':
+                    # how should we determine when it's a function?
+                    true_num += 0.5
+                    deter_flag = False
                 else:
                     if value == '*':
                         true_num += 0.5

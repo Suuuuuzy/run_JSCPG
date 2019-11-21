@@ -1,0 +1,54 @@
+['test.js']
+['test.js', '/media/data/lsong18/data/vulPackages/command_injection/printer@0.0.1/printer.js']
+['test.js', '/media/data/lsong18/data/vulPackages/command_injection/printer@0.0.1/printer.js', '/media/data/lsong18/data/vulPackages/command_injection/printer@0.0.1/lib/printer.js']
+['1687', '1676', '1669'] ===========
+['test.js', '/media/data/lsong18/data/vulPackages/command_injection/printer@0.0.1/printer.js', '/media/data/lsong18/data/vulPackages/command_injection/printer@0.0.1/lib/printer.js', '/home/lsong18/projs/JSCPG/builtin_packages/child_process.js']
+['1710', '1728', '1716', '1748', '1722', '1734', '1740'] ===========
+1734 {'labels:label': 'Object', 'type': 'function', 'name': 'spawnSync', 'parent_scope': '1709'}
+1722 {'labels:label': 'Object', 'type': 'function', 'name': 'execFile', 'parent_scope': '1709'}
+1716 {'labels:label': 'Object', 'type': 'function', 'name': 'execSync', 'parent_scope': '1709'}
+1728 {'labels:label': 'Object', 'type': 'function', 'name': 'spawn', 'parent_scope': '1709'}
+1710 {'labels:label': 'Object', 'type': 'function', 'name': 'exec', 'parent_scope': '1709'}
+AST_BINARY_OP BINARY_IS_EQUAL {'labels:label': 'AST', 'type': 'AST_BINARY_OP', 'flags:string[]': 'BINARY_IS_EQUAL', 'lineno:int': '7', 'code': 'process.platform=="win32"', 'childnum:int': '0', 'funcid:int': '29', 'classname': '', 'namespace': '', 'endlineno:int': '7', 'name': '', 'doccomment': ''}
+RESULR False 0.5 1
+['1659', '1649'] ===========
+1659 {'labels:label': 'Object', 'type': 'function', 'name': 'printDirect', 'parent_scope': '1653'}
+AST_BINARY_OP BINARY_IS_EQUAL {'labels:label': 'AST', 'type': 'AST_BINARY_OP', 'flags:string[]': 'BINARY_IS_EQUAL', 'lineno:int': '42', 'code': 'arguments.length==1', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '42', 'name': '', 'doccomment': ''}
+RESULR True 1 1
+NULL  {'labels:label': 'AST', 'type': 'NULL', 'flags:string[]': '', 'lineno:int': '42', 'code': '', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '', 'name': '', 'doccomment': ''}
+AST_UNARY_OP UNARY_BOOL_NOT {'labels:label': 'AST', 'type': 'AST_UNARY_OP', 'flags:string[]': 'UNARY_BOOL_NOT', 'lineno:int': '59', 'code': '!success', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '59', 'name': '', 'doccomment': ''}
+AST_VAR  {'labels:label': 'AST', 'type': 'AST_VAR', 'flags:string[]': '', 'lineno:int': '59', 'code': '', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '59', 'name': '', 'doccomment': ''}
+* object ?????????i
+RESULR False 0.5 1
+AST_UNARY_OP UNARY_BOOL_NOT {'labels:label': 'AST', 'type': 'AST_UNARY_OP', 'flags:string[]': 'UNARY_BOOL_NOT', 'lineno:int': '63', 'code': '!error', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '63', 'name': '', 'doccomment': ''}
+AST_VAR  {'labels:label': 'AST', 'type': 'AST_VAR', 'flags:string[]': '', 'lineno:int': '63', 'code': '', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '63', 'name': '', 'doccomment': ''}
+* object ?????????i
+RESULR False 0.5 1
+AST_UNARY_OP UNARY_BOOL_NOT {'labels:label': 'AST', 'type': 'AST_UNARY_OP', 'flags:string[]': 'UNARY_BOOL_NOT', 'lineno:int': '69', 'code': '!type', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '69', 'name': '', 'doccomment': ''}
+AST_VAR  {'labels:label': 'AST', 'type': 'AST_VAR', 'flags:string[]': '', 'lineno:int': '69', 'code': '', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '69', 'name': '', 'doccomment': ''}
+* object ?????????i
+RESULR False 0.5 1
+AST_UNARY_OP UNARY_BOOL_NOT {'labels:label': 'AST', 'type': 'AST_UNARY_OP', 'flags:string[]': 'UNARY_BOOL_NOT', 'lineno:int': '73', 'code': '!docname', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '73', 'name': '', 'doccomment': ''}
+AST_VAR  {'labels:label': 'AST', 'type': 'AST_VAR', 'flags:string[]': '', 'lineno:int': '73', 'code': '', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '73', 'name': '', 'doccomment': ''}
+* object ?????????i
+RESULR False 0.5 1
+AST_BINARY_OP BINARY_IS_EQUAL {'labels:label': 'AST', 'type': 'AST_BINARY_OP', 'flags:string[]': 'BINARY_IS_EQUAL', 'lineno:int': '78', 'code': 'process.platform=="win32"', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '78', 'name': '', 'doccomment': ''}
+RESULR False 0.5 1
+AST_UNARY_OP UNARY_BOOL_NOT {'labels:label': 'AST', 'type': 'AST_UNARY_OP', 'flags:string[]': 'UNARY_BOOL_NOT', 'lineno:int': '79', 'code': '!printer_helper.printDirect', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '79', 'name': '', 'doccomment': ''}
+AST_PROP  {'labels:label': 'AST', 'type': 'AST_PROP', 'flags:string[]': '', 'lineno:int': '79', 'code': 'printer_helper.printDirect', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '79', 'name': '', 'doccomment': ''}
+RESULR True 0 1
+AST_BINARY_OP BINARY_IS_IDENTICAL {'labels:label': 'AST', 'type': 'AST_BINARY_OP', 'flags:string[]': 'BINARY_IS_IDENTICAL', 'lineno:int': '85', 'code': 'res===true', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '85', 'name': '', 'doccomment': ''}
+NULL  {'labels:label': 'AST', 'type': 'NULL', 'flags:string[]': '', 'lineno:int': '85', 'code': '', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '', 'name': '', 'doccomment': ''}
+NULL  {'labels:label': 'AST', 'type': 'NULL', 'flags:string[]': '', 'lineno:int': '78', 'code': '', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '', 'name': '', 'doccomment': ''}
+AST_UNARY_OP UNARY_BOOL_NOT {'labels:label': 'AST', 'type': 'AST_UNARY_OP', 'flags:string[]': 'UNARY_BOOL_NOT', 'lineno:int': '93', 'code': '!printer_helper.printDirect', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '93', 'name': '', 'doccomment': ''}
+AST_PROP  {'labels:label': 'AST', 'type': 'AST_PROP', 'flags:string[]': '', 'lineno:int': '93', 'code': 'printer_helper.printDirect', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '93', 'name': '', 'doccomment': ''}
+None function ?????????i
+RESULR False 0.5 1
+AST_BINARY_OP BINARY_IS_NOT_IDENTICAL {'labels:label': 'AST', 'type': 'AST_BINARY_OP', 'flags:string[]': 'BINARY_IS_NOT_IDENTICAL', 'lineno:int': '97', 'code': 'err !== null', 'childnum:int': '0', 'funcid:int': '416', 'classname': '', 'namespace': '', 'endlineno:int': '97', 'name': '', 'doccomment': ''}
+AST_VAR  {'labels:label': 'AST', 'type': 'AST_VAR', 'flags:string[]': '', 'lineno:int': '101', 'code': '', 'childnum:int': '0', 'funcid:int': '416', 'classname': '', 'namespace': '', 'endlineno:int': '101', 'name': '', 'doccomment': ''}
+stderr string ?????????i
+RESULR True 1 1
+NULL  {'labels:label': 'AST', 'type': 'NULL', 'flags:string[]': '', 'lineno:int': '93', 'code': '', 'childnum:int': '0', 'funcid:int': '95', 'classname': '', 'namespace': '', 'endlineno:int': '', 'name': '', 'doccomment': ''}
+['1659', '1649'] ===========
+[['491', '527'], ['95', '400', '527'], ['142', '400', '527'], ['377', '400', '527'], ['400', '527'], ['527'], ['555', '591'], ['591'], ['609', '649'], ['649'], ['667', '686'], ['686'], ['694', '713'], ['713'], ['694', '719'], ['719']]
+[['95', '400', '527']]

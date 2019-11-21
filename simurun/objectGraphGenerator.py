@@ -897,6 +897,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             G.get_node_attr(condition).get('code') + sty.rs.all, possibility,
             deterministic))
         if not (deterministic and possibility == 0):
+            logger.debug('Run block {}'.format(G.get_node_attr(body)))
             simurun_block(G, body, G.cur_scope, extra.branches)
         return NodeHandleResult()
     

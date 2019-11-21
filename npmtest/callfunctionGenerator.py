@@ -264,7 +264,7 @@ def main():
     chunk_detail = argparser.parse_args().c
 
     testing_packages = []
-    # testing_packages = ['shell-quote@1.6.0']
+    testing_packages = ['gitlabhook@0.0.17']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, limit = 50000)
     else:
@@ -332,6 +332,8 @@ def main():
         elif -3 in result:
             generate_error.append(package)
             npm_res_logger.error("Generate {} error".format(package))
+        elif 0 in result:
+            npm_res_logger.error("Not found path in {}".format(package))
 
     npm_test_logger.info("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt,\
             len(success_list), total_cnt, len(skip_list), total_cnt - len(skip_list) - len(success_list)))
