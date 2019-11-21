@@ -1032,6 +1032,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         source = []
         for obj in handled_child.obj_nodes:
             v = G.get_node_attr(obj).get('code')
+            if v is None:
+                continue
             n = val_to_float(v)
             if 'POST' in cur_type:
                 returned_values.append(n)
@@ -1488,9 +1490,11 @@ def ast_call_function(G, ast_node, extra):
         # run the exported objs immediately
         if module_exports_objs:
             exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
-            if len(exported_objs) == 0:
+            exported_objs += module_exports_objs
+            #print("======================", module_exports_objs, exported_objs)
+            # if len(exported_objs) == 0:
                 # we only have one exported funcs
-                exported_objs = module_exports_objs
+            #    exported_objs = module_exports_objs
 
             print(exported_objs, '===========')
             # some times the returned obj only has one obj
@@ -1499,7 +1503,6 @@ def ast_call_function(G, ast_node, extra):
             if G.run_all:
                 while(len(exported_objs) != 0):
                     obj = exported_objs.pop()
-
                     parent_obj = None
                     if type(obj) == type((1,2)):
                         parent_obj = obj[0]
@@ -1507,12 +1510,13 @@ def ast_call_function(G, ast_node, extra):
                     if not parent_obj:
                         parent_obj = obj
 
-                    print(obj, G.get_node_attr(obj))
                     newed_objs = None
                     returned_objs = None
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
-                    if G.get_node_attr(obj).get('type') == 'function':
+                    if G.get_node_attr(obj).get('type') == 'function' \
+                            and 'pythonfunc' not in G.get_node_attr(obj):
+                        print(obj, G.get_node_attr(obj))
                         # some times they write exports= new foo() eg. libnmap
                         returned_objs, newed_objs, _ = call_function(G, [obj], 
                                 this=NodeHandleResult(obj_nodes=[parent_obj]),

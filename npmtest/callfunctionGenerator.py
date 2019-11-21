@@ -7,6 +7,7 @@ from tqdm import tqdm
 import subprocess
 from func_timeout import func_timeout, FunctionTimedOut
 import threading
+import argparse
 
 sys.path.append("..")
 from simurun.launcher import unittest_main
@@ -17,6 +18,7 @@ from simurun.vulFuncLists import *
 
 npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmtest.log")
 npm_res_logger = create_logger("npmres", output_type = "file", file_name="npmres.log")
+npm_success_logger = create_logger("npmsuccess", output_type = "file", file_name="npmsuccess.log")
 
 def validate_package(package_path):
     """
@@ -109,7 +111,7 @@ def get_entrance_files_of_package(package_path):
         entrance_files.append(main_file)
 
     main_file_pathes = ["{}/{}".format(package_path, main_file) for main_file in entrance_files]
-    print("Entrance Files ", main_file_pathes)
+    # print("Entrance Files ", main_file_pathes)
 
     return main_file_pathes
 
@@ -186,9 +188,9 @@ def test_package(package_path, vul_type='os_command'):
         return []
     for package_file in package_main_files:
         test_res = test_file(package_file, vul_type)
+        res.append(test_res)
         if test_res == 1:
             # successfully found
-            res.append(test_res)
             npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
             return res
 
@@ -254,11 +256,15 @@ def test_file(file_path, vul_type='xss'):
 root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
-#testing_packages = []
 skip_packages = []
 
 def main():
-    testing_packages = ['ascii-art@1.4.2']
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('-c', nargs=2)
+    chunk_detail = argparser.parse_args().c
+
+    testing_packages = []
+    # testing_packages = ['shell-quote@1.6.0']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, limit = 50000)
     else:
@@ -270,7 +276,7 @@ def main():
 
     tqdm_bar = tqdm(packages)
     vul_type = 'os_command'
-    timeout = 600
+    timeout = 1200
 
     success_list = []
     skip_list = []
@@ -280,21 +286,31 @@ def main():
     cur_cnt = 0
     thread_pool = {}
 
+    start_id = 0 
+    end_id = 2147483647
+
+    if chunk_detail is not None:
+        worker_id = int(chunk_detail[0]) - 1
+        num_workers = int(chunk_detail[1])
+        start_id = int(worker_id * total_cnt / num_workers)
+        end_id = int((worker_id + 1) * total_cnt / num_workers)
+        if worker_id == num_workers - 1:
+            end_id = total_cnt 
+
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt < 0:
+        if cur_cnt <= start_id:
             continue
+        if cur_cnt > end_id:
+            break
+
         npm_test_logger.info("No {}".format(cur_cnt))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package.split('/')[-1]))
         tqdm_bar.refresh()
         ret_value = 100
+        result = [-1]
         try:
-            thread_pool[package] = threading.Thread(target = test_package,
-                    args=(package, vul_type))
-            # thread_pool[package].start()
-            # thread_pool[package].join(timeout)
             result = func_timeout(timeout, test_package, args=(package, vul_type))
-            # result = test_package(package, vul_type)
         except FunctionTimedOut:
             npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))
             skip_list.append(package)
@@ -303,9 +319,10 @@ def main():
             npm_res_logger.error("{} ERROR generating".format(package))
             print(e)
 
+        print(result)
         if 1 in result:
             success_list.append(package)
-            npm_res_logger.info("{} successfully found in {}".format(vul_type, package))
+            npm_success_logger.info("{} successfully found in {}".format(vul_type, package))
         elif -1 in result:
             skip_list.append(package)
             npm_res_logger.error("Skip {} for other reasons".format(package))
