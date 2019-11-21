@@ -227,7 +227,7 @@ def test_file(file_path, vul_type='xss'):
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
-        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
+        # G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         return -3
 
     if G is None:
@@ -277,7 +277,7 @@ def main():
 
     tqdm_bar = tqdm(packages)
     vul_type = 'os_command'
-    timeout = 120
+    timeout = 1200
 
     success_list = []
     skip_list = []
@@ -335,6 +335,9 @@ def main():
             npm_res_logger.error("Generate {} error".format(package))
         elif 0 in result:
             npm_res_logger.error("Not found path in {}".format(package))
+        else:
+            npm_res_logger.error("Other problems {} return {}".format(package, result))
+
 
     npm_test_logger.info("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt,\
             len(success_list), total_cnt, len(skip_list), total_cnt - len(skip_list) - len(success_list)))
