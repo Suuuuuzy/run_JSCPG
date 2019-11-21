@@ -11,6 +11,7 @@ from .helpers import to_values, to_obj_nodes, peek_variables, combine_values
 from .helpers import check_condition, val_to_str, val_to_float, is_int
 from .esprima import esprima_parse, esprima_search
 from itertools import chain
+from collections import defaultdict
 
 registered_func = {}
 
@@ -358,6 +359,10 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
     else:
         name = f'{parent_name}.{"/".join(prop_names)}'
 
+    # tricky fix, we don't really link name nodes to the undefined object
+    if not prop_obj_nodes:
+        prop_obj_nodes = [G.undefined_obj]
+
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
         name=f'{name}', name_nodes=list(prop_name_nodes),
         ast_node=ast_node, callback=get_df_callback(G)
@@ -604,6 +609,10 @@ def handle_var(G: Graph, ast_node, extra=None):
     for obj in now_objs:
         from_branches.append(cur_branches.get_matched_tags(
             G.get_node_attr(obj).get('for_tags') or []))
+
+    # tricky fix, we don't really link name nodes to the undefined object
+    if not now_objs:
+        now_objs = [G.undefined_obj]
 
     return NodeHandleResult(obj_nodes=now_objs, name=var_name,
         name_nodes=name_nodes, from_branches=from_branches,
@@ -1532,6 +1541,43 @@ def ast_call_function(G, ast_node, extra):
                                 exported_objs.append((newed_obj, obj))
         return module_exports_objs, []
 
+    # handle arguments
+    handled_args = []
+    arg_list_node = G.get_ordered_ast_child_nodes(ast_node)[-1]
+    arg_list = G.get_ordered_ast_child_nodes(arg_list_node)
+    for arg in arg_list:
+        handled_arg = handle_node(G, arg, extra)
+        handled_args.append(handled_arg)
+
+    # typeof and detele
+    if G.get_node_attr(ast_node).get('flags:string[]') == 'JS_TYPEOF':
+        types = defaultdict(lambda: [])
+        if handled_args:
+            for obj in handled_args[0].obj_nodes:
+                types[G.get_node_attr(obj).get('type')].append(obj)
+            for i, val in enumerate(handled_args[0].values):
+                if type(val) in ['int', 'float']:
+                    types['number'].extend(handled_args[0].value_sources[i])
+                elif type(val) == 'str':
+                    types['string'].extend(handled_args[0].value_sources[i])
+                else:
+                    types['object'].extend(handled_args[0].value_sources[i])
+        returned_objs = []
+        used_objs = []
+        for t, sources in types.items():
+            added_obj = G.add_obj_node(ast_node, 'string', t)
+            for s in sources:
+                G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+            returned_objs.append(added_obj)
+            used_objs.extend(sources)
+        return returned_objs, used_objs
+    elif G.get_node_attr(ast_node).get('flags:string[]') == 'JS_DELETE':
+        if handled_args:
+            for name_node in handled_args[0].name_nodes:
+                for obj in handled_args[0].obj_nodes:
+                    G.remove_all_edges_between(name_node, obj)
+        return [], []
+
     # find function declaration objects
     func_decl_objs = list(filter(lambda x: x != G.undefined_obj,
         handled_callee.obj_nodes))
@@ -1552,7 +1598,6 @@ def ast_call_function(G, ast_node, extra):
     # parent object (for method call only)
     # handled_parent = None
 
-    handled_args = []
     if G.get_node_attr(ast_node).get('type') == 'AST_CALL':
         stmt_id = 'Call' + ast_node
     elif G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
@@ -1561,13 +1606,6 @@ def ast_call_function(G, ast_node, extra):
     elif G.get_node_attr(ast_node).get('type') == 'AST_NEW':
         stmt_id = 'New' + ast_node
         is_new = True
-
-    # handle arguments
-    arg_list_node = G.get_ordered_ast_child_nodes(ast_node)[-1]
-    arg_list = G.get_ordered_ast_child_nodes(arg_list_node)
-    for arg in arg_list:
-        handled_arg = handle_node(G, arg, extra)
-        handled_args.append(handled_arg)
 
     returned_objs, created_objs, used_objs = \
         call_function(G, func_decl_objs, handled_args,

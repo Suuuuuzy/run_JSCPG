@@ -421,8 +421,18 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             };
             break;
         case 'UnaryExpression':
-            if (currentNode.operator == 'typeof' && outputStyle == 'php') {
-                // converts "typeof foo" to "gettype(foo)"
+            if (outputStyle == 'php' && (
+                currentNode.operator == 'typeof' || currentNode.operator == 'delete'
+            )) {
+                // converts "typeof foo" to "gettype(foo)" / "delete foo" to "unset(foo)"
+                let phpFuncName;
+                if (currentNode.operator == 'typeof'){
+                    phpFuncName = 'gettype';
+                    phpflag = 'JS_TYPEOF';
+                } else if (currentNode.operator == 'delete'){
+                    phpFuncName = 'unset';
+                    phpflag = 'JS_DELETE';
+                }
                 // make the AST_NAME virtual node (childnum = 0)
                 nodeIdCounter++;
                 let vAstNameId = nodeIdCounter;
@@ -445,7 +455,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 nodes[vAstGettypeStringId] = {
                     label: 'AST_V',
                     phptype: 'string',
-                    code: 'gettype',
+                    code: phpFuncName,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: 0,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
@@ -476,7 +486,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     label: 'AST',
                     type: currentNode.type,
                     phptype: 'AST_CALL',
-                    phpflag: 'JS_TYPEOF',
+                    phpflag: phpflag,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: childNum,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
