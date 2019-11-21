@@ -4,7 +4,7 @@ from . import objectGraphGenerator
 from .helpers import to_values, to_obj_nodes, val_to_str, is_int
 from .helpers import convert_prop_names_to_wildcard
 from .helpers import copy_objs_for_branch, copy_objs_for_parameters
-from .helpers import to_python_array, to_og_array
+from .helpers import to_python_array, to_og_array, add_contributes_to
 import sty
 import re
 from .logger import *
@@ -54,7 +54,7 @@ def setup_number(G: Graph):
     number_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=number_cons)[0]
     G.number_prototype = number_prototype
     # Number.prototype.__proto__ = Object.prototype
-    G.add_obj_as_prop(None, None, '__proto__', parent_obj=number_prototype, tobe_added_obj=G.object_prototype)
+    G.add_obj_as_prop(prop_name='__proto__', parent_obj=number_prototype, tobe_added_obj=G.object_prototype)
 
 
 def setup_array(G: Graph):
@@ -62,7 +62,7 @@ def setup_array(G: Graph):
     array_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=array_cons)[0]
     G.array_prototype = array_prototype
     # Array.prototype.__proto__ = Object.prototype
-    G.add_obj_as_prop(None, None, '__proto__', parent_obj=array_prototype, tobe_added_obj=G.object_prototype)
+    G.add_obj_as_prop(prop_name='__proto__', parent_obj=array_prototype, tobe_added_obj=G.object_prototype)
     # built-in functions
     G.add_blank_func_as_prop('push', array_prototype, array_p_push)
     G.add_blank_func_as_prop('pop', array_prototype, array_p_pop)
@@ -78,32 +78,31 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('filter', array_prototype, this_returning_func)
 
 
-
 def setup_boolean(G: Graph):
     boolean_cons = G.add_blank_func_to_scope('Boolean', scope=G.BASE_SCOPE, python_func=this_returning_func)
     boolean_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=boolean_cons)[0]
     G.boolean_prototype = boolean_prototype
     # Boolean.prototype.__proto__ = Object.prototype
-    G.add_obj_as_prop(None, None, '__proto__', parent_obj=boolean_prototype, tobe_added_obj=G.object_prototype)
+    G.add_obj_as_prop(prop_name='__proto__', parent_obj=boolean_prototype, tobe_added_obj=G.object_prototype)
 
 
 def setup_symbol(G: Graph):
     symbol_cons = G.add_blank_func_to_scope('Symbol', scope=G.BASE_SCOPE, python_func=this_returning_func)
     symbol_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=symbol_cons)[0]
     # Symbol.prototype.__proto__ = Object.prototype
-    G.add_obj_as_prop(None, None, '__proto__', parent_obj=symbol_prototype, tobe_added_obj=G.object_prototype)
+    G.add_obj_as_prop(prop_name='__proto__', parent_obj=symbol_prototype, tobe_added_obj=G.object_prototype)
 
 
 def setup_errors(G: Graph):
     error_cons = G.add_blank_func_to_scope('Error', scope=G.BASE_SCOPE, python_func=this_returning_func)
     # Error.prototype.__proto__ = Object.prototype
     error_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=error_cons)[0]
-    G.add_obj_as_prop(None, None, '__proto__', parent_obj=error_prototype, tobe_added_obj=G.object_prototype)
+    G.add_obj_as_prop(prop_name='__proto__', parent_obj=error_prototype, tobe_added_obj=G.object_prototype)
     for i in ['EvalError', 'InternalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError']:
         # EvalError.prototype.__proto__ = Error
         cons = G.add_blank_func_to_scope(i, scope=G.BASE_SCOPE)
         prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=cons)[0]
-        G.add_obj_as_prop(None, None, '__proto__', parent_obj=prototype, tobe_added_obj=error_prototype)
+        G.add_obj_as_prop(prop_name='__proto__', parent_obj=prototype, tobe_added_obj=error_prototype)
 
 
 def setup_object_and_function(G: Graph):
@@ -113,7 +112,7 @@ def setup_object_and_function(G: Graph):
     object_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=object_cons)[0]
     G.set_node_attr(object_prototype, ('code', 'Object.prototype'))
     # add Object.prototype.__proto__
-    G.add_obj_as_prop(None, None, '__proto__', parent_obj=object_prototype, tobe_added_obj=G.null_obj)
+    G.add_obj_as_prop(prop_name='__proto__', parent_obj=object_prototype, tobe_added_obj=G.null_obj)
     # add Function (function)
     function_cons = G.add_blank_func_to_scope('Function', scope=G.BASE_SCOPE) # TODO: implement this
     # get Function.prototype
@@ -124,7 +123,7 @@ def setup_object_and_function(G: Graph):
     # Function.prototype.__proto__ = Object.prototype (because Function.prototype is an object)
     function__proto____proto__ = G.add_obj_as_prop(None, None, '__proto__', parent_obj=function_prototype, tobe_added_obj=object_prototype)
     # Object.__proto__ = Function.prototype (beacuse Object is a function)
-    G.add_obj_as_prop(None, None, '__proto__', parent_obj=object_cons, tobe_added_obj=function_prototype)
+    G.add_obj_as_prop(prop_name='__proto__', parent_obj=object_cons, tobe_added_obj=function_prototype)
     # set reserved values
     G.function_prototype = function_prototype
     G.object_prototype = object_prototype
@@ -367,18 +366,18 @@ def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts
                         returned_arr = to_og_array(G, returned_part_e,
                             returned_part_d, caller_ast)
                         for s in start_sources[i]:
-                            G.add_edge(s, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
-                            G.add_edge(s, returned_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            add_contributes_to(G, [s], new_arr)
+                            add_contributes_to(G, [s], returned_arr)
                         for s in dc_sources[j]:
-                            G.add_edge(s, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
-                            G.add_edge(s, returned_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            add_contributes_to(G, [s], new_arr)
+                            add_contributes_to(G, [s], returned_arr)
                         for item in items:
                             item_obj_nodes = to_obj_nodes(G, item, caller_ast)
                             # for obj in item_obj_nodes:
-                            #     G.add_edge(obj, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            #     add_contributes_to(G, [obj], new_arr)
                             used_objs.update(item_obj_nodes)
-                        G.add_edge(arr, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(arr, returned_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [arr], new_arr)
+                        add_contributes_to(G, [arr], returned_arr)
                         copies.append(new_arr)
                         returned_arrays.append(returned_arr)
                     except ValueError:
@@ -386,14 +385,14 @@ def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts
                         dc = None
                 if start is None:
                     returned_arr = G.add_obj_node(ast_node=caller_ast, js_type='array')
-                    G.add_edge(arr, returned_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    add_contributes_to(G, [arr], returned_arr)
                     for obj in G.get_prop_obj_nodes(arr, numeric_only=True):
                         G.add_obj_as_prop(prop_name='*', parent_obj=returned_arr,
                             tobe_added_obj=obj)
                     if items:
                         new_arr = G.copy_obj(arr, caller_ast)
                         convert_prop_names_to_wildcard(G, new_arr, exclude_length=True)
-                        G.add_edge(arr, new_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [arr], new_arr)
                         for item in items:
                             for obj in item.obj_nodes:
                                 G.add_obj_as_prop(prop_name='*',
@@ -434,10 +433,10 @@ def array_p_slice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts=
                 if start is None:
                     return_arr = G.copy_obj(arr, caller_ast)
                 for s in start_sources[i]:
-                    G.add_edge(s, return_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    add_contributes_to(G, [s], return_arr)
                 for s in end_sources[j]:
-                    G.add_edge(s, return_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
-                G.add_edge(arr, return_arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    add_contributes_to(G, [s], return_arr)
+                add_contributes_to(G, [arr], return_arr)
                 returned_arrays.append(return_arr)
     used_objs.update(chain(*start_sources, *end_sources, arrays.obj_nodes))
     return NodeHandleResult(obj_nodes=returned_arrays, used_objs=list(used_objs))
@@ -453,6 +452,10 @@ def array_p_join(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=Nod
                 sep = ','
             a = to_python_array(G, arr, value=True)[0]
             if None in chain(*a):
+                # if any element's value in the array is unknown
+                # the result is set to unknown
+                # this is to prevent explosion of the number of different
+                # values in the results
                 s = None
             else:
                 s = sep.join(['/'.join(elem) for elem in a])
@@ -461,10 +464,10 @@ def array_p_join(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=Nod
             elem_objs = G.get_prop_obj_nodes(arr, branches=extra.branches,
                 numeric_only=True)
             for obj in elem_objs:
-                G.add_edge(obj, new_literal, {'type:TYPE': 'CONTRIBUTES_TO'})
+                add_contributes_to(G, [obj], new_literal)
             for s in sep_sources[i]:
-                G.add_edge(s, new_literal, {'type:TYPE': 'CONTRIBUTES_TO'})
-            G.add_edge(arr, new_literal, {'type:TYPE': 'CONTRIBUTES_TO'})
+                add_contributes_to(G, [s], new_literal)
+            add_contributes_to(G, [arr], new_literal)
             used_objs.update(elem_objs)
             used_objs.update(sep_sources[i])
             used_objs.add(arr)
@@ -545,7 +548,7 @@ def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult,
     for obj in this.obj_nodes:
         value = G.get_node_attr(obj).get('code')
         string = G.add_obj_node(caller_ast, 'string', value)
-        G.add_edge(obj, string, {'type:TYPE': 'CONTRIBUTES_TO'})
+        add_contributes_to(G, [obj], string)
         returned_objs.append(string)
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=this.obj_nodes)
 
@@ -615,7 +618,7 @@ def parse_number(G: Graph, caller_ast, extra, _, s=NodeHandleResult(), rad=None)
     for obj in s.obj_nodes:
         new_literal = G.add_obj_node(caller_ast, 'number')
         returned_objs.append(new_literal)
-        G.add_edge(obj, new_literal, {'type:TYPE': 'CONTRIBUTES_TO'})
+        add_contributes_to(G, [obj], new_literal)
     used_objs = list(set(s.obj_nodes + s.used_objs))
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
 
@@ -638,7 +641,7 @@ def string_returning_func(G: Graph, caller_ast, extra, _, *args):
         used_objs.update(arg.obj_nodes)
         # used_objs.update(arg.used_objs)
         for obj in arg.obj_nodes:
-            G.add_edge(obj, returned_string, {'type:TYPE': 'CONTRIBUTES_TO'})
+            add_contributes_to(G, [obj], returned_string)
     return NodeHandleResult(obj_nodes=[returned_string], used_objs=list(used_objs))
 
 
@@ -695,7 +698,7 @@ def json_parse(G: Graph, caller_ast, extra, _, text=None, reviver=None):
         if obj is None:
             obj = G.add_obj_node(ast_node=caller_ast, js_type=None, value='*')
         for s in sources[i]:
-            G.add_edge(s, obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+            add_contributes_to(G, [s], obj)
             used_objs.add(s)
         returned_objs.append(obj)
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
@@ -750,9 +753,9 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         if unknown_return_obj is None:
                             unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string')
                         added_obj = unknown_return_obj
-                        G.add_edge(s, unknown_return_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(substr, unknown_return_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(new_sub_str, unknown_return_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [s], unknown_return_obj)
+                        add_contributes_to(G, [substr], unknown_return_obj)
+                        add_contributes_to(G, [new_sub_str], unknown_return_obj)
                     elif G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
                         r, glob, sticky = convert_to_python_re(ssv)
                         none_flag = False
@@ -781,9 +784,9 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                             output = None
                         logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
                         added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=output)
-                        G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(substr, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(new_sub_str, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [s], added_obj)
+                        add_contributes_to(G, [substr], added_obj)
+                        add_contributes_to(G, [new_sub_str], added_obj)
                         returned_objs.append(added_obj)
                     else:
                         returned_values = []
@@ -805,9 +808,9 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         for s2 in returned_values:
                             logger.debug('string replace {} in {} -> {}'.format(ssv, sv, s2))
                             added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=s2)
-                            G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                            G.add_edge(substr, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                            G.add_edge(new_sub_str, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            add_contributes_to(G, [s], added_obj)
+                            add_contributes_to(G, [substr], added_obj)
+                            add_contributes_to(G, [new_sub_str], added_obj)
                             returned_objs.append(added_obj)
                 else:
                     nssv = G.get_node_attr(new_sub_str).get('code')
@@ -815,9 +818,9 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         if unknown_return_obj is None:
                             unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string')
                         added_obj = unknown_return_obj
-                        G.add_edge(s, unknown_return_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(substr, unknown_return_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(new_sub_str, unknown_return_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [s], unknown_return_obj)
+                        add_contributes_to(G, [substr], unknown_return_obj)
+                        add_contributes_to(G, [new_sub_str], unknown_return_obj)
                     else:
                         if G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
                             r, glob, sticky = convert_to_python_re(ssv)
@@ -829,9 +832,112 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                             output = sv.replace(ssv, nssv)
                         logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
                         added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=output)
-                        G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(substr, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(new_sub_str, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [s], added_obj)
+                        add_contributes_to(G, [substr], added_obj)
+                        add_contributes_to(G, [new_sub_str], added_obj)
+                    returned_objs.append(added_obj)
+    return NodeHandleResult(obj_nodes=returned_objs,
+        used_objs=list(set(strs.obj_nodes + substrs.obj_nodes + new_sub_strs.obj_nodes
+        + strs.used_objs + substrs.used_objs + new_sub_strs.used_objs)))
+
+
+
+def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
+    substrs=NodeHandleResult(), new_sub_strs=NodeHandleResult()):
+    returned_objs = []
+    unknown_return_obj = None # we only add one unknown object
+    for sv, str_sources, _ in zip(to_values(G, strs)):
+        for substr in to_obj_nodes(G, substrs, caller_ast):
+            for new_sub_str in to_obj_nodes(G, new_sub_strs, caller_ast):
+                ssv = G.get_node_attr(substr).get('code')
+                if G.get_node_attr(new_sub_str).get('type') == 'function':
+                    callback = new_sub_str
+                    if sv is None or ssv is None:
+                        if unknown_return_obj is None:
+                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string')
+                        added_obj = unknown_return_obj
+                        add_contributes_to(G, str_sources, added_obj)
+                        add_contributes_to(G, [substr], added_obj)
+                        add_contributes_to(G, [new_sub_str], added_obj)
+                    elif G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
+                        r, glob, sticky = convert_to_python_re(ssv)
+                        none_flag = False
+                        def python_cb(m):
+                            nonlocal none_flag
+                            cb_returned_objs, _, _ = \
+                                objectGraphGenerator.call_function(G, [callback],
+                                args=[NodeHandleResult(values=[m.group(0)])],
+                                extra=extra, caller_ast=caller_ast)
+                            cb_returned_values, _, _ = \
+                                to_values(G, NodeHandleResult(obj_nodes=cb_returned_objs))
+                            cb_returned_values = \
+                                list(filter(lambda x: x is not None, cb_returned_values))
+                            # multiple possibility is ignored here
+                            if len(cb_returned_values) > 1:
+                                logger.warning(f'Replace result has multiple possibilities: {cb_returned_values}')
+                            elif len(cb_returned_values) == 0:
+                                none_flag = True
+                                return None
+                            return cb_returned_values[0]
+                        if glob:
+                            output = r.sub(python_cb, sv)
+                        else:
+                            output, _ = r.subn(python_cb, sv, count=1)
+                        if none_flag:
+                            output = None
+                        logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
+                        added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=output)
+                        add_contributes_to(G, str_sources, added_obj)
+                        add_contributes_to(G, [substr], added_obj)
+                        add_contributes_to(G, [new_sub_str], added_obj)
+                        returned_objs.append(added_obj)
+                    else:
+                        returned_values = []
+                        start = sv.find(ssv)
+                        if start == -1:
+                            break
+                        match_s = sv[start:start+len(ssv)]
+                        left_s = sv[:start]
+                        right_s = sv[start+len(ssv):]
+                        cb_returned_objs, _, _ = \
+                            objectGraphGenerator.call_function(G, [callback],
+                            args=[NodeHandleResult(values=[match_s])],
+                            extra=extra, caller_ast=caller_ast)
+                        cb_returned_values, _, _ = \
+                            to_values(G, NodeHandleResult(obj_nodes=cb_returned_objs))
+                        for s1 in cb_returned_values:
+                            returned_values.append(left_s + s1 + right_s)
+                            # the part on the left of the match + substituted matched part + the part on the right of the match
+                        for s2 in returned_values:
+                            logger.debug('string replace {} in {} -> {}'.format(ssv, sv, s2))
+                            added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=s2)
+                            add_contributes_to(G, str_sources, added_obj)
+                            add_contributes_to(G, [substr], added_obj)
+                            add_contributes_to(G, [new_sub_str], added_obj)
+                            returned_objs.append(added_obj)
+                else:
+                    nssv = G.get_node_attr(new_sub_str).get('code')
+                    if sv is None or ssv is None or nssv is None:
+                        if unknown_return_obj is None:
+                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string')
+                        added_obj = unknown_return_obj
+                        add_contributes_to(G, str_sources, added_obj)
+                        add_contributes_to(G, [substr], added_obj)
+                        add_contributes_to(G, [new_sub_str], added_obj)
+                    else:
+                        if G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
+                            r, glob, sticky = convert_to_python_re(ssv)
+                            if glob:
+                                output = r.sub(nssv, sv)
+                            else:
+                                output, _ = r.subn(nssv, sv, count=1)
+                        else:
+                            output = sv.replace(ssv, nssv)
+                        logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
+                        added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=output)
+                        add_contributes_to(G, str_sources, added_obj)
+                        add_contributes_to(G, [substr], added_obj)
+                        add_contributes_to(G, [new_sub_str], added_obj)
                     returned_objs.append(added_obj)
     return NodeHandleResult(obj_nodes=returned_objs,
         used_objs=list(set(strs.obj_nodes + substrs.obj_nodes + new_sub_strs.obj_nodes
@@ -852,10 +958,10 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
                 added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
                 added_obj = G.add_obj_as_prop(ast_node=caller_ast,
                     prop_name='0', js_type='string', parent_obj=added_array)
-                G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                G.add_edge(regexp, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                G.add_edge(s, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
-                G.add_edge(regexp, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
+                add_contributes_to(G, [s], added_obj)
+                add_contributes_to(G, [regexp], added_obj)
+                add_contributes_to(G, [s], added_array)
+                add_contributes_to(G, [regexp], added_array)
             else:
                 added_array = G.null_obj
                 r, glob, sticky = convert_to_python_re(rv)
@@ -866,10 +972,10 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
                         for i, u in result:
                             added_obj = G.add_obj_as_prop(ast_node=caller_ast, prop_name=i,
                                 js_type='string', value=u, parent_obj=added_array)
-                            G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                            G.add_edge(regexp, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(s, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(regexp, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            add_contributes_to(G, [s], added_obj)
+                            add_contributes_to(G, [regexp], added_obj)
+                        add_contributes_to(G, [s], added_array)
+                        add_contributes_to(G, [regexp], added_array)
                 else:
                     match = re.compile(r).search(sv)
                     if match:
@@ -877,8 +983,8 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
                         for i, u in [match[0]] + match.groups():
                             added_obj = G.add_obj_as_prop(ast_node=caller_ast, prop_name=i,
                                 js_type='string', value=u, parent_obj=added_array)
-                            G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                            G.add_edge(regexp, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                            add_contributes_to(G, [s], added_obj)
+                            add_contributes_to(G, [regexp], added_obj)
                         G.add_obj_as_prop(ast_node=caller_ast, prop_name='index',
                             js_type='number', value=match.start(), parent_obj=added_array)
                         G.add_obj_as_prop(ast_node=caller_ast, prop_name='input',
@@ -886,8 +992,8 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
                         # TODO: groups
                         G.add_obj_as_prop(ast_node=caller_ast, prop_name='groups',
                             parent_obj=added_array, tobe_added_obj=G.undefined_obj)
-                        G.add_edge(s, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(regexp, added_array, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [s], added_array)
+                        add_contributes_to(G, [regexp], added_array)
             returned_objs.append(added_array)
     return NodeHandleResult(obj_nodes=returned_objs,
         used_objs=list(set(strs.obj_nodes + strs.used_objs + regexps.obj_nodes + regexps.used_objs)))
@@ -905,22 +1011,22 @@ def string_p_split(G: Graph, caller_ast, extra, strs, separators):
                 v = G.add_obj_as_prop(prop_name='*', ast_node=caller_ast,
                     js_type='string', value=None, parent_obj=arr)
                 for ss in s1[i]:
-                    G.add_edge(ss, v, {'type:TYPE': 'CONTRIBUTES_TO'})
-                    G.add_edge(ss, arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    add_contributes_to(G, [ss], v)
+                    add_contributes_to(G, [ss], arr)
                 for ss in s2[j]:
-                    G.add_edge(ss, v, {'type:TYPE': 'CONTRIBUTES_TO'})
-                    G.add_edge(ss, arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                    add_contributes_to(G, [ss], v)
+                    add_contributes_to(G, [ss], arr)
             else:
                 logger.debug('string split {} -> {}'.format(s, s.split(p)))
                 for k, d in enumerate(s.split(p)):
                     v = G.add_obj_as_prop(prop_name=str(k), value=d,
                         ast_node=caller_ast, js_type='string', parent_obj=arr)
                     for ss in s1[i]:
-                        G.add_edge(ss, v, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(ss, arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [ss], v)
+                        add_contributes_to(G, [ss], arr)
                     for ss in s2[j]:
-                        G.add_edge(ss, v, {'type:TYPE': 'CONTRIBUTES_TO'})
-                        G.add_edge(ss, arr, {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [ss], v)
+                        add_contributes_to(G, [ss], arr)
             returned_objs.append(arr)
             used_objs.update(s1[i])
             used_objs.update(s2[j])

@@ -43,6 +43,7 @@ class NodeHandleResult:
         self.value_tags = kwargs.get('value_tags', [])
         self.value_sources = kwargs.get('value_sources', [])
         self.ast_node = kwargs.get('ast_node')
+        self.name_tainted = kwargs.get('name_tainted')
         if self.ast_node:
             self.print_callback()
         if self.values and not self.value_sources:

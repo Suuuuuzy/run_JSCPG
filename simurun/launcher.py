@@ -81,7 +81,7 @@ def main():
         generate_obj_graph(G, '0')
     # G.relabel_nodes()
     G.export_to_CSV("./testnodes.csv", "./testrels.csv", light = False)
-    logger.info('Analysis finished at ' +
+    logger.log(ATTENTION, 'Analysis finished at ' +
         datetime.today().strftime('%Y-%m-%d %H:%M:%S') +
         ', Time spent: %.3fs' % (time.time() - start_time))
 

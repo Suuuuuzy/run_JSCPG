@@ -1,7 +1,7 @@
 from .graph import Graph
 from .utilities import NodeHandleResult, ExtraInfo, BranchTag
 import math
-from typing import Callable, List
+from typing import Callable, List, Iterable
 from collections import defaultdict
 
 def eval_value(G: Graph, s: str, return_obj_node=False, ast_node=None):
@@ -78,8 +78,7 @@ def to_obj_nodes(G: Graph, handle_result: NodeHandleResult, ast_node=None,
             if i < len(handle_result.value_sources):
                 for obj in handle_result.value_sources[i]:
                     if obj is not None:
-                        G.add_edge(obj, added_obj,
-                            {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [obj], added_obj)
     if incl_existing_obj_nodes:
         returned_objs.extend(handle_result.obj_nodes)
     return returned_objs
@@ -108,8 +107,13 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
     for obj in handle_result.obj_nodes:
         attrs = G.get_node_attr(obj)
         if for_prop:
-            if attrs.get('type') == 'object':
-                value = 'Obj#' + obj
+            if obj == G.tainted_user_input:
+                value = None
+            elif attrs.get('type') == 'object':
+                if attrs.get('code') == '*':
+                    value = None
+                else:
+                    value = 'Obj#' + obj
             elif attrs.get('code') is not None:
                 value = val_to_str(attrs.get('code'))
             else:
@@ -245,7 +249,8 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             handled_right = handling_func(G, right, extra)
             left_values = to_values(G, handled_left, ast_node)[0]
             right_values = to_values(G, handled_right, ast_node)[0]
-            # print(f'Comparing {handled_left.name}: {left_values} and {handled_right.name}: {right_values}')
+            # print(f'Comparing {handled_left.name}: {left_values} and '
+            #     f'{handled_right.name}: {right_values}')
 
             true_num = 0
             total_num = len(left_values) * len(right_values)
@@ -257,8 +262,6 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                         if v1 is not None and v2 is not None:
                             if js_cmp(v1, v2) == 0:
                                 true_num += 1
-                            else:
-                                pass
                         else:
                             true_num += 0.5
                             deter_flag = False
@@ -268,8 +271,6 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                         if v1 is not None and v2 is not None:
                             if v1 == v2:
                                 true_num += 1
-                            else:
-                                pass
                         else:
                             true_num += 0.5
                             deter_flag = False
@@ -278,8 +279,6 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                     for v2 in right_values:
                         if v1 is not None and v2 is not None:
                             if js_cmp(v1, v2) != 0:
-                                pass
-                            else:
                                 true_num += 1
                         else:
                             true_num += 0.5
@@ -290,8 +289,6 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                         if v1 is not None and v2 is not None:
                             if v1 != v2:
                                 true_num += 1
-                            else:
-                                pass
                         else:
                             true_num += 0.5
                             deter_flag = False
@@ -394,13 +391,16 @@ def is_int(x):
         return False
     return True
 
-def convert_prop_names_to_wildcard(G: Graph, obj, exclude_length=False, exclude_proto=True):
+def convert_prop_names_to_wildcard(G: Graph, obj, exclude_length=False,
+    exclude_proto=True):
     wildcard_name_node = G.add_prop_name_node('*', obj)
     for e1 in G.get_out_edges(obj, edge_type='OBJ_TO_PROP'):
         name_node = e1[1]
-        if exclude_length and G.get_node_attr(name_node).get('name') == 'length':
+        if exclude_length and \
+            G.get_node_attr(name_node).get('name') == 'length':
             continue
-        if exclude_proto and G.get_node_attr(name_node).get('name') == '__proto__':
+        if exclude_proto and \
+            G.get_node_attr(name_node).get('name') == '__proto__':
             continue
         for e2 in G.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
             _, obj, _, data = e2
@@ -486,3 +486,17 @@ def to_og_array(G: Graph, array, data, ast_node=None):
     G.add_obj_as_prop(prop_name='length', ast_node=ast_node, js_type='number',
         value=len(array), parent_obj=added_array)
     return added_array
+
+def add_contributes_to(G: Graph, sources: Iterable, target,
+    chain_tainted=True):
+    assert not isinstance(sources, (str, bytes))
+    tainted = False
+    for s in sources:
+        # source_id = str(s)
+        # if G.get_node_attr(s).get('tainted'):
+        #     source_id += ' tainted'
+        # print(f'{source_id} CONTRIBUTES TO {target}')
+        G.add_edge(s, target, {'type:TYPE': 'CONTRIBUTES_TO'})
+        tainted = tainted or G.get_node_attr(s).get('tainted', False)
+    if chain_tainted and tainted:
+        G.set_node_attr(target, ('tainted', True))

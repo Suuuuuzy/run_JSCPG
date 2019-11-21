@@ -9,6 +9,7 @@ from .logger import *
 from . import modeled_js_builtins, modeled_builtin_modules
 from .helpers import to_values, to_obj_nodes, peek_variables, combine_values
 from .helpers import check_condition, val_to_str, val_to_float, is_int
+from .helpers import add_contributes_to
 from .esprima import esprima_parse, esprima_search
 from itertools import chain
 from collections import defaultdict
@@ -239,32 +240,33 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 if is_wildcard_obj(G, parent_obj):
                     for o in r2:
                         for s in prop_name_sources:
-                            G.add_edge(s, o,
-                                {'type:TYPE': 'CONTRIBUTES_TO'})
+                            add_contributes_to(G, [s], o)
         if not name_node_found and not in_proto and prop_name != '*':
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
-            if side == 'right':
-                return [], []
-            else:
-                if is_wildcard_obj(G, parent_obj):
-                    # if this is an wildcard (unknown) object, add another
-                    # wildcard object as its property
-                    added_name_node = G.add_prop_name_node(prop_name, parent_obj)
-                    prop_name_nodes.add(added_name_node)
-                    added_obj = G.add_obj_to_name_node(added_name_node,
-                        js_type=None, value='*', ast_node=ast_node)                    
-                    prop_obj_nodes.add(added_obj)
-                    logger.debug('{} is a wildcard object, creating a wildcard'
-                        ' object {} for its properties'.format(parent_obj,
-                        added_obj))
-                    for s in prop_name_sources:
-                        logger.debug('added contributes to from {} to {}'.format(s, added_obj))
-                        G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
-                    if prop_name_for_tags:
-                        G.set_node_attr(added_name_node,
-                            ('for_tags', prop_name_for_tags))
-                else: # normal (known) object
+            if is_wildcard_obj(G, parent_obj):
+                # if this is an wildcard (unknown) object, add another
+                # wildcard object as its property
+                added_name_node = G.add_prop_name_node(prop_name, parent_obj)
+                prop_name_nodes.add(added_name_node)
+                added_obj = G.add_obj_to_name_node(added_name_node,
+                    js_type=None, value='*', ast_node=ast_node)                    
+                prop_obj_nodes.add(added_obj)
+                logger.debug('{} is a wildcard object, creating a wildcard'
+                    ' object {} for its properties'.format(parent_obj,
+                    added_obj))
+                if G.get_node_attr(parent_obj).get('tainted'):
+                    G.set_node_attr(added_obj, ('tainted', True))
+                for s in prop_name_sources:
+                    logger.debug('added contributes to from {} to {}'.format(s, added_obj))
+                    add_contributes_to(G, [s], added_obj)
+                if prop_name_for_tags:
+                    G.set_node_attr(added_name_node,
+                        ('for_tags', prop_name_for_tags))
+            else: # normal (known) object
+                if side == 'right':
+                    return [], []
+                else:
                     # only add a name node
                     added_name_node = \
                         G.add_prop_name_node(prop_name, parent_obj)
@@ -300,26 +302,35 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
     parent_objs = handled_parent.obj_nodes
     parent_name_nodes = handled_parent.name_nodes
 
+    branches = extra.branches
+    side = extra.side
+    prop_name_nodes, prop_obj_nodes = [], []
+
     # prepare property names
     prop_names, prop_name_sources, prop_name_tags = \
                             to_values(G, handled_prop, for_prop=True)
+    name_tainted = False
 
-    # check possible prototype pollution
-    """
-    if check_prototype_pollution(G, chain(*prop_name_sources)):
-        logger.warning(sty.fg.li_red + sty.ef.inverse +
-            'Possible prototype pollution with obj nodes {} at AST node {} (Line {})'
-            .format(handled_prop.obj_nodes, ast_node,
-            G.get_node_attr(ast_node).get('lineno:int')) + sty.rs.all)
-        G.proto_pollution.add(ast_node)
-    """
+    if prop_names == [None] * len(prop_names):
+        # conservative: only if all property names are known,
+        # we fetch all properties
+        # (including __proto__ for prototype pollution detection)
+        for parent_obj in parent_objs:
+            prop_name_nodes.extend(G.get_prop_name_nodes(parent_obj))
+            prop_obj_nodes.extend(G.get_prop_obj_nodes(parent_obj,
+                branches=branches, exclude_proto=False))
+        name = f'{parent_name}.*'
+        for source in chain(*prop_name_sources):
+            if G.get_node_attr(source).get('tainted'):
+                name_tainted = True
+                break
 
-    # create parent object if it doesn't exist
-    parent_objs = list(filter(lambda x: x != G.undefined_obj, parent_objs))
-    if not parent_objs:
-        if True:
-        # if not (extra and extra.side == 'right'):
-            logger.debug("PARENT OBJ {} NOT DEFINED, creating object nodes".
+    else:
+        # create parent object if it doesn't exist
+        parent_objs = list(filter(lambda x: x != G.undefined_obj, parent_objs))
+        if not parent_objs:
+            logger.debug(
+                "PARENT OBJ {} NOT DEFINED, creating object nodes".
                 format(parent_name))
             # we assume this happens when it's a built-in var name
             if parent_name_nodes:
@@ -330,42 +341,40 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
                     parent_objs.append(obj)
             else:
                 obj = G.add_obj_to_scope(parent_name, ast_node, None,
-                                         scope=G.BASE_SCOPE)
+                                        scope=G.BASE_SCOPE)
                 parent_objs = [obj]
+            # else:
+            #     logger.debug("PARENT OBJ {} NOT DEFINED, return undefined".
+            #         format(parent_name))
+            #     return NodeHandleResult()
+
+        # find property name nodes and object nodes
+        prop_names = list(filter(lambda x: x is not None, prop_names))
+        for i, prop_name in enumerate(prop_names):
+            if prop_name == None:
+                continue
+            name_nodes, obj_nodes = find_prop(G, parent_objs, 
+                prop_name, branches, side, parent_name,
+                prop_name_for_tags=prop_name_tags[i],
+                ast_node=ast_node, prop_name_sources=prop_name_sources[i])
+            prop_name_nodes.extend(name_nodes)
+            prop_obj_nodes.extend(obj_nodes)
+
+        # wildcard is now implemented in find_prop
+
+        if len(prop_names) == 1:
+            name = f'{parent_name}.{prop_names[0]}'
         else:
-            logger.debug("PARENT OBJ {} NOT DEFINED, return undefined".
-                format(parent_name))
-            return NodeHandleResult()
+            name = f'{parent_name}.{"/".join(prop_names)}'
 
-    branches = extra.branches
-    side = extra.side
-    prop_name_nodes, prop_obj_nodes = [], []
-
-    # find property name nodes and object nodes
-    for i, prop_name in enumerate(prop_names):
-        if prop_name == None:
-            continue
-        name_nodes, obj_nodes = find_prop(G, parent_objs, 
-            prop_name, branches, side, parent_name,
-            prop_name_for_tags=prop_name_tags[i],
-            ast_node=ast_node, prop_name_sources=prop_name_sources[i])
-        prop_name_nodes.extend(name_nodes)
-        prop_obj_nodes.extend(obj_nodes)
-
-    # wildcard is now implemented in find_prop
-
-    if len(prop_names) == 1:
-        name = f'{parent_name}.{prop_names[0]}'
-    else:
-        name = f'{parent_name}.{"/".join(prop_names)}'
-
-    # tricky fix, we don't really link name nodes to the undefined object
-    if not prop_obj_nodes:
-        prop_obj_nodes = [G.undefined_obj]
+        # tricky fix, we don't really link name nodes to the undefined object
+        if not prop_obj_nodes:
+            prop_obj_nodes = [G.undefined_obj]
 
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
         name=f'{name}', name_nodes=list(prop_name_nodes),
-        ast_node=ast_node, callback=get_df_callback(G)
+        ast_node=ast_node, callback=get_df_callback(G),
+        name_tainted=name_tainted
         ), handled_parent
 
 def handle_assign(G, ast_node, extra=None, right_override=None):
@@ -456,6 +465,21 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
 
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
+
+    if handled_left.name_tainted:
+        pollution = False
+        for obj in right_objs:
+            if G.get_node_attr(obj).get('tainted'):
+                pollution = True
+                break
+        if pollution:
+            name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)
+                .get('name')))) for x in handled_left.name_nodes]
+            logger.warning(sty.fg.li_red + sty.ef.inverse +
+                'Possible prototype pollution at node {} (Line {}), '
+                'trying to assign {} to name node {}'
+                .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'),
+                right_objs, ', '.join(name_node_log)) + sty.rs.all)
 
     # do the assignment
     for name_node in handled_left.name_nodes:
@@ -726,7 +750,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             used_objs.update(handle_res.obj_nodes)
             # used_objs.update(handle_res.used_objs)
             for obj in handle_res.obj_nodes:
-                G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                add_contributes_to(G, [obj], added_obj)
         return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs,
             callback=get_df_callback(G))
 
@@ -837,7 +861,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         added_obj = G.add_obj_node(node_id, value='*')
         used_objs = list(set(used_objs))
         for obj in used_objs:
-            G.add_edge(obj, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+            add_contributes_to(G, [obj], added_obj)
         right_override = NodeHandleResult(obj_nodes=[added_obj],
             used_objs=used_objs, callback=get_df_callback(G))
         return handle_assign(G, node_id, extra, right_override)
@@ -880,26 +904,42 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         if_elems = G.get_ordered_ast_child_nodes(node_id)
         branches = extra.branches
         parent_branch = branches.get_last_choice_tag()
+        branch_num_counter = 0
+        else_is_deterministic = True
         for i, if_elem in enumerate(if_elems):
-            branch_tag = BranchTag(point=stmt_id, branch=str(i))
-            handle_node(G, if_elem, ExtraInfo(extra, branches=branches+[branch_tag]))
-        num_of_branches = len(if_elems) # which is always 2 for javascript...
+            condition, body = G.get_ordered_ast_child_nodes(if_elem)
+            if G.get_node_attr(condition).get('type') == 'AST_NULL': # else
+                if else_is_deterministic:
+                    simurun_block(G, body, G.cur_scope, branches)
+                else:
+                    branch_tag = BranchTag(
+                        point=stmt_id, branch=str(branch_num_counter))
+                    simurun_block(G, body, G.cur_scope, branches+[branch_tag])
+                break
+            possibility, deterministic = check_condition(G, condition, extra,
+                handling_func=handle_node, printing_func=logger.debug)
+            logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
+                G.get_node_attr(condition).get('code') + sty.rs.all,
+                possibility, deterministic))
+            if deterministic and possibility == 1:
+                simurun_block(G, body, G.cur_scope, branches)
+                break
+            elif not deterministic:
+                else_is_deterministic = False
+                branch_tag = \
+                    BranchTag(point=stmt_id, branch=str(branch_num_counter))
+                simurun_block(G, body, G.cur_scope, branches+[branch_tag])
         if not has_else(G, node_id):
-            num_of_branches += 1
-        merge(G, stmt_id, num_of_branches, parent_branch) # We always flatten edges
+            branch_num_counter += 1
+        # We always flatten edges
+        merge(G, stmt_id, branch_num_counter, parent_branch)
         return NodeHandleResult()
 
-    elif cur_type == 'AST_IF_ELEM':
-        condition, body = G.get_ordered_ast_child_nodes(node_id)
-        possibility, deterministic = check_condition(G, condition, extra,
-            handling_func=handle_node, printing_func=logger.debug)
-        logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
-            G.get_node_attr(condition).get('code') + sty.rs.all, possibility,
-            deterministic))
-        if not (deterministic and possibility == 0):
-            logger.debug('Run block {}'.format(G.get_node_attr(body)))
-            simurun_block(G, body, G.cur_scope, extra.branches)
-        return NodeHandleResult()
+    # elif cur_type == 'AST_IF_ELEM':
+    #     condition, body = G.get_ordered_ast_child_nodes(node_id)
+    #     possibility, deterministic = check_condition(G, condition, extra,
+    #         handling_func=handle_node, printing_func=logger.debug)
+    #     return NodeHandleResult()
     
     elif cur_type == 'AST_SWITCH':
         condition, switch_list = G.get_ordered_ast_child_nodes(node_id)
@@ -1197,30 +1237,27 @@ def merge(G, stmt, num_of_branches, parent_branch):
             # the possibilities will continue to exist in parent branches.
             # We ignore those edges without tags related to current
             # statement.
-            flag_created = False
-            for i in created:
-                if i == True:
-                    flag_created = True
+            flag_created = any(created)
             # We always delete Deletion edges because they are useless in
             # parent branches.
             # If they exist in all current branches, the Addition edge in the
             # parent branch will be deleted (or maked by a Deletion edge).
-            flag_deleted = True
-            for i in deleted:
-                if i == False:
-                    flag_deleted = False
+            flag_deleted = deleted and all(deleted)
 
             # if flag_created or flag_deleted:
             #     logger.debug(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
 
-            # flatten Addition edges
             # we'll delete edges, so we save them in a list
             # otherwise the graph is changed and Python will raise an error
             edges = list(G.graph[u][v].items())
+
+            # deleted all branch edges (both Addition and Deletion)
             for key, edge_attr in edges:
                 branch_tag = edge_attr.get('branch', BranchTag())
                 if branch_tag.point == stmt:
                     G.graph.remove_edge(u, v, key)
+
+            # flatten Addition edges
             if flag_created:
                 # logger.debug(f'add edge {u}->{v}, branch={stmt}')
                 if parent_branch:
@@ -1572,7 +1609,7 @@ def ast_call_function(G, ast_node, extra):
         for t, sources in types.items():
             added_obj = G.add_obj_node(ast_node, 'string', t)
             for s in sources:
-                G.add_edge(s, added_obj, {'type:TYPE': 'CONTRIBUTES_TO'})
+                add_contributes_to(G, [s], added_obj)
             returned_objs.append(added_obj)
             used_objs.extend(sources)
         return returned_objs, used_objs
@@ -1686,6 +1723,9 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             continue
         any_func_run = True
 
+        # copy "this" and "args" references
+        # because we may edit them later
+        # and we want to keep original "this" and "args"
         _this = this
         _args = list(args) if args is not None else None
         # bound functions
@@ -1752,7 +1792,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         scope=func_scope, ast_node=caller_ast or param,
                         js_type=None, value='*')
                     if mark_fake_args:
-                        G.set_node_attr(added_obj, ('user_input', True))
+                        G.set_node_attr(added_obj, ('tainted', True))
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
 
@@ -1810,14 +1850,12 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 returned_obj = G.add_obj_node(caller_ast, "object", "*")
                 branch_returned_objs.append(returned_obj)
                 for obj in branch_used_objs:
-                    G.add_edge(obj, returned_obj,
-                        {'type:TYPE': 'CONTRIBUTES_TO'})
+                    add_contributes_to(G, [obj], returned_obj)
                 # add a blank object as created object
                 if is_new and branch_created_obj is None:
                     branch_created_obj = G.add_obj_node(caller_ast, "object", "*")
                     for obj in branch_used_objs:
-                        G.add_edge(obj, branch_created_obj,
-                            {'type:TYPE': 'CONTRIBUTES_TO'})
+                        add_contributes_to(G, [obj], branch_created_obj)
                 # call all callback functions
                 if callback_functions:
                     logger.debug(sty.fg.green + sty.ef.inverse + 'callback functions = {}'.format(callback_functions) + sty.rs.all)
@@ -1890,6 +1928,8 @@ def print_handle_result(handle_result: NodeHandleResult):
         output += f', values={handle_result.values}'
     if handle_result.used_objs:
         output += f', used_objs={handle_result.used_objs}'
+    if handle_result.name_tainted:
+        output += f', name_tainted={handle_result.name_tainted}'
     # if handle_result.from_branches:
     #     output += f'{sty.fg.li_black}, from_branches=' \
     #         f'{handle_result.from_branches}{sty.rs.all}'

@@ -1293,6 +1293,10 @@ class Graph:
         self.null_obj = self.add_obj_node(None, 'object', value='null')
 
     def setup2(self):
+        self.tainted_user_input = self.add_obj_to_scope(
+            name='pyTaintedUserInput', js_type=None,
+            value='*', scope=self.BASE_SCOPE)
+        self.set_node_attr(self.tainted_user_input, ('tainted', True))
         # setup JavaScript built-in values
         self.undefined_obj = self.add_obj_node(None, 'undefined',
                                                 value='undefined')
