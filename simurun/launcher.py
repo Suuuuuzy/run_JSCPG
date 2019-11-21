@@ -45,6 +45,8 @@ def main():
                         "(Defaults to 3.)")
     parser.add_argument('-t', '--vul-type',
                         help="Set the vulnerability type to be checked.")
+    parser.add_argument('--prototype-pollution', '--pp', action='store_true',
+                        help="Check prototype pollution.")
     parser.add_argument('input_file', action='store', nargs='?',
         help="Source code file (or directory) to generate object graph for. "
         "Use '-' to get source code from stdin. Ignore this argument to "
@@ -60,10 +62,8 @@ def main():
             level=logging.DEBUG)
         create_logger("graph_logger", output_type="console",
             level=logging.DEBUG)
-    if args.dont_run_all:
-        G.run_all = False
-    else:
-        G.run_all = True
+    G.run_all = not args.dont_run_all
+    G.check_proto_pollution = args.prototype_pollution
     G.call_limit = args.call_limit
     logger.info('Analysis starts at ' +
         datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S'))
@@ -89,9 +89,10 @@ def main():
     if G.proto_pollution:
         logger.debug(sty.ef.inverse + 'prototype pollution' + sty.rs.all)
         for ast_node in G.proto_pollution:
-            logger.debug('{}: {} Line {}'
-                .format(ast_node, G.get_node_file_path(ast_node),
-                    G.get_node_attr(ast_node).get('lineno:int')))
+            logger.debug('{} {}\n{}'
+                .format(sty.fg.li_cyan + ast_node + sty.rs.all,
+                    G.get_node_file_path(ast_node),
+                    G.get_node_line_code(ast_node)))
 
     if args.vul_type:
         vul_type = args.vul_type

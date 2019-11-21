@@ -1,6 +1,6 @@
 from .graph import Graph
 from .utilities import NodeHandleResult, ExtraInfo
-from .utilities import BranchTag, BranchTagContainer
+from .utilities import BranchTag, BranchTagContainer, get_random_hex
 import os
 import sty
 import json
@@ -315,7 +315,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
                             to_values(G, handled_prop, for_prop=True)
     name_tainted = False
 
-    if prop_names == [None] * len(prop_names):
+    if G.check_proto_pollution and prop_names == [None] * len(prop_names):
         # conservative: only if all property names are known,
         # we fetch all properties
         # (including __proto__ for prototype pollution detection)
@@ -484,6 +484,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
                 'trying to assign {} to name node {}'
                 .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'),
                 right_objs, ', '.join(name_node_log)) + sty.rs.all)
+            G.proto_pollution.add(ast_node)
 
     # do the assignment
     for name_node in handled_left.name_nodes:
@@ -908,7 +909,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     
     elif cur_type == 'AST_IF':
         # lineno = G.get_node_attr(node_id).get('lineno:int')
-        stmt_id = "If" + node_id
+        stmt_id = "If" + node_id + "-" + get_random_hex()
         if_elems = G.get_ordered_ast_child_nodes(node_id)
         branches = extra.branches
         parent_branch = branches.get_last_choice_tag()
@@ -1666,12 +1667,12 @@ def ast_call_function(G, ast_node, extra):
     # handled_parent = None
 
     if G.get_node_attr(ast_node).get('type') == 'AST_CALL':
-        stmt_id = 'Call' + ast_node
+        stmt_id = 'Call' + ast_node + '-' + get_random_hex()
     elif G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
-        stmt_id = 'Call' + ast_node
+        stmt_id = 'Call' + ast_node + '-' + get_random_hex()
         parent = G.get_ordered_ast_child_nodes(ast_node)[0]
     elif G.get_node_attr(ast_node).get('type') == 'AST_NEW':
-        stmt_id = 'New' + ast_node
+        stmt_id = 'New' + ast_node + '-' + get_random_hex()
         is_new = True
 
     returned_objs, created_objs, used_objs = \

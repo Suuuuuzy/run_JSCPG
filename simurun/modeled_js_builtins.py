@@ -95,14 +95,14 @@ def setup_symbol(G: Graph):
 
 def setup_errors(G: Graph):
     error_cons = G.add_blank_func_to_scope('Error', scope=G.BASE_SCOPE, python_func=this_returning_func)
-    # Error.prototype.__proto__ = Object.prototype
-    error_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=error_cons)[0]
-    G.add_obj_as_prop(prop_name='__proto__', parent_obj=error_prototype, tobe_added_obj=G.object_prototype)
-    for i in ['EvalError', 'InternalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError']:
-        # EvalError.prototype.__proto__ = Error
-        cons = G.add_blank_func_to_scope(i, scope=G.BASE_SCOPE)
-        prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=cons)[0]
-        G.add_obj_as_prop(prop_name='__proto__', parent_obj=prototype, tobe_added_obj=error_prototype)
+    # # Error.prototype.__proto__ = Object.prototype
+    # error_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=error_cons)[0]
+    # G.add_obj_as_prop(prop_name='__proto__', parent_obj=error_prototype, tobe_added_obj=G.object_prototype)
+    # for i in ['EvalError', 'InternalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError']:
+    #     # EvalError.prototype.__proto__ = Error
+    #     cons = G.add_blank_func_to_scope(i, scope=G.BASE_SCOPE)
+    #     prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=cons)[0]
+    #     G.add_obj_as_prop(prop_name='__proto__', parent_obj=prototype, tobe_added_obj=error_prototype)
 
 
 def setup_object_and_function(G: Graph):
