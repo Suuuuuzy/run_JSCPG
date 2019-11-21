@@ -16,6 +16,7 @@ def unittest_main(file_path, check_signatures=[]):
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--print', action='store_true')
+    parser.add_argument('-c', nargs=2)
     args = parser.parse_args()
     if args.print:
         create_logger("main_logger", output_type="console",
