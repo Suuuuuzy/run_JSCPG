@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/opencv@6.0.0/examples/addweighted.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/opencv@6.0.0/examples/face-detection.js');

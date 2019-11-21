@@ -1931,13 +1931,13 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if node_attrs.get('type') == 'object' and node_attrs.get('code') == '*':
             for e1 in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
                 for e2 in G.get_in_edges(e1[0], edge_type='OBJ_TO_PROP'):
-                    logger.debug("{}-----{}".format(cur_stmt, used_objs))
+                    #logger.debug("{}-----{}".format(cur_stmt, used_objs))
                     used_objs.append(e2[0])
     used_objs = set(used_objs)
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
         def_cpg_node = G.find_nearest_upper_CPG_node(def_ast_node)
-        logger.debug("{}-----{} {}".format(def_cpg_node, def_ast_node, obj))
+        # logger.debug("{}-----{} {}".format(def_cpg_node, def_ast_node, obj))
         if def_cpg_node == None: continue
         if def_cpg_node == cur_stmt: continue
         def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')
