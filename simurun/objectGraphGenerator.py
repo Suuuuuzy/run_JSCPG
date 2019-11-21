@@ -1511,13 +1511,16 @@ def ast_call_function(G, ast_node, extra):
                     if not parent_obj:
                         parent_obj = obj
 
+                    if 'pythonfunc' in G.get_node_attr(obj):
+                        continue
+
+                    print(obj, G.get_node_attr(obj))
                     newed_objs = None
                     returned_objs = None
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
                     if G.get_node_attr(obj).get('type') == 'function' \
                             and 'pythonfunc' not in G.get_node_attr(obj):
-                        print(obj, G.get_node_attr(obj))
                         # some times they write exports= new foo() eg. libnmap
                         returned_objs, newed_objs, _ = call_function(G, [obj], 
                                 this=NodeHandleResult(obj_nodes=[parent_obj]),
