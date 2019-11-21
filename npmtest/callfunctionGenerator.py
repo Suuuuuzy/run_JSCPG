@@ -310,12 +310,7 @@ def main():
         ret_value = 100
         result = [-1]
         try:
-            # thread_pool[package] = threading.Thread(target = test_package,
-            #        args=(package, vul_type))
-            # thread_pool[package].start()
-            # thread_pool[package].join(timeout)
             result = func_timeout(timeout, test_package, args=(package, vul_type))
-            # result = test_package(package, vul_type)
         except FunctionTimedOut:
             npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))
             skip_list.append(package)
