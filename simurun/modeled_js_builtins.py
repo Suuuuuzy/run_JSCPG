@@ -184,6 +184,7 @@ def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), call
 
 def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult(), this=None):
     for arr in array.obj_nodes:
+        name_nodes=G.get_prop_name_nodes(arr)
         for name_node in G.get_prop_name_nodes(arr):
             name = G.get_node_attr(name_node).get('name')
             if not is_int(name):
@@ -451,7 +452,10 @@ def array_p_join(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=Nod
             if sep is None:
                 sep = ','
             a = to_python_array(G, arr, value=True)[0]
-            s = sep.join(['/'.join(elem) for elem in a])
+            if None in chain(*a):
+                s = None
+            else:
+                s = sep.join(['/'.join(elem) for elem in a])
             new_literal = G.add_obj_node(caller_ast, 'string', value=s)
             returned_objs.append(new_literal)
             elem_objs = G.get_prop_obj_nodes(arr, branches=extra.branches,
