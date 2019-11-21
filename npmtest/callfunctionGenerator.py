@@ -186,6 +186,7 @@ def test_package(package_path, vul_type='os_command'):
 
     if package_main_files is None:
         return []
+
     for package_file in package_main_files:
         test_res = test_file(package_file, vul_type)
         res.append(test_res)
@@ -264,7 +265,7 @@ def main():
     chunk_detail = argparser.parse_args().c
 
     testing_packages = []
-    testing_packages = ['gitlabhook@0.0.17']
+    # testing_packages = ['wxchangba@1.0.3']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, limit = 50000)
     else:
@@ -276,7 +277,7 @@ def main():
 
     tqdm_bar = tqdm(packages)
     vul_type = 'os_command'
-    timeout = 1200
+    timeout = 120
 
     success_list = []
     skip_list = []

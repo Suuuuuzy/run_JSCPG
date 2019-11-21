@@ -13,6 +13,8 @@ from .helpers import add_contributes_to
 from .esprima import esprima_parse, esprima_search
 from itertools import chain
 from collections import defaultdict
+from .trace_rule import TraceRule
+from .vulChecking import *
 
 registered_func = {}
 
@@ -296,6 +298,8 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)[:2]
     handled_parent = handle_node(G, parent, extra)
     handled_prop = handle_node(G, prop, extra)
+    if G.finished:
+        return NodeHandleResult(), handled_parent
     
     parent_code = G.get_node_attr(parent).get('code')
     parent_name = handled_parent.name or parent_code or 'Unknown'
@@ -646,6 +650,10 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     """
     for different node type, do different actions to handle this node
     """
+
+    if G.finished:
+        return 
+
     cur_node_attr = G.get_node_attr(node_id)
     cur_type = cur_node_attr['type']
     cur_lineno = cur_node_attr['lineno:int']
@@ -914,6 +922,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 else:
                     branch_tag = BranchTag(
                         point=stmt_id, branch=str(branch_num_counter))
+                    branch_num_counter += 1
                     simurun_block(G, body, G.cur_scope, branches+[branch_tag])
                 break
             possibility, deterministic = check_condition(G, condition, extra,
@@ -928,6 +937,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 else_is_deterministic = False
                 branch_tag = \
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
+                branch_num_counter += 1
                 simurun_block(G, body, G.cur_scope, branches+[branch_tag])
         if not has_else(G, node_id):
             branch_num_counter += 1
@@ -1191,6 +1201,8 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     for stmt in stmts:
         G.cur_stmt = stmt
         handled_res = handle_node(G, stmt, ExtraInfo(branches=branches))
+        if G.finished:
+            return [], []
 
         # if handled_res:
         #     stmt_used_objs = handled_res.used_objs
@@ -1515,6 +1527,8 @@ def ast_call_function(G, ast_node, extra):
         List, List: Returned objects and used objects.
     '''
     # handle the callee
+    if G.finished:
+        return [], []
     handled_parent = None
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
         handled_callee, handled_parent = handle_prop(G, ast_node, extra)
@@ -1529,12 +1543,13 @@ def ast_call_function(G, ast_node, extra):
         if module_exports_objs:
             exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
             exported_objs += module_exports_objs
+
             #print("======================", module_exports_objs, exported_objs)
             # if len(exported_objs) == 0:
                 # we only have one exported funcs
             #    exported_objs = module_exports_objs
 
-            print(exported_objs, '===========')
+            # print(exported_objs, '===========')
             # some times the returned obj only has one obj
             # exported_objs.append(module_exports_objs[0])
 
@@ -1548,13 +1563,16 @@ def ast_call_function(G, ast_node, extra):
                     if not parent_obj:
                         parent_obj = obj
 
+                    if 'pythonfunc' in G.get_node_attr(obj):
+                        continue
+
+                    # print(obj, G.get_node_attr(obj))
                     newed_objs = None
                     returned_objs = None
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
                     if G.get_node_attr(obj).get('type') == 'function' \
                             and 'pythonfunc' not in G.get_node_attr(obj):
-                        print(obj, G.get_node_attr(obj))
                         # some times they write exports= new foo() eg. libnmap
                         returned_objs, newed_objs, _ = call_function(G, [obj], 
                                 this=NodeHandleResult(obj_nodes=[parent_obj]),
@@ -1581,7 +1599,14 @@ def ast_call_function(G, ast_node, extra):
                             if G.get_node_attr(obj).get('type') == 'function':
                                 #print(obj, G.get_node_attr(obj))
                                 exported_objs.append((newed_obj, obj))
-        return module_exports_objs, []
+
+        # for a require call, we need to run traceback immediately
+        vul_type = 'os_command'
+        res_path = traceback(G, vul_type)
+        res_path = vul_checking(G, res_path[0], vul_type)
+        if len(res_path) != 0:
+            G.finished = True
+        return module_exports_objs, [] 
 
     # handle arguments
     handled_args = []
@@ -1684,7 +1709,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             and used objects.
     '''
     # No function objects found, return immediately
-    if not func_objs:
+    if G.finished or not func_objs:
         logger.error(f'No definition found for function {func_name}')
         return [], [], []
 

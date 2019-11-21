@@ -23,6 +23,7 @@ class Graph:
         self.run_all = True
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
+        self.finished = False
 
         # reserved values
         self.function_prototype = None
