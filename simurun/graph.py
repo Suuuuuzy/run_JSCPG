@@ -36,7 +36,7 @@ class Graph:
         self.scope_counter = DictCounter()
 
         # contains a list of node ids based on the ast id
-        self.call_stack = set() # callers (instead of callees)
+        self.call_stack = [] # callers (instead of callees)
         self.call_counter = DictCounter() # callers (instead of callees)
         self.call_limit = 3
         self.file_stack = []

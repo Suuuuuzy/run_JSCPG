@@ -466,7 +466,7 @@ def to_python_array(G: Graph, array_obj, value=False):
         for e in G.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
             if value:
                 elements[i].append(val_to_str(G.get_node_attr(e[1])
-                    .get('code', '?')))
+                    .get('code')))
             else:
                 elements[i].append(e[1])
             data[i].append(e[3])

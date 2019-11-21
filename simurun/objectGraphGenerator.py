@@ -1623,6 +1623,9 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
     # and need to merge afterwards
     has_branches = (len(func_objs) > 1)
 
+    G.call_stack.append('{} {}'.format(func_name, len(func_objs)))
+    # print(G.call_stack)
+
     if stmt_id == 'Unknown' and caller_ast is not None:
         stmt_id = caller_ast
 
@@ -1637,6 +1640,7 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
         if func_obj in G.internal_objs.values():
             logger.warning('Error: Trying to run an internal obj {} {}'
                 ', skipped'.format(func_obj, G.inv_internal_objs[func_obj]))
+            continue
         any_func_run = True
 
         _this = this
@@ -1792,6 +1796,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
 
     if not any_func_run:
         logger.error('Error: No function was run during this function call')
+
+    G.call_stack.pop()
 
     return list(returned_objs), created_objs, list(used_objs)
 
