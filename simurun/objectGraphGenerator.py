@@ -763,7 +763,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs,
             callback=get_df_callback(G))
 
-    elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME':
+    elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME' or cur_type == 'AST_CONST':
         return handle_var(G, node_id, extra)
 
     elif cur_type == 'AST_DIM':
@@ -934,7 +934,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             if deterministic and possibility == 1:
                 simurun_block(G, body, G.cur_scope, branches)
                 break
-            elif not deterministic:
+            elif not deterministic or possibility is None or 0 < possibility < 1:
                 else_is_deterministic = False
                 branch_tag = \
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
@@ -1622,7 +1622,11 @@ def ast_call_function(G, ast_node, extra):
         types = defaultdict(lambda: [])
         if handled_args:
             for obj in handled_args[0].obj_nodes:
-                types[G.get_node_attr(obj).get('type')].append(obj)
+                if G.get_node_attr(obj).get('type') == 'object' and \
+                    G.get_node_attr(obj).get('code') == '*':
+                    types[None].append(obj)
+                else:
+                    types[G.get_node_attr(obj).get('type')].append(obj)
             for i, val in enumerate(handled_args[0].values):
                 if type(val) in ['int', 'float']:
                     types['number'].extend(handled_args[0].value_sources[i])
