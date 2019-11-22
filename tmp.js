@@ -1,14 +1,14 @@
 var cp = require("child_process");
 
-function foo() {
-  foo.prototype.worker = function(var_test) {
-    cp.exec(var_test);
+function foo(options) {
+  this.option = options;
+
+  foo.prototype.worker = function() {
+    console.log(this.option);
+    cp.exec(this.option);
   }
 }
 
-module.exports = new foo();
-/*
-.foo = function(input){
+module.exports = function(input){
   return new foo(input);
 }
-*/
