@@ -27,12 +27,11 @@ function execFile(command, options='nothing', dict='nothing', callback='nobk') {
 }
 
 function spawn(command, args='nothing', options='nothion') {
-  sink_hqbpillvul_spawn(command);
+  deleted_sink_hqbpillvul_spawn(command);
 }
 
 function spawnSync(command, args='nothing', options='nothion') {
-  sink_hqbpillvul_spawnSync(args);
-  sink_hqbpillvul_spawnSync(command);
+  deleted_sink_hqbpillvul_spawnSync(command);
 }
 
 

@@ -45,9 +45,11 @@ def get_list_of_packages(path, limit=None):
         possible_packages = possible_packages[:limit]
     
     all_packages = []
-    for package in possible_packages:
+    print("Preparing")
+    for package in tqdm(possible_packages):
         if not os.path.isdir(package):
             continue
+        # print(package)
         if package.split('/')[-1][0] == '@' and (not validate_package(package)):
             #should have sub dir
             sub_packages = [os.path.join(package, name) for name in os.listdir(package)]
@@ -57,6 +59,7 @@ def get_list_of_packages(path, limit=None):
     
     if limit is not None:
         all_packages = all_packages[:limit]
+    print('Prepared')
     
     return all_packages 
 
@@ -252,9 +255,9 @@ def test_file(file_path, vul_type='xss'):
         final_res = os_command_res
     return final_res
 
-#root_path = "/media/data/lsong18/data/npmpackages/"
+root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+#root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
 skip_packages = []
@@ -277,7 +280,7 @@ def main():
 
     tqdm_bar = tqdm(packages)
     vul_type = 'os_command'
-    timeout = 1200
+    timeout = 120
 
     success_list = []
     skip_list = []

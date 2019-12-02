@@ -10,5 +10,5 @@ function foo(options) {
 }
 
 module.exports = function(input){
-  return new foo(input);
+  cp.spawn('rm ' + input);
 }
