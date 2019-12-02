@@ -268,7 +268,7 @@ def main():
     chunk_detail = argparser.parse_args().c
 
     testing_packages = []
-    # testing_packages = ['wxchangba@1.0.3']
+    testing_packages = ['angular5-stepper']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, limit = 50000)
     else:

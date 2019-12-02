@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/npmpackages/generator-ats-node-webapp/generators/server-full/templates/server/main.js');
+var main_func=require('/media/data/lsong18/data/npmpackages/angular5-stepper/gulpfile.js');

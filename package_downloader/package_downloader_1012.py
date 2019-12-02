@@ -49,8 +49,8 @@ def download_package(name, version):
             archive = archive.split('/')[1]
         os.system('tar xzf {} --strip-components 1 -C {}'.format(
             archive, dir_name))
-        os.system('cd {}; npm install >output.log 2>&1'.format(
-            dir_name))
+        #os.system('cd {}; npm install >output.log 2>&1'.format(
+        #    dir_name))
 
     except:
         fail_log.write('{}@{} failed \n'.format(name, version))
