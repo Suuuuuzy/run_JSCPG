@@ -1,0 +1,67 @@
+ps,1.0.0,A command Injection in ps package versions <1.0.0 for Node.js allowed arbitrary commands to be executed when attacker controls the PID.,https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-16460
+macaddress,0.2.8,"The macaddress module before 0.2.9 for Node.js is prone to an arbitrary command injection flaw, due to allowing unsanitized input to an exec (rather than execFile) call.",https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-13797
+gitlabhook,0.0.17,"All versions of gitlabhook are vulnerable to Command Injection. The package does not validate input the body of POST request and concatenates it to an exec call, allowing attackers to run arbitrary commands in the system.",https://www.npmjs.com/advisories/1174
+local-devices,2.0.0,"The package does not validate input on ip addresses and concatenates it to an exec call, allowing attackers to run arbitrary commands in the system.",https://www.npmjs.com/advisories/1020
+pullit,1.3.0,"The package does not validate input on git branch names and concatenates it to an exec call, allowing attackers to run arbitrary commands in the system.",https://www.npmjs.com/advisories/1004
+wizard-syncronizer,0.0.1,The package does not validate input on the cloneAndSync function and concatenates it to an exec call. This can be abused through a malicious widget containing the payload in the gitURL value or through a MITM attack since the package does not enforce HTTPS. This may allow attackers to run arbitrary commands in the system.,https://www.npmjs.com/advisories/977
+entitlements,1.2.0,"The package does not validate input on the entitlements function and concatenates it to an exec call, allowing attackers to run arbitrary commands in the system.",https://www.npmjs.com/advisories/998
+kill-port,1.3.1,The package does not validate user input on the kill function. This may allow attackers to run arbitrary commands in the system if user input (such as the port number) is passed directly to the function.,https://www.npmjs.com/advisories/966
+wxchangba,1.0.3,"The package does not validate user input on the reqPostMaterial function, passing contents of the file parameter to an exec call. This may allow attackers to run arbitrary commands in the system.",https://www.npmjs.com/advisories/960
+soletta-dev-app,0.0.7,"The package does not validate user input on the /api/service/status API endpoint, passing contents of the service query parameter to an exec call. This may allow attackers to run arbitrary commands in the system.",https://www.npmjs.com/advisories/958
+addax,1.0.6,The package does not validate user input on the presignPath function which receives input directly from the API endpoint. Exploiting the vulnerability requires authentication. This may allow attackers to run arbitrary commands in the system.,https://www.npmjs.com/advisories/954
+expressfs,0.2.10,"The package does not validate user input on several API endpoints, allowing attackers to run arbitrary commands in the system. The affected endpoints are: expressfs.appendFile, expressfs.cp, expressfs.create and expressfs.rmdir.",https://www.npmjs.com/advisories/953
+node-wifi,2.0.11,"The package fails to sanitize user input, allowing attackers to inject commands through the ssid variable and possibly achieving Remote Code Execution on the system.",https://www.npmjs.com/advisories/952
+wiki-plugin-datalog,0.1.5,"The package failed to sanitize URLs on the curl endpoint, allowing attackers to inject commands and possibly achieving Remote Code Execution on the system.",https://www.npmjs.com/advisories/926
+cocos-utils,1.0.0,The unzip() function concatenates user input to exec() which may allow attackers to execute arbitrary commands on the server.,https://www.npmjs.com/advisories/829
+tomato,0.0.7,The /api/exec endpoint does not validate user input allowing attackers to run arbitrary commands in the system.,https://www.npmjs.com/advisories/797
+dot,1.1.2,The template compilation may execute arbitrary commands if an attacker can inject code in the template or if a Prototype Pollution-like vulnerability can be exploited to alter an Object's prototype.,https://www.npmjs.com/advisories/798
+opencv,6.0.0,The utils/ script find-opencv.js does not validate user input allowing attackers to execute arbitrary commands.,https://www.npmjs.com/advisories/789
+samsung-remote,1.2.5, This vulnerability is exploitable if user input is passed into the ip option of the package constructor.,https://www.npmjs.com/advisories/734
+ascii-art,1.4.2,"Versions of ascii-art before 1.4.4 are vulnerable to command injection. This is exploitable when user input is passed into the argument of the ascii-art preview command.
+Example Proof of concept: ascii-art preview 'doom""; touch /tmp/malicious; echo ""'
+Given that the input is passed on the command line and none of the api methods are vulnerable to this, the likely exploitation vector is when the ascii-art comment is being called programmatically using something like execFile.",https://www.npmjs.com/advisories/727
+libnmap,0.4.5,"Proof of concept
+const nmap = require('libnmap');
+const opts = {
+    range: [
+        'scanme.nmap.org',
+        ""x.x.$(touch success.txt)""
+    ]
+};
+nmap.scan(opts, function(err, report) {
+    if (err) throw new Error(err);
+
+    for (let item in report) {
+        console.log(JSON.stringify(report[item]));
+    }
+});",https://www.npmjs.com/advisories/719
+apex-publish-static-files,2.0.0,This is exploitable if user input is passed into the connectString option in the publish method.,https://www.npmjs.com/advisories/718
+egg-scripts,2.8.0,"This is only exploitable if a malicious argument is provided on the command line.
+Example: eggctl start --daemon --stderr='/tmp/eggctl_stderr.log; touch /tmp/malicious'",https://www.npmjs.com/advisories/694
+pdf-image,1.0.5,This vulnerability is exploitable if the attacker has control over the pdfFilePath variable passed into pdf-image.,https://www.npmjs.com/advisories/670
+buttle,0.3.1,All versions of buttle are vulnerable to command injection. Remote command execution is possible when buttle is run with the --php-bin flag.,https://www.npmjs.com/advisories/667
+open,0.0.5,"Versions of open before 6.0.0 are vulnerable to command injection when unsanitized user input is passed in.
+
+The package does come with the following warning in the readme:
+If it is an executable it will run in a new shell.",https://www.npmjs.com/advisories/663
+fs-path,0.0.24,All versions of fs-path are vulnerable to command injection is unsanitized user input is passed in.,https://www.npmjs.com/advisories/661
+command-exists,1.2.3,This is exploitable if user input is provided to this module.,https://www.npmjs.com/advisories/659
+macaddress,0.2.8,For this vulnerability to be exploited an attacker needs to control the iface argument to the one method.,https://www.npmjs.com/advisories/654
+pdfinfojs,0.4.0,This is exploitable if an attacker can control the filename parameter that is passed into the pdfinfojs constructor.,https://www.npmjs.com/advisories/643
+whereis,0.4.0,Versions of whereis before 0.4.1 are vulnerable to command injection if untrusted user input is passed into whereis.,https://www.npmjs.com/advisories/604
+dns-sync,0.1.0,Affected versions of dns-sync have an arbitrary command execution vulnerability in the resolve() method.,https://www.npmjs.com/advisories/523
+fs-git,1.0.1,"Affected versions of fs-git do not sanitize strings passed into the buildCommand method, resulting in arbitrary code execution.",https://www.npmjs.com/advisories/360
+pidusage,1.1.4,"Affected versions of pidusage pass unsanitized input to child_process.exec(), resulting in arbitrary code execution in the ps method.
+This package is vulnerable to this PoC on Darwin, SunOS, FreeBSD, and AIX.
+Windows and Linux are not vulnerable.",https://www.npmjs.com/advisories/356
+windows-cpu,0.1.4,"Version of windows-cpu before 0.1.5 will execute arbitrary code passed into the first argument of the findLoad method, resulting in remote code execution.",https://www.npmjs.com/advisories/336
+growl,1.10.1,"Affected versions of growl do not properly sanitize input prior to passing it into a shell command, allowing for arbitrary command execution.",https://www.npmjs.com/advisories/146
+shell-quote,1.6.0,"Affected versions of shell-quote do not properly escape command line arguments, which may result in command injection if the library is used to escape user input destined for use as command line arguments.",https://www.npmjs.com/advisories/117
+gm,1.20.0,"Versions of gm prior to 1.21.1 are affected by a command injection vulnerability. The vulnerability is triggered when user input is passed into gm.compare(), which fails to sanitize input correctly before calling the graphics magic binary.",https://www.npmjs.com/advisories/54
+ungit,0.8.4,Versions of ungit prior to 0.9.0 are affected by a command injection vulnerability in the url parameter.,https://www.npmjs.com/advisories/40
+printer,0.0.1,Versions 0.0.1 and earlier of printer are affected by a command injection vulnerability resulting from a failure to sanitize command arguments properly in the printDirect() function.,https://www.npmjs.com/advisories/27
+libnotify,1.0.3,"Versions 1.0.3 and earlier of libnotify are affected by a shell command injection vulnerability. This may result in execution of arbitrary shell commands, if user input is passed into libnotify.notify.
+Untrusted input passed in the call to libnotify.notify could result in execution of shell commands. Callers may be unaware of this.",https://www.npmjs.com/advisories/20
+hubot-scripts,2.4.3,Versions 2.4.3 and earlier of hubot-scripts are vulnerable to a command injection vulnerablity in the hubot-scripts/package/src/scripts/email.coffee module.,https://www.npmjs.com/advisories/13
+codem-transcode,0.4.4,"When the ffprobe functionality is enabled on the server, HTTP POST requests can be made to /probe. These requests are passed to the ffprobe binary on the server. Through this HTTP endpoint it is possible to send a malformed source file name to ffprobe that results in arbitrary command execution.",https://www.npmjs.com/advisories/2
+,,,
