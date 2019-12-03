@@ -1,4 +1,6 @@
-var root = require("/media/data/lsong18/data/npmpackages/brackets-git/src/domains/processUtils.js");
+var Root = require("/media/data/lsong18/data/npmpackages/node-prompt-here/index.js");
+//node-prompt-here: var root = new Root();
+//root.open('"& touch sdfliajdlifja &"');
 //brackets-git: root.killSingleProcess('& touch sdfliajdlifja &', function(){});
 //werk: root.pushToOrigin('& touch sdfliajdlifja &');
 //fis-postpackager-gpsvn: root.svn_checkout('& touch sdfliajdlifja &',123, 123, 123, function(){}, 123);
