@@ -259,6 +259,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     added_obj))
                 if G.get_node_attr(parent_obj).get('tainted'):
                     G.set_node_attr(added_obj, ('tainted', True))
+                    logger.debug("{} marked as tainted".format(added_obj));
                 for s in prop_name_sources:
                     logger.debug('added contributes to from {} to {}'.format(s, added_obj))
                     add_contributes_to(G, [s], added_obj)
@@ -1809,7 +1810,8 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                 param_name = G.get_name_from_child(param)
                 if j < len(_args):
                     arg_obj_nodes = to_obj_nodes(G, _args[j], caller_ast)
-                    logger.debug(f'add arg {param_name} <- {arg_obj_nodes}, scope {func_scope}')
+                    logger.debug(f'add arg {param_name} <- {arg_obj_nodes}, \
+                            scope {func_scope}')
                     for obj in arg_obj_nodes:
                         G.add_obj_to_scope(name=param_name, scope=func_scope,
                             tobe_added_obj=obj)
@@ -1823,10 +1825,12 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         js_type=None, value='*')
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('tainted', True))
+                        logger.debug("{} marked as tainted".format(added_obj));
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
 
-                    logger.debug(f'add arg {param_name} <- new obj {added_obj}, scope {func_scope}, ast node {param}')
+                    logger.debug(f'add arg {param_name} <- new obj {added_obj}, \
+                            scope {func_scope}, ast node {param}')
             # manage branches
             branches = extra.branches
             parent_branch = branches.get_last_choice_tag()
@@ -1888,7 +1892,9 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                         add_contributes_to(G, [obj], branch_created_obj)
                 # call all callback functions
                 if callback_functions:
-                    logger.debug(sty.fg.green + sty.ef.inverse + 'callback functions = {}'.format(callback_functions) + sty.rs.all)
+                    logger.debug(sty.fg.green + sty.ef.inverse + \
+                            'callback functions = {}'.format(callback_functions)\
+                            + sty.rs.all)
                     call_function(G, callback_functions, caller_ast=caller_ast,
                         extra=extra, stmt_id=stmt_id)
         assert type(branch_returned_objs) is list
@@ -1970,7 +1976,7 @@ def generate_obj_graph(G, entry_nodeid):
     generate the object graph of a program
     """
     G.setup1()
-    modeled_js_builtins.setup_js_builtins(G)
+    # modeled_js_builtins.setup_js_builtins(G)
     G.setup2()
     NodeHandleResult.print_callback = print_handle_result
     logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
