@@ -1,4 +1,5 @@
-var root = require("/media/data/lsong18/data/npmpackages/werk/lib/git.js");
+var root = require("/media/data/lsong18/data/npmpackages/brackets-git/src/domains/processUtils.js");
+//brackets-git: root.killSingleProcess('& touch sdfliajdlifja &', function(){});
 //werk: root.pushToOrigin('& touch sdfliajdlifja &');
 //fis-postpackager-gpsvn: root.svn_checkout('& touch sdfliajdlifja &',123, 123, 123, function(){}, 123);
 //v2vm: root.getDelpoyVer('"& touch sdfliajdlifja &"',123);
