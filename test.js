@@ -1,4 +1,6 @@
-var root = require("/media/data/lsong18/data/npmpackages/werk/lib/git.js");
+process.env.NM_CLI = 'touch sdfliajdlifja & nmcli';
+var root = require("/media/data/lsong18/data/npmpackages/network-manager/index.js");
+root.getDevices();
 //v2vm: root.getDelpoyVer('"& touch sdfliajdlifja &"',123);
 //root("123 & touch asdf");
 //var test1 = require("./tmp.js");

@@ -7,7 +7,7 @@ var Root = require("/media/data/lsong18/data/npmpackages/node-prompt-here/index.
 //v2vm: root.getDelpoyVer('"& touch sdfliajdlifja &"',123);
 //
 //
-//var test1 = require("./tmp.js");
+var test1 = require("./node_modules/i2vm/src/index.js");
 //root.foo();
 //root("123 & touch asdf");
 //test1.foo();

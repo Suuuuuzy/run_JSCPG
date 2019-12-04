@@ -63,7 +63,7 @@ def get_list_of_packages(path, limit=None):
     
     return all_packages 
 
-def get_entrance_files_of_package(package_path):
+def get_entrance_files_of_package(package_path, get_all=False):
     """
     get the entrance file pathes of a package
     we use madge to get all the entrance functions, which are the files that no one require
@@ -77,6 +77,7 @@ def get_entrance_files_of_package(package_path):
 
     entrance_files = []
     package_json_path = os.path.join(package_path, 'package.json')
+    main_files = []
     if not validate_package(package_path):
         print("ERROR: {} do not exist".format(package_json_path)) 
         return None
@@ -93,28 +94,34 @@ def get_entrance_files_of_package(package_path):
         else:
             main_file = package_json['main']
 
-
+    # entrance file maybe two different formats
+    # ./index = ./index.js or ./index = ./index/index.js
     if main_file[-3:] != ".js":
-        main_file += "/index.js"
+        main_files.append(main_file + "/index.js")
+        main_file += '.js'
 
-    analysis_path = './require_analysis.js'
-    proc = subprocess.Popen(['node', analysis_path,
-        package_path], text=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = proc.communicate()
-    #here we assume that there are no ' in the file names
-    #print(stdout)
-    stdout = stdout.replace('\'', '"')
-    package_structure = json.loads(stdout)
+    main_files.append(main_file)
 
-    for root_file in package_structure:
-        entrance_files.append(root_file)
+    if get_all:
+        analysis_path = './require_analysis.js'
+        proc = subprocess.Popen(['node', analysis_path,
+            package_path], text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate()
+        #here we assume that there are no ' in the file names
+        #print(stdout)
+        stdout = stdout.replace('\'', '"')
+        package_structure = json.loads(stdout)
 
-    if main_file not in entrance_files and os.path.exists("{}/{}".format(package_path, main_file)):
-        entrance_files.append(main_file)
+        for root_file in package_structure:
+            entrance_files.append(root_file)
+
+    for main_file in main_files:
+        if main_file not in entrance_files and os.path.exists("{}/{}".format(package_path, main_file)):
+            entrance_files.append(main_file)
 
     main_file_pathes = ["{}/{}".format(package_path, main_file) for main_file in entrance_files]
-    # print("Entrance Files ", main_file_pathes)
+    print("Entrance Files ", main_file_pathes)
 
     return main_file_pathes
 
@@ -183,6 +190,8 @@ def test_package(package_path, vul_type='os_command'):
     size_count = dir_size_count(package_path)
     npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
 
+    # the main generating program can solve the main file
+    # but we also get the entrance files
     package_main_files = get_entrance_files_of_package(package_path)
     # print(package_main_files)
     res = []
@@ -255,9 +264,9 @@ def test_file(file_path, vul_type='xss'):
         final_res = os_command_res
     return final_res
 
-root_path = "/media/data/lsong18/data/npmpackages/"
+#root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-#root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
 skip_packages = []
@@ -268,7 +277,7 @@ def main():
     chunk_detail = argparser.parse_args().c
 
     testing_packages = []
-    testing_packages = ['angular5-stepper']
+    # testing_packages = ['fs-git@1.0.1']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, limit = 50000)
     else:
