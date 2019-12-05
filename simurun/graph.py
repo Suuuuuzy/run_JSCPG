@@ -1298,6 +1298,7 @@ class Graph:
         self.tainted_user_input = self.add_obj_to_scope(
             name='pyTaintedUserInput', js_type=None,
             value='*', scope=self.BASE_SCOPE)
+        self.logger.debug("{} is mared as tainted for user input".format(self.tainted_user_input))
         self.set_node_attr(self.tainted_user_input, ('tainted', True))
         # setup JavaScript built-in values
         self.undefined_obj = self.add_obj_node(None, 'undefined',

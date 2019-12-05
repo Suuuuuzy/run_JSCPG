@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/pidusage@1.1.4/index.js');
+var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/opencv@6.0.0/./lib/opencv.js');

@@ -1,12 +1,10 @@
 var cp = require("child_process");
-/*
-var foo = function() {
-  cp.exec("ls", function(input){
+var foo = function(put) {
+  var cmd = {a: put.adc};
+  args = [cmd.a];
+  cp.exec(args.join(' '), function(input){
     console.log(input);
   })
 }
-*/
 
-var foo = exports.foo = function (){
-  console.log(123);
-}
+exports.foo = foo;

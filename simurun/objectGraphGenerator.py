@@ -713,7 +713,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         for child in children:
             result = handle_node(G, child, ExtraInfo(extra,
                 parent_obj=added_obj))
-            # used_objs.update(result.used_objs)
+            # used_objs.update(result.obj_nodes)
 
         G.add_obj_as_prop(prop_name='length', js_type='number',
             value=len(children), parent_obj=added_obj)
@@ -1976,7 +1976,7 @@ def generate_obj_graph(G, entry_nodeid):
     generate the object graph of a program
     """
     G.setup1()
-    # modeled_js_builtins.setup_js_builtins(G)
+    modeled_js_builtins.setup_js_builtins(G)
     G.setup2()
     NodeHandleResult.print_callback = print_handle_result
     logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)

@@ -153,21 +153,43 @@ class TraceRule:
         check if any node in this path contains user input
         user input is defined as in the http, process or 
         the arguments of the module entrance functions
-
+        
+        we check by the obj in the edges
         Args: 
             path: the path
         Return:
             True or False
         """
+        pre_node = None
         for node in path:
+            if not pre_node:
+                pre_node = node;
+                continue
+            
+            cur_edges = self.graph.get_edge_attr(pre_node, node)
+            # print("{} --{}--> {}".format(pre_node, cur_edges, node))
+            if not cur_edges:
+                continue
+            for k in cur_edges:
+                if 'type:TYPE' in cur_edges[k] and cur_edges[k]['type:TYPE'] == "OBJ_REACHES":
+                    obj = cur_edges[k]['obj']
+                    obj_attr = self.graph.get_node_attr(obj)
+                    if 'tainted' in obj_attr and obj_attr['tainted']:
+                        return True
+            pre_node = node
+
+            """
             all_child = self.graph.get_all_child_nodes(node)
             objs = []
             for child in all_child:
                 objs += self.graph.get_in_edges(child, edge_type='OBJ_TO_AST')
             for obj in objs:
                 node_attr = self.graph.get_node_attr(obj[0])
+                # here we only keep the obj which in the OBJ_REACHES edges
                 if 'tainted' in node_attr and node_attr['tainted']:
+                    print(obj[0], node_attr, self.graph.get_node_attr(obj[1]))
                     return True
+            """
         if self.start_within_file(['http.js', 'process.js', 'yargs.js'], path):
             return True
         return False
