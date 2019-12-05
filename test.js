@@ -3,9 +3,9 @@
 //root.getDevices();
 //v2vm: root.getDelpoyVer('"& touch sdfliajdlifja &"',123);
 //root("123 & touch asdf");
-var test1 = require("./tmp.js");
+//var test1 = require("./tmp.js");
 //test1('tt.js & touch 123');
-//var test = require("/media/data/lsong18/data/vulPackages/command_injection/growl@1.9.2/lib/growl.js");
+var test = require("/media/data/lsong18/data/vulPackages/command_injection/growl@1.9.2/lib/growl.js");
 //var cb = require('./tmp.js');
 //cb = new cb('123');
 //cb.worker();
