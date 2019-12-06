@@ -264,9 +264,9 @@ def test_file(file_path, vul_type='xss'):
         final_res = os_command_res
     return final_res
 
-#root_path = "/media/data/lsong18/data/npmpackages/"
+root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+#root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
 skip_packages = []
