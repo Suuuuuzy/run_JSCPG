@@ -1,6 +1,6 @@
 os_command successfully found in /media/data/lsong18/data/vulPackages/command_injection/ps@0.0.2
-os_command successfully found in /media/data/lsong18/data/vulPackages/command_injection/buttle@0.3.1
-os_command successfully found in /media/data/lsong18/data/vulPackages/command_injection/pidusage@1.1.4
+# os_command successfully found in /media/data/lsong18/data/vulPackages/command_injection/buttle@0.3.1
+# os_command successfully found in /media/data/lsong18/data/vulPackages/command_injection/pidusage@1.1.4
 os_command successfully found in /media/data/lsong18/data/vulPackages/command_injection/fs-git@1.0.1
 os_command successfully found in /media/data/lsong18/data/vulPackages/command_injection/wiki-plugin-datalog@0.1.5
 os_command successfully found in /media/data/lsong18/data/vulPackages/command_injection/macaddress@0.2.8

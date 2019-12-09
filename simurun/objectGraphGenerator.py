@@ -1895,8 +1895,12 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                     logger.debug(sty.fg.green + sty.ef.inverse + \
                             'callback functions = {}'.format(callback_functions)\
                             + sty.rs.all)
+
+                    obj_attrs = [G.get_node_attr(obj) for obj in _this.obj_nodes]
+                    mark_fake_args = any(['tainted' in attr for attr in obj_attrs])
+
                     call_function(G, callback_functions, caller_ast=caller_ast,
-                        extra=extra, stmt_id=stmt_id)
+                        extra=extra, stmt_id=stmt_id, mark_fake_args=mark_fake_args)
         assert type(branch_returned_objs) is list
         assert type(branch_used_objs) is list
         assert type(branch_created_obj) is not list
