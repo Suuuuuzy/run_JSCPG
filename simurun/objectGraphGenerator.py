@@ -1568,6 +1568,9 @@ def ast_call_function(G, ast_node, extra):
                     if 'pythonfunc' in G.get_node_attr(obj):
                         continue
 
+                    if obj in G.require_obj_stack:
+                        continue
+                    G.require_obj_stack.append(obj)
                     # print(obj, G.get_node_attr(obj))
                     newed_objs = None
                     returned_objs = None
@@ -1895,9 +1898,12 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                     logger.debug(sty.fg.green + sty.ef.inverse + \
                             'callback functions = {}'.format(callback_functions)\
                             + sty.rs.all)
-
-                    obj_attrs = [G.get_node_attr(obj) for obj in _this.obj_nodes]
-                    mark_fake_args = any(['tainted' in attr for attr in obj_attrs])
+                    
+                    if _this is not None:
+                        obj_attrs = [G.get_node_attr(obj) for obj in _this.obj_nodes]
+                        mark_fake_args = any(['tainted' in attr for attr in obj_attrs])
+                    else:
+                        mark_fake_args = False
 
                     call_function(G, callback_functions, caller_ast=caller_ast,
                         extra=extra, stmt_id=stmt_id, mark_fake_args=mark_fake_args)

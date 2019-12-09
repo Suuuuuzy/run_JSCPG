@@ -1,7 +1,0 @@
-success: 18
-not detected (not implemented or can not reach the user input): 11
-Don't know how to exploit: 1
-unsolved bugs (not implemented): 3
-old coding style (esprima error): 2
-long running time: 7
-

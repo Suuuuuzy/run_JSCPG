@@ -41,6 +41,7 @@ class Graph:
         self.call_counter = DictCounter() # callers (instead of callees)
         self.call_limit = 3
         self.file_stack = []
+        self.require_obj_stack = []
         self.cur_stmt = None # for building data flows
 
         # Python-modeled built-in modules
