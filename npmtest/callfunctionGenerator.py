@@ -192,7 +192,7 @@ def test_package(package_path, vul_type='os_command'):
 
     # the main generating program can solve the main file
     # but we also get the entrance files
-    package_main_files = get_entrance_files_of_package(package_path, get_all=True)
+    package_main_files = get_entrance_files_of_package(package_path, get_all=False)
     # print(package_main_files)
     res = []
 
@@ -264,9 +264,17 @@ def test_file(file_path, vul_type='xss'):
         final_res = os_command_res
     return final_res
 
-#root_path = "/media/data/lsong18/data/npmpackages/"
+def pre_filter_by_grep(package_list, vul_type='os_command'):
+    """
+    pre filter the packages by grep the sink functions
+    this may introduce some true negatives but I think it's fine
+    """
+
+
+
+root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+#root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
 skip_packages = []
@@ -279,7 +287,7 @@ def main():
     testing_packages = []
     # testing_packages = ['fs-git@1.0.1']
     if len(testing_packages) == 0:
-        packages = get_list_of_packages(root_path, limit = 50000)
+        packages = get_list_of_packages(root_path, limit = 5000000)
     else:
         testing_packages = [root_path + t for t in testing_packages]
         packages = testing_packages
