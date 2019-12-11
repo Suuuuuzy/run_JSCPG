@@ -1,1 +1,1 @@
-var main_func=require('/media/data/lsong18/data/npmpackages/buildproject/./src/builder.js');
+var main_func=require('/media/data/lsong18/data/npmpackages/dag-cbor-links/index.js');

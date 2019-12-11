@@ -19,6 +19,7 @@ from simurun.vulFuncLists import *
 npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmtest.log")
 npm_res_logger = create_logger("npmres", output_type = "file", file_name="npmres.log")
 npm_success_logger = create_logger("npmsuccess", output_type = "file", file_name="npmsuccess.log")
+npm_run_logger = create_logger("npmrun", output_type = "file", file_name="npmrun.log")
 
 def validate_package(package_path):
     """
@@ -326,6 +327,7 @@ def main():
             break
 
         npm_test_logger.info("No {}".format(cur_cnt))
+        npm_run_logger.info("No {} start {}".format(cur_cnt, package))
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package.split('/')[-1]))
         tqdm_bar.refresh()
         ret_value = 100
