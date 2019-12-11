@@ -30,6 +30,7 @@ out.dat
 /simurun/out.dat
 /simurun/log
 /simurun/*.log
+/npmtest/run_tmp/*.js
 
 # vscode
 .vscode/*
