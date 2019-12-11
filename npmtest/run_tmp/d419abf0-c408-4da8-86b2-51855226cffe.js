@@ -1,1 +1,0 @@
-var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/gm@1.20.0/./index.js');
