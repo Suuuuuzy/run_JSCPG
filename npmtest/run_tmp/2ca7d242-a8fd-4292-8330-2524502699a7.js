@@ -1,0 +1,1 @@
+var main_func=require('/media/data/lsong18/data/vulPackages/command_injection/libnmap@0.4.5/index.js');

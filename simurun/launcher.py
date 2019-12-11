@@ -19,12 +19,9 @@ def unittest_main(file_path, check_signatures=[]):
     parser.add_argument('-c', nargs=2)
     args = parser.parse_args()
     if args.print:
-        create_logger("main_logger", output_type="console",
-            level=logging.DEBUG)
-        create_logger("graph_logger", output_type="console",
-            level=logging.DEBUG)
-        create_logger("npmtest", output_type="console",
-            level=logging.DEBUG)
+        create_logger("main_logger", output_type="console")
+        create_logger("graph_logger", output_type="console")
+        create_logger("npmtest", output_type="console")
 
     G = Graph()
     result = analyze_files(G, file_path, check_signatures=check_signatures)

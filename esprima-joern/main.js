@@ -170,9 +170,10 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
     let prevFunctionId;
     let blockExtra;
     // switch (currentNode.constructor.name){
-    fs.appendFile('./out.dat', currentNode.type + '\n', function(err) {
+    /*fs.appendFile('./out.dat', currentNode.type + '\n', function(err) {
         if (err) return console.log(err);
     });
+    */
     switch (currentNode.type) {
         // case 'Script':
         // case 'Module':

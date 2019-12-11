@@ -22,7 +22,7 @@ class NoColorFormatter(logging.Formatter):
         res = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', res)
         return res
 
-def create_logger(name, output_type="console", level=logging.DEBUG, file_name='run_log.log'):
+def create_logger(name, output_type="console", level=logging.ERROR, file_name='run_log.log'):
     """
     we can choose this is a file logger or a console logger
     for now, we hard set the log file name to be run_log.log

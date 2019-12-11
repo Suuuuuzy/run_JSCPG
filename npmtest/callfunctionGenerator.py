@@ -8,6 +8,7 @@ import subprocess
 from func_timeout import func_timeout, FunctionTimedOut
 import threading
 import argparse
+import uuid
 
 sys.path.append("..")
 from simurun.launcher import unittest_main
@@ -16,10 +17,10 @@ from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
-npm_test_logger = create_logger("npmtest", output_type = "file", file_name="npmtest.log")
-npm_res_logger = create_logger("npmres", output_type = "file", file_name="npmres.log")
-npm_success_logger = create_logger("npmsuccess", output_type = "file", file_name="npmsuccess.log")
-npm_run_logger = create_logger("npmrun", output_type = "file", file_name="npmrun.log")
+npm_test_logger = create_logger("npmtest", output_type = "file", level=10, file_name="npmtest.log")
+npm_res_logger = create_logger("npmres", output_type = "file", level=10, file_name="npmres.log")
+npm_success_logger = create_logger("npmsuccess", output_type = "file", level=10, file_name="npmsuccess.log")
+npm_run_logger = create_logger("npmrun", output_type = "file", level=10, file_name="npmrun.log")
 
 def validate_package(package_path):
     """
@@ -229,19 +230,28 @@ def test_file(file_path, vul_type='xss'):
         return -2
 
 
+    test_file_name = "./run_tmp/{}.js".format(str(uuid.uuid4()))
     js_call_templete = "var main_func=require('{}');".format(file_path)
-    with open("__test__.js", 'w') as jcp:
+    with open(test_file_name, 'w') as jcp:
         jcp.write(js_call_templete)
 
     try:
-        G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
+        G = unittest_main(test_file_name, check_signatures=get_all_sign_list())
         #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
+        os.remove(test_file_name)
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
         # G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         return -3
+
+    try:
+        os.remove(test_file_name)
+        os.remove("run_log.log")
+        os.remove("out.dat")
+    except:
+        pass
 
     if G is None:
         npm_test_logger.error("Skip {} for no signature functions".format(file_path))
@@ -250,11 +260,6 @@ def test_file(file_path, vul_type='xss'):
     xss_res = unit_check_log(G, 'xss', file_path)
     os_command_res = unit_check_log(G, 'os_command', file_path)
 
-    try:
-        os.remove("run_log.log")
-        os.remove("out.dat")
-    except:
-        pass
 
     # not necessary but just in case
     final_res = None
@@ -273,9 +278,9 @@ def pre_filter_by_grep(package_list, vul_type='os_command'):
 
 
 
-root_path = "/media/data/lsong18/data/npmpackages/"
+#root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-#root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
 skip_packages = []
@@ -286,7 +291,7 @@ def main():
     chunk_detail = argparser.parse_args().c
 
     testing_packages = []
-    # testing_packages = ['fs-git@1.0.1']
+    # testing_packages = ['growl@1.9.2']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, limit = 5000000)
     else:
@@ -296,7 +301,6 @@ def main():
     if len(skip_packages) != 0:
         packages = [package for package in packages if package not in skip_packages]
 
-    tqdm_bar = tqdm(packages)
     vul_type = 'os_command'
     timeout = 120
 
@@ -319,12 +323,11 @@ def main():
         if worker_id == num_workers - 1:
             end_id = total_cnt 
 
+    # print(total_cnt, worker_id, num_workers, start_id, end_id)
+    packages = packages[start_id: end_id]
+    tqdm_bar = tqdm(packages)
     for package in tqdm_bar:
         cur_cnt += 1
-        if cur_cnt <= start_id:
-            continue
-        if cur_cnt > end_id:
-            break
 
         npm_test_logger.info("No {}".format(cur_cnt))
         npm_run_logger.info("No {} start {}".format(cur_cnt, package))
