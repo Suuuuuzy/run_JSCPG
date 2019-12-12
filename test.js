@@ -1,6 +1,6 @@
 //process.env.NM_CLI = 'touch sdfliajdlifja & nmcli';
-var attack_str = ";touch Song;";
-var root = require("/media/data/lsong18/data/npmpackages/chrome-launcher/chrome-launcher/index.js");
+//var attack_str = ";touch Song;";
+var root = require("/media/data/lsong18/data/npmpackages/fekit-extension-ginstall/index.js");
 //root.getDevices();
 //v2vm: root.getDelpoyVer('"& touch sdfliajdlifja &"',123);
 //root("123 & touch asdf");

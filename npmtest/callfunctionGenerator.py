@@ -9,6 +9,7 @@ from func_timeout import func_timeout, FunctionTimedOut
 import threading
 import argparse
 import uuid
+import gc
 
 sys.path.append("..")
 from simurun.launcher import unittest_main
@@ -21,6 +22,7 @@ npm_test_logger = create_logger("npmtest", output_type = "file", level=10, file_
 npm_res_logger = create_logger("npmres", output_type = "file", level=10, file_name="npmres.log")
 npm_success_logger = create_logger("npmsuccess", output_type = "file", level=10, file_name="npmsuccess.log")
 npm_run_logger = create_logger("npmrun", output_type = "file", level=10, file_name="npmrun.log")
+test_file_name  = ""
 
 def validate_package(package_path):
     """
@@ -160,16 +162,21 @@ def unit_check_log(G, vul_type, package=None):
     detailed_path = res_path[1]
     caller_list = res_path[2]
     checking_res = vul_checking(G, line_path, vul_type)
+
     if (len(line_path) != 0 or len(caller_list) != 0) and len(checking_res) != 0:
+        """
         print("Found path from {}: {}\n".format(package, checking_res))
         with open("found_path_{}.log".format(vul_type), 'a+') as fp:
             fp.write("{} called".format(caller_list))
             fp.write("Found path from {}: {}\n".format(package, checking_res))
+        """
         return 1
     else:
+        """
         with open("not_found_path_{}.log".format(vul_type), 'a+') as fp:
             fp.write("{} called".format(caller_list))
             fp.write("Not Found path from {}: {}\n".format(package, checking_res))
+        """
         return 0
 
 def test_package(package_path, vul_type='os_command'):
@@ -240,6 +247,7 @@ def test_file(file_path, vul_type='xss'):
         #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         os.remove(test_file_name)
+        del G
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
@@ -257,7 +265,7 @@ def test_file(file_path, vul_type='xss'):
         npm_test_logger.error("Skip {} for no signature functions".format(file_path))
         return -4
 
-    xss_res = unit_check_log(G, 'xss', file_path)
+    # xss_res = unit_check_log(G, 'xss', file_path)
     os_command_res = unit_check_log(G, 'os_command', file_path)
 
 
@@ -278,9 +286,9 @@ def pre_filter_by_grep(package_list, vul_type='os_command'):
 
 
 
-#root_path = "/media/data/lsong18/data/npmpackages/"
+root_path = "/media/data/lsong18/data/npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+#root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
 skip_packages = []
@@ -328,6 +336,8 @@ def main():
     tqdm_bar = tqdm(packages)
     for package in tqdm_bar:
         cur_cnt += 1
+        if cur_cnt % 5 == 0:
+            gc.collect()
 
         npm_test_logger.info("No {}".format(cur_cnt))
         npm_run_logger.info("No {} start {}".format(cur_cnt, package))
@@ -338,6 +348,7 @@ def main():
         try:
             result = func_timeout(timeout, test_package, args=(package, vul_type))
         except FunctionTimedOut:
+            os.remove(test_file_name)
             npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))
             skip_list.append(package)
             continue
