@@ -291,7 +291,7 @@ root_path = "/media/data/lsong18/data/npmpackages/"
 #testing_packages = [root_path + 'forms@1.2.0']
 skip_packages = []
 
-def main():
+def main(cur_no, num_split):
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-c', nargs=2)
     chunk_detail = argparser.parse_args().c
@@ -306,6 +306,9 @@ def main():
 
     if len(skip_packages) != 0:
         packages = [package for package in packages if package not in skip_packages]
+    
+    block_size = int(len(packages) / num_split) + 1
+    packages = packages[block_size * cur_no: block_size * (cur_no+ 1)]
 
     vul_type = 'os_command'
     timeout = 120
@@ -385,4 +388,9 @@ def main():
 
 #test_package(os.path.join(root_path, 'apex-publish-static-files@2.0.0'))
 #test_package(os.path.join(root_path, 'bootstrap@4.3.0'))
-main()
+
+# for memory leak
+split_parts = 20
+for i in range(split_parts):
+    main(i, split_parts)
+    gc.collect()
