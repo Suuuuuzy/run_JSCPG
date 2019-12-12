@@ -22,7 +22,6 @@ npm_test_logger = create_logger("npmtest", output_type = "file", level=10, file_
 npm_res_logger = create_logger("npmres", output_type = "file", level=10, file_name="npmres.log")
 npm_success_logger = create_logger("npmsuccess", output_type = "file", level=10, file_name="npmsuccess.log")
 npm_run_logger = create_logger("npmrun", output_type = "file", level=10, file_name="npmrun.log")
-test_file_name  = ""
 
 def validate_package(package_path):
     """
@@ -236,8 +235,7 @@ def test_file(file_path, vul_type='xss'):
         npm_test_logger.error("{} not found".format(file_path))
         return -2
 
-
-    test_file_name = "./run_tmp/{}.js".format(str(uuid.uuid4()))
+    test_file_name = "./run_tmp/{}_{}.js".format(file_path.split('/')[-1], str(uuid.uuid4()))
     js_call_templete = "var main_func=require('{}');".format(file_path)
     with open(test_file_name, 'w') as jcp:
         jcp.write(js_call_templete)
@@ -348,7 +346,6 @@ def main():
         try:
             result = func_timeout(timeout, test_package, args=(package, vul_type))
         except FunctionTimedOut:
-            os.remove(test_file_name)
             npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))
             skip_list.append(package)
             continue
