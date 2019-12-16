@@ -1,6 +1,7 @@
 //process.env.NM_CLI = 'touch sdfliajdlifja & nmcli';
 //var attack_str = ";touch Song;";
-var root = require("/media/data/lsong18/data/npmpackages/fekit-extension-ginstall/index.js");
+//var root = require("/media/data/lsong18/data/npmpackages/@pact-foundation/pact-node/src/server.js");
+var root = require("/home/lsong18/tmp/node_modules/git-describe/index.js")
 //root.getDevices();
 //v2vm: root.getDelpoyVer('"& touch sdfliajdlifja &"',123);
 //root("123 & touch asdf");
