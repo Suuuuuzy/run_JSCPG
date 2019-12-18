@@ -629,7 +629,10 @@ def blank_func(G: Graph, caller_ast, extra, _, *args):
 
 def this_returning_func(G: Graph, caller_ast, extra, this=None, *args):
     if this is None:
-        return NodeHandleResult()
+        if args:
+            return args[0]
+        else:
+            return NodeHandleResult()
     else:
         return this
 

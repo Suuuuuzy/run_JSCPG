@@ -283,7 +283,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
     return prop_name_nodes, prop_obj_nodes
 
 def handle_prop(G, ast_node, extra=ExtraInfo) \
-    -> [NodeHandleResult, NodeHandleResult]:
+    -> (NodeHandleResult, NodeHandleResult):
     '''
     Handle property.
     
@@ -320,6 +320,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
         # conservative: only if all property names are known,
         # we fetch all properties
         # (including __proto__ for prototype pollution detection)
+        logger.debug('All property names are unknown, fetching all properties')
         for parent_obj in parent_objs:
             prop_name_nodes.extend(G.get_prop_name_nodes(parent_obj))
             prop_obj_nodes.extend(G.get_prop_obj_nodes(parent_obj,
@@ -471,7 +472,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
 
-    if handled_left.name_tainted:
+    if G.check_proto_pollution and handled_left.name_tainted:
         pollution = False
         for obj in right_objs:
             if G.get_node_attr(obj).get('tainted'):
@@ -486,6 +487,9 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
                 .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'),
                 right_objs, ', '.join(name_node_log)) + sty.rs.all)
             G.proto_pollution.add(ast_node)
+            if G.exit_when_found:
+                G.finished = True
+            return NodeHandleResult()
 
     # do the assignment
     for name_node in handled_left.name_nodes:
@@ -654,7 +658,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     """
 
     if G.finished:
-        return 
+        return NodeHandleResult()
 
     cur_node_attr = G.get_node_attr(node_id)
     cur_type = cur_node_attr['type']
@@ -996,7 +1000,11 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         return result
 
     elif cur_type == 'AST_FOR':
-        init, cond, inc, body = G.get_ordered_ast_child_nodes(node_id)[:4]
+        try:
+            init, cond, inc, body = G.get_ordered_ast_child_nodes(node_id)[:4]
+        except ValueError as e:
+            for n in G.get_ordered_ast_child_nodes(node_id):
+                print(n, G.get_node_attr(n))
         cond = G.get_ordered_ast_child_nodes(cond)[0]
         # switch scopes
         parent_scope = G.cur_scope
@@ -1606,11 +1614,12 @@ def ast_call_function(G, ast_node, extra):
                                 exported_objs.append((newed_obj, obj))
 
         # for a require call, we need to run traceback immediately
-        vul_type = 'os_command'
-        res_path = traceback(G, vul_type)
-        res_path = vul_checking(G, res_path[0], vul_type)
-        if len(res_path) != 0:
-            G.finished = True
+        if G.exit_when_found:
+            vul_type = 'os_command'
+            res_path = traceback(G, vul_type)
+            res_path = vul_checking(G, res_path[0], vul_type)
+            if len(res_path) != 0:
+                G.finished = True
         return module_exports_objs, [] 
 
     # handle arguments
@@ -1655,8 +1664,8 @@ def ast_call_function(G, ast_node, extra):
         return [], []
 
     # find function declaration objects
-    func_decl_objs = list(filter(lambda x: x != G.undefined_obj,
-        handled_callee.obj_nodes))
+    func_decl_objs = list(filter(lambda x: x != G.undefined_obj and
+        x != G.null_obj, handled_callee.obj_nodes))
     func_name = handled_callee.name
     # add blank functions
     if not func_decl_objs:
@@ -1692,7 +1701,7 @@ def ast_call_function(G, ast_node, extra):
     else:
         return returned_objs, used_objs
 
-def call_function(G, func_objs, args=[], this=None, extra=None,
+def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}',
     mark_fake_args=False):
     '''
@@ -1757,6 +1766,15 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
             continue
         any_func_run = True
 
+        # manage branches
+        branches = extra.branches
+        parent_branch = branches.get_last_choice_tag()
+        # if branches exist, add a new branch tag to the list
+        if has_branches:
+            next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
+        else:
+            next_branches = branches
+
         # copy "this" and "args" references
         # because we may edit them later
         # and we want to keep original "this" and "args"
@@ -1783,12 +1801,12 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
         python_func = G.get_node_attr(func_obj).get('pythonfunc')
         if python_func: # special Python function
             if is_new:
-                logger.error(f'Error: try to new Python function {python_func}...')
+                logger.error(f'Error: try to new Python function {func_obj} {python_func}...')
                 continue
             else:
-                logger.log(ATTENTION, f'Running Python function {python_func}...')
-                # TODO: add branches info
-                h = python_func(G, caller_ast, extra, _this, *_args)
+                logger.log(ATTENTION, f'Running Python function {func_obj} {python_func}...')
+                h = python_func(G, caller_ast,
+                    ExtraInfo(extra, branches=next_branches), _this, *_args)
                 branch_returned_objs = to_obj_nodes(G, h, ast_node=caller_ast)
                 branch_used_objs = h.used_objs
         else: # JS function in AST
@@ -1825,23 +1843,17 @@ def call_function(G, func_objs, args=[], this=None, extra=None,
                     param_name = G.get_name_from_child(param)
                     added_obj = G.add_obj_to_scope(name=param_name,
                         scope=func_scope, ast_node=caller_ast or param,
-                        js_type=None, value='*')
+                        # give __proto__ when checking prototype pollution
+                        js_type='object' if G.check_proto_pollution else None,
+                        value='*')
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('tainted', True))
-                        logger.debug("{} marked as tainted".format(added_obj));
+                        logger.debug("{} marked as tainted".format(added_obj))
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
 
                     logger.debug(f'add arg {param_name} <- new obj {added_obj}, \
                             scope {func_scope}, ast node {param}')
-            # manage branches
-            branches = extra.branches
-            parent_branch = branches.get_last_choice_tag()
-            # if branches exist, add a new branch tag to the list
-            if has_branches:
-                next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
-            else:
-                next_branches = branches
             # if the function is defined in a for loop, restore the branches
             for_tags = \
                 BranchTagContainer(G.get_node_attr(func_obj).get('for_tags',
@@ -2052,6 +2064,9 @@ def analyze_json_python(G, json_str, extra=None, caller_ast=None):
     return G.generate_obj_graph_for_python_obj(py_obj, ast_node=caller_ast)
 
 def check_prototype_pollution(G, obj_nodes):
+    '''
+    outdated
+    '''
     for obj in obj_nodes:
         if G.get_node_attr(obj).get('user_input'):
             return True

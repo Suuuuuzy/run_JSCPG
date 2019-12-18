@@ -23,9 +23,12 @@ class Graph:
         self.run_all = True
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
-        self.finished = False
 
-        # reserved values
+        # exit immediately when vulnerability is found
+        self.finished = False
+        self.exit_when_found = False
+
+        # JS internal values
         self.function_prototype = None
         self.object_prototype = None
         self.array_prototype = None
@@ -34,10 +37,11 @@ class Graph:
         self.boolean_prototype = None
         self.regexp_prototype = None
 
+        # scope name counter
         self.scope_counter = DictCounter()
 
         # contains a list of node ids based on the ast id
-        self.call_stack = [] # callers (instead of callees)
+        self.call_stack = [] # deprecated, only for debugging
         self.call_counter = DictCounter() # callers (instead of callees)
         self.call_limit = 3
         self.file_stack = []
@@ -47,6 +51,7 @@ class Graph:
         # Python-modeled built-in modules
         self.builtin_modules = {}
 
+        # prototype pollution
         self.check_proto_pollution = False
         self.proto_pollution = set()
 

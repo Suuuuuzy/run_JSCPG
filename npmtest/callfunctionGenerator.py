@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import json 
 import sys
@@ -235,14 +236,21 @@ def test_file(file_path, vul_type='xss'):
         npm_test_logger.error("{} not found".format(file_path))
         return -2
 
+    if not os.path.exists('./run_tmp'):
+        os.mkdir('./run_tmp')
+
     test_file_name = "./run_tmp/{}_{}.js".format(file_path.split('/')[-1], str(uuid.uuid4()))
     js_call_templete = "var main_func=require('{}');".format(file_path)
     with open(test_file_name, 'w') as jcp:
         jcp.write(js_call_templete)
 
+    G = None
     try:
-        G = unittest_main(test_file_name, check_signatures=get_all_sign_list())
-        #G = unittest_main('__test__.js', check_signatures=[])
+        if vul_type == 'proto_pollution':
+            G = unittest_main(test_file_name, check_proto_pollution=True)
+        else:
+            G = unittest_main(test_file_name, check_signatures=get_all_sign_list())
+            #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         os.remove(test_file_name)
         del G
@@ -263,8 +271,12 @@ def test_file(file_path, vul_type='xss'):
         npm_test_logger.error("Skip {} for no signature functions".format(file_path))
         return -4
 
-    # xss_res = unit_check_log(G, 'xss', file_path)
-    os_command_res = unit_check_log(G, 'os_command', file_path)
+    if vul_type == 'xss':
+        xss_res = unit_check_log(G, 'xss', file_path)
+    elif vul_type == 'os_command':
+        os_command_res = unit_check_log(G, 'os_command', file_path)
+    elif vul_type == 'proto_pollution':
+        proto_pollution_res = 1 if G.proto_pollution else 0
 
 
     # not necessary but just in case
@@ -274,6 +286,8 @@ def test_file(file_path, vul_type='xss'):
         final_res = xss_res
     elif vul_type == 'os_command':
         final_res = os_command_res
+    elif vul_type == 'proto_pollution':
+        final_res = proto_pollution_res
     return final_res
 
 def pre_filter_by_grep(package_list, vul_type='os_command'):
@@ -292,9 +306,26 @@ root_path = "/media/data/lsong18/data/npmpackages/"
 skip_packages = []
 
 def main(cur_no, num_split):
+    global root_path, skip_packages
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-c', nargs=2)
-    chunk_detail = argparser.parse_args().c
+    argparser.add_argument('-p', '--print', action='store_true')
+    argparser.add_argument('-t', '--vul-type')
+    argparser.add_argument('-l', '--timeout', type=int)
+    argparser.add_argument('root_path', action='store', nargs='?')
+    args = argparser.parse_args()
+
+    chunk_detail = args.c
+
+    if args.print:
+        create_logger("main_logger", output_type="console",
+            level=logging.DEBUG)
+        create_logger("graph_logger", output_type="console",
+            level=logging.DEBUG)
+        create_logger("npmtest", output_type="console",
+            level=logging.DEBUG)
+    if args.root_path is not None:
+        root_path = args.root_path
 
     testing_packages = []
     # testing_packages = ['growl@1.9.2']
@@ -313,6 +344,11 @@ def main(cur_no, num_split):
     vul_type = 'os_command'
     timeout = 120
 
+    if args.vul_type is not None:
+        vul_type = args.vul_type
+    if args.timeout is not None:
+        timeout = args.timeout
+
     success_list = []
     skip_list = []
     not_found = []
@@ -320,6 +356,9 @@ def main(cur_no, num_split):
     total_cnt = len(packages)
     cur_cnt = 0
     thread_pool = {}
+
+    if total_cnt == 0:
+        return
 
     start_id = 0 
     end_id = 2147483647
@@ -355,6 +394,7 @@ def main(cur_no, num_split):
         except Exception as e:
             npm_res_logger.error("{} ERROR generating".format(package))
             print(e)
+            # tb.print_exc()
 
         print(result)
         if 1 in result:
@@ -375,12 +415,12 @@ def main(cur_no, num_split):
             npm_res_logger.error("Other problems {} return {}".format(package, result))
 
 
-    npm_test_logger.info("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt,\
+    npm_test_logger.info("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt * 100,
             len(success_list), total_cnt, len(skip_list), total_cnt - len(skip_list) - len(success_list)))
     npm_test_logger.info("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))
     npm_test_logger.error("Generation error list: {}".format(generate_error))
 
-    print("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt,\
+    print("Success rate: {}%, {} out of {}, {} skipped and {} failed".format(float(len(success_list)) / total_cnt * 100,
             len(success_list), total_cnt, len(skip_list), total_cnt - len(skip_list) - len(success_list)))
 
     print("{} fails caused by package error, {} fails caused by generate error".format(len(not_found), len(generate_error)))

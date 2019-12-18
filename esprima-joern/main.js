@@ -1901,24 +1901,31 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             break;
         case 'ForStatement':
             // init
+            nodeIdCounter++;
+            relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
             if (currentNode.init) {
-                nodeIdCounter++;
-                relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                 dfs(currentNode.init, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, {
                     parentType: 'ForStatement'
                 });
-                childNumberCounter++;
+            } else {
+                nodes[nodeIdCounter] = {
+                    label: 'AST_V',
+                    type: 'NULL',
+                    phptype: 'NULL',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: childNumberCounter,
+                    funcId: currentFunctionId
+                };
             }
+            childNumberCounter++;
             // test
+            nodeIdCounter++;
             if (currentNode.test) {
                 if (outputStyle == 'c') {
-                    nodeIdCounter++;
-                    childNumberCounter++;
                     relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                     dfs(currentNode.test, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, null);
                 } else if (outputStyle == 'php') {
                     // make the AST_EXPR_LIST virtual node
-                    nodeIdCounter++;
                     let vExprListId = nodeIdCounter;
                     relsStream.push([currentId, vExprListId, parentOf].join(delimiter) + '\n');
                     // go to the test child node
@@ -1940,13 +1947,22 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         funcId: currentFunctionId
                     };
                 }
-                childNumberCounter++;
+            } else {
+                nodes[nodeIdCounter] = {
+                    label: 'AST_V',
+                    type: 'NULL',
+                    phptype: 'NULL',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: childNumberCounter,
+                    funcId: currentFunctionId
+                };
             }
+            childNumberCounter++;
             // update
+            nodeIdCounter++;
             if (currentNode.update) {
                 if (outputStyle == 'php' && currentNode.update.type != 'SequenceExpression') {
                     // make the AST_EXPR_LIST virtual node
-                    nodeIdCounter++;
                     let vExprListId = nodeIdCounter;
                     relsStream.push([currentId, vExprListId, parentOf].join(delimiter) + '\n');
                     // go to the update child node
@@ -1968,15 +1984,22 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         funcId: currentFunctionId
                     };
                 } else { // C or the update node is already a SequenceExpression node (more than one updates)
-                    nodeIdCounter++;
-                    childNumberCounter++;
                     relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                     dfs(currentNode.update, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, {
                         parentType: 'ForStatement'
                     });
                 }
-                childNumberCounter++;
+            } else {
+                nodes[nodeIdCounter] = {
+                    label: 'AST_V',
+                    type: 'NULL',
+                    phptype: 'NULL',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: childNumberCounter,
+                    funcId: currentFunctionId
+                };
             }
+            childNumberCounter++;
             // body
             nodeIdCounter++;
             relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
