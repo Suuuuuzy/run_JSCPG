@@ -5,8 +5,8 @@ patched: 6
 deprecated: 1
 not found: 10
   not index: 2
-  execFile + condition: 7
-  escaped: 1
+  execFile + condition: 6
+  escaped: 2
 
 
 64.3%
