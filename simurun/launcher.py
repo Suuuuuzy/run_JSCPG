@@ -43,6 +43,9 @@ def main():
                         "required by some other modules. This implies -a.")
     parser.add_argument('-q', '--exit', action='store_true',
                         help="Exit the program when vulnerability is found.")
+    parser.add_argument('-s', '--single-branch', action='store_true',
+                        help="Single branch. Do not create multiple "
+                        "possibilities when meet a branching point.")
     parser.add_argument('input_file', action='store', nargs='?',
         help="Source code file (or directory) to generate object graph for. "
         "Use '-' to get source code from stdin. Ignore this argument to "
@@ -62,6 +65,7 @@ def main():
             level=logging.DEBUG)
     G.run_all = args.run_all or args.module
     G.exit_when_found = args.exit
+    G.single_branch = args.single_branch
     G.check_proto_pollution = (args.prototype_pollution or 
                                args.vul_type == 'proto_pollution')
     G.call_limit = args.call_limit

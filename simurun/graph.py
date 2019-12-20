@@ -55,6 +55,8 @@ class Graph:
         self.check_proto_pollution = False
         self.proto_pollution = set()
 
+        self.single_branch = False
+
         csv.field_size_limit(2 ** 31 - 1)
 
     # Basic graph operations

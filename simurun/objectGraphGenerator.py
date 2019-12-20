@@ -921,6 +921,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         branches = extra.branches
         parent_branch = branches.get_last_choice_tag()
         branch_num_counter = 0
+        # if it is sure (deterministic) that "else" needs to run 
         else_is_deterministic = True
         for i, if_elem in enumerate(if_elems):
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
@@ -928,36 +929,36 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 if else_is_deterministic:
                     simurun_block(G, body, G.cur_scope, branches)
                 else:
+                    # not deterministic, create branch
                     branch_tag = BranchTag(
                         point=stmt_id, branch=str(branch_num_counter))
                     branch_num_counter += 1
                     simurun_block(G, body, G.cur_scope, branches+[branch_tag])
                 break
+            # check condition
             possibility, deterministic = check_condition(G, condition, extra,
                 handling_func=handle_node, printing_func=logger.debug)
             logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
                 G.get_node_attr(condition).get('code') + sty.rs.all,
                 possibility, deterministic))
             if deterministic and possibility == 1:
+                # if the condition is surely true
                 simurun_block(G, body, G.cur_scope, branches)
                 break
             elif not deterministic or possibility is None or 0 < possibility < 1:
+                # if the condition is unsure
                 else_is_deterministic = False
                 branch_tag = \
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
                 branch_num_counter += 1
                 simurun_block(G, body, G.cur_scope, branches+[branch_tag])
+        # When there is no "else", we still need to add a hidden else
         if not has_else(G, node_id):
             branch_num_counter += 1
         # We always flatten edges
-        merge(G, stmt_id, branch_num_counter, parent_branch)
+        if not G.single_branch:
+            merge(G, stmt_id, branch_num_counter, parent_branch)
         return NodeHandleResult()
-
-    # elif cur_type == 'AST_IF_ELEM':
-    #     condition, body = G.get_ordered_ast_child_nodes(node_id)
-    #     possibility, deterministic = check_condition(G, condition, extra,
-    #         handling_func=handle_node, printing_func=logger.debug)
-    #     return NodeHandleResult()
     
     elif cur_type == 'AST_SWITCH':
         condition, switch_list = G.get_ordered_ast_child_nodes(node_id)
@@ -976,7 +977,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             handle_node(G, test, extra)
             simurun_block(G, body, G.cur_scope, branches+[branch_tag],
                           block_scope=False)
-        merge(G, stmt_id, len(cases), parent_branch)
+        if not G.single_branch:
+            merge(G, stmt_id, len(cases), parent_branch)
 
     elif cur_type == 'AST_CONDITIONAL':
         test, consequent, alternate = G.get_ordered_ast_child_nodes(node_id)
@@ -1163,7 +1165,9 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
     """
     Simurun a function by running its body.
     """
-    if branches is None:
+    if branches is None or G.single_branch:
+        # create an instance of BranchTagContainer every time,
+        # don't use default argument
         branches = BranchTagContainer()
 
     if caller_ast is not None:
@@ -1746,7 +1750,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
 
     # if the function declaration has multiple possibilities,
     # and need to merge afterwards
-    has_branches = (len(func_objs) > 1)
+    has_branches = (len(func_objs) > 1 and not G.single_branch)
 
     G.call_stack.append('{} {}'.format(func_name, len(func_objs)))
     # print(G.call_stack)
