@@ -444,7 +444,7 @@ def handle_assign(G, ast_node, extra=None, right_override=None):
                     do_assign(G, handled_left, NodeHandleResult(
                         obj_nodes=prop_obj_nodes), branches, ast_node)
             G.add_obj_as_prop(parent_obj=added_obj, prop_name='length',
-                js_type='number', value=len(children))
+                js_type='number', value=len(children), ast_node=ast_node)
             return NodeHandleResult(obj_nodes=[added_obj])
     else:
         # normal assignment
@@ -489,6 +489,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
             G.proto_pollution.add(ast_node)
             if G.exit_when_found:
                 G.finished = True
+            # skip doing the assignment
             return NodeHandleResult()
 
     # do the assignment
@@ -720,7 +721,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             # used_objs.update(result.obj_nodes)
 
         G.add_obj_as_prop(prop_name='length', js_type='number',
-            value=len(children), parent_obj=added_obj)
+            value=len(children), ast_node=node_id, parent_obj=added_obj)
 
         return NodeHandleResult(obj_nodes=[added_obj],
                                 used_objs=list(used_objs),
@@ -891,9 +892,10 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 value = int(code, 2)
         elif cur_type == 'string':
             if G.get_node_attr(node_id).get('flags:string[]') == 'JS_REGEXP':
-                added_obj = G.add_obj_node(js_type=None, value=code)
-                G.add_obj_as_prop('__proto__', parent_obj=added_obj,
-                    tobe_added_obj=G.regexp_prototype)
+                added_obj = G.add_obj_node(ast_node=node_id,
+                                           js_type=None, value=code)
+                G.add_obj_as_prop('__proto__',
+                    parent_obj=added_obj, tobe_added_obj=G.regexp_prototype)
                 return NodeHandleResult(obj_nodes=[added_obj])
             else:
                 value = code
@@ -1826,7 +1828,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             params = G.get_ordered_ast_child_nodes(param_list)
             # add "arguments" array
             arguments_obj = G.add_obj_to_scope(name='arguments',
-                                               scope=func_scope)
+                                scope=func_scope, ast_node=func_ast)
             for j, param in enumerate(params):
                 param_name = G.get_name_from_child(param)
                 if j < len(_args):
@@ -1968,9 +1970,9 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     used_objs = set(used_objs)
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
+        if def_ast_node is None: continue
         def_cpg_node = G.find_nearest_upper_CPG_node(def_ast_node)
-        # logger.debug("{}-----{} {}".format(def_cpg_node, def_ast_node, obj))
-        if def_cpg_node == None: continue
+        if def_cpg_node is None: continue
         if def_cpg_node == cur_stmt: continue
         def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')
         logger.info(sty.fg.li_magenta + sty.ef.inverse + "OBJ REACHES" + sty.rs.all +
