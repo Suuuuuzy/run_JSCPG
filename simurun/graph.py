@@ -582,6 +582,7 @@ class Graph:
                 # prevent setting __proto__ before setup_object_and_function runs
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.string_prototype)
+            value = str(value)
             length = len(value) if value is not None else None
             self.add_obj_as_prop(prop_name="length", parent_obj=
             obj_node, js_type='number', value=length)
@@ -1325,12 +1326,14 @@ class Graph:
         self.false_obj = self.add_obj_node(None, 'boolean', 'false')
         self.add_obj_to_name('false', scope=self.BASE_SCOPE,
                              tobe_added_obj=self.false_obj)
-        self.internal_objs = {'undefined_obj': self.undefined_obj,
-            'infinity_obj': self.infinity_obj,
-            'negative_infinity_obj': self.negative_infinity_obj,
-            'nan_obj': self.nan_obj,
-            'true_obj': self.true_obj,
-            'false_obj': self.false_obj
+        self.internal_objs = {'undefined': self.undefined_obj,
+            'null': self.null_obj,
+            'global': self.BASE_OBJ,
+            'infinity': self.infinity_obj,
+            '-infinity': self.negative_infinity_obj,
+            'NaN': self.nan_obj,
+            'true': self.true_obj,
+            'false': self.false_obj
         }
         self.inv_internal_objs = {v: k for k, v in self.internal_objs.items()}
         self.logger.debug(sty.ef.inverse + 'Internal objects\n' + 

@@ -10,7 +10,7 @@ def esprima_parse(path='-', args=[], input=None, print_func=print):
     # use "universal_newlines" instead of "text" if you're using Python <3.7
     #        ↓ ignore this error if your editor shows
     proc = subprocess.Popen(['node', main_js_path, path] + args, text=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate(input)
     print_func(stderr)
     return stdout

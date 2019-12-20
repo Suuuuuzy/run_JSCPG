@@ -1760,21 +1760,6 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     any_func_run = False
     # for each possible function declaration
     for i, func_obj in enumerate(func_objs):
-        if func_obj in G.internal_objs.values():
-            logger.warning('Error: Trying to run an internal obj {} {}'
-                ', skipped'.format(func_obj, G.inv_internal_objs[func_obj]))
-            continue
-        any_func_run = True
-
-        # manage branches
-        branches = extra.branches
-        parent_branch = branches.get_last_choice_tag()
-        # if branches exist, add a new branch tag to the list
-        if has_branches:
-            next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
-        else:
-            next_branches = branches
-
         # copy "this" and "args" references
         # because we may edit them later
         # and we want to keep original "this" and "args"
@@ -1792,6 +1777,21 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         # pass arguments' used objects to the function call
         # for arg in _args:
         #     used_objs.update(arg.used_objs)
+
+        if func_obj in G.internal_objs.values():
+            logger.warning('Error: Trying to run an internal obj {} {}'
+                ', skipped'.format(func_obj, G.inv_internal_objs[func_obj]))
+            continue
+        any_func_run = True
+
+        # manage branches
+        branches = extra.branches
+        parent_branch = branches.get_last_choice_tag()
+        # if branches exist, add a new branch tag to the list
+        if has_branches:
+            next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
+        else:
+            next_branches = branches
 
         branch_returned_objs = []
         branch_created_obj = None
@@ -2022,8 +2022,8 @@ def analyze_files(G, path, start_node_id=0, check_signatures=[]):
     return True
 
 def analyze_string(G, source_code, start_node_id=0, generate_graph=False):
-    result = esprima_parse('-', ['-n', str(start_node_id)],
-        print_func=logger.info)
+    result = esprima_parse('-', ['-n', str(start_node_id), '-o', '-'],
+        input=source_code, print_func=logger.info)
     G.import_from_string(result)
     if generate_graph:
         generate_obj_graph(G, str(start_node_id))
@@ -2037,7 +2037,7 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     # so we pass a "start_node_id - 8" to make the JSON object starts
     # at "start_node_id"
     json_str = 'var a = ' + json_str.strip()
-    result = esprima_parse('-', ['-n', str(start_node_id - 8)],
+    result = esprima_parse('-', ['-n', str(start_node_id - 8), '-o', '-'],
         input=json_str, print_func=logger.info)
     G.import_from_string(result)
     # remove all nodes and edges before the JSON object

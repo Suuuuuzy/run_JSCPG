@@ -13,7 +13,7 @@ const ansicolor = require('ansicolor').nice;
 const Readable = require('stream').Readable;
 const program = require('commander');
 program
-    .version('0.10.0')
+    .version('0.10.1')
     .usage('<filename or package name> [options]')
     .description('A tool that generates JavaScript AST in Joern compatible CSV format.\n\n' +
         'You can choose a filename or package name as input. Use "-" to accept stdin.')
@@ -2895,7 +2895,7 @@ if (program.search){
     }
 } else {
     // analyze the designated source code files
-    if (program.input === '--'){
+    if (program.input === '-'){
         // analyze stdin
         analyze(null, null);
     } else {
