@@ -138,8 +138,9 @@ class Graph:
         insert an edge to graph
         attr is like {key: value, key: value}
         """
-        assert from_ID != None, "Failed to add an edge, from_ID is None."
-        assert to_ID != None, "Failed to add an edge, to_ID is None."
+        assert from_ID is not None, "Failed to add an edge, from_ID is None."
+        assert to_ID is not None, "Failed to add an edge, to_ID is None."
+        assert from_ID != 'string' and to_ID != 'string'
         # self.graph.add_edges_from([(from_ID, to_ID, attr)])
         self.graph.add_edge(from_ID, to_ID, None, **attr)
     
@@ -147,8 +148,8 @@ class Graph:
         """
         insert an edge to the graph if the graph does not already has the same edge
         """
-        assert from_ID != None, "Failed to add an edge, from_ID is None."
-        assert to_ID != None, "Failed to add an edge, to_ID is None."
+        assert from_ID is not None, "Failed to add an edge, from_ID is None."
+        assert to_ID is not None, "Failed to add an edge, to_ID is None."
         if not self.graph.has_edge(from_ID, to_ID):
             self.add_edge(from_ID, to_ID, attr)
         else:
@@ -578,7 +579,7 @@ class Graph:
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.object_prototype)
         elif js_type == "array":
-            # js_type = 'object' # don't change, keep 'array' type in graph
+            # js_type = 'object'     # don't change, keep 'array' type in graph
             if self.array_prototype is not None:
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.array_prototype)
@@ -587,7 +588,7 @@ class Graph:
                 # prevent setting __proto__ before setup_object_and_function runs
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.string_prototype)
-            value = str(value)
+            value = str(value) if value is not None else None
             length = len(value) if value is not None else None
             self.add_obj_as_prop(prop_name="length", parent_obj=
             obj_node, js_type='number', value=length)
@@ -1304,7 +1305,8 @@ class Graph:
         self.cur_obj = self.BASE_OBJ
 
         # setup JavaScript built-in values
-        self.null_obj = self.add_obj_node(None, 'object', value='null')
+        self.null_obj = self.add_obj_to_scope(name='null', value='null',
+                                              scope=self.BASE_SCOPE)
 
     def setup2(self):
         self.tainted_user_input = self.add_obj_to_scope(

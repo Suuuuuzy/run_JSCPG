@@ -478,13 +478,21 @@ def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array
     returned_objs = []
     for obj in arg.obj_nodes:
         arr = G.add_obj_node(None, 'array')
-        for i, name_node in enumerate(G.get_prop_name_nodes(obj)):
+        i = 0
+        for name_node in G.get_prop_name_nodes(obj):
             name = G.get_node_attr(name_node).get('name')
             if name is None or name == '__proto__':
                 continue
             if for_array and not (name.isdigit() or name == '*'):
                 continue # Array only returns numeric keys/corresponding values
             string = G.add_obj_node(None, 'string', str(name))
+            add_contributes_to(G, [obj], string)
+            G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=string)
+            i += 1
+        if G.get_node_attr(obj).get('type') in ['array', 'object'] and \
+            G.get_node_attr(obj).get('code') == '*':
+            string = G.add_obj_node(None, 'string', None)
+            add_contributes_to(G, [obj], string)
             G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=string)
         returned_objs.append(arr)
     return NodeHandleResult(obj_nodes=returned_objs)
@@ -719,10 +727,6 @@ def setup_regexp(G: Graph):
 
 def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=None, flags=None):
     returned_objs = []
-    used_objs = set(pattern.obj_nodes + pattern.used_objs)
-    if flags:
-        used_objs.update(flags.obj_nodes)
-        used_objs.update(flags.used_objs)
     if pattern is not None:
         flag_objs = flags.obj_nodes if flags else []
         for p in pattern.obj_nodes:
@@ -1011,6 +1015,8 @@ def string_p_split(G: Graph, caller_ast, extra, strs, separators):
         for j, p in enumerate(sep):
             arr = G.add_obj_node(ast_node=caller_ast, js_type='array')
             if s is None or p is None:
+                logger.debug('string split {} -> ?'.format(s))
+                G.set_node_attr(arr, ('code', '*'))
                 v = G.add_obj_as_prop(prop_name='*', ast_node=caller_ast,
                     js_type='string', value=None, parent_obj=arr)
                 for ss in s1[i]:

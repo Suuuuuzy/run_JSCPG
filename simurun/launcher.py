@@ -10,12 +10,14 @@ from .vulChecking import *
 from datetime import datetime
 import time
 
-def unittest_main(file_path, check_signatures=[], check_proto_pollution=False):
+def unittest_main(file_path, check_signatures=[], check_proto_pollution=False,
+    single_branch=False):
     """
     main function for uniitest 
     """
     G = Graph()
     G.exit_when_found = True
+    G.single_branch = single_branch
     G.check_proto_pollution = check_proto_pollution
     result = analyze_files(G, file_path, check_signatures=check_signatures)
     if result == False:

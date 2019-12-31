@@ -947,6 +947,10 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 relsStream.push([currentId, vNodeId, parentOf].join(delimiter) + '\n');
                 vNodeChildNumberCounter = 0;
                 for (param of currentNode.params) {
+                    // rest parameter (variable length arguments)
+                    if (param.type == 'RestElement'){
+                        phpflag = 'PARAM_VARIADIC';
+                    }
                     // write the Parameter virtual node
                     nodeIdCounter++;
                     let vParameterId = nodeIdCounter;
@@ -955,6 +959,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         label: 'AST_V',
                         type: 'Parameter',
                         phptype: 'AST_PARAM',
+                        phpflag: phpflag,
                         childNum: vNodeChildNumberCounter,
                         code: param.name || null,
                         lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
@@ -1004,6 +1009,25 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         dfs(param.right, nodeIdCounter, vParameterId, 2, currentFunctionId, {
                             doNotUseVar: true
                         });
+                    } else if (param.type == 'RestElement') { // no default value
+                        // go to the parameter Identifier node (childnum = 1)
+                        nodeIdCounter++;
+                        relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                        dfs(param.argument, nodeIdCounter, vParameterId, 1, currentFunctionId, {
+                            doNotUseVar: true
+                        });
+                        // write the 2nd NULL virtual node (childnum = 2)
+                        nodeIdCounter++;
+                        relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                        nodes[nodeIdCounter] = {
+                            label: 'AST_V',
+                            // type: 'ParameterType',
+                            phptype: 'NULL',
+                            childNum: 2,
+                            code: 'any',
+                            lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                            funcId: currentFunctionId
+                        };
                     }
                     // finally update the childnum counter
                     vNodeChildNumberCounter++;
@@ -1397,6 +1421,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     label: 'AST',
                     type: currentNode.type,
                     phptype: 'string',
+                    phpflag: (extra ? extra.flag : null) || null,
                     // name: name,
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: childNum,

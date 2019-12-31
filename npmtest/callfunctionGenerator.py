@@ -231,6 +231,7 @@ def test_file(file_path, vul_type='xss'):
             -2, not found. package parse error
             -3, graph generation error
     """
+    global args
     print("Testing", file_path)
     if file_path is None:
         npm_test_logger.error("{} not found".format(file_path))
@@ -247,9 +248,11 @@ def test_file(file_path, vul_type='xss'):
     G = None
     try:
         if vul_type == 'proto_pollution':
-            G = unittest_main(test_file_name, check_proto_pollution=True)
+            G = unittest_main(test_file_name, check_proto_pollution=True,
+                single_branch=args.single_branch)
         else:
-            G = unittest_main(test_file_name, check_signatures=get_all_sign_list())
+            G = unittest_main(test_file_name, check_signatures=get_all_sign_list(),
+                single_branch=args.single_branch)
             #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         os.remove(test_file_name)
@@ -305,13 +308,16 @@ root_path = "/media/data/lsong18/data/npmpackages/"
 #testing_packages = [root_path + 'forms@1.2.0']
 skip_packages = []
 
+args = None
+
 def main(cur_no, num_split):
-    global root_path, skip_packages
+    global root_path, skip_packages, args
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-c', nargs=2)
     argparser.add_argument('-p', '--print', action='store_true')
     argparser.add_argument('-t', '--vul-type')
     argparser.add_argument('-l', '--timeout', type=int)
+    argparser.add_argument('-s', '--single-branch', action='store_true')
     argparser.add_argument('root_path', action='store', nargs='?')
     args = argparser.parse_args()
 
