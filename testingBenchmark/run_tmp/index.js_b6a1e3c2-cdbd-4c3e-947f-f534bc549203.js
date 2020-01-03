@@ -1,0 +1,1 @@
+var main_func=require('/media/data/lsong18/data/npmpackages/apidoc-core-forked-v1/./lib/index.js');

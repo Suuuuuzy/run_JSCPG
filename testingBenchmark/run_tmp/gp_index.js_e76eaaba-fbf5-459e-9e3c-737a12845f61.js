@@ -1,0 +1,1 @@
+var main_func=require('/media/data/lsong18/data/npmpackages/fis-postpackager-gpsvn/gp_index.js');

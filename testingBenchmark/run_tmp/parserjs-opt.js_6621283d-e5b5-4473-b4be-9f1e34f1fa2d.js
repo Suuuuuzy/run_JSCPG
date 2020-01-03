@@ -1,0 +1,1 @@
+var main_func=require('/media/data/lsong18/data/npmpackages/hmda-file-parser/target/scala-2.12/parserjs-opt.js');

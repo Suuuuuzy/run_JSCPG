@@ -4,31 +4,32 @@ from tqdm import tqdm
 import sys
 import sklearn.metrics as SM
 sys.path.append("..")
-from npmtest.callfunctionGenerator import get_list_of_packages
+from npmtest.multi_run_helper import *
 
-def generateDatabase(total_size=100, command_injection_size=10):
+command_injection_dir = "/media/data/lsong18/data/vulPackages/command_injection/"
+all_package_dir = "/media/data/lsong18/data/npmpackages/"
+
+def generateDatabase(total_size=100, 
+        location_number_map={all_package_dir: 90, command_injection_dir: 10}):
     """
-    randomly pick two lists of packages from the big database and 
-    command injection database
+    randomly pick lists of packages from the big database
 
     Args: 
         total_size: the size of the total returned list
-        command_injection_size: the size of the selected command_injection list
+        location_number_map: the map of the aim dir and the number we need to
+            pick from this dir
     return:
-        selected command injection list, selected other packages
+        a map of aim_dir vs selected packages
     """
-    command_injection_dir = "/media/data/lsong18/data/vulPackages/command_injection/"
-    all_package_dir = "/media/data/lsong18/data/npmpackages/"
 
-    command_injection_packages = get_list_of_packages(command_injection_dir)
-    all_package_dir = get_list_of_packages(all_package_dir)
 
-    sample_ci_list = random.choices(command_injection_packages, 
-            k=command_injection_size)
-    sample_other_list = random.choices(all_package_dir, 
-            k=total_size - command_injection_size)
+    selected_lists = {}
+    for aim_dir in location_number_map:
+        cur_full_list = get_list_of_packages(aim_dir)
+        selected_lists[aim_dir] = random.choices(cur_full_list, 
+                k=location_number_map[aim_dir])
 
-    return sample_ci_list, sample_other_list
+    return selected_lists
 
 def get_result_score(compare_lists):
     """
