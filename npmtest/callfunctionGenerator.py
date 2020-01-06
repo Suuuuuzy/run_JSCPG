@@ -249,6 +249,7 @@ def test_file(file_path, vul_type='xss'):
     try:
         if vul_type == 'proto_pollution':
             G = unittest_main(test_file_name, check_proto_pollution=True,
+                # check_signatures=get_all_sign_list(),
                 single_branch=args.single_branch)
         else:
             G = unittest_main(test_file_name, check_signatures=get_all_sign_list(),

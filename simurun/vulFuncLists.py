@@ -9,7 +9,10 @@ signature_lists = {
         'xss': [
             'sink_hqbpillvul_http_write',
             'sink_hqbpillvul_http_setHeader'
-            ]
+            ],
+        'proto_pollution': [
+            'merge', 'extend', 'clone', 'parse'
+        ]
 }
 
 def get_all_sign_list():
