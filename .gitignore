@@ -5,6 +5,7 @@
 .testDB/
 testreport/
 /tmp/
+run_tmp/
 
 # package download
 /package_downloader/packages/

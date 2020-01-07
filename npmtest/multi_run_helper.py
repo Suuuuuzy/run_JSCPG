@@ -186,7 +186,7 @@ def unit_check_log(G, vul_type, package=None):
         """
         return 0
 
-def test_package(package_path, vul_type='os_command'):
+def test_package(package_path, vul_type='os_command', single_branch=False):
     # TODO: change the return value
     """
     test a specific package
@@ -226,7 +226,7 @@ def test_package(package_path, vul_type='os_command'):
     npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
     return res
 
-def test_file(file_path, vul_type='xss'):
+def test_file(file_path, vul_type='xss', single_branch=False):
     """
     test a specific file 
     Args:
@@ -238,7 +238,6 @@ def test_file(file_path, vul_type='xss'):
             -2, not found. package parse error
             -3, graph generation error
     """
-    global args
     print("Testing", file_path)
     if file_path is None:
         npm_test_logger.error("{} not found".format(file_path))
@@ -256,10 +255,10 @@ def test_file(file_path, vul_type='xss'):
     try:
         if vul_type == 'proto_pollution':
             G = unittest_main(test_file_name, check_proto_pollution=True,
-                single_branch=args.single_branch)
+                single_branch=single_branch)
         else:
             G = unittest_main(test_file_name, check_signatures=get_all_sign_list(),
-                single_branch=args.single_branch)
+                single_branch=single_branch)
             #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         os.remove(test_file_name)
@@ -388,7 +387,7 @@ def main(cur_no, num_split):
         ret_value = 100
         result = [-1]
         try:
-            result = func_timeout(timeout, test_package, args=(package, vul_type))
+            result = func_timeout(timeout, test_package, args=(package, vul_type, args.single_branch))
         except FunctionTimedOut:
             npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))
             skip_list.append(package)

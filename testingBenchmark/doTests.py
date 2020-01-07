@@ -21,8 +21,6 @@ def generateDatabase(total_size=100,
     return:
         a map of aim_dir vs selected packages
     """
-
-
     selected_lists = {}
     for aim_dir in location_number_map:
         cur_full_list = get_list_of_packages(aim_dir)
@@ -54,6 +52,14 @@ def run_tests(package_list, vul_type="os_command"):
     return:
         the running result as 1 for vulnerable and 0 for not vulnerable
     """
+    success_list = {}
+    for sub_package_list in package_list:
+        success_list[sub_package_list] = {}
+        for package in package_list[sub_package_list]:
+            res = test_package(package, vul_type=vul_type)
+            success_list[sub_package_list][package] = res
+    print(success_list)
 
 testing_database = generateDatabase()
+run_tests(testing_database)
 print(testing_database)
