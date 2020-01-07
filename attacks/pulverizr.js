@@ -1,4 +1,5 @@
 /**
+ * pulverizr@0.7.0 is vulnerable to command injection.
  * The injection point is located in line 73 of file lib/job.js
  * the variable "filenmae" can be controlled by the attacker
  * This function use the variable "filename" to construct the 

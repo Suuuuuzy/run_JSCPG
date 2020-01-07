@@ -1,4 +1,5 @@
-/**
+/**lsof@0.1.0 is vulnerable to command injection.
+ * 
  * there are many injection points
  * Every exported method that include exec can be exploited
  *

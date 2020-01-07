@@ -1,4 +1,6 @@
 /**
+ * git-diff-apply@0.19.7 is vulnerable to command injection.
+ * 
  * to do this attack, we need to make the package work first. 
  * To do this, we need to do 
  * "git init"

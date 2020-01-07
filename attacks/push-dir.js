@@ -1,4 +1,5 @@
 /**
+ * push-dir@0.4.1 is vulnerable to command injection.
  * To do this attack, we need to set up the environement first
  * To set up the environment, we need to do 
  * "git init"

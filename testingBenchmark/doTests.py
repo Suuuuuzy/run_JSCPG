@@ -1,4 +1,5 @@
 import random
+from func_timeout import func_timeout, FunctionTimedOut
 import os
 from tqdm import tqdm
 import sys
@@ -52,13 +53,20 @@ def run_tests(package_list, vul_type="os_command"):
     return:
         the running result as 1 for vulnerable and 0 for not vulnerable
     """
+    timeout = 120
     success_list = {}
+    success_cnt = {}
     for sub_package_list in package_list:
         success_list[sub_package_list] = {}
+        success_cnt[sub_package_list] = 0
         for package in package_list[sub_package_list]:
-            res = test_package(package, vul_type=vul_type)
+            res = func_timeout(timeout, test_package, 
+                    args=(package, vul_type))
             success_list[sub_package_list][package] = res
+            if res == 1:
+                success_cnt[sub_package_list] += 1
     print(success_list)
+    print(success_cnt)
 
 testing_database = generateDatabase()
 run_tests(testing_database)

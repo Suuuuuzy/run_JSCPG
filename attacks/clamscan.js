@@ -1,4 +1,5 @@
 /**
+ * clamscan@1.1.0 is vulnerable to command injection.
  * this is a so called "not perfect attack"
  * which means to bypass the condition checking in line 493 of file "index.js",
  * we need to generate a dir or a file with the name of the attack code

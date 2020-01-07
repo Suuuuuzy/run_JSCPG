@@ -1,4 +1,6 @@
 /**
+ *gulp-scss-lint@1.0.0 is vulnerable to command injection
+ * 
  * The sink of this attack is located in command.js line 61
  * the big picture is, when we new a object, if the options.src
  * is assigned, we will run a command based on the options.src, 

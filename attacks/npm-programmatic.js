@@ -1,4 +1,5 @@
 /**
+ * npm-programmatic@0.0.12 is vulnerable to command injection.
  * the injection point of this package is very easy to be found
  * any package name or option property can be used to do injection
  * The packages and option properties are cancated together without
