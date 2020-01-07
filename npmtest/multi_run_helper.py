@@ -42,7 +42,7 @@ def validate_package(package_path):
     package_json_path = '{}/package.json'.format(package_path)
     return os.path.exists(package_json_path)
     
-def get_list_of_packages(path, limit=None):
+def get_list_of_packages(path, start_id=None, size=None):
     """
     return a list of package names, which is the name of the folders in the path
     Args:
@@ -52,8 +52,10 @@ def get_list_of_packages(path, limit=None):
     """
     possible_packages = [os.path.join(path, name) for name in os.listdir(path)]
 
-    if limit is not None:
-        possible_packages = possible_packages[:limit]
+    if start_id is not None:
+        possible_packages = possible_packages[start_id:]
+    if size is not None:
+        possible_packages = possible_packages[:size]
     
     all_packages = []
     print("Preparing")
@@ -68,8 +70,6 @@ def get_list_of_packages(path, limit=None):
         else:
             all_packages.append(package)
     
-    if limit is not None:
-        all_packages = all_packages[:limit]
     print('Prepared')
     
     return all_packages 
@@ -331,7 +331,7 @@ def main(cur_no, num_split):
     testing_packages = []
     # testing_packages = ['growl@1.9.2']
     if len(testing_packages) == 0:
-        packages = get_list_of_packages(root_path, limit = 5000000)
+        packages = get_list_of_packages(root_path, start_id=0, size=300000)
     else:
         testing_packages = [root_path + t for t in testing_packages]
         packages = testing_packages
