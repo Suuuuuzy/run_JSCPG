@@ -17,9 +17,9 @@ from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
-#root_path = "/media/data/lsong18/data/npmpackages/"
+root_path = "/media/data/lsong18/data/pre_npmpackages/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
-root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
+#root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
 skip_packages = []
