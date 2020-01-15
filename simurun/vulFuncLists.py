@@ -9,6 +9,11 @@ signature_lists = {
         'xss': [
             'sink_hqbpillvul_http_write',
             'sink_hqbpillvul_http_setHeader'
+            ],
+        'code_exec': [
+            'Function',
+            'eval',
+            'sink_hqbpillvul_eval'
             ]
 }
 

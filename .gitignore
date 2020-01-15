@@ -18,6 +18,7 @@ logs
 
 # esprima-joern
 node_modules/
+/node_modules/
 /esprima-joern/*.csv
 /esprima-joern/log
 out.dat

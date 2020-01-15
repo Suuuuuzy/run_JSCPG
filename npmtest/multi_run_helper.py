@@ -17,8 +17,8 @@ from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
-root_path = "/media/data/lsong18/data/pre_npmpackages/"
-#root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
+#root_path = "/media/data/lsong18/data/pre_npmpackages/"
+root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
@@ -238,7 +238,7 @@ def test_file(file_path, vul_type='xss', single_branch=False):
             -2, not found. package parse error
             -3, graph generation error
     """
-    print("Testing", file_path)
+    print("Testing {} {}".format(vul_type, file_path))
     if file_path is None:
         npm_test_logger.error("{} not found".format(file_path))
         return -2
@@ -259,14 +259,12 @@ def test_file(file_path, vul_type='xss', single_branch=False):
         else:
             G = unittest_main(test_file_name, check_signatures=get_all_sign_list(),
                 single_branch=single_branch)
-            #G = unittest_main('__test__.js', check_signatures=[])
     except Exception as e:
         os.remove(test_file_name)
         del G
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
-        # G = unittest_main('__test__.js', check_signatures=get_all_sign_list())
         return -3
 
     try:
@@ -280,23 +278,16 @@ def test_file(file_path, vul_type='xss', single_branch=False):
         npm_test_logger.error("Skip {} for no signature functions".format(file_path))
         return -4
 
-    if vul_type == 'xss':
-        xss_res = unit_check_log(G, 'xss', file_path)
-    elif vul_type == 'os_command':
-        os_command_res = unit_check_log(G, 'os_command', file_path)
-    elif vul_type == 'proto_pollution':
-        proto_pollution_res = 1 if G.proto_pollution else 0
+    if vul_type == 'proto_pollution':
+        final_res = 1 if G.proto_pollution else 0
+    else:
+        print(vul_type)
+        final_res = unit_check_log(G, vul_type, file_path)
 
 
-    # not necessary but just in case
     final_res = None
+    # not necessary but just in case
     del G
-    if vul_type == 'xss':
-        final_res = xss_res
-    elif vul_type == 'os_command':
-        final_res = os_command_res
-    elif vul_type == 'proto_pollution':
-        final_res = proto_pollution_res
     return final_res
 
 def pre_filter_by_grep(package_list, vul_type='os_command'):
@@ -342,7 +333,8 @@ def main(cur_no, num_split):
     block_size = int(len(packages) / num_split) + 1
     packages = packages[block_size * cur_no: block_size * (cur_no+ 1)]
 
-    vul_type = 'os_command'
+    #vul_type = 'os_command'
+    vul_type = 'code_exec'
     timeout = 120
 
     if args.vul_type is not None:

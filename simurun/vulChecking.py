@@ -112,9 +112,16 @@ def vul_checking(G, pathes, vul_type):
             [('has_user_input', None), ('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt'])]
             ]
 
+    code_exec_lists = [
+            [('has_user_input', None), ('not_start_within_file', ['eval.js']), ('not_exist_func', ['parseInt'])],
+            [('has_user_input', None), ('end_with_func', ['Function']), ('not_exist_func', ['parseInt'])],
+            [('has_user_input', None), ('end_with_func', ['eval']), ('not_exist_func', ['parseInt'])]
+            ]
+
     vul_type_map = {
             "xss": xss_rule_lists,
-            "os_command": os_command_rule_lists
+            "os_command": os_command_rule_lists,
+            "code_exec": code_exec_lists,
             }
 
     rule_lists = vul_type_map[vul_type]
