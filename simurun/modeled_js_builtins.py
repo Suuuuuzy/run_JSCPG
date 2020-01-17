@@ -67,7 +67,7 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('push', array_prototype, array_p_push)
     G.add_blank_func_as_prop('pop', array_prototype, array_p_pop)
     G.add_blank_func_as_prop('unshift', array_prototype, array_p_push)
-    G.add_blank_func_as_prop('shift', array_prototype, array_p_pop)
+    G.add_blank_func_as_prop('shift', array_prototype, array_p_shift)
     G.add_blank_func_as_prop('join', array_prototype, array_p_join)
     G.add_blank_func_as_prop('forEach', array_prototype, array_p_for_each_value)
     G.add_blank_func_as_prop('keys', array_prototype, array_p_keys)
@@ -138,9 +138,9 @@ def setup_object_and_function(G: Graph):
     G.add_blank_func_as_prop('valueOf', object_prototype, this_returning_func)
 
     # function built-in functions
-    G.add_blank_func_as_prop('call', function_prototype, function_call)
-    G.add_blank_func_as_prop('apply', function_prototype, function_apply)
-    G.add_blank_func_as_prop('bind', function_prototype, function_bind)
+    G.add_blank_func_as_prop('call', function_prototype, function_p_call)
+    G.add_blank_func_as_prop('apply', function_prototype, function_p_apply)
+    G.add_blank_func_as_prop('bind', function_prototype, function_p_bind)
 
 
 def setup_global_functions(G: Graph):
@@ -295,7 +295,7 @@ def array_p_push(G: Graph, caller_ast, extra, arrays: NodeHandleResult, *tobe_ad
 
 def array_p_pop(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
     returned_objs = set()
-    if extra.branches:
+    if extra.branches.get_last_choice_tag():
         logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
         arrays = copy_objs_for_branch(G, arrays,
             branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
@@ -322,7 +322,33 @@ def array_p_pop(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
-def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts: NodeHandleResult, delete_counts=NodeHandleResult(values=[None]), *items: NodeHandleResult):
+def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
+    returned_objs = set()
+    if extra.branches.get_last_choice_tag():
+        logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
+        arrays = copy_objs_for_branch(G, arrays,
+            branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
+    for arr in arrays.obj_nodes:
+        for prop_name_node in G.get_prop_name_nodes(arr):
+            name = G.get_node_attr(prop_name_node).get('name')
+            try:
+                if name is None:
+                    returned_objs.update(G.get_obj_nodes(prop_name_node, extra.branches))
+                    continue
+                i = int(name)
+                if i == 0:
+                    objs = G.get_obj_nodes(prop_name_node, extra.branches)
+                    returned_objs.update(objs)
+                    for obj in objs:
+                        G.remove_all_edges_between(prop_name_node, obj)
+                else:
+                    G.set_node_attr(prop_name_node, ('code', i - 1))
+            except ValueError:
+                logger.error('Array {} length error'.format(arr))
+    return NodeHandleResult(obj_nodes=list(returned_objs))
+
+
+def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts: NodeHandleResult=NodeHandleResult(values=[None]), delete_counts=NodeHandleResult(values=[None]), *items: NodeHandleResult):
     used_objs = set()
     start_values, start_sources, _ = to_values(G, starts)
     dc_values, dc_sources, _ = to_values(G, delete_counts)
@@ -515,7 +541,7 @@ def object_values(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_arr
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
-def object_entries(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array=False):
+def object_entries(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
         arr = G.add_obj_node(None, 'array')
@@ -539,15 +565,15 @@ def object_entries(G: Graph, caller_ast, extra, arg: NodeHandleResult, for_array
 
 
 def array_p_keys(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
-    return object_keys(G, caller_ast, extra, this, True)
+    return object_keys(G, caller_ast, extra, None, this, for_array=True)
 
 
 def array_p_values(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
-    return object_values(G, caller_ast, extra, this, True)
+    return object_values(G, caller_ast, extra, None, this, for_array=True)
 
 
 def array_p_entries(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
-    return object_entries(G, caller_ast, extra, this, True)
+    return object_entries(G, caller_ast, extra, None, this, for_array=True)
 
 
 def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult, 
@@ -577,13 +603,13 @@ def object_is(G: Graph, caller_ast, extra, _, value1: NodeHandleResult, value2: 
         return NodeHandleResult(obj_nodes=G.false_obj)
 
 
-def function_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
+def function_p_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
     returned_objs, _, used_objs = objectGraphGenerator.call_function(
         G, func.obj_nodes, list(args), this, extra, caller_ast,
         stmt_id=f'Call{caller_ast}')
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
 
-def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), arg_array=None):
+def function_p_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), arg_array=None):
     args = []
     if arg_array is not None:
         for array in arg_array.obj_nodes: # for every possible argument array
@@ -604,10 +630,10 @@ def function_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this=Nod
                 if i > 32767:
                     break
     args = [NodeHandleResult(obj_nodes=i) for i in args]
-    return function_call(G, caller_ast, extra, func, this, *args)
+    return function_p_call(G, caller_ast, extra, func, this, *args)
 
 
-def function_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
+def function_p_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
     returned_objs = []
     for f in func.obj_nodes:
         ast_node = G.get_obj_def_ast_node(f)
@@ -1006,7 +1032,7 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
         used_objs=list(set(strs.obj_nodes + strs.used_objs + regexps.obj_nodes + regexps.used_objs)))
 
 
-def string_p_split(G: Graph, caller_ast, extra, strs, separators):
+def string_p_split(G: Graph, caller_ast, extra, strs, separators=NodeHandleResult(values=[''])):
     values, s1, _ = to_values(G, strs, caller_ast)
     sep, s2, _ = to_values(G, separators, caller_ast)
     returned_objs = []
@@ -1055,7 +1081,9 @@ def string_p_reverse(G: Graph, caller_ast, extra, strs):
         used_objs=used_objs)
 
 
-def string_p_substring(G: Graph, caller_ast, extra, strs, indices_start, indices_end=NodeHandleResult(values=[None])):
+def string_p_substring(G: Graph, caller_ast, extra, strs,
+    indices_start=NodeHandleResult(values=[0]),
+    indices_end=NodeHandleResult(values=[None])):
     values, source1, _ = to_values(G, strs, caller_ast)
     i_starts, source2, _ = to_values(G, indices_start, caller_ast)
     i_ends, source3, _ = to_values(G, indices_end, caller_ast)
@@ -1085,7 +1113,9 @@ def string_p_substring(G: Graph, caller_ast, extra, strs, indices_start, indices
         value_sources=returned_sources, used_objs=list(used_objs))
 
 
-def string_p_substr(G: Graph, caller_ast, extra, strs, indices_start, indices_end=NodeHandleResult(values=[None])):
+def string_p_substr(G: Graph, caller_ast, extra, strs,
+    indices_start=NodeHandleResult(values=[0]),
+    indices_end=NodeHandleResult(values=[None])):
     values, source1, _ = to_values(G, strs, caller_ast)
     i_starts, source2, _ = to_values(G, indices_start, caller_ast)
     lengths, source3, _ = to_values(G, indices_end, caller_ast)
@@ -1186,7 +1216,8 @@ def string_p_trim_start(G: Graph, caller_ast, extra, strs, *args):
         used_objs=used_objs)
 
 
-def string_p_char_at(G: Graph, caller_ast, extra, strs, indices):
+def string_p_char_at(G: Graph, caller_ast, extra, strs,
+        indices=NodeHandleResult(values=[0])):
     values, sources1, _ = to_values(G, strs, caller_ast)
     indexs, sources2, _ = to_values(G, indices, caller_ast)
     returned_values = []

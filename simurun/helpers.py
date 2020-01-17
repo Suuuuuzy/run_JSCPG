@@ -387,7 +387,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
 def is_int(x):
     try: # check if x is an integer
         _ = int(x)
-    except ValueError:
+    except (ValueError, TypeError):
         return False
     return True
 
@@ -418,7 +418,7 @@ def copy_objs_for_branch(G: Graph, handle_result: NodeHandleResult, branch,
             eb = data.get('branch')
             if name_node in handle_result.name_nodes and (eb is None or
                 (eb.point == branch.point and eb.branch != branch.branch)):
-                if copied_obj is None: # the object is copied only once
+                if copied_obj is None: # the object should be copied only once
                     copied_obj = G.copy_obj(obj, ast_node)
                     returned_objs.append(copied_obj)
                 # assign the name node to the copied object and mark the

@@ -326,6 +326,7 @@ def main(cur_no, num_split):
             level=logging.DEBUG)
         create_logger("npmtest", output_type="console",
             level=logging.DEBUG)
+        G.print = True
     if args.root_path is not None:
         root_path = args.root_path
 

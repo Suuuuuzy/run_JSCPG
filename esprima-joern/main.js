@@ -2093,9 +2093,21 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     };
                     // left (key)
                     let leftIdentifier;
+                    let varphpflag = "";
                     if (currentNode.left.type == 'VariableDeclaration' &&
                         currentNode.left.declarations && currentNode.left.declarations[0]){
                         leftIdentifier = currentNode.left.declarations[0].id;
+                        switch (currentNode.left.kind){
+                            case 'var':
+                                varphpflag = 'JS_DECL_VAR';
+                                break;
+                            case 'let':
+                                varphpflag = 'JS_DECL_LET';
+                                break;
+                            case 'const':
+                                varphpflag = 'JS_DECL_CONST';
+                                break;
+                        }
                     } else if (currentNode.left.type == 'Identifier'){
                         leftIdentifier = currentNode.left;
                     }
@@ -2108,6 +2120,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                             label: 'AST_V',
                             type: 'VariableDeclarator',
                             phptype: 'AST_VAR',
+                            phpflag: varphpflag,
                             lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                             childNum: 2,
                             funcId: currentFunctionId
@@ -2131,9 +2144,22 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 } else if (currentNode.type == 'ForOfStatement') {
                     phpflag = 'JS_FOR_OF';
                     // left (value)
+                    let leftIdentifier;
+                    let varphpflag = "";
                     if (currentNode.left.type == 'VariableDeclaration' &&
                         currentNode.left.declarations && currentNode.left.declarations[0]){
                         leftIdentifier = currentNode.left.declarations[0].id;
+                        switch (currentNode.left.kind){
+                            case 'var':
+                                varphpflag = 'JS_DECL_VAR';
+                                break;
+                            case 'let':
+                                varphpflag = 'JS_DECL_LET';
+                                break;
+                            case 'const':
+                                varphpflag = 'JS_DECL_CONST';
+                                break;
+                        }
                     } else if (currentNode.left.type == 'Identifier'){
                         leftIdentifier = currentNode.left;
                     }
@@ -2146,6 +2172,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                             label: 'AST_V',
                             type: 'VariableDeclarator',
                             phptype: 'AST_VAR',
+                            phpflag: varphpflag,
                             lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                             childNum: 1,
                             funcId: currentFunctionId

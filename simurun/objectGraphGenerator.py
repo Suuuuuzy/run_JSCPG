@@ -320,10 +320,17 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
     prop_names, prop_name_sources, prop_name_tags = \
                             to_values(G, handled_prop, for_prop=True)
     name_tainted = False
-    for source in chain(*prop_name_sources):
-        if G.get_node_attr(source).get('tainted'):
-            name_tainted = True
-            break
+    if G.check_proto_pollution:
+        for source in chain(*prop_name_sources):
+            if G.get_node_attr(source).get('tainted'):
+                name_tainted = True
+                break
+    parent_is_proto = False
+    if G.check_proto_pollution:
+        for obj in handled_parent.obj_nodes:
+            if obj in G.prototypes:
+                parent_is_proto = True
+                break
 
     if G.check_proto_pollution and prop_names == [None] * len(prop_names):
         # conservative: only if all property names are known,
@@ -334,6 +341,8 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
             prop_name_nodes.extend(G.get_prop_name_nodes(parent_obj))
             objs = G.get_prop_obj_nodes(parent_obj, branches=branches,
                 exclude_proto=False)
+            objs = filter(lambda obj: G.get_node_attr(obj).get('type')
+                                                        != 'function', objs)
             prop_obj_nodes.extend(objs)
             if is_wildcard_obj(G, parent_obj) and not G.get_prop_obj_nodes(
                     parent_obj, '*', extra.branches):
@@ -390,9 +399,9 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
             prop_obj_nodes = [G.undefined_obj]
 
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
-        name=f'{name}', name_nodes=list(prop_name_nodes),
-        ast_node=ast_node, callback=get_df_callback(G),
-        name_tainted=name_tainted
+            name=f'{name}', name_nodes=list(prop_name_nodes),
+            ast_node=ast_node, callback=get_df_callback(G),
+            name_tainted=name_tainted, parent_is_proto=parent_is_proto
         ), handled_parent
 
 def handle_assign(G, ast_node, extra=None, right_override=None):
@@ -484,13 +493,22 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
 
-    if G.check_proto_pollution and handled_left.name_tainted:
-        pollution = False
+    if G.check_proto_pollution and handled_left.name_tainted and handled_left.parent_is_proto:
+        flag1 = False
+        flag2 = False
+        # for name_node in handled_left.name_nodes:
+        #     if name_node in G.pollutable_name_nodes:
+        #         flag1 = True
+        #         break
+        # for obj_node in handled_left.obj_nodes:
+        #     if obj_node in G.pollutable_objs:
+        #         flag1 = True
+        #         break
         for obj in right_objs:
             if G.get_node_attr(obj).get('tainted'):
-                pollution = True
+                flag2 = True
                 break
-        if pollution:
+        if flag2:
             name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)
                 .get('name')))) for x in handled_left.name_nodes]
             logger.warning(sty.fg.li_red + sty.ef.inverse +
@@ -498,6 +516,8 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
                 'trying to assign {} to name node {}'
                 .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'),
                 right_objs, ', '.join(name_node_log)) + sty.rs.all)
+            logger.debug(f'Pollutable objs: {G.pollutable_objs}')
+            logger.debug(f'Pollutable NN: {G.pollutable_name_nodes}')
             G.proto_pollution.add(ast_node)
             if G.exit_when_found:
                 G.finished = True
@@ -602,9 +622,10 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     G.cur_objs = backup_objs
 
     # finally add call edge from caller to callee
-    if exp_ast_node is not None:
-        G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
-                                {"type:TYPE": "CALLS"})
+    # added in call_function, no need to add here
+    # if exp_ast_node is not None:
+    #     G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
+    #                             {"type:TYPE": "CALLS"})
 
     return created_obj, returned_objs
 
@@ -950,7 +971,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         for i, if_elem in enumerate(if_elems):
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
             if G.get_node_attr(condition).get('type') == 'NULL': # else
-                if else_is_deterministic:
+                if else_is_deterministic or G.single_branch:
                     simurun_block(G, body, G.cur_scope, branches)
                 else:
                     # not deterministic, create branch
@@ -969,6 +990,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 # if the condition is surely true
                 simurun_block(G, body, G.cur_scope, branches)
                 break
+            elif G.single_branch:
+                simurun_block(G, body, G.cur_scope)
             elif not deterministic or possibility is None or 0 < possibility < 1:
                 # if the condition is unsure
                 else_is_deterministic = False
@@ -1073,6 +1096,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             G.add_scope('BLOCK_SCOPE', decl_ast=body,
                         scope_name=G.scope_counter.gets(f'Block{body}'))
         has_branches = (len(handled_obj.obj_nodes) > 1)
+        # print(sty.fg.li_green, handled_obj.obj_nodes, sty.rs.all)
         for obj in handled_obj.obj_nodes:
             if G.get_node_attr(node_id).get('flags:string[]') == 'JS_FOR_IN':
                 # handle and declare the loop variable
@@ -1080,10 +1104,13 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 if G.finished:
                     break
                 # loop through object's property names
-                prop_names = G.get_prop_names(obj)
+                # if it's a wildcard object, include "__proto__"
+                prop_names = G.get_prop_names(obj,
+                    exclude_proto=not is_wildcard_obj(G, obj))
                 if is_wildcard_obj(G, obj):
                     # wildcard property for wildcard object
                     prop_names.append('*')
+                    logger.debug(f'{obj} is a wildcard object.')
                 for k in prop_names:
                     if G.get_node_attr(obj).get('type') == 'array' and \
                         not is_int(k):
@@ -1098,7 +1125,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                         key_obj = G.add_obj_node(ast_node=node_id,
                             js_type='string', value=k)
                         add_contributes_to(G, [obj], key_obj)
-                    logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{key_obj}{sty.rs.all}: {k}')
+                    logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{key_obj}{sty.rs.all}: {k}'
+                        f' from obj {obj}')
                     G.assign_obj_nodes_to_name_node(handled_key.name_nodes[0],
                         [key_obj], branches=extra.branches)
                     # run the body
@@ -1112,14 +1140,19 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 # if the object is an array, only use numeric indices
                 numeric_only = (G.get_node_attr(obj).get('type') == 'array')
                 # loop through object's property object nodes
+                # if it's a wildcard object, include its prototype
                 prop_obj_nodes = G.get_prop_obj_nodes(obj,
-                    branches=extra.branches, numeric_only=numeric_only)
+                    branches=extra.branches, numeric_only=numeric_only,
+                    exclude_proto=not is_wildcard_obj(G, obj))
                 if is_wildcard_obj(G, obj):
+                    # wildcard property for wildcard object
                     prop_obj_nodes.append(G.add_obj_node(ast_node=node_id,
                         js_type='object', value='*'))
+                    logger.debug(f'{obj} is a wildcard object.')
                 for v in prop_obj_nodes:
                     # assign the object node to the loop variable
-                    logger.debug(f'For-of loop variables: {sty.ef.i}{handled_value.name}{sty.rs.all}: {sty.fg.green}{v}{sty.rs.all}: {G.get_node_attr(v).get("code")}')
+                    logger.debug(f'For-of loop variables: {sty.ef.i}{handled_value.name}{sty.rs.all}: {sty.fg.green}{v}{sty.rs.all}: {G.get_node_attr(v).get("code")}'
+                        f' from obj {obj}')
                     G.assign_obj_nodes_to_name_node(handled_value.name_nodes[0],
                         [v], branches=extra.branches)
                     # run the body
@@ -1134,7 +1167,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         except ValueError as e:
             for n in G.get_ordered_ast_child_nodes(node_id):
                 logger.error(n, G.get_node_attr(n))
-        test = G.get_ordered_ast_child_nodes(test)[0]
+        # test = G.get_ordered_ast_child_nodes(test)[0] # wrongly influenced by for?
         # switch scopes
         parent_scope = G.cur_scope
         G.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
@@ -1268,6 +1301,8 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     A block is a BlockStatement in JavaScript,
     or an AST_STMT_LIST in PHP.
     """
+    if branches is None:
+        branches = BranchTagContainer()
     returned_objs = set()
     used_objs = set()
     if parent_scope == None:
@@ -1862,7 +1897,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         branches = extra.branches
         parent_branch = branches.get_last_choice_tag()
         # if branches exist, add a new branch tag to the list
-        if has_branches:
+        if has_branches and not single_branch:
             next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
         else:
             next_branches = branches
@@ -1902,18 +1937,42 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             arguments_obj = G.add_obj_to_scope(name='arguments',
                     js_type='array', scope=func_scope, ast_node=func_ast)
             j = 0
-            for param in params:
-                param_name = G.get_name_from_child(param)
+            while j < len(params) or j < len(_args):
                 if j < len(_args):
                     arg_obj_nodes = to_obj_nodes(G, _args[j], caller_ast)
-                    logger.debug(f'add arg {param_name} <- {arg_obj_nodes}, '
-                            f'scope {func_scope}')
+                    # add argument to "arguments"
                     for obj in arg_obj_nodes:
-                        G.add_obj_to_scope(name=param_name, scope=func_scope,
-                            tobe_added_obj=obj)
                         G.add_obj_as_prop(prop_name=str(j),
                             parent_obj=arguments_obj, tobe_added_obj=obj)
-                else:
+                    # add argument to the parameter
+                    if j < len(params):
+                        param = params[j]
+                        param_name = G.get_name_from_child(param)
+                        if G.get_node_attr(param).get('flags:string[]') \
+                            == 'PARAM_VARIADIC':
+                            arr = G.add_obj_node(caller_ast or param, 'array')
+                            length = 0
+                            while j < len(_args):
+                                logger.debug(f'add arg {param_name}[{length}]'
+                                    f' <- {arg_obj_nodes}, scope {func_scope}')
+                                for obj in arg_obj_nodes:
+                                    G.add_obj_as_prop(str(length),
+                                        parent_obj=arr, tobe_added_obj=obj)
+                                j += 1
+                                length += 1
+                        else:
+                            logger.debug(f'add arg {param_name} <- '
+                                f'{arg_obj_nodes}, scope {func_scope}')
+                            for obj in arg_obj_nodes:
+                                G.add_obj_to_scope(name=param_name,
+                                    scope=func_scope, tobe_added_obj=obj)
+                    else:
+                        # this is used to print logs only
+                        logger.debug(f'add arg arguments[{j}] <- '
+                            f'{arg_obj_nodes}, scope {func_scope}')
+                elif j < len(params):
+                    param = params[j]
+                    param_name = G.get_name_from_child(param)
                     # add dummy arguments
                     param_name = G.get_name_from_child(param)
                     if G.get_node_attr(param).get('flags:string[]') \
@@ -1938,30 +1997,37 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
 
-                    logger.debug(f'add arg {param_name} <- new obj {added_obj}, \
-                            scope {func_scope}, ast node {param}')
+                    logger.debug(f'add arg {param_name} <- new obj {added_obj}, '
+                            f'scope {func_scope}, ast node {param}')
+                elif j < 3:
+                    # in case the function only use "arguments"
+                    # but no parameters in its declaration
+                    added_obj = G.add_obj_node(ast_node=caller_ast,
+                        # give __proto__ when checking prototype pollution
+                        js_type='object' if G.check_proto_pollution
+                        else None, value='*')
+                    if mark_fake_args:
+                        G.set_node_attr(added_obj, ('tainted', True))
+                        logger.debug("{} marked as tainted".format(added_obj))
+                    G.add_obj_as_prop(prop_name=str(j),
+                        parent_obj=arguments_obj, tobe_added_obj=added_obj)
+                    logger.debug(f'add arguments[{j}] <- new obj {added_obj}, '
+                                f'scope {func_scope}, ast node {caller_ast}')
+                else:
+                    break
                 j += 1
-            # in case the function only use "arguments"
-            # but no parameters in its declaration
-            while j < 2:
-                added_obj = G.add_obj_node(ast_node=caller_ast,
-                    # give __proto__ when checking prototype pollution
-                    js_type='object' if G.check_proto_pollution
-                    else None, value='*')
-                if mark_fake_args:
-                    G.set_node_attr(added_obj, ('tainted', True))
-                    logger.debug("{} marked as tainted".format(added_obj))
-                G.add_obj_as_prop(prop_name=str(j),
-                    parent_obj=arguments_obj, tobe_added_obj=added_obj)
-                j += 1
+            arguments_length_obj = G.add_obj_as_prop(prop_name='length',
+                parent_obj=arguments_obj, value=j, js_type='number')
             # if the function is defined in a for loop, restore the branches
-            for_tags = \
-                BranchTagContainer(G.get_node_attr(func_obj).get('for_tags',
-                BranchTagContainer())).get_creating_for_tags()
-            if for_tags:
-                for_tags = [BranchTag(i, mark=None) for i in for_tags]
-                next_branches.extend(for_tags)
-            logger.debug(f'next branch tags: {next_branches}')
+            # this design is obsolete
+            # for_tags = \
+            #     BranchTagContainer(G.get_node_attr(func_obj).get('for_tags',
+            #     BranchTagContainer())).get_creating_for_tags()
+            # if for_tags:
+            #     for_tags = [BranchTag(i, mark=None) for i in for_tags]
+            #     next_branches.extend(for_tags)
+            # logger.debug(f'next branch tags: {next_branches}')
+
             # switch scopes ("new" will swtich scopes and object by itself)
             backup_scope = G.cur_scope
             G.cur_scope = func_scope
@@ -2027,7 +2093,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         if branch_created_obj is not None:
             created_objs.append(branch_created_obj)
         # add call edge
-        if caller_ast is not None:
+        if caller_ast is not None and G.get_node_attr(func_ast).get('type')\
+            in ['AST_FUNC_DECL', 'AST_CLOSURE']:
             G.add_edge_if_not_exist(caller_ast, func_ast, {"type:TYPE": "CALLS"})
 
     if has_branches:
@@ -2082,18 +2149,27 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     #     print('df time = %.3f, %d' % (time.time() - start_time, len(used_objs)))
 
 def print_handle_result_tainted(G: Graph, handle_result: NodeHandleResult):
-    show_tainted = lambda l: '[' + ', '.join([(sty.fg.li_red + n + sty.rs.all
-        if G.get_node_attr(n).get('tainted') else n) for n in l]) + ']'
+    def color_node(n):
+        if G.get_node_attr(n).get('tainted'):
+            return sty.fg.li_red + n + sty.rs.all
+        elif n in G.inv_internal_objs:
+            return sty.ef.inverse + n + sty.rs.all
+        elif n in G.prototypes:
+            return sty.fg.li_yellow + n + sty.rs.all
+        else:
+            return n
+    show_tainted = lambda l: '[' + ', '.join([color_node(n) for n in l]) + ']'
     output = f'{sty.ef.b}{sty.fg.cyan}{handle_result.ast_node}{sty.rs.all} ' \
-        f'handle result: obj_nodes={show_tainted(handle_result.obj_nodes)}, ' \
-        f'name={handle_result.name}, name_nodes={handle_result.name_nodes}'
+        f'handle result: obj_nodes={show_tainted(handle_result.obj_nodes)}'
+    if handle_result.name_tainted:
+        output += f', {sty.fg.li_red}name={handle_result.name}{sty.rs.all}'
+    else:
+        output += f', name={handle_result.name}'
+    output += f', name_nodes={handle_result.name_nodes}'
     if handle_result.values:
         output += f', values={handle_result.values}'
     if handle_result.used_objs:
         output += f', used_objs={show_tainted(handle_result.used_objs)}'
-    if handle_result.name_tainted:
-        output += f', {sty.fg.li_red}name_tainted={handle_result.name_tainted}'
-        output += sty.rs.all
     # if handle_result.from_branches:
     #     output += f'{sty.fg.li_black}, from_branches=' \
     #         f'{handle_result.from_branches}{sty.rs.all}'
@@ -2121,7 +2197,10 @@ def generate_obj_graph(G, entry_nodeid):
     G.setup1()
     modeled_js_builtins.setup_js_builtins(G)
     G.setup2()
-    NodeHandleResult.print_callback = lambda x: print_handle_result_tainted(G, x)
+    if G.print:
+        NodeHandleResult.print_callback = lambda x: print_handle_result_tainted(G, x)
+    else:
+        NodeHandleResult.print_callback = print_handle_result
     logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:

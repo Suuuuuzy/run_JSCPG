@@ -44,6 +44,7 @@ class NodeHandleResult:
         self.value_sources = kwargs.get('value_sources', [])
         self.ast_node = kwargs.get('ast_node')
         self.name_tainted = kwargs.get('name_tainted')
+        self.parent_is_proto = kwargs.get('parent_is_proto')
         if self.ast_node:
             self.print_callback()
         if self.values and not self.value_sources:

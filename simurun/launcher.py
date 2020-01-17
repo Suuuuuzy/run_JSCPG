@@ -20,6 +20,17 @@ def unittest_main(file_path, check_signatures=[], check_proto_pollution=False,
     G.single_branch = single_branch
     G.check_proto_pollution = check_proto_pollution
     result = analyze_files(G, file_path, check_signatures=check_signatures)
+    # output location of prototype pollution to a seperate file
+    proto_pollution_logger = create_logger('proto_pollution',
+            output_type='file', file_name="proto_pollution.log")
+    if G.proto_pollution:
+        proto_pollution_logger.info('Prototype pollution found in package {}'
+            .format(G.entry_file_path))
+        for ast_node in G.proto_pollution:
+            proto_pollution_logger.info('{} {}\n{}'
+                .format(ast_node, G.get_node_file_path(ast_node),
+                        G.get_node_line_code(ast_node)))
+        # proto_pollution_logger.info('') # blank line
     if result == False:
         return None 
     return G
@@ -37,8 +48,8 @@ def main():
                         "(Defaults to 3.)")
     parser.add_argument('-t', '--vul-type', default='os_command',
                         help="Set the vulnerability type to be checked.")
-    parser.add_argument('--pp', '--prototype-pollution', action='store_true',
-                        dest='prototype_pollution',
+    parser.add_argument('-P', '--prototype-pollution', '--pp',
+                        action='store_true',
                         help="Check prototype pollution.")
     parser.add_argument('-m', '--module', action='store_true',
                         help="Module mode. Regard the input file as a module "
@@ -65,6 +76,7 @@ def main():
             level=logging.DEBUG)
         create_logger("graph_logger", output_type="console",
             level=logging.DEBUG)
+        G.print = True
     G.run_all = args.run_all or args.module
     G.exit_when_found = args.exit
     G.single_branch = args.single_branch
@@ -112,6 +124,7 @@ def main():
                 .format(sty.fg.li_cyan + ast_node + sty.rs.all,
                     G.get_node_file_path(ast_node),
                     G.get_node_line_code(ast_node)))
+        print(G.proto_pollution)
 
     if vul_type != 'proto_pollution':
         logger.debug(sty.ef.inverse + vul_type + sty.rs.all)

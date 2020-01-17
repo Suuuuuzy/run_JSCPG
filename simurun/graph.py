@@ -9,6 +9,7 @@ from typing import List, Callable
 from .utilities import BranchTag, DictCounter
 from .logger import *
 import uuid
+from itertools import chain
 
 class Graph:
 
@@ -56,6 +57,7 @@ class Graph:
         self.proto_pollution = set()
 
         self.single_branch = False
+        self.print = False
 
         csv.field_size_limit(2 ** 31 - 1)
 
@@ -1333,7 +1335,9 @@ class Graph:
         self.false_obj = self.add_obj_node(None, 'boolean', 'false')
         self.add_obj_to_name('false', scope=self.BASE_SCOPE,
                              tobe_added_obj=self.false_obj)
-        self.internal_objs = {'undefined': self.undefined_obj,
+
+        self.internal_objs = {
+            'undefined': self.undefined_obj,
             'null': self.null_obj,
             'global': self.BASE_OBJ,
             'infinity': self.infinity_obj,
@@ -1345,6 +1349,16 @@ class Graph:
         self.inv_internal_objs = {v: k for k, v in self.internal_objs.items()}
         self.logger.debug(sty.ef.inverse + 'Internal objects\n' + 
             str(self.internal_objs)[1:-1] + sty.rs.all)
+
+        self.prototypes = [
+            self.object_prototype, self.string_prototype,
+            self.array_prototype, self.function_prototype,
+            self.number_prototype, self.boolean_prototype, self.regexp_prototype
+        ]
+        self.pollutable_objs = set(chain(*
+            [self.get_prop_obj_nodes(p) for p in self.prototypes]))
+        self.pollutable_name_nodes = set(chain(*
+            [self.get_prop_name_nodes(p) for p in self.prototypes]))
 
     def get_parent_object_def(self, node_id):
         """

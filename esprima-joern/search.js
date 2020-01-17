@@ -60,6 +60,7 @@ function searchModule(moduleName, requiredBy) {
         if (!found) {
             // search directory
             currentPath = path.resolve(p, moduleName);
+            // console.error(currentPath);
             if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
                 mainPath = searchMain(currentPath);
                 if (mainPath != null) {
@@ -93,6 +94,10 @@ function searchMain(packagePath) {
     if (fs.existsSync(mainPath) && fs.statSync(mainPath).isDirectory()) {
         mainPath = path.resolve(mainPath, 'index.js');
     }
+    if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
+        return mainPath;
+    }
+    mainPath += '.js';
     if (fs.existsSync(mainPath) && fs.statSync(mainPath).isFile()) {
         return mainPath;
     }
