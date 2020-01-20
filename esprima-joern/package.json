@@ -4,9 +4,9 @@
   "description": "A tool that generates JavaScript AST for Joern",
   "main": "main.js",
   "dependencies": {
-    "esprima": "^4.0.1",
     "ansicolor": "^1.1.84",
-    "commander": "^3.0.2"
+    "commander": "^3.0.2",
+    "esprima": "^4.0.1"
   },
   "devDependencies": {},
   "scripts": {

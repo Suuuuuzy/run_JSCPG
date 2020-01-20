@@ -19,6 +19,7 @@ from simurun.vulFuncLists import *
 
 #root_path = "/media/data/lsong18/data/pre_npmpackages/"
 root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
+#root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
 #testing_packages = [root_path + 'forms@1.2.0']
@@ -258,7 +259,7 @@ def test_file(file_path, vul_type='xss', single_branch=False):
                 single_branch=single_branch)
         else:
             G = unittest_main(test_file_name, check_signatures=get_all_sign_list(),
-                single_branch=single_branch)
+                single_branch=single_branch, vul_type=vul_type)
     except Exception as e:
         os.remove(test_file_name)
         del G
@@ -269,7 +270,7 @@ def test_file(file_path, vul_type='xss', single_branch=False):
 
     try:
         os.remove(test_file_name)
-        os.remove("run_log.log")
+ #       os.remove("run_log.log")
         os.remove("out.dat")
     except:
         pass
@@ -281,11 +282,10 @@ def test_file(file_path, vul_type='xss', single_branch=False):
     if vul_type == 'proto_pollution':
         final_res = 1 if G.proto_pollution else 0
     else:
-        print(vul_type)
         final_res = unit_check_log(G, vul_type, file_path)
 
 
-    final_res = None
+    # final_res = None
     # not necessary but just in case
     del G
     return final_res

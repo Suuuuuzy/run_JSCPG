@@ -1651,7 +1651,6 @@ def ast_call_function(G, ast_node, extra):
                     if obj in G.require_obj_stack:
                         continue
                     G.require_obj_stack.append(obj)
-                    # print(obj, G.get_node_attr(obj))
                     newed_objs = None
                     returned_objs = None
                     if G.get_node_attr(obj).get("init_run") is not None:
@@ -1687,7 +1686,7 @@ def ast_call_function(G, ast_node, extra):
 
         # for a require call, we need to run traceback immediately
         if G.exit_when_found:
-            vul_type = 'os_command'
+            vul_type = G.vul_type
             res_path = traceback(G, vul_type)
             res_path = vul_checking(G, res_path[0], vul_type)
             if len(res_path) != 0:
@@ -1765,7 +1764,6 @@ def ast_call_function(G, ast_node, extra):
     elif G.get_node_attr(ast_node).get('type') == 'AST_NEW':
         stmt_id = 'New' + ast_node + '-' + get_random_hex()
         is_new = True
-
     returned_objs, created_objs, used_objs = \
         call_function(G, func_decl_objs, handled_args,
         handled_parent, extra, caller_ast=ast_node, is_new=is_new,
@@ -2069,6 +2067,7 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     used_objs = set(used_objs)
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
+        # print("?", cur_stmt, used_objs, def_ast_node)
         if def_ast_node is None: continue
         def_cpg_node = G.find_nearest_upper_CPG_node(def_ast_node)
         if def_cpg_node is None: continue

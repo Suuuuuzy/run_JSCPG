@@ -25,6 +25,7 @@ def traceback(G, export_type):
         func_name = G.get_name_from_child(func_node)
         if func_name in expoit_func_list:
             caller = func_node
+            caller = G.find_nearest_upper_CPG_node(caller)
             caller_list.append("{} called {}".format(caller, func_name))
             pathes = G._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
 
@@ -126,6 +127,7 @@ def vul_checking(G, pathes, vul_type):
 
     rule_lists = vul_type_map[vul_type]
     success_pathes = []
+    print('vul_checking', vul_type)
     # print(pathes)
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)

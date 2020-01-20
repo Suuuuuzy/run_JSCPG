@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 def unittest_main(file_path, check_signatures=[], check_proto_pollution=False,
-    single_branch=False):
+    single_branch=False, vul_type='os_command'):
     """
     main function for uniitest 
     """
@@ -19,6 +19,7 @@ def unittest_main(file_path, check_signatures=[], check_proto_pollution=False,
     G.exit_when_found = True
     G.single_branch = single_branch
     G.check_proto_pollution = check_proto_pollution
+    G.vul_type = vul_type
     result = analyze_files(G, file_path, check_signatures=check_signatures)
     if result == False:
         return None 
@@ -68,6 +69,7 @@ def main():
     G.run_all = args.run_all or args.module
     G.exit_when_found = args.exit
     G.single_branch = args.single_branch
+    G.vul_type = args.vul_type
     G.check_proto_pollution = (args.prototype_pollution or 
                                args.vul_type == 'proto_pollution')
     G.call_limit = args.call_limit
