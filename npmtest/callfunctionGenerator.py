@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import sys
 sys.path.append("..")
 from npmtest.multi_run_helper import *
