@@ -1,12 +1,12 @@
 from .trace_rule import TraceRule
 from .vulFuncLists import *
 
-def traceback(G, export_type):
+def traceback(G, vul_type, start_node=None):
     """
     traceback from the leak point, the edge is OBJ_REACHES
     Args:
         G: the graph
-        export_type: the type of export, listed below
+        vul_type: the type of vulernability, listed below
 
     Return:
         the paths include the objs,
@@ -14,7 +14,7 @@ def traceback(G, export_type):
         the list of callers,
     """
     res_path = ""
-    expoit_func_list = signature_lists[export_type]
+    expoit_func_list = signature_lists[vul_type]
 
     func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
     func_nodes += G.get_node_by_attr('type', 'AST_CALL')
@@ -118,11 +118,15 @@ def vul_checking(G, pathes, vul_type):
             [('has_user_input', None), ('end_with_func', ['Function']), ('not_exist_func', ['parseInt'])],
             [('has_user_input', None), ('end_with_func', ['eval']), ('not_exist_func', ['parseInt'])]
             ]
+    proto_pollution = [
+            [('has_user_input', None), ('not_exist_func', signature_lists['sanitation'])]
+            ]
 
     vul_type_map = {
             "xss": xss_rule_lists,
             "os_command": os_command_rule_lists,
             "code_exec": code_exec_lists,
+            "pp": proto_pollution
             }
 
     rule_lists = vul_type_map[vul_type]

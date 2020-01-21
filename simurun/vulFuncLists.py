@@ -17,6 +17,9 @@ signature_lists = {
             'Function',
             'eval',
             'sink_hqbpillvul_eval'
+            ],
+        'sanitation': [
+            'parseInt'
             ]
 }
 

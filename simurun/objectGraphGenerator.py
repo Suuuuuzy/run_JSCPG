@@ -1895,7 +1895,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         branches = extra.branches
         parent_branch = branches.get_last_choice_tag()
         # if branches exist, add a new branch tag to the list
-        if has_branches and not single_branch:
+        if has_branches and not G.single_branch:
             next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
         else:
             next_branches = branches

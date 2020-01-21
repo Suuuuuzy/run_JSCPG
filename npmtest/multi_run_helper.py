@@ -270,7 +270,7 @@ def test_file(file_path, vul_type='xss', single_branch=False):
 
     try:
         os.remove(test_file_name)
- #       os.remove("run_log.log")
+        os.remove("run_log.log")
         os.remove("out.dat")
     except:
         pass

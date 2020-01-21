@@ -55,7 +55,7 @@ def main():
     parser.add_argument('-m', '--module', action='store_true',
                         help="Module mode. Regard the input file as a module "
                         "required by some other modules. This implies -a.")
-    parser.add_argument('-q', '--exit', action='store_true',
+    parser.add_argument('-q', '--exit', action='store_true', default=False,
                         help="Exit the program when vulnerability is found.")
     parser.add_argument('-s', '--single-branch', action='store_true',
                         help="Single branch. Do not create multiple "
@@ -121,7 +121,9 @@ def main():
     vul_type = args.vul_type
     if G.proto_pollution:
         logger.debug(sty.ef.inverse + 'prototype pollution' + sty.rs.all)
+
         for ast_node in G.proto_pollution:
+            pathes = G._dfs_upper_by_edge_type(ast_node)
             logger.debug('{} {}\n{}'
                 .format(sty.fg.li_cyan + ast_node + sty.rs.all,
                     G.get_node_file_path(ast_node),
