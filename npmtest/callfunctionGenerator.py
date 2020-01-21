@@ -2,7 +2,6 @@
 import sys
 sys.path.append("..")
 from npmtest.multi_run_helper import *
-
 # for memory leak
 # but does not work
 split_parts = 20

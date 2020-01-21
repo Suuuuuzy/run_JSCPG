@@ -5,6 +5,7 @@
 .testDB/
 testreport/
 /tmp/
+run_tmp/
 
 # package download
 /package_downloader/packages/
@@ -17,6 +18,7 @@ logs
 
 # esprima-joern
 node_modules/
+/node_modules/
 /esprima-joern/*.csv
 /esprima-joern/log
 out.dat

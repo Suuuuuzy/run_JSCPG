@@ -1,7 +1,8 @@
 //process.env.NM_CLI = 'touch sdfliajdlifja & nmcli';
 //var attack_str = ";touch Song;";
-//var root = require("/media/data/lsong18/data/npmpackages/@pact-foundation/pact-node/src/server.js");
-var root = require("/home/lsong18/tmp/node_modules/git-describe/index.js")
+//var root = require("/media/data/lsong18/data/npmpackages/horseman-cli/bin/horseman.js");
+//var root = require("/home/lsong18/projs/JSCPG/package_downloader/packages/reduce-css-calc@1.2.4/index.js")
+var root = require("/home/lsong18/projs/JSCPG/test/test/test.js")
 //root.getDevices();
 //v2vm: root.getDelpoyVer('"& touch sdfliajdlifja &"',123);
 //root("123 & touch asdf");

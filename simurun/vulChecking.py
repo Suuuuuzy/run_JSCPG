@@ -25,6 +25,7 @@ def traceback(G, export_type):
         func_name = G.get_name_from_child(func_node)
         if func_name in expoit_func_list:
             caller = func_node
+            caller = G.find_nearest_upper_CPG_node(caller)
             caller_list.append("{} called {}".format(caller, func_name))
             pathes = G._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
 
@@ -112,13 +113,21 @@ def vul_checking(G, pathes, vul_type):
             [('has_user_input', None), ('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt'])]
             ]
 
+    code_exec_lists = [
+            [('has_user_input', None), ('not_start_within_file', ['eval.js']), ('not_exist_func', ['parseInt'])],
+            [('has_user_input', None), ('end_with_func', ['Function']), ('not_exist_func', ['parseInt'])],
+            [('has_user_input', None), ('end_with_func', ['eval']), ('not_exist_func', ['parseInt'])]
+            ]
+
     vul_type_map = {
             "xss": xss_rule_lists,
-            "os_command": os_command_rule_lists
+            "os_command": os_command_rule_lists,
+            "code_exec": code_exec_lists,
             }
 
     rule_lists = vul_type_map[vul_type]
     success_pathes = []
+    print('vul_checking', vul_type)
     # print(pathes)
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)

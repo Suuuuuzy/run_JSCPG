@@ -12,7 +12,12 @@ signature_lists = {
             ],
         'proto_pollution': [
             'merge', 'extend', 'clone', 'parse'
-        ]
+            ],
+        'code_exec': [
+            'Function',
+            'eval',
+            'sink_hqbpillvul_eval'
+            ]
 }
 
 def get_all_sign_list():
