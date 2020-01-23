@@ -20,6 +20,9 @@ signature_lists = {
             ],
         'sanitation': [
             'parseInt'
+            ],
+        'path_traversal': [
+            'sink_hqbpillvul_http_write'
             ]
 }
 

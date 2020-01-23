@@ -140,5 +140,4 @@ def main():
         logger.debug(res_path[1])
 
         res_pathes = vul_checking(G, res_path[0], vul_type)
-        print(res_pathes)
         return res_path 

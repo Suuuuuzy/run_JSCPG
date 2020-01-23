@@ -1,5 +1,11 @@
-var cp = require("child_process");
+var http = require("http");
+function start(path){
+  http.createServer(function(req, res){
+    var url = req.url;
+    res.write(url);
+  });
+}
 
-module.exports = (...args) => {
-  return require("./tmp.js");
+module.exports = {
+  start
 }

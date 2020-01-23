@@ -1,5 +1,6 @@
 var request_builtin_object = function(){
-  this.url = '';
+  var source_hqbpillvul_url = '';
+  this.url = source_hqbpillvul_url;
   this.body = '';
   this.bodyUsed = '';
   this.cache = '';

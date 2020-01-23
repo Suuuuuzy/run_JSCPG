@@ -208,7 +208,8 @@ class TraceRule:
                 "start_within_file": self.start_within_file,
                 "not_start_within_file": self.not_start_within_file,
                 "end_with_func": self.end_with_func,
-                "has_user_input": self.has_user_input
+                "has_user_input": self.has_user_input,
+                "start_with_var": self.start_with_var
                 }
 
         if self.key in key_map:

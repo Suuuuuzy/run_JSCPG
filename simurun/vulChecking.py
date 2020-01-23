@@ -121,19 +121,29 @@ def vul_checking(G, pathes, vul_type):
     proto_pollution = [
             [('has_user_input', None), ('not_exist_func', signature_lists['sanitation'])]
             ]
+    path_traversal = [
+            [('start_with_var', ['source_hqbpillvul_url']), ('not_exist_func', signature_lists['sanitation']), ('end_with_func', signature_lists['path_traversal'])]
+            ]
 
     vul_type_map = {
             "xss": xss_rule_lists,
             "os_command": os_command_rule_lists,
             "code_exec": code_exec_lists,
-            "pp": proto_pollution
+            "pp": proto_pollution,
+            "path_traversal": path_traversal
             }
 
     rule_lists = vul_type_map[vul_type]
     success_pathes = []
     print('vul_checking', vul_type)
-    # print(pathes)
+    """
+    print(pathes)
+    for path in pathes:
+        for node in path:
+            print(G.get_node_attr(node))
+    """
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)
+    print("success: ", success_pathes)
     return success_pathes
 
