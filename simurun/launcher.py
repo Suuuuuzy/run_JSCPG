@@ -37,8 +37,9 @@ def unittest_main(file_path, check_signatures=[], check_proto_pollution=False,
     return G
 
 def main():
-    parser = argparse.ArgumentParser(description=
-        'The object graph generator for JavaScript.')
+    # Parse arguments
+    parser = argparse.ArgumentParser(
+        description='Object graph generator for JavaScript.')
     parser.add_argument('-p', '--print', action='store_true',
                         help='Print logs to console, instead of file.')
     parser.add_argument('-a', '--run-all', action='store_true', default=False,
@@ -85,6 +86,8 @@ def main():
     G.check_proto_pollution = (args.prototype_pollution or 
                                args.vul_type == 'proto_pollution')
     G.call_limit = args.call_limit
+
+    # Analyze and simulate
     logger.info('Analysis starts at ' +
         datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S'))
     if args.input_file:
@@ -118,7 +121,7 @@ def main():
         datetime.today().strftime('%Y-%m-%d %H:%M:%S') +
         ', Time spent: %.3fs' % (time.time() - start_time))
 
-    vul_type = args.vul_type
+    # Vulnerability checking
     if G.proto_pollution:
         logger.debug(sty.ef.inverse + 'prototype pollution' + sty.rs.all)
 
@@ -130,14 +133,15 @@ def main():
                     G.get_node_line_code(ast_node)))
         print(G.proto_pollution)
 
-    if vul_type != 'proto_pollution':
-        logger.debug(sty.ef.inverse + vul_type + sty.rs.all)
-        res_path = traceback(G, vul_type)
+    if G.vul_type != 'proto_pollution':
+        logger.debug(sty.ef.inverse + G.vul_type + sty.rs.all)
+        res_path = traceback(G, G.vul_type)
 
         logger.debug('ResPath0:')
         logger.debug(res_path[0])
         logger.debug('ResPath1:')
         logger.debug(res_path[1])
 
-        res_pathes = vul_checking(G, res_path[0], vul_type)
+        res_pathes = vul_checking(G, res_path[0], G.vul_type)
+        print(res_pathes)
         return res_path 

@@ -2095,7 +2095,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             in ['AST_FUNC_DECL', 'AST_CLOSURE']:
             G.add_edge_if_not_exist(caller_ast, func_ast, {"type:TYPE": "CALLS"})
 
-    if has_branches:
+    if has_branches and not G.single_branch:
         merge(G, stmt_id, len(func_objs), parent_branch)
 
     if not any_func_run:

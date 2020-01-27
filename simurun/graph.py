@@ -20,8 +20,6 @@ class Graph:
         self.cur_id = 0
         self.entry_file_path = None
         self.cur_file_path = None # deprecated, use G.get_cur_file_path()
-        self.multi = False
-        self.run_all = True
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
 
@@ -56,8 +54,11 @@ class Graph:
         self.check_proto_pollution = False
         self.proto_pollution = set()
 
+        self.run_all = True
         self.single_branch = False
         self.print = False
+
+        self.vul_type = None
 
         csv.field_size_limit(2 ** 31 - 1)
 
