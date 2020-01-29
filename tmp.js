@@ -1,11 +1,17 @@
-var http = require("http");
-function start(path){
-  http.createServer(function(req, res){
-    var url = req.url;
-    res.write(url);
-  });
+function assign(target) {
+  var len = arguments.length, i = 0;
+  while(++ i < len) {
+    var val = arguments[i];
+    extend(target, val);
+  }
+  return target;
 }
 
-module.exports = {
-  start
+function extend(target, obj) {
+  for (var key in obj) {
+    val = obj[key]
+    target[key] = val;
+  }
 }
+
+module.exports = assign;

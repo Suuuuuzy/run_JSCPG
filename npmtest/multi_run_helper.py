@@ -17,8 +17,8 @@ from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
-root_path = "/media/data2/lsong18/data/pre_npmpackages/"
-#root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
+#root_path = "/media/data2/lsong18/data/pre_npmpackages/"
+root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
@@ -255,8 +255,9 @@ def test_file(file_path, vul_type='xss', single_branch=False):
     G = None
     try:
         if vul_type == 'proto_pollution':
-            G = unittest_main(test_file_name, check_proto_pollution=True,
-                single_branch=single_branch)
+            G = unittest_main(test_file_name,
+                    check_proto_pollution=True, vul_type=vul_type,
+                    single_branch=single_branch)
         else:
             G = unittest_main(test_file_name, check_signatures=get_all_sign_list(),
                 single_branch=single_branch, vul_type=vul_type)
@@ -335,7 +336,7 @@ def main(cur_no, num_split):
     packages = packages[block_size * cur_no: block_size * (cur_no+ 1)]
 
     #vul_type = 'os_command'
-    vul_type = 'code_exec'
+    vul_type = 'proto_pollution'
     timeout = 120
 
     if args.vul_type is not None:

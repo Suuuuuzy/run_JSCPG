@@ -129,7 +129,7 @@ def vul_checking(G, pathes, vul_type):
             "xss": xss_rule_lists,
             "os_command": os_command_rule_lists,
             "code_exec": code_exec_lists,
-            "pp": proto_pollution,
+            "proto_pollution": proto_pollution,
             "path_traversal": path_traversal
             }
 

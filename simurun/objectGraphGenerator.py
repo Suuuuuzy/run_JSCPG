@@ -493,7 +493,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
 
-    if G.check_proto_pollution and handled_left.name_tainted and handled_left.parent_is_proto:
+    if G.check_proto_pollution and (handled_left.name_tainted and handled_left.parent_is_proto):
         flag1 = False
         flag2 = False
         # for name_node in handled_left.name_nodes:
@@ -1935,7 +1935,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             arguments_obj = G.add_obj_to_scope(name='arguments',
                     js_type='array', scope=func_scope, ast_node=func_ast)
             j = 0
-            while j < len(params) or j < len(_args):
+            while j < len(params) or j < len(_args) or j < 3:
                 if j < len(_args):
                     arg_obj_nodes = to_obj_nodes(G, _args[j], caller_ast)
                     # add argument to "arguments"
@@ -2015,7 +2015,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     break
                 j += 1
             arguments_length_obj = G.add_obj_as_prop(prop_name='length',
-                parent_obj=arguments_obj, value=j, js_type='number')
+                 parent_obj=arguments_obj, value=j, js_type='number')
+
             # if the function is defined in a for loop, restore the branches
             # this design is obsolete
             # for_tags = \
@@ -2286,3 +2287,4 @@ def is_wildcard_obj(G, obj):
             attrs.get('code') == '*') \
         or (attrs.get('type') in ['number', 'string'] and
             attrs.get('code')== None)
+
