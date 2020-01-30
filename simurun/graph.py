@@ -6,7 +6,7 @@ import io
 import logging
 import json
 from typing import List, Callable
-from .utilities import BranchTag, DictCounter
+from .utilities import BranchTag, DictCounter, wildcard
 from .logger import *
 import uuid
 from itertools import chain
@@ -591,8 +591,11 @@ class Graph:
                 # prevent setting __proto__ before setup_object_and_function runs
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.string_prototype)
-            value = str(value) if value is not None else None
-            length = len(value) if value is not None else None
+            if value is None or value == wildcard:
+                length = wildcard
+            else:
+                value = str(value)
+                length = len(value)
             self.add_obj_as_prop(prop_name="length", parent_obj=
             obj_node, js_type='number', value=length)
 
@@ -884,7 +887,7 @@ class Graph:
             if numeric_only:
                 def is_name_int(node):
                     name = self.get_node_attr(node).get('name')
-                    if name == '*':
+                    if name == wildcard:
                         return True
                     else:
                         try: # check if x is an integer
@@ -1312,11 +1315,12 @@ class Graph:
                                               scope=self.BASE_SCOPE)
 
     def setup2(self):
-        self.tainted_user_input = self.add_obj_to_scope(
-            name='pyTaintedUserInput', js_type=None,
-            value='*', scope=self.BASE_SCOPE)
-        self.logger.debug("{} is mared as tainted for user input".format(self.tainted_user_input))
-        self.set_node_attr(self.tainted_user_input, ('tainted', True))
+        # self.tainted_user_input = self.add_obj_to_scope(
+        #     name='pyTaintedUserInput', js_type=None,
+        #     value='*', scope=self.BASE_SCOPE)
+        # self.logger.debug("{} is mared as tainted for user input".format(self.tainted_user_input))
+        # self.set_node_attr(self.tainted_user_input, ('tainted', True))
+
         # setup JavaScript built-in values
         self.undefined_obj = self.add_obj_node(None, 'undefined',
                                                 value='undefined')

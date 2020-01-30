@@ -1,5 +1,5 @@
 from .graph import Graph
-from .utilities import NodeHandleResult, ExtraInfo, BranchTag
+from .utilities import NodeHandleResult, ExtraInfo, BranchTag, wildcard
 import math
 from typing import Callable, List, Iterable
 from collections import defaultdict
@@ -107,20 +107,18 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
     for obj in handle_result.obj_nodes:
         attrs = G.get_node_attr(obj)
         if for_prop:
-            if obj == G.tainted_user_input:
-                value = None
-            elif attrs.get('type') == 'object':
-                if attrs.get('code') == '*':
-                    value = None
+            if attrs.get('type') == 'object':
+                if attrs.get('code') == wildcard:
+                    value = wildcard
                 else:
                     value = 'Obj#' + obj
             elif attrs.get('code') is not None:
                 value = val_to_str(attrs.get('code'))
             else:
-                value = None
+                value = wildcard
         else:
             if attrs.get('type') == 'object':
-                value = None
+                value = wildcard
             else:
                 value = attrs.get('code')
         values.append(value)
@@ -168,11 +166,11 @@ def peek_variables(G: Graph, ast_node, handling_func: Callable,
             returned_dict[name] = list(set(nodes))
     return returned_dict
 
-def val_to_str(value, default=None):
+def val_to_str(value, default=wildcard):
     if type(value) in [float, int]:
         return '%g' % value
     else:
-        if value == None:
+        if value is None or value == wildcard:
             return default
         return str(value)
 
@@ -259,7 +257,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             if op_type == 'BINARY_IS_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 is not None and v2 is not None:
+                        if v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) == 0:
                                 true_num += 1
                         else:
@@ -268,7 +266,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_IDENTICAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 is not None and v2 is not None:
+                        if v1 != wildcard and v2 != wildcard:
                             if v1 == v2:
                                 true_num += 1
                         else:
@@ -277,7 +275,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_NOT_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 is not None and v2 is not None:
+                        if v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) != 0:
                                 true_num += 1
                         else:
@@ -286,7 +284,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_NOT_IDENTICAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 is not None and v2 is not None:
+                        if v1 != wildcard and v2 != wildcard:
                             if v1 != v2:
                                 true_num += 1
                         else:
@@ -295,7 +293,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_SMALLER':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 is not None and v2 is not None:
+                        if v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) < 0:
                                 true_num += 1
                         else:
@@ -304,7 +302,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_GREATER':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 is not None and v2 is not None:
+                        if v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) > 0:
                                 true_num += 1
                         else:
@@ -313,7 +311,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_SMALLER_OR_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 is not None and v2 is not None:
+                        if v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) <= 0:
                                 true_num += 1
                         else:
@@ -322,7 +320,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_GREATER_OR_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 is not None and v2 is not None:
+                        if v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) >= 0:
                                 true_num += 1
                         else:
@@ -339,7 +337,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
         if total_num == 0:
             return None, False # Value is unknown, cannot check
         for value in handled.values:
-            if value is None:
+            if value == wildcard:
                 true_num += 0.5
                 deter_flag = False
             elif value == 0:
@@ -356,13 +354,13 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                 value = G.get_node_attr(obj).get('code')
                 typ = G.get_node_attr(obj).get('type')
                 if typ == 'number':
-                    if value is None:
+                    if value == wildcard:
                         true_num += 0.5
                         deter_flag = False
                     elif val_to_float(value) != 0:
                         true_num += 1
                 elif typ == 'string':
-                    if value is None:
+                    if value == wildcard:
                         true_num += 0.5
                         deter_flag = False
                     elif value:
@@ -372,7 +370,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                     true_num += 0.5
                     deter_flag = False
                 else:
-                    if value == '*':
+                    if value == wildcard:
                         true_num += 0.5
                         deter_flag = False
                     else:
@@ -393,7 +391,7 @@ def is_int(x):
 
 def convert_prop_names_to_wildcard(G: Graph, obj, exclude_length=False,
     exclude_proto=True):
-    wildcard_name_node = G.add_prop_name_node('*', obj)
+    wildcard_name_node = G.add_prop_name_node(wildcard, obj)
     for e1 in G.get_out_edges(obj, edge_type='OBJ_TO_PROP'):
         name_node = e1[1]
         if exclude_length and \

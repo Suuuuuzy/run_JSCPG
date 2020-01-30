@@ -310,6 +310,17 @@ def get_random_hex(length=6):
     return secrets.token_hex(length // 2)
 
 
+class Wildcard(object):
+    def __str__(self):
+        # assert False
+        return '*'
+    def __repr__(self):
+        # assert False
+        return '*'
+
+wildcard = Wildcard()
+
+
 class JSSpecialValue(Enum):
     UNDEFINED = 0
     NULL = 1

@@ -1,5 +1,6 @@
 from .graph import Graph
 from .utilities import NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
+from .utilities import wildcard
 from . import objectGraphGenerator
 from .helpers import to_values, to_obj_nodes, val_to_str, is_int
 from .helpers import convert_prop_names_to_wildcard
@@ -235,7 +236,7 @@ def array_p_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleRe
             .set_marks('P')
         for name_node in name_nodes:
             name = G.get_node_attr(name_node).get('name')
-            if name != '*' and not is_int(name):
+            if name != wildcard and not is_int(name):
                 continue # check if the index is an integer
             for obj in G.get_obj_nodes(name_node, branches=branches):
                 objs.append(obj)
@@ -267,12 +268,12 @@ def array_p_push(G: Graph, caller_ast, extra, arrays: NodeHandleResult, *tobe_ad
         length_objs = G.get_prop_obj_nodes(parent_obj=arr, prop_name='length', branches=extra.branches)
         if len(length_objs) == 0:
             logger.warning('Array {} has no length object nodes'.format(arr))
-            length = None
+            length = wildcard
         else:
             if len(length_objs) != 1:
                 logger.warning('Array {} has {} length object nodes'.format(arr, len(length_objs)))
             length = G.get_node_attr(length_objs[0]).get('code')
-        if length is not None:
+        if length != wildcard:
             try:
                 length = int(length)
                 for i, objs in enumerate(tobe_added_objs):
@@ -289,7 +290,7 @@ def array_p_push(G: Graph, caller_ast, extra, arrays: NodeHandleResult, *tobe_ad
                 obj_nodes = to_obj_nodes(G, objs, caller_ast)
                 used_objs.update(obj_nodes)
                 for obj in obj_nodes:
-                    G.add_obj_as_prop(prop_name='*', parent_obj=arr, tobe_added_obj=obj)
+                    G.add_obj_as_prop(prop_name=wildcard, parent_obj=arr, tobe_added_obj=obj)
     return NodeHandleResult(used_objs=list(used_objs))
 
 
@@ -303,12 +304,12 @@ def array_p_pop(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
         length_objs = G.get_prop_obj_nodes(parent_obj=arr, prop_name='length', branches=extra.branches)
         if len(length_objs) == 0:
             logger.warning('Array {} has no length object nodes'.format(arr))
-            length = None
+            length = wildcard
         else:
             if len(length_objs) != 1:
                 logger.warning('Array {} has {} length object nodes'.format(arr, len(length_objs)))
             length = G.get_node_attr(length_objs[0]).get('code')
-        if length is not None:
+        if length != wildcard:
             try:
                 length = int(length)
                 returned_objs.update(G.get_prop_obj_nodes(parent_obj=arr, prop_name=str(length-1), branches=extra.branches))
@@ -332,7 +333,8 @@ def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
         for prop_name_node in G.get_prop_name_nodes(arr):
             name = G.get_node_attr(prop_name_node).get('name')
             try:
-                if name is None:
+                assert name is not None
+                if name == wildcard:
                     returned_objs.update(G.get_obj_nodes(prop_name_node, extra.branches))
                     continue
                 i = int(name)
@@ -407,13 +409,13 @@ def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts
                         copies.append(new_arr)
                         returned_arrays.append(returned_arr)
                     except ValueError:
-                        start = None
-                        dc = None
-                if start is None:
+                        start = wildcard
+                        dc = wildcard
+                if start == wildcard:
                     returned_arr = G.add_obj_node(ast_node=caller_ast, js_type='array')
                     add_contributes_to(G, [arr], returned_arr)
                     for obj in G.get_prop_obj_nodes(arr, numeric_only=True):
-                        G.add_obj_as_prop(prop_name='*', parent_obj=returned_arr,
+                        G.add_obj_as_prop(prop_name=wildcard, parent_obj=returned_arr,
                             tobe_added_obj=obj)
                     if items:
                         new_arr = G.copy_obj(arr, caller_ast)
@@ -421,7 +423,7 @@ def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts
                         add_contributes_to(G, [arr], new_arr)
                         for item in items:
                             for obj in item.obj_nodes:
-                                G.add_obj_as_prop(prop_name='*',
+                                G.add_obj_as_prop(prop_name=wildcard,
                                     parent_obj=new_arr, tobe_added_obj=obj)
                         copies.append(new_arr)
                     else:
@@ -455,8 +457,8 @@ def array_p_slice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts=
                         d = d[start:end]
                         return_arr = to_og_array(G, a, d, caller_ast)
                     except ValueError:
-                        start = None
-                if start is None:
+                        start = wildcard
+                if start == wildcard:
                     return_arr = G.copy_obj(arr, caller_ast)
                 for s in start_sources[i]:
                     add_contributes_to(G, [s], return_arr)
@@ -474,15 +476,15 @@ def array_p_join(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=Nod
     sep_values, sep_sources, _ = to_values(G, seps)
     for arr in arrays.obj_nodes:
         for i, sep in enumerate(sep_values):
-            if sep is None:
+            if sep == wildcard:
                 sep = ','
             a = to_python_array(G, arr, value=True)[0]
-            if None in chain(*a):
+            if wildcard in chain(*a):
                 # if any element's value in the array is unknown
                 # the result is set to unknown
                 # this is to prevent explosion of the number of different
                 # values in the results
-                s = None
+                s = wildcard
             else:
                 s = sep.join(['/'.join(elem) for elem in a])
             new_literal = G.add_obj_node(caller_ast, 'string', value=s)
@@ -507,16 +509,17 @@ def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array
         i = 0
         for name_node in G.get_prop_name_nodes(obj):
             name = G.get_node_attr(name_node).get('name')
-            if name is None or name == '__proto__':
+            assert name is not None
+            if name == wildcard or name == '__proto__': # TODO: rewrite for wildcard objs
                 continue
-            if for_array and not (name.isdigit() or name == '*'):
+            if for_array and not (name.isdigit() or name == wildcard):
                 continue # Array only returns numeric keys/corresponding values
             string = G.add_obj_node(None, 'string', str(name))
             add_contributes_to(G, [obj], string)
             G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=string)
             i += 1
         if G.get_node_attr(obj).get('type') in ['array', 'object'] and \
-            G.get_node_attr(obj).get('code') == '*':
+            G.get_node_attr(obj).get('code') == wildcard:
             string = G.add_obj_node(None, 'string', None)
             add_contributes_to(G, [obj], string)
             G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=string)
@@ -530,9 +533,10 @@ def object_values(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_arr
         arr = G.add_obj_node(None, 'array')
         for i, name_node in enumerate(G.get_prop_name_nodes(obj)):
             name = G.get_node_attr(name_node).get('name')
-            if name is None or name == '__proto__':
+            assert name is not None
+            if name == wildcard or name == '__proto__': # TODO: rewrite for wildcard objs
                 continue
-            if for_array and not (name.isdigit() or name == '*'):
+            if for_array and not (name.isdigit() or name == wildcard):
                 continue # Array only returns numeric keys/corresponding values
             prop_objs = G.get_objs_by_name_node(name_node)
             for prop_obj in prop_objs:
@@ -549,9 +553,9 @@ def object_entries(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_ar
             child_arr = G.add_obj_node(None, 'array')
             # key
             name = G.get_node_attr(name_node).get('code')
-            if name is None:
+            if name == wildcard: # TODO: rewrite for wildcard objs
                 continue
-            if for_array and not (name.isdigit() or name == '*'):
+            if for_array and not (name.isdigit() or name == wildcard):
                 continue # Array only returns numeric keys/corresponding values
             string = G.add_obj_node(None, 'string', name)
             G.add_obj_as_prop('0', parent_obj=child_arr, tobe_added_obj=string)
@@ -733,7 +737,7 @@ def json_parse(G: Graph, caller_ast, extra, _, text=None, reviver=None):
         obj = objectGraphGenerator.analyze_json_python(G, json_string,
             extra=extra, caller_ast=caller_ast)
         if obj is None:
-            obj = G.add_obj_node(ast_node=caller_ast, js_type=None, value='*')
+            obj = G.add_obj_node(ast_node=caller_ast, js_type=None, value=wildcard)
         for s in sources[i]:
             add_contributes_to(G, [s], obj)
             used_objs.add(s)
@@ -759,8 +763,8 @@ def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=None, flags=None)
             for f in flag_objs:
                 pv = G.get_node_attr(p).get('code')
                 fv = G.get_node_attr(f).get('code')
-                if pv is None or fv is None:
-                    code = None
+                if pv == wildcard or fv == wildcard:
+                    code = wildcard
                 else:
                     code = f'/{pv}/{fv}'
                 added_obj = G.add_obj_node(ast_node=caller_ast, js_type=None,
@@ -774,7 +778,7 @@ def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=None, flags=None)
 def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
     substrs=NodeHandleResult(), new_sub_strs=NodeHandleResult()):
     returned_objs = []
-    unknown_return_obj = None
+    unknown_return_obj = None # we only add one unknown object
     for s in to_obj_nodes(G, strs, caller_ast):
         for substr in to_obj_nodes(G, substrs, caller_ast):
             for new_sub_str in to_obj_nodes(G, new_sub_strs, caller_ast):
@@ -782,9 +786,9 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                 ssv = G.get_node_attr(substr).get('code')
                 if G.get_node_attr(new_sub_str).get('type') == 'function':
                     callback = new_sub_str
-                    if sv is None or ssv is None:
+                    if sv == wildcard or ssv == wildcard:
                         if unknown_return_obj is None:
-                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string')
+                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=wildcard)
                         added_obj = unknown_return_obj
                         add_contributes_to(G, [s], unknown_return_obj)
                         add_contributes_to(G, [substr], unknown_return_obj)
@@ -814,7 +818,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         else:
                             output, _ = r.subn(python_cb, sv, count=1)
                         if none_flag:
-                            output = None
+                            output = wildcard
                         logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
                         added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=output)
                         add_contributes_to(G, [s], added_obj)
@@ -847,9 +851,9 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                             returned_objs.append(added_obj)
                 else:
                     nssv = G.get_node_attr(new_sub_str).get('code')
-                    if sv is None or ssv is None or nssv is None:
+                    if sv == wildcard or ssv == wildcard or nssv == wildcard:
                         if unknown_return_obj is None:
-                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string')
+                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', wildcard=wildcard)
                         added_obj = unknown_return_obj
                         add_contributes_to(G, [s], unknown_return_obj)
                         add_contributes_to(G, [substr], unknown_return_obj)
@@ -885,9 +889,9 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                 ssv = G.get_node_attr(substr).get('code')
                 if G.get_node_attr(new_sub_str).get('type') == 'function':
                     callback = new_sub_str
-                    if sv is None or ssv is None:
+                    if sv == wildcard or ssv == wildcard:
                         if unknown_return_obj is None:
-                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string')
+                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=wildcard)
                         added_obj = unknown_return_obj
                         add_contributes_to(G, str_sources, added_obj)
                         add_contributes_to(G, [substr], added_obj)
@@ -917,7 +921,7 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         else:
                             output, _ = r.subn(python_cb, sv, count=1)
                         if none_flag:
-                            output = None
+                            output = wildcard
                         logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
                         added_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=output)
                         add_contributes_to(G, str_sources, added_obj)
@@ -950,9 +954,9 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                             returned_objs.append(added_obj)
                 else:
                     nssv = G.get_node_attr(new_sub_str).get('code')
-                    if sv is None or ssv is None or nssv is None:
+                    if sv == wildcard or ssv == wildcard or nssv == wildcard:
                         if unknown_return_obj is None:
-                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string')
+                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=wildcard)
                         added_obj = unknown_return_obj
                         add_contributes_to(G, str_sources, added_obj)
                         add_contributes_to(G, [substr], added_obj)
@@ -987,7 +991,7 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
         for regexp in to_obj_nodes(G, regexps, caller_ast):
             sv = G.get_node_attr(s).get('code')
             rv = G.get_node_attr(regexp).get('code')
-            if sv is None or rv is None:
+            if sv == wildcard or rv == wildcard:
                 added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
                 added_obj = G.add_obj_as_prop(ast_node=caller_ast,
                     prop_name='0', js_type='string', parent_obj=added_array)
@@ -1040,10 +1044,10 @@ def string_p_split(G: Graph, caller_ast, extra, strs, separators=NodeHandleResul
     for i, s in enumerate(values):
         for j, p in enumerate(sep):
             arr = G.add_obj_node(ast_node=caller_ast, js_type='array')
-            if s is None or p is None:
+            if s == wildcard or p == wildcard:
                 logger.debug('string split {} -> ?'.format(s))
-                G.set_node_attr(arr, ('code', '*'))
-                v = G.add_obj_as_prop(prop_name='*', ast_node=caller_ast,
+                G.set_node_attr(arr, ('code', wildcard))
+                v = G.add_obj_as_prop(prop_name=wildcard, ast_node=caller_ast,
                     js_type='string', value=None, parent_obj=arr)
                 for ss in s1[i]:
                     add_contributes_to(G, [ss], v)
@@ -1244,13 +1248,14 @@ def string_p_char_at(G: Graph, caller_ast, extra, strs,
 
 
 def split_regexp(code) -> (str, str):
-    if code is None:
-        return None, None
+    assert code is not None
+    if code == wildcard:
+        return wildcard, wildcard
     match = re.match(r'^/(.*)/(\w*)$', code)
     if match:
         return match.groups()
     else:
-        return None, None
+        return wildcard, wildcard
 
 
 def convert_to_python_re(code) -> (re.Pattern, bool, bool):

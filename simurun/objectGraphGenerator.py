@@ -9,7 +9,7 @@ from .logger import *
 from . import modeled_js_builtins, modeled_builtin_modules
 from .helpers import to_values, to_obj_nodes, peek_variables, combine_values
 from .helpers import check_condition, val_to_str, val_to_float, is_int
-from .helpers import add_contributes_to
+from .helpers import add_contributes_to, wildcard
 from .esprima import esprima_parse, esprima_search
 from itertools import chain
 from collections import defaultdict
@@ -210,7 +210,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 branches=branches)
             if prop_objs:
                 prop_obj_nodes.update(prop_objs)
-        elif prop_name != '__proto__' and prop_name != '*':
+        elif prop_name != '__proto__' and prop_name != wildcard:
             # if name node is not found, search the property under __proto__
             # note that we cannot search "__proto__" under __proto__
             __proto__name_node = G.get_prop_name_node("__proto__",
@@ -233,9 +233,9 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                         name_node_found = True
                         prop_name_nodes.update(__name_nodes)
                         prop_obj_nodes.update(__obj_nodes)
-        if not name_node_found and not in_proto and prop_name != '*':
+        if not name_node_found and not in_proto and prop_name != wildcard:
             # try wildcard (*)
-            r1, r2 = find_prop(G, [parent_obj], '*', branches, side,
+            r1, r2 = find_prop(G, [parent_obj], wildcard, branches, side,
                 parent_name, in_proto, depth, prop_name_for_tags)
             if r2:
                 name_node_found = True
@@ -245,7 +245,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     for o in r2:
                         for s in prop_name_sources:
                             add_contributes_to(G, [s], o)
-        if not name_node_found and not in_proto and prop_name != '*':
+        if not name_node_found and not in_proto and prop_name != wildcard:
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
             if is_wildcard_obj(G, parent_obj):
@@ -254,7 +254,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 added_name_node = G.add_prop_name_node(prop_name, parent_obj)
                 prop_name_nodes.add(added_name_node)
                 added_obj = G.add_obj_to_name_node(added_name_node,
-                    js_type=None, value='*', ast_node=ast_node)                    
+                    js_type=None, value=wildcard, ast_node=ast_node)                    
                 prop_obj_nodes.add(added_obj)
                 logger.debug('{} is a wildcard object, creating a wildcard'
                     ' object {} for its properties'.format(parent_obj,
@@ -333,7 +333,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
                 parent_is_proto = True
                 break
 
-    if G.check_proto_pollution and prop_names == [None] * len(prop_names):
+    if G.check_proto_pollution and prop_names == [wildcard] * len(prop_names):
         # conservative: only if all property names are known,
         # we fetch all properties
         # (including __proto__ for prototype pollution detection)
@@ -346,9 +346,10 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
                                                         != 'function', objs)
             prop_obj_nodes.extend(objs)
             if is_wildcard_obj(G, parent_obj) and not G.get_prop_obj_nodes(
-                    parent_obj, '*', extra.branches):
+                    parent_obj, wildcard, extra.branches):
                 added_obj = \
-                    G.add_obj_as_prop('*', ast_node, parent_obj=parent_obj)
+                    G.add_obj_as_prop(wildcard, ast_node,
+                            parent_obj=parent_obj, value=wildcard)
                 add_contributes_to(G, [parent_obj], added_obj)
                 prop_obj_nodes.append(added_obj)
         name = f'{parent_name}.*'
@@ -365,11 +366,11 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
                 parent_objs = []
                 for name_node in parent_name_nodes:
                     obj = G.add_obj_to_name_node(name_node, ast_node,
-                        js_type=None, value='*')
+                        js_type=None, value=wildcard)
                     parent_objs.append(obj)
             else:
-                obj = G.add_obj_to_scope(parent_name, ast_node, None,
-                                        scope=G.BASE_SCOPE)
+                obj = G.add_obj_to_scope(parent_name, ast_node, js_type=None,
+                                         scope=G.BASE_SCOPE, value=wildcard)
                 parent_objs = [obj]
             # else:
             #     logger.debug("PARENT OBJ {} NOT DEFINED, return undefined".
@@ -377,10 +378,11 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
             #     return NodeHandleResult()
 
         # find property name nodes and object nodes
-        prop_names = list(filter(lambda x: x is not None, prop_names))
+        prop_names = list(filter(lambda x: x != wildcard, prop_names))
         for i, prop_name in enumerate(prop_names):
-            if prop_name == None:
-                continue
+            # if prop_name == wildcard:
+            #     continue
+            assert prop_name is not None
             name_nodes, obj_nodes = find_prop(G, parent_objs, 
                 prop_name, branches, side, parent_name,
                 prop_name_for_tags=prop_name_tags[i],
@@ -782,7 +784,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 # shouldn't convert it to int
                 key = G.get_node_attr(node_id).get('childnum:int')
             if key is None:
-                key = '*'
+                key = wildcard
             handled_value = handle_node(G, value_node, extra)
             value_objs = to_obj_nodes(G, handled_value, node_id)
             # used_objs = list(set(handled_value.used_objs))
@@ -851,18 +853,19 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             result_tags = []
             for i, v1 in enumerate(values1):
                 for j, v2 in enumerate(values2):
-                    if v1 is not None and v2 is not None:
+                    if v1 != wildcard and v2 != wildcard:
                         if (type(v1) == int or type(v1) == float) and \
                             (type(v2) == int or type(v2) == float):
                             results.append(v1 + v2)
                         else:
                             results.append(str(v1) + str(v2))
                     else:
-                        results.append(None)
+                        results.append(wildcard)
                     result_tags.append(tags1 + tags2)
                     result_sources.append(sources1[i] or [] + sources2[j] or [])
             if len(values1) * len(values2) == 0:
-                results.append(None)
+                # always returns at least one value
+                results.append(wildcard)
                 sources = set()
                 for s in sources1 + sources2:
                     sources.update(s)
@@ -884,17 +887,17 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             result_tags = []
             for i, v1 in enumerate(values1):
                 for j, v2 in enumerate(values2):
-                    if v1 is not None and v2 is not None:
+                    if v1 != wildcard and v2 != wildcard:
                         try:
                             results.append(float(v1) - float(v2))
                         except ValueError:
                             results.append(float('nan'))
                     else:
-                        results.append(None)
+                        results.append(wildcard)
                     result_tags.append(tags1 + tags2)
                     result_sources.append(sources1[i] or [] + sources2[j] or [])
             if len(values1) * len(values2) == 0:
-                results.append(None)
+                results.append(wildcard)
                 sources = set()
                 for s in sources1 + sources2:
                     sources.update(s)
@@ -921,7 +924,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         used_objs = []
         used_objs.extend(handled_left.obj_nodes)
         used_objs.extend(handled_right.obj_nodes)
-        added_obj = G.add_obj_node(node_id, value='*')
+        added_obj = G.add_obj_node(node_id, value=wildcard)
         used_objs = list(set(used_objs))
         for obj in used_objs:
             add_contributes_to(G, [obj], added_obj)
@@ -1112,7 +1115,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     exclude_proto=not is_wildcard_obj(G, obj))
                 if is_wildcard_obj(G, obj):
                     # wildcard property for wildcard object
-                    prop_names.append('*')
+                    prop_names.append(wildcard)
                     logger.debug(f'{obj} is a wildcard object.')
                 for k in prop_names:
                     if G.get_node_attr(obj).get('type') == 'array' and \
@@ -1121,8 +1124,6 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     if str(k).startswith('Obj#'): # object-based keys
                         key_obj = k[4:]
                     else:
-                        if k == '*': # wildcard property
-                            k = None
                         # assign the name to the loop variable as a new 
                         # literal object
                         key_obj = G.add_obj_node(ast_node=node_id,
@@ -1150,7 +1151,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 if is_wildcard_obj(G, obj):
                     # wildcard property for wildcard object
                     prop_obj_nodes.append(G.add_obj_node(ast_node=node_id,
-                        js_type='object', value='*'))
+                        js_type='object', value=wildcard))
                     logger.debug(f'{obj} is a wildcard object.')
                 for v in prop_obj_nodes:
                     # assign the object node to the loop variable
@@ -1199,7 +1200,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         source = []
         for obj in handled_child.obj_nodes:
             v = G.get_node_attr(obj).get('code')
-            if v is None:
+            if v == wildcard:
                 continue
             n = val_to_float(v)
             if 'POST' in cur_type:
@@ -1236,7 +1237,7 @@ def decl_vars_and_funcs(G, ast_node, var=True, func=True):
             # var a;
             name = G.get_name_from_child(child)
             if G.get_name_node(name, scope=func_scope,
-                follow_scope_chain=False) is None:
+                               follow_scope_chain=False) is None:
                 G.add_obj_to_scope(name=name, scope=func_scope,
                                    tobe_added_obj=G.undefined_obj)
         elif var and node_type == 'AST_ASSIGN':
@@ -1248,7 +1249,7 @@ def decl_vars_and_funcs(G, ast_node, var=True, func=True):
                 # if name node does not exist, add a name node in the scope
                 # and assign it to the undefined object
                 if G.get_name_node(name, scope=func_scope,
-                    follow_scope_chain=False) is None:
+                                   follow_scope_chain=False) is None:
                     G.add_obj_to_scope(name=name, scope=func_scope,
                                        tobe_added_obj=G.undefined_obj)
                 else:
@@ -1568,7 +1569,7 @@ def handle_require(G, node_id, extra=None):
                 module_exports_objs = \
                     get_module_exports(G, file_path)
             # dynamic require (module name is a variable)
-            if module_name is None:
+            if module_name is None or module_name == wildcard:
                 logger.error('{} trying to require unknown package.'
                     .format(node_id))
                 continue
@@ -1744,9 +1745,9 @@ def ast_call_function(G, ast_node, extra):
         types = defaultdict(lambda: [])
         if handled_args:
             for obj in handled_args[0].obj_nodes:
-                if G.get_node_attr(obj).get('type') == 'object' and \
-                    G.get_node_attr(obj).get('code') == '*':
-                    types[None].append(obj)
+                if (G.get_node_attr(obj).get('type') == 'object' and
+                    G.get_node_attr(obj).get('code') == wildcard):
+                    types[wildcard].append(obj)
                 elif G.get_node_attr(obj).get('type') == 'array':
                     types['object'].append(obj)
                 else:
@@ -1981,9 +1982,9 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         # rest parameter (variable length arguments)
                         added_obj = G.add_obj_to_scope(name=param_name,
                             scope=func_scope, ast_node=caller_ast or param,
-                            js_type='array', value=None)
-                        elem = G.add_obj_as_prop('*', caller_ast or param,
-                            value='*', parent_obj=added_obj)
+                            js_type='array')
+                        elem = G.add_obj_as_prop(wildcard, caller_ast or param,
+                            value=wildcard, parent_obj=added_obj)
                         if mark_fake_args:
                             G.set_node_attr(elem, ('tainted', True))
                     else:
@@ -1991,7 +1992,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                             scope=func_scope, ast_node=caller_ast or param,
                             # give __proto__ when checking prototype pollution
                             js_type='object' if G.check_proto_pollution
-                            else None, value='*')
+                            else None, value=wildcard)
                     if mark_fake_args:
                         print("++", added_obj)
                         G.set_node_attr(added_obj, ('tainted', True))
@@ -2007,7 +2008,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     added_obj = G.add_obj_node(ast_node=caller_ast,
                         # give __proto__ when checking prototype pollution
                         js_type='object' if G.check_proto_pollution
-                        else None, value='*')
+                        else None, value=wildcard)
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('tainted', True))
                         logger.debug("{} marked as tainted".format(added_obj))
@@ -2065,13 +2066,14 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         candidates=this.obj_nodes, step=2):
                         branch_used_objs.append(o)
                 # add a blank object as return object
-                returned_obj = G.add_obj_node(caller_ast, "object", "*")
+                returned_obj = G.add_obj_node(caller_ast, "object", wildcard)
                 branch_returned_objs.append(returned_obj)
                 for obj in branch_used_objs:
                     add_contributes_to(G, [obj], returned_obj)
                 # add a blank object as created object
                 if is_new and branch_created_obj is None:
-                    branch_created_obj = G.add_obj_node(caller_ast, "object", "*")
+                    branch_created_obj = G.add_obj_node(
+                                            caller_ast, "object", wildcard)
                     for obj in branch_used_objs:
                         add_contributes_to(G, [obj], branch_created_obj)
                 # call all callback functions
@@ -2131,10 +2133,13 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     used_objs = list(used_objs)
     for obj in used_objs:
         node_attrs = G.get_node_attr(obj)
-        if node_attrs.get('type') == 'object' and node_attrs.get('code') == '*':
+        if node_attrs.get('type') == 'object' and node_attrs.get('code') == wildcard:
             for e1 in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
                 for e2 in G.get_in_edges(e1[0], edge_type='OBJ_TO_PROP'):
-                    #logger.debug("{}-----{}".format(cur_stmt, used_objs))
+                    # logger.debug("{}-----{}".format(cur_stmt, used_objs))
+                    if e2[0] in used_objs:
+                        logger.error(f'{e2[0]} in used objects {G.get_node_attr(e1[0])}')
+                        # continue
                     used_objs.append(e2[0])
     used_objs = set(used_objs)
     for obj in used_objs:
@@ -2288,7 +2293,7 @@ def check_prototype_pollution(G, obj_nodes):
 def is_wildcard_obj(G, obj):
     attrs = G.get_node_attr(obj)
     return (attrs.get('type') in ['object', 'array'] and
-            attrs.get('code') == '*') \
+            attrs.get('code') == wildcard) \
         or (attrs.get('type') in ['number', 'string'] and
-            attrs.get('code')== None)
+            attrs.get('code')== wildcard)
 
