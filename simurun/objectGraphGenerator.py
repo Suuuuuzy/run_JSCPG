@@ -319,10 +319,9 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
     # prepare property names
     prop_names, prop_name_sources, prop_name_tags = \
                             to_values(G, handled_prop, for_prop=True)
-    _, parent_sources, _ = to_values(G, handled_parent, for_prop=True)
     name_tainted = False
     if G.check_proto_pollution:
-        for source in chain(*parent_sources):
+        for source in chain(*prop_name_sources):
             if G.get_node_attr(source).get('tainted'):
                 name_tainted = True
                 break
