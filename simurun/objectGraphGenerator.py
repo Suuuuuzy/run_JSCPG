@@ -319,12 +319,14 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
     # prepare property names
     prop_names, prop_name_sources, prop_name_tags = \
                             to_values(G, handled_prop, for_prop=True)
+    _, parent_sources, _ = to_values(G, handled_parent, for_prop=True)
     name_tainted = False
     if G.check_proto_pollution:
-        for source in chain(*prop_name_sources):
+        for source in chain(*parent_sources):
             if G.get_node_attr(source).get('tainted'):
                 name_tainted = True
                 break
+
     parent_is_proto = False
     if G.check_proto_pollution:
         for obj in handled_parent.obj_nodes:
@@ -504,7 +506,9 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
         #     if obj_node in G.pollutable_objs:
         #         flag1 = True
         #         break
+        print("+++++++++++++++++++", handled_left, handled_right, right_objs)
         for obj in right_objs:
+            print(G.get_node_attr(obj))
             if G.get_node_attr(obj).get('tainted'):
                 flag2 = True
                 break
@@ -1990,6 +1994,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                             js_type='object' if G.check_proto_pollution
                             else None, value='*')
                     if mark_fake_args:
+                        print("++", added_obj)
                         G.set_node_attr(added_obj, ('tainted', True))
                         logger.debug("{} marked as tainted".format(added_obj))
                     G.add_obj_as_prop(prop_name=str(j),
