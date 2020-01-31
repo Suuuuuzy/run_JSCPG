@@ -217,7 +217,7 @@ def test_package(package_path, vul_type='os_command', single_branch=False):
         return []
 
     for package_file in package_main_files:
-        test_res = test_file(package_file, vul_type)
+        test_res = test_file(package_file, vul_type, single_branch)
         res.append(test_res)
         if test_res == 1:
             # successfully found

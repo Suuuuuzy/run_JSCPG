@@ -120,9 +120,9 @@ def setup_object_and_function(G: Graph):
     function_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=function_cons)[0]
     G.set_node_attr(function_prototype, ('code', 'Function.prototype'))
     # Function.__proto__ = Function.prototype (beacuse Function is a function)
-    function__proto__ = G.add_obj_as_prop(None, None, '__proto__', parent_obj=function_cons, tobe_added_obj=function_prototype)
+    function__proto__ = G.add_obj_as_prop(prop_name='__proto__', parent_obj=function_cons, tobe_added_obj=function_prototype)
     # Function.prototype.__proto__ = Object.prototype (because Function.prototype is an object)
-    function__proto____proto__ = G.add_obj_as_prop(None, None, '__proto__', parent_obj=function_prototype, tobe_added_obj=object_prototype)
+    function__proto____proto__ = G.add_obj_as_prop(prop_name='__proto__', parent_obj=function_prototype, tobe_added_obj=object_prototype)
     # Object.__proto__ = Function.prototype (beacuse Object is a function)
     G.add_obj_as_prop(prop_name='__proto__', parent_obj=object_cons, tobe_added_obj=function_prototype)
     # set reserved values
@@ -350,7 +350,7 @@ def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
-def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts: NodeHandleResult=NodeHandleResult(values=[None]), delete_counts=NodeHandleResult(values=[None]), *items: NodeHandleResult):
+def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts: NodeHandleResult=NodeHandleResult(values=[wildcard]), delete_counts=NodeHandleResult(values=[wildcard]), *items: NodeHandleResult):
     used_objs = set()
     start_values, start_sources, _ = to_values(G, starts)
     dc_values, dc_sources, _ = to_values(G, delete_counts)
@@ -360,14 +360,14 @@ def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts
         delete = True
         for i, start in enumerate(start_values):
             for j, dc in enumerate(dc_values):
-                if start is not None:
+                if start != wildcard:
                     try:
                         start = int(start)
-                        dc = int(dc) if dc is not None else None
+                        dc = int(dc) if dc != wildcard else None
                         elements, data = to_python_array(G, arr)
                         left_part_e = elements[:start]
                         left_part_d = data[:start]
-                        if dc is not None:
+                        if dc != wildcard:
                             returned_part_e = elements[start:start+dc]
                             returned_part_d = data[start:start+dc]
                             right_part_e = elements[start+dc:]
@@ -435,12 +435,12 @@ def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts
                     G.graph.remove_edge(name_node, arr, k)
                 for obj in copies:
                     G.add_edge(name_node, obj, data)
-    used_objs.update(arrays.obj_nodes + list(filter(lambda x: x is not None,
+    used_objs.update(arrays.obj_nodes + list(filter(lambda x: x != wildcard,
         chain(*start_sources, *dc_sources))))
     return NodeHandleResult(obj_nodes=returned_arrays, used_objs=list(used_objs))
 
 
-def array_p_slice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts=NodeHandleResult(values=[None]), ends=NodeHandleResult(values=[None])):
+def array_p_slice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts=NodeHandleResult(values=[wildcard]), ends=NodeHandleResult(values=[wildcard])):
     start_values, start_sources, _ = to_values(G, starts)
     end_values, end_sources, _ = to_values(G, ends)
     returned_arrays = []
@@ -448,10 +448,10 @@ def array_p_slice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts=
     for arr in arrays.obj_nodes:
         for i, start in enumerate(start_values):
             for j, end in enumerate(end_values):
-                if start is not None:
+                if start != wildcard:
                     try:
                         start = int(start)
-                        end = int(end) if end is not None else None
+                        end = int(end) if end != wildcard else None
                         a, d = to_python_array(G, arr)
                         a = a[start:end]
                         d = d[start:end]
@@ -505,22 +505,27 @@ def array_p_join(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=Nod
 def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
-        arr = G.add_obj_node(None, 'array')
+        arr = G.add_obj_node(caller_ast, 'array')
         i = 0
         for name_node in G.get_prop_name_nodes(obj):
             name = G.get_node_attr(name_node).get('name')
+            if name is None:
+                print(name_node)
             assert name is not None
-            if name == wildcard or name == '__proto__': # TODO: rewrite for wildcard objs
+            if not for_array and name == wildcard:
                 continue
-            if for_array and not (name.isdigit() or name == wildcard):
+            if name == '__proto__':
+                continue
+            if for_array and not name.isdigit():
                 continue # Array only returns numeric keys/corresponding values
-            string = G.add_obj_node(None, 'string', str(name))
+            string = G.add_obj_node(caller_ast, 'string', str(name))
             add_contributes_to(G, [obj], string)
             G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=string)
             i += 1
+        # wildcard object
         if G.get_node_attr(obj).get('type') in ['array', 'object'] and \
             G.get_node_attr(obj).get('code') == wildcard:
-            string = G.add_obj_node(None, 'string', None)
+            string = G.add_obj_node(caller_ast, 'string', wildcard)
             add_contributes_to(G, [obj], string)
             G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=string)
         returned_objs.append(arr)
@@ -530,17 +535,29 @@ def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array
 def object_values(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
-        arr = G.add_obj_node(None, 'array')
+        arr = G.add_obj_node(caller_ast, 'array')
         for i, name_node in enumerate(G.get_prop_name_nodes(obj)):
             name = G.get_node_attr(name_node).get('name')
             assert name is not None
-            if name == wildcard or name == '__proto__': # TODO: rewrite for wildcard objs
+            if not for_array and name == wildcard:
                 continue
-            if for_array and not (name.isdigit() or name == wildcard):
+            if name == '__proto__':
+                continue
+            if for_array and not name.isdigit():
                 continue # Array only returns numeric keys/corresponding values
             prop_objs = G.get_objs_by_name_node(name_node)
             for prop_obj in prop_objs:
                 G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=prop_obj)
+        # wildcard object
+        if G.get_node_attr(obj).get('type') in ['array', 'object'] and \
+            G.get_node_attr(obj).get('code') == wildcard:
+            wildcard_prop_objs = G.get_prop_obj_nodes(obj, wildcard, extra.branches)
+            if not wildcard_prop_objs: # if the wildcard property does not exist
+                added_obj = [G.add_obj_as_prop(wildcard, caller_ast,
+                                        value=wildcard, parent_obj=obj)]
+                add_contributes_to(G, [obj], added_obj)
+                wildcard_prop_objs = [added_obj]
+            returned_objs.extend(wildcard_prop_objs)
         returned_objs.append(arr)
     return NodeHandleResult(obj_nodes=returned_objs)
 
@@ -548,22 +565,39 @@ def object_values(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_arr
 def object_entries(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
-        arr = G.add_obj_node(None, 'array')
+        arr = G.add_obj_node(caller_ast, 'array')
         for i, name_node in enumerate(G.get_prop_name_nodes(obj)):
-            child_arr = G.add_obj_node(None, 'array')
+            child_arr = G.add_obj_node(caller_ast, 'array')
             # key
-            name = G.get_node_attr(name_node).get('code')
-            if name == wildcard: # TODO: rewrite for wildcard objs
+            name = G.get_node_attr(name_node).get('name')
+            if not for_array and name == wildcard:
                 continue
-            if for_array and not (name.isdigit() or name == wildcard):
+            if name == '__proto__':
+                continue
+            if for_array and not name.isdigit():
                 continue # Array only returns numeric keys/corresponding values
-            string = G.add_obj_node(None, 'string', name)
+            string = G.add_obj_node(caller_ast, 'string', name)
             G.add_obj_as_prop('0', parent_obj=child_arr, tobe_added_obj=string)
             # value
             prop_objs = G.get_objs_by_name_node(name_node)
             for prop_obj in prop_objs:
                 G.add_obj_as_prop('1', parent_obj=child_arr, tobe_added_obj=prop_obj)
             G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=child_arr)
+        # wildcard object
+        if G.get_node_attr(obj).get('type') in ['array', 'object'] and \
+            G.get_node_attr(obj).get('code') == wildcard:
+            child_arr = G.add_obj_node(caller_ast, 'array')
+            wildcard_prop_objs = G.get_prop_obj_nodes(obj, wildcard, extra.branches)
+            if not wildcard_prop_objs: # if the wildcard property does not exist
+                added_obj = [G.add_obj_as_prop(wildcard, caller_ast,
+                                        value=wildcard, parent_obj=obj)]
+                add_contributes_to(G, [obj], added_obj)
+                wildcard_prop_objs = [added_obj]
+            string = G.add_obj_node(caller_ast, 'string', wildcard)
+            G.add_obj_as_prop('0', parent_obj=child_arr, tobe_added_obj=string)
+            for prop_obj in wildcard_prop_objs:
+                G.add_obj_as_prop('1', parent_obj=child_arr, tobe_added_obj=prop_obj)
+            G.add_obj_as_prop(str(i+1), parent_obj=arr, tobe_added_obj=child_arr)
         returned_objs.append(arr)
     return NodeHandleResult(obj_nodes=returned_objs)
 
@@ -763,7 +797,7 @@ def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=None, flags=None)
             for f in flag_objs:
                 pv = G.get_node_attr(p).get('code')
                 fv = G.get_node_attr(f).get('code')
-                if pv == wildcard or fv == wildcard:
+                if pv is None or fv is None or pv == wildcard or fv == wildcard:
                     code = wildcard
                 else:
                     code = f'/{pv}/{fv}'
@@ -786,7 +820,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                 ssv = G.get_node_attr(substr).get('code')
                 if G.get_node_attr(new_sub_str).get('type') == 'function':
                     callback = new_sub_str
-                    if sv == wildcard or ssv == wildcard:
+                    if sv is None or ssv is None or sv == wildcard or ssv == wildcard:
                         if unknown_return_obj is None:
                             unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=wildcard)
                         added_obj = unknown_return_obj
@@ -794,6 +828,8 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         add_contributes_to(G, [substr], unknown_return_obj)
                         add_contributes_to(G, [new_sub_str], unknown_return_obj)
                     elif G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
+                        sv = str(sv)
+                        ssv = str(ssv)
                         r, glob, sticky = convert_to_python_re(ssv)
                         none_flag = False
                         def python_cb(m):
@@ -805,7 +841,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                             cb_returned_values, _, _ = \
                                 to_values(G, NodeHandleResult(obj_nodes=cb_returned_objs))
                             cb_returned_values = \
-                                list(filter(lambda x: x is not None, cb_returned_values))
+                                list(filter(lambda x: x != wildcard, cb_returned_values))
                             # multiple possibility is ignored here
                             if len(cb_returned_values) > 1:
                                 logger.warning(f'Replace result has multiple possibilities: {cb_returned_values}')
@@ -813,10 +849,13 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                                 none_flag = True
                                 return None
                             return cb_returned_values[0]
-                        if glob:
-                            output = r.sub(python_cb, sv)
+                        if r is None:
+                            output = wildcard
                         else:
-                            output, _ = r.subn(python_cb, sv, count=1)
+                            if glob:
+                                output = r.sub(python_cb, sv)
+                            else:
+                                output, _ = r.subn(python_cb, sv, count=1)
                         if none_flag:
                             output = wildcard
                         logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
@@ -826,6 +865,8 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         add_contributes_to(G, [new_sub_str], added_obj)
                         returned_objs.append(added_obj)
                     else:
+                        sv = str(sv)
+                        ssv = str(ssv)
                         returned_values = []
                         start = sv.find(ssv)
                         if start == -1:
@@ -851,20 +892,26 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                             returned_objs.append(added_obj)
                 else:
                     nssv = G.get_node_attr(new_sub_str).get('code')
-                    if sv == wildcard or ssv == wildcard or nssv == wildcard:
+                    if sv is None or ssv is None or nssv is None or sv == wildcard or ssv == wildcard or nssv == wildcard:
                         if unknown_return_obj is None:
-                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', wildcard=wildcard)
+                            unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=wildcard)
                         added_obj = unknown_return_obj
                         add_contributes_to(G, [s], unknown_return_obj)
                         add_contributes_to(G, [substr], unknown_return_obj)
                         add_contributes_to(G, [new_sub_str], unknown_return_obj)
                     else:
+                        sv = str(sv)
+                        ssv = str(ssv)
+                        nssv = str(nssv)
                         if G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
                             r, glob, sticky = convert_to_python_re(ssv)
-                            if glob:
-                                output = r.sub(nssv, sv)
+                            if r is None:
+                                output = wildcard
                             else:
-                                output, _ = r.subn(nssv, sv, count=1)
+                                if glob:
+                                    output = r.sub(nssv, sv)
+                                else:
+                                    output, _ = r.subn(nssv, sv, count=1)
                         else:
                             output = sv.replace(ssv, nssv)
                         logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
@@ -889,7 +936,7 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                 ssv = G.get_node_attr(substr).get('code')
                 if G.get_node_attr(new_sub_str).get('type') == 'function':
                     callback = new_sub_str
-                    if sv == wildcard or ssv == wildcard:
+                    if sv is None or ssv is None or sv == wildcard or ssv == wildcard:
                         if unknown_return_obj is None:
                             unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=wildcard)
                         added_obj = unknown_return_obj
@@ -897,6 +944,8 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         add_contributes_to(G, [substr], added_obj)
                         add_contributes_to(G, [new_sub_str], added_obj)
                     elif G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
+                        sv = str(sv)
+                        ssv = str(ssv)
                         r, glob, sticky = convert_to_python_re(ssv)
                         none_flag = False
                         def python_cb(m):
@@ -908,7 +957,7 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                             cb_returned_values, _, _ = \
                                 to_values(G, NodeHandleResult(obj_nodes=cb_returned_objs))
                             cb_returned_values = \
-                                list(filter(lambda x: x is not None, cb_returned_values))
+                                list(filter(lambda x: x != wildcard, cb_returned_values))
                             # multiple possibility is ignored here
                             if len(cb_returned_values) > 1:
                                 logger.warning(f'Replace result has multiple possibilities: {cb_returned_values}')
@@ -916,10 +965,13 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                                 none_flag = True
                                 return None
                             return cb_returned_values[0]
-                        if glob:
-                            output = r.sub(python_cb, sv)
+                        if r is None:
+                            output = wildcard
                         else:
-                            output, _ = r.subn(python_cb, sv, count=1)
+                            if glob:
+                                output = r.sub(python_cb, sv)
+                            else:
+                                output, _ = r.subn(python_cb, sv, count=1)
                         if none_flag:
                             output = wildcard
                         logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
@@ -929,6 +981,8 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         add_contributes_to(G, [new_sub_str], added_obj)
                         returned_objs.append(added_obj)
                     else:
+                        sv = str(sv)
+                        ssv = str(ssv)
                         returned_values = []
                         start = sv.find(ssv)
                         if start == -1:
@@ -954,7 +1008,10 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                             returned_objs.append(added_obj)
                 else:
                     nssv = G.get_node_attr(new_sub_str).get('code')
-                    if sv == wildcard or ssv == wildcard or nssv == wildcard:
+                    sv = str(sv)
+                    ssv = str(ssv)
+                    nssv = str(nssv)
+                    if sv is None or ssv is None or nssv is None or sv == wildcard or ssv == wildcard or nssv == wildcard:
                         if unknown_return_obj is None:
                             unknown_return_obj = G.add_obj_node(ast_node=caller_ast, js_type='string', value=wildcard)
                         added_obj = unknown_return_obj
@@ -964,10 +1021,13 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                     else:
                         if G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
                             r, glob, sticky = convert_to_python_re(ssv)
-                            if glob:
-                                output = r.sub(nssv, sv)
+                            if r is None:
+                                output = wildcard
                             else:
-                                output, _ = r.subn(nssv, sv, count=1)
+                                if glob:
+                                    output = r.sub(nssv, sv)
+                                else:
+                                    output, _ = r.subn(nssv, sv, count=1)
                         else:
                             output = sv.replace(ssv, nssv)
                         logger.debug('string replace {} in {} -> {}'.format(ssv, sv, output))
@@ -991,7 +1051,7 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
         for regexp in to_obj_nodes(G, regexps, caller_ast):
             sv = G.get_node_attr(s).get('code')
             rv = G.get_node_attr(regexp).get('code')
-            if sv == wildcard or rv == wildcard:
+            if sv is None or ssv is None or sv == wildcard or rv == wildcard:
                 added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
                 added_obj = G.add_obj_as_prop(ast_node=caller_ast,
                     prop_name='0', js_type='string', parent_obj=added_array)
@@ -1000,8 +1060,12 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
                 add_contributes_to(G, [s], added_array)
                 add_contributes_to(G, [regexp], added_array)
             else:
+                sv = str(sv)
+                ssv = str(ssv)
                 added_array = G.null_obj
                 r, glob, sticky = convert_to_python_re(rv)
+                if r is None:
+                    continue
                 if glob:
                     result = r.findall(sv)
                     if result:
@@ -1048,7 +1112,7 @@ def string_p_split(G: Graph, caller_ast, extra, strs, separators=NodeHandleResul
                 logger.debug('string split {} -> ?'.format(s))
                 G.set_node_attr(arr, ('code', wildcard))
                 v = G.add_obj_as_prop(prop_name=wildcard, ast_node=caller_ast,
-                    js_type='string', value=None, parent_obj=arr)
+                    js_type='string', value=wildcard, parent_obj=arr)
                 for ss in s1[i]:
                     add_contributes_to(G, [ss], v)
                     add_contributes_to(G, [ss], arr)
@@ -1076,18 +1140,18 @@ def string_p_reverse(G: Graph, caller_ast, extra, strs):
     values, sources, _ = to_values(G, strs, caller_ast)
     returned_values = []
     for s in values:
-        if values is not None:
+        if s != wildcard:
             returned_values.append(str(s)[::-1])
         else:
-            returned_values.append(None)
-    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+            returned_values.append(wildcard)
+    used_objs = list(filter(lambda x: x != wildcard, chain(*sources)))
     return NodeHandleResult(values=returned_values, value_sources=sources,
         used_objs=used_objs)
 
 
 def string_p_substring(G: Graph, caller_ast, extra, strs,
     indices_start=NodeHandleResult(values=[0]),
-    indices_end=NodeHandleResult(values=[None])):
+    indices_end=NodeHandleResult(values=[wildcard])):
     values, source1, _ = to_values(G, strs, caller_ast)
     i_starts, source2, _ = to_values(G, indices_start, caller_ast)
     i_ends, source3, _ = to_values(G, indices_end, caller_ast)
@@ -1098,10 +1162,10 @@ def string_p_substring(G: Graph, caller_ast, extra, strs,
         for j, i_start in enumerate(i_starts):
             for k, i_end in enumerate(i_ends):
                 flag = False
-                if s is not None:
-                    if i_start is not None:
+                if s != wildcard:
+                    if i_start != wildcard:
                         try:
-                            if i_end is not None:
+                            if i_end != wildcard:
                                 returned_values.append(str(s)[int(i_start):int(i_end)])
                             else:
                                 returned_values.append(str(s)[int(i_start):])
@@ -1110,7 +1174,7 @@ def string_p_substring(G: Graph, caller_ast, extra, strs,
                             logger.warning('string.prototype.substring error, '
                                 'values {} {} {}'.format(s, i_start, i_end))
                 if not flag:
-                    returned_values.append(None)
+                    returned_values.append(wildcard)
                 returned_sources.append(source1[i] + source2[j] + source3[k])
     logger.debug('string substring RETURNED VALUES: {}'.format(returned_values))
     return NodeHandleResult(values=returned_values,
@@ -1119,7 +1183,7 @@ def string_p_substring(G: Graph, caller_ast, extra, strs,
 
 def string_p_substr(G: Graph, caller_ast, extra, strs,
     indices_start=NodeHandleResult(values=[0]),
-    indices_end=NodeHandleResult(values=[None])):
+    indices_end=NodeHandleResult(values=[wildcard])):
     values, source1, _ = to_values(G, strs, caller_ast)
     i_starts, source2, _ = to_values(G, indices_start, caller_ast)
     lengths, source3, _ = to_values(G, indices_end, caller_ast)
@@ -1130,10 +1194,10 @@ def string_p_substr(G: Graph, caller_ast, extra, strs,
         for j, i_start in enumerate(i_starts):
             for k, length in enumerate(lengths):
                 flag = False
-                if s is not None:
-                    if i_start is not None:
+                if s != wildcard:
+                    if i_start != wildcard:
                         try:
-                            if length is not None:
+                            if length != wildcard:
                                 returned_values.append(str(s)
                                     [int(i_start):int(i_start)+int(length)])
                             else:
@@ -1143,7 +1207,7 @@ def string_p_substr(G: Graph, caller_ast, extra, strs,
                             logger.warning('string.prototype.substr error, '
                                 'values {} {} {}'.format(s, i_start, length))
                 if not flag:
-                    returned_values.append(None)
+                    returned_values.append(wildcard)
                 returned_sources.append(source1[i] + source2[j] + source3[k])
                 used_objs.update(source1[i])
                 used_objs.update(source2[j])
@@ -1157,11 +1221,11 @@ def string_p_to_lower_case(G: Graph, caller_ast, extra, strs):
     values, sources, _ = to_values(G, strs, caller_ast)
     returned_values = []
     for s in values:
-        if s is not None:
+        if s != wildcard:
             returned_values.append(str(s).lower())
         else:
-            returned_values.append(None)
-    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+            returned_values.append(wildcard)
+    used_objs = list(filter(lambda x: x != wildcard, chain(*sources)))
     logger.debug('string toLowerCase RETURNED VALUES: {}'.format(returned_values))
     return NodeHandleResult(values=returned_values, value_sources=sources,
         used_objs=used_objs)
@@ -1171,11 +1235,11 @@ def string_p_to_upper_case(G: Graph, caller_ast, extra, strs):
     values, sources, _ = to_values(G, strs, caller_ast)
     returned_values = []
     for s in values:
-        if s is not None:
+        if s != wildcard:
             returned_values.append(str(s).upper())
         else:
-            returned_values.append(None)
-    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+            returned_values.append(wildcard)
+    used_objs = list(filter(lambda x: x != wildcard, chain(*sources)))
     logger.debug('string toUpperCase RETURNED VALUES: {}'.format(returned_values))
     return NodeHandleResult(values=returned_values, value_sources=sources,
         used_objs=used_objs)
@@ -1185,11 +1249,11 @@ def string_p_trim(G: Graph, caller_ast, extra, strs, *args):
     values, sources, _ = to_values(G, strs, caller_ast)
     returned_values = []
     for s in values:
-        if values is not None:
+        if values != wildcard:
             returned_values.append(str(s).strip())
         else:
-            returned_values.append(None)
-    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+            returned_values.append(wildcard)
+    used_objs = list(filter(lambda x: x != wildcard, chain(*sources)))
     return NodeHandleResult(values=returned_values, value_sources=sources,
         used_objs=used_objs)
 
@@ -1198,11 +1262,11 @@ def string_p_trim_end(G: Graph, caller_ast, extra, strs, *args):
     values, sources, _ = to_values(G, strs, caller_ast)
     returned_values = []
     for s in values:
-        if s is not None:
+        if s != wildcard:
             returned_values.append(str(s).rstrip())
         else:
-            returned_values.append(None)
-    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+            returned_values.append(wildcard)
+    used_objs = list(filter(lambda x: x != wildcard, chain(*sources)))
     return NodeHandleResult(values=returned_values, value_sources=sources,
         used_objs=used_objs)
 
@@ -1211,11 +1275,11 @@ def string_p_trim_start(G: Graph, caller_ast, extra, strs, *args):
     values, sources, _ = to_values(G, strs, caller_ast)
     returned_values = []
     for s in values:
-        if s is not None:
+        if s != wildcard:
             returned_values.append(str(s).lstrip())
         else:
-            returned_values.append(None)
-    used_objs = list(filter(lambda x: x is not None, chain(*sources)))
+            returned_values.append(wildcard)
+    used_objs = list(filter(lambda x: x != wildcard, chain(*sources)))
     return NodeHandleResult(values=returned_values, value_sources=sources,
         used_objs=used_objs)
 
@@ -1229,7 +1293,7 @@ def string_p_char_at(G: Graph, caller_ast, extra, strs,
     used_objs = set()
     for i, s in enumerate(values):
         for j, index in enumerate(indexs):
-            if s is not None and index is not None:
+            if s != wildcard and index != wildcard:
                 try:
                     ii = int(index)
                     if ii >= 0 and ii < len(str(s)):
@@ -1237,9 +1301,9 @@ def string_p_char_at(G: Graph, caller_ast, extra, strs,
                     else:
                         returned_values.append('')
                 except ValueError:
-                    returned_values.append(None)
+                    returned_values.append(wildcard)
             else:
-                returned_values.append(None)
+                returned_values.append(wildcard)
             returned_sources.append(sources1[i] + sources2[j])
             used_objs.update(sources1[i])
             used_objs.update(sources2[j])
@@ -1261,7 +1325,7 @@ def split_regexp(code) -> (str, str):
 def convert_to_python_re(code) -> (re.Pattern, bool, bool):
     pattern, flags = split_regexp(code)
     glob, sticky = False, False
-    if pattern is not None:
+    if pattern != wildcard:
         f = 0
         if flags:
             # ignore these errors if your editor shows
@@ -1277,6 +1341,9 @@ def convert_to_python_re(code) -> (re.Pattern, bool, bool):
                 f |= re.UNICODE
             if 'y' in flags:
                 sticky = True
-        return re.compile(pattern, f), glob, sticky
+        try:
+            return re.compile(pattern, f), glob, sticky
+        except re.error:
+            return None, None, None
     else:
         return None, None, None

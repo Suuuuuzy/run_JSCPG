@@ -119,8 +119,10 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
         else:
             if attrs.get('type') == 'object':
                 value = wildcard
-            else:
+            elif attrs.get('code') is not None:
                 value = attrs.get('code')
+            else:
+                value = wildcard
         values.append(value)
         sources.append([obj])
         tags.append(G.get_node_attr(obj).get('for_tags', []))
@@ -174,7 +176,9 @@ def val_to_str(value, default=wildcard):
             return default
         return str(value)
 
-def val_to_float(value):
+def val_to_float(value, default=wildcard):
+    if value is None or value == wildcard:
+        return default
     try:
         return float(value)
     except ValueError:
@@ -394,6 +398,8 @@ def convert_prop_names_to_wildcard(G: Graph, obj, exclude_length=False,
     wildcard_name_node = G.add_prop_name_node(wildcard, obj)
     for e1 in G.get_out_edges(obj, edge_type='OBJ_TO_PROP'):
         name_node = e1[1]
+        if G.get_node_attr(name_node).get('name') == wildcard:
+            continue
         if exclude_length and \
             G.get_node_attr(name_node).get('name') == 'length':
             continue
@@ -403,7 +409,6 @@ def convert_prop_names_to_wildcard(G: Graph, obj, exclude_length=False,
         for e2 in G.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
             _, obj, _, data = e2
             G.add_edge(wildcard_name_node, obj, data)
-    for e1 in G.get_out_edges(obj, edge_type='OBJ_TO_PROP'):
         G.remove_all_edges_between(e1[0], e1[1])    
 
 def copy_objs_for_branch(G: Graph, handle_result: NodeHandleResult, branch,

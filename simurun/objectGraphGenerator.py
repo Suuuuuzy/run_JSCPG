@@ -1150,8 +1150,13 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     exclude_proto=not is_wildcard_obj(G, obj))
                 if is_wildcard_obj(G, obj):
                     # wildcard property for wildcard object
-                    prop_obj_nodes.append(G.add_obj_node(ast_node=node_id,
-                        js_type='object', value=wildcard))
+                    wildcard_prop_obj_nodes = G.get_prop_obj_nodes(obj,
+                        prop_name=wildcard, branches=extra.branches)
+                    if not wildcard_prop_obj_nodes:
+                        wildcard_prop_obj_nodes = [G.add_obj_as_prop(wildcard,
+                            node_id, value=wildcard, parent_obj=obj)]
+                    prop_obj_nodes.extend(wildcard_prop_obj_nodes)
+                    prop_obj_nodes = list(set(prop_obj_nodes))
                     logger.debug(f'{obj} is a wildcard object.')
                 for v in prop_obj_nodes:
                     # assign the object node to the loop variable
@@ -1200,7 +1205,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         source = []
         for obj in handled_child.obj_nodes:
             v = G.get_node_attr(obj).get('code')
-            if v == wildcard:
+            if v == wildcard or v is None:
                 continue
             n = val_to_float(v)
             if 'POST' in cur_type:
@@ -1275,13 +1280,15 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
 
     if caller_ast is not None:
         if G.call_counter[caller_ast] >= G.call_limit:
-            logger.warning(f'{caller_ast}: Function {func_ast} in call stack {G.call_counter[caller_ast]}, skip simulating')
+            logger.warning(f'{caller_ast}: Function {func_ast} in call stack '
+                        f'{G.call_counter[caller_ast]}, skip simulating')
             return [], []
         else:
             G.call_counter[caller_ast] += 1
 
-    func_obj = G.get_func_decl_objs_by_ast_node(func_ast)[0]
-    func_name = G.get_node_attr(func_obj).get('name')
+    func_objs = G.get_func_decl_objs_by_ast_node(func_ast)
+    func_obj = func_objs[0] if func_objs else '?'
+    func_name = G.get_node_attr(func_obj).get('name') if func_objs else '?'
     logger.info(sty.ef.inverse + sty.fg.green +
         "FUNCTION {} {} STARTS, SCOPE {}, DECL OBJ {}, this OBJs {}, branches {}"
         .format(func_ast, func_name or '{anonymous}',
@@ -2061,10 +2068,12 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 for h in _args:
                     branch_used_objs.extend(h.obj_nodes)
                 if this is not None:
-                    for o in G.get_ancestors_in(func_obj, edge_types=[
-                        'NAME_TO_OBJ', 'OBJ_TO_PROP'],
-                        candidates=this.obj_nodes, step=2):
-                        branch_used_objs.append(o)
+                    # performance is too low
+                    # for o in G.get_ancestors_in(func_obj, edge_types=[
+                    #     'NAME_TO_OBJ', 'OBJ_TO_PROP'],
+                    #     candidates=this.obj_nodes, step=2):
+                    #     branch_used_objs.append(o)
+                    branch_used_objs.extend(this.obj_nodes)
                 # add a blank object as return object
                 returned_obj = G.add_obj_node(caller_ast, "object", wildcard)
                 branch_returned_objs.append(returned_obj)
@@ -2138,8 +2147,8 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
                 for e2 in G.get_in_edges(e1[0], edge_type='OBJ_TO_PROP'):
                     # logger.debug("{}-----{}".format(cur_stmt, used_objs))
                     if e2[0] in used_objs:
-                        logger.error(f'{e2[0]} in used objects {G.get_node_attr(e1[0])}')
-                        # continue
+                        # logger.warning(f'{e2[0]} in used objects {G.get_node_attr(e1[0])}')
+                        continue
                     used_objs.append(e2[0])
     used_objs = set(used_objs)
     for obj in used_objs:

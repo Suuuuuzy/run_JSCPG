@@ -1742,7 +1742,11 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             if (currentNode.callee && currentNode.callee.name == 'require') {
                 if (currentNode.arguments && currentNode.arguments.length >= 1 && currentNode.arguments[0].type == 'Literal') {
                     let moduleName = currentNode.arguments[0].value;
-                    modulePath = searchModule(moduleName, filename)[0];
+                    if (filename == 'stdin'){
+                        modulePath = searchModule(moduleName, process.cwd())[0];
+                    } else {
+                        modulePath = searchModule(moduleName, filename)[0];
+                    }
                     if (modulePath && !requiredModules.has(modulePath)) {
                         requiredModules.add(modulePath);
                     }
