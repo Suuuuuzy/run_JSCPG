@@ -2146,10 +2146,8 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
             for e1 in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
                 for e2 in G.get_in_edges(e1[0], edge_type='OBJ_TO_PROP'):
                     # logger.debug("{}-----{}".format(cur_stmt, used_objs))
-                    if e2[0] in used_objs:
-                        # logger.warning(f'{e2[0]} in used objects {G.get_node_attr(e1[0])}')
-                        continue
-                    used_objs.append(e2[0])
+                    if e2[0] not in used_objs:
+                        used_objs.append(e2[0])
     used_objs = set(used_objs)
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
