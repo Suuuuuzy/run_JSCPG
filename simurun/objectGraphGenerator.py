@@ -1943,8 +1943,11 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 continue
             else:
                 logger.log(ATTENTION, f'Running Python function {func_obj} {python_func}...')
-                h = python_func(G, caller_ast,
-                    ExtraInfo(extra, branches=next_branches), _this, *_args)
+                try:
+                    h = python_func(G, caller_ast,
+                        ExtraInfo(extra, branches=next_branches), _this, *_args)
+                except TypeError as e:
+                    logger.error(e)
                 branch_returned_objs = h.obj_nodes
                 branch_used_objs = h.used_objs
                 returned_values.extend(h.values)
