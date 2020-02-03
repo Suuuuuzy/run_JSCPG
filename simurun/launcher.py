@@ -60,7 +60,7 @@ def main():
     parser.add_argument('-a', '--run-all', action='store_true', default=False,
                         help="Run all exported functions in module.exports. "
                         "By default, only main functions will be run.")
-    parser.add_argument('-f', '--function-timout', type=float,
+    parser.add_argument('-f', '--function-timeout', type=float,
                         help="Time limit when running all exported function, "
                         "in seconds. (Defaults to no limit.)")
     parser.add_argument('-c', '--call-limit', default=3, type=int,
@@ -77,7 +77,6 @@ def main():
     logger = create_logger("main_logger", output_type="file")
     start_time = time.time()
     G = Graph()
-
     if args.print:
         logger = create_logger("main_logger", output_type="console",
             level=logging.DEBUG)
