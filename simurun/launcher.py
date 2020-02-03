@@ -10,16 +10,18 @@ from .vulChecking import *
 from datetime import datetime
 import time
 
-def unittest_main(file_path, check_signatures=[], check_proto_pollution=False,
-    single_branch=False, vul_type='os_command'):
+def unittest_main(file_path, check_signatures=[], vul_type='os_command',
+    args=None):
     """
     main function for uniitest 
     """
     G = Graph()
     G.exit_when_found = True
-    G.single_branch = single_branch
-    G.check_proto_pollution = check_proto_pollution
     G.vul_type = vul_type
+    G.check_proto_pollution = (vul_type == 'proto_pollution')
+    if args is not None:
+        G.single_branch = args.single_branch
+        G.run_all_time_limit = args.function_timeout
     result = analyze_files(G, file_path, check_signatures=check_signatures)
     # output location of prototype pollution to a seperate file
     proto_pollution_logger = create_logger('proto_pollution',
@@ -42,12 +44,6 @@ def main():
         description='Object graph generator for JavaScript.')
     parser.add_argument('-p', '--print', action='store_true',
                         help='Print logs to console, instead of file.')
-    parser.add_argument('-a', '--run-all', action='store_true', default=False,
-                        help="Run all exported functions in module.exports. "
-                        "By default, only main functions will be run.")
-    parser.add_argument('-c', '--call-limit', default=3, type=int,
-                        help="Set the limit of a call statement. "
-                        "(Defaults to 3.)")
     parser.add_argument('-t', '--vul-type', default='os_command',
                         help="Set the vulnerability type to be checked.")
     parser.add_argument('-P', '--prototype-pollution', '--pp',
@@ -61,6 +57,15 @@ def main():
     parser.add_argument('-s', '--single-branch', action='store_true',
                         help="Single branch. Do not create multiple "
                         "possibilities when meet a branching point.")
+    parser.add_argument('-a', '--run-all', action='store_true', default=False,
+                        help="Run all exported functions in module.exports. "
+                        "By default, only main functions will be run.")
+    parser.add_argument('-f', '--function-timout', type=float,
+                        help="Time limit when running all exported function, "
+                        "in seconds. (Defaults to no limit.)")
+    parser.add_argument('-c', '--call-limit', default=3, type=int,
+                        help="Set the limit of a call statement. "
+                        "(Defaults to 3.)")
     parser.add_argument('input_file', action='store', nargs='?',
         help="Source code file (or directory) to generate object graph for. "
         "Use '-' to get source code from stdin. Ignore this argument to "
@@ -80,6 +85,7 @@ def main():
             level=logging.DEBUG)
         G.print = True
     G.run_all = args.run_all or args.module
+    G.run_all_time_limit = args.function_timeout
     G.exit_when_found = args.exit
     G.single_branch = args.single_branch
     G.vul_type = args.vul_type

@@ -55,6 +55,7 @@ class Graph:
         self.proto_pollution = set()
 
         self.run_all = True
+        self.run_all_time_limit = None
         self.single_branch = False
         self.print = False
 

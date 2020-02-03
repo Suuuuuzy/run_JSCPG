@@ -187,7 +187,7 @@ def unit_check_log(G, vul_type, package=None):
         """
         return 0
 
-def test_package(package_path, vul_type='os_command', single_branch=False):
+def test_package(package_path, vul_type='os_command'):
     # TODO: change the return value
     """
     test a specific package
@@ -217,7 +217,7 @@ def test_package(package_path, vul_type='os_command', single_branch=False):
         return []
 
     for package_file in package_main_files:
-        test_res = test_file(package_file, vul_type, single_branch)
+        test_res = test_file(package_file, vul_type)
         res.append(test_res)
         if test_res == 1:
             # successfully found
@@ -227,7 +227,7 @@ def test_package(package_path, vul_type='os_command', single_branch=False):
     npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
     return res
 
-def test_file(file_path, vul_type='xss', single_branch=False):
+def test_file(file_path, vul_type='xss'):
     """
     test a specific file 
     Args:
@@ -239,6 +239,7 @@ def test_file(file_path, vul_type='xss', single_branch=False):
             -2, not found. package parse error
             -3, graph generation error
     """
+    global args
     print("Testing {} {}".format(vul_type, file_path))
     if file_path is None:
         npm_test_logger.error("{} not found".format(file_path))
@@ -255,12 +256,10 @@ def test_file(file_path, vul_type='xss', single_branch=False):
     G = None
     try:
         if vul_type == 'proto_pollution':
-            G = unittest_main(test_file_name,
-                    check_proto_pollution=True, vul_type=vul_type,
-                    single_branch=single_branch)
+            G = unittest_main(test_file_name, vul_type=vul_type, args=args)
         else:
-            G = unittest_main(test_file_name, check_signatures=get_all_sign_list(),
-                single_branch=single_branch, vul_type=vul_type)
+            G = unittest_main(test_file_name, vul_type=vul_type, args=args,
+                check_signatures=get_all_sign_list())
     except Exception as e:
         os.remove(test_file_name)
         del G
@@ -303,13 +302,16 @@ def main(cur_no, num_split):
     argparser.add_argument('-c', nargs=2)
     argparser.add_argument('-p', '--print', action='store_true')
     argparser.add_argument('-t', '--vul-type')
-    argparser.add_argument('-l', '--timeout', type=int)
+    argparser.add_argument('-l', '--timeout', type=float)
+    argparser.add_argument('-f', '--function-timeout', type=float)
     argparser.add_argument('-s', '--single-branch', action='store_true')
     argparser.add_argument('root_path', action='store', nargs='?')
     args = argparser.parse_args()
 
     chunk_detail = args.c
 
+    if args.vul_type == 'prototype_pollution':
+        args.vul_type = 'proto_pollution'
     if args.print:
         create_logger("main_logger", output_type="console",
             level=logging.DEBUG)
@@ -381,7 +383,7 @@ def main(cur_no, num_split):
         ret_value = 100
         result = [-1]
         try:
-            result = func_timeout(timeout, test_package, args=(package, vul_type, args.single_branch))
+            result = func_timeout(timeout, test_package, args=(package, vul_type))
         except FunctionTimedOut:
             npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))
             skip_list.append(package)

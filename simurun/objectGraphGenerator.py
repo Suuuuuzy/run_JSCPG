@@ -15,7 +15,7 @@ from itertools import chain
 from collections import defaultdict
 from .trace_rule import TraceRule
 from .vulChecking import *
-from func_timeout import func_timeout
+from func_timeout import func_timeout, FunctionTimedOut
 import time
 
 registered_func = {}
@@ -1701,12 +1701,21 @@ def ast_call_function(G, ast_node, extra):
                     returned_objs = None
                     if G.get_node_attr(obj).get("init_run") is not None:
                         continue
-                    if G.get_node_attr(obj).get('type') == 'function' \
-                            and 'pythonfunc' not in G.get_node_attr(obj):
-                        # some times they write exports= new foo() eg. libnmap
-                        returned_objs, newed_objs, _ = call_function(G, [obj], 
-                                this=NodeHandleResult(obj_nodes=[parent_obj]),
-                                extra=extra, is_new=True, mark_fake_args=True)
+                    if G.get_node_attr(obj).get('type') != 'function':
+                        continue
+                    # some times they write exports= new foo() eg. libnmap
+                    try:
+                        returned_objs, newed_objs, _ = func_timeout(
+                            G.run_all_time_limit, call_function,
+                            args=(G, [obj]),
+                            kwargs={
+                                'this':
+                                    NodeHandleResult(obj_nodes=[parent_obj]),
+                                'extra': extra, 'is_new': True,
+                                'mark_fake_args': True
+                            })
+                    except FunctionTimedOut:
+                        continue
 
                     if newed_objs is None:
                         newed_objs = [obj] 

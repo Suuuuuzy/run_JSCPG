@@ -468,7 +468,7 @@ def to_python_array(G: Graph, array_obj, value=False):
             while i >= len(elements):
                 elements.append([])
                 data.append([])
-        except ValueError:
+        except (ValueError, TypeError):
             i = 0
         for e in G.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
             if value:
