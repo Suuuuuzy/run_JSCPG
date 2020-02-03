@@ -957,8 +957,9 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         return NodeHandleResult(values=[value])
 
     elif cur_type in ['AST_CALL', 'AST_METHOD_CALL', 'AST_NEW']:
-        returned_objs, used_objs = ast_call_function(G, node_id, extra)
-        return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs,
+        r = ast_call_function(G, node_id, extra)
+        return NodeHandleResult(obj_nodes=r.obj_nodes, used_objs=r.used_objs,
+            values=r.values, value_sources=r.value_sources,
             ast_node=node_id, callback=get_df_callback(G))
 
     elif cur_type == 'AST_RETURN':
@@ -1642,6 +1643,76 @@ def get_module_exports(G, file_path):
     else:
         return []
 
+def run_exported_functions(G, module_exports_objs, extra):
+    exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
+    exported_objs += module_exports_objs
+
+    #print("======================", module_exports_objs, exported_objs)
+    # if len(exported_objs) == 0:
+        # we only have one exported funcs
+    #    exported_objs = module_exports_objs
+
+    # print(exported_objs, '===========')
+    # some times the returned obj only has one obj
+    # exported_objs.append(module_exports_objs[0])
+
+    while(len(exported_objs) != 0):
+        obj = exported_objs.pop()
+        parent_obj = None
+        if type(obj) == type((1,2)):
+            parent_obj = obj[0]
+            obj = obj[1]
+        if not parent_obj:
+            parent_obj = obj
+
+        if 'pythonfunc' in G.get_node_attr(obj):
+            continue
+
+        if obj in G.require_obj_stack:
+            continue
+        G.require_obj_stack.append(obj)
+        newed_objs = None
+        returned_objs = None
+        if G.get_node_attr(obj).get("init_run") is not None:
+            continue
+        if G.get_node_attr(obj).get('type') != 'function':
+            continue
+        # some times they write exports= new foo() eg. libnmap
+        try:
+            returned_result, newed_objs = func_timeout(
+                G.run_all_time_limit, call_function,
+                args=(G, [obj]),
+                kwargs={
+                    'this':
+                        NodeHandleResult(obj_nodes=[parent_obj]),
+                    'extra': extra, 'is_new': True,
+                    'mark_fake_args': True
+                })
+        except FunctionTimedOut:
+            continue
+
+        if newed_objs is None:
+            newed_objs = [obj] 
+
+        G.set_node_attr(obj, ('init_run', "True"))
+        # include newed objects and return objects
+        if returned_result is not None:
+            newed_objs.extend(returned_result.obj_nodes)
+        # we may have prototype functions:
+        for newed_obj in newed_objs:
+            proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 
+                    prop_name='__proto__')
+            generated_objs = \
+                G.get_prop_obj_nodes(parent_obj=newed_obj)
+            generated_objs += \
+                G.get_prop_obj_nodes(parent_obj=proto_obj)
+            # newed obj haven't been run
+            generated_objs.append(newed_obj)
+            for obj in generated_objs:
+                if G.get_node_attr(obj).get('type') == 'function':
+                    #print(obj, G.get_node_attr(obj))
+                    exported_objs.append((newed_obj, obj))
+
 def ast_call_function(G, ast_node, extra):
     '''
     Call a function (AST_CALL/AST_METHOD_CALL/AST_NEW).
@@ -1652,92 +1723,25 @@ def ast_call_function(G, ast_node, extra):
         extra (ExtraInfo): extra information.
 
     Returns:
-        List, List: Returned objects and used objects.
+        NodeHandleResult: Returned objects and used objects.
     '''
-    # handle the callee
     if G.finished:
-        return [], []
+        return NodeHandleResult()
+
+    # handle the callee and parent object (for method calls)
     handled_parent = None
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
         handled_callee, handled_parent = handle_prop(G, ast_node, extra)
     else:
         callee = G.get_ordered_ast_child_nodes(ast_node)[0]
         handled_callee = handle_node(G, callee, extra)
-    
+
     if handled_callee.name == 'require':
         module_exports_objs = handle_require(G, ast_node)
         # print(G.get_name_from_child(ast_node), module_exports_objs, G.get_node_file_path(ast_node))
         # run the exported objs immediately
-        if module_exports_objs:
-            exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
-            exported_objs += module_exports_objs
-
-            #print("======================", module_exports_objs, exported_objs)
-            # if len(exported_objs) == 0:
-                # we only have one exported funcs
-            #    exported_objs = module_exports_objs
-
-            # print(exported_objs, '===========')
-            # some times the returned obj only has one obj
-            # exported_objs.append(module_exports_objs[0])
-
-            if G.run_all:
-                while(len(exported_objs) != 0):
-                    obj = exported_objs.pop()
-                    parent_obj = None
-                    if type(obj) == type((1,2)):
-                        parent_obj = obj[0]
-                        obj = obj[1]
-                    if not parent_obj:
-                        parent_obj = obj
-
-                    if 'pythonfunc' in G.get_node_attr(obj):
-                        continue
-
-                    if obj in G.require_obj_stack:
-                        continue
-                    G.require_obj_stack.append(obj)
-                    newed_objs = None
-                    returned_objs = None
-                    if G.get_node_attr(obj).get("init_run") is not None:
-                        continue
-                    if G.get_node_attr(obj).get('type') != 'function':
-                        continue
-                    # some times they write exports= new foo() eg. libnmap
-                    try:
-                        returned_objs, newed_objs, _ = func_timeout(
-                            G.run_all_time_limit, call_function,
-                            args=(G, [obj]),
-                            kwargs={
-                                'this':
-                                    NodeHandleResult(obj_nodes=[parent_obj]),
-                                'extra': extra, 'is_new': True,
-                                'mark_fake_args': True
-                            })
-                    except FunctionTimedOut:
-                        continue
-
-                    if newed_objs is None:
-                        newed_objs = [obj] 
-
-                    G.set_node_attr(obj, ('init_run', "True"))
-                    # include newed objects and return objects
-                    if returned_objs is not None:
-                        newed_objs.extend(returned_objs)
-                    # we may have prototype functions:
-                    for newed_obj in newed_objs:
-                        proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 
-                                prop_name='__proto__')
-                        generated_objs = \
-                            G.get_prop_obj_nodes(parent_obj=newed_obj)
-                        generated_objs += \
-                            G.get_prop_obj_nodes(parent_obj=proto_obj)
-                        # newed obj haven't been run
-                        generated_objs.append(newed_obj)
-                        for obj in generated_objs:
-                            if G.get_node_attr(obj).get('type') == 'function':
-                                #print(obj, G.get_node_attr(obj))
-                                exported_objs.append((newed_obj, obj))
+        if module_exports_objs and G.run_all:
+            run_exported_functions(G, module_exports_objs, extra)
 
         # for a require call, we need to run traceback immediately
         if G.exit_when_found:
@@ -1746,7 +1750,8 @@ def ast_call_function(G, ast_node, extra):
             res_path = vul_checking(G, res_path[0], vul_type)
             if len(res_path) != 0:
                 G.finished = True
-        return module_exports_objs, [] 
+        return NodeHandleResult(obj_nodes=module_exports_objs,
+                                used_objs=handled_callee.obj_nodes)
 
     # handle arguments
     handled_args = []
@@ -1775,21 +1780,26 @@ def ast_call_function(G, ast_node, extra):
                     types['string'].extend(handled_args[0].value_sources[i])
                 else:
                     types['object'].extend(handled_args[0].value_sources[i])
-        returned_objs = []
-        used_objs = []
+        # returned_objs = []
+        # used_objs = []
+        returned_values = []
+        returned_value_sources = []
         for t, sources in types.items():
-            added_obj = G.add_obj_node(ast_node, 'string', t)
-            for s in sources:
-                add_contributes_to(G, [s], added_obj)
-            returned_objs.append(added_obj)
-            used_objs.extend(sources)
-        return returned_objs, used_objs
+            # added_obj = G.add_obj_node(ast_node, 'string', t)
+            # for s in sources:
+            #     add_contributes_to(G, [s], added_obj)
+            # returned_objs.append(added_obj)
+            # used_objs.extend(sources)
+            returned_values.append(t)
+            returned_value_sources.append(sources)
+        return NodeHandleResult(values=returned_values, 
+                                value_sources=returned_value_sources)
     elif G.get_node_attr(ast_node).get('flags:string[]') == 'JS_DELETE':
         if handled_args:
             for name_node in handled_args[0].name_nodes:
                 for obj in handled_args[0].obj_nodes:
                     G.remove_all_edges_between(name_node, obj)
-        return [], []
+        return NodeHandleResult()
 
     # find function declaration objects
     func_decl_objs = list(filter(lambda x: x != G.undefined_obj and
@@ -1806,11 +1816,8 @@ def ast_call_function(G, ast_node, extra):
         else:
             logger.error(f'Function call error: Name node not found for {func_name}!')
 
-    # if the function call is creating a new object
-    is_new = False
-    # parent object (for method call only)
-    # handled_parent = None
-
+    
+    is_new = False # if the function call is creating a new object
     if G.get_node_attr(ast_node).get('type') == 'AST_CALL':
         stmt_id = 'Call' + ast_node + '-' + get_random_hex()
     elif G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
@@ -1819,14 +1826,13 @@ def ast_call_function(G, ast_node, extra):
     elif G.get_node_attr(ast_node).get('type') == 'AST_NEW':
         stmt_id = 'New' + ast_node + '-' + get_random_hex()
         is_new = True
-    returned_objs, created_objs, used_objs = \
+    returned_result, created_objs = \
         call_function(G, func_decl_objs, handled_args,
         handled_parent, extra, caller_ast=ast_node, is_new=is_new,
         stmt_id=stmt_id, func_name=func_name)
     if is_new:
-        return created_objs, used_objs
-    else:
-        return returned_objs, used_objs
+        returned_result.obj_nodes = created_objs
+    return returned_result
 
 def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}',
@@ -1850,13 +1856,16 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             functions only. Defaults to '{anonymous}'.
     
     Returns:
-        List, List, List: Lists of returned objects, created objects
-            and used objects.
+        NodeHandleResult, List: Call result (including returned objects
+            and used objects), and list of used objects.
     '''
+    if G.finished:
+        return NodeHandleResult(), []
+
     # No function objects found, return immediately
-    if G.finished or not func_objs:
+    if not func_objs:
         logger.error(f'No definition found for function {func_name}')
-        return [], [], []
+        return NodeHandleResult(), []
 
     if extra is None:
         extra = ExtraInfo()
@@ -1883,6 +1892,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     returned_objs = set()
     used_objs = set()
     created_objs = []
+    returned_values = [] # for python function only
+    returned_value_sources = [] # for python function only
 
     any_func_run = False
     # for each possible function declaration
@@ -1934,8 +1945,10 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 logger.log(ATTENTION, f'Running Python function {func_obj} {python_func}...')
                 h = python_func(G, caller_ast,
                     ExtraInfo(extra, branches=next_branches), _this, *_args)
-                branch_returned_objs = to_obj_nodes(G, h, ast_node=caller_ast)
+                branch_returned_objs = h.obj_nodes
                 branch_used_objs = h.used_objs
+                returned_values.extend(h.values)
+                returned_value_sources.extend(h.value_sources)
         else: # JS function in AST
             # if AST cannot be found, create AST
             if func_ast is None or G.get_node_attr(func_ast).get('type') \
@@ -2096,9 +2109,9 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         add_contributes_to(G, [obj], branch_created_obj)
                 # call all callback functions
                 if callback_functions:
-                    logger.debug(sty.fg.green + sty.ef.inverse + \
-                            'callback functions = {}'.format(callback_functions)\
-                            + sty.rs.all)
+                    logger.debug(sty.fg.green + sty.ef.inverse +
+                        'callback functions = {}'.format(callback_functions)
+                        + sty.rs.all)
                     
                     if _this is not None:
                         obj_attrs = [G.get_node_attr(obj) for obj in _this.obj_nodes]
@@ -2128,7 +2141,10 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
 
     G.call_stack.pop()
 
-    return list(returned_objs), created_objs, list(used_objs)
+    return NodeHandleResult(obj_nodes=list(returned_objs),
+            used_objs=list(used_objs),
+            values=returned_values, value_sources=returned_value_sources
+        ), created_objs
 
 def get_df_callback(G, ast_node=None):
     if ast_node is None:

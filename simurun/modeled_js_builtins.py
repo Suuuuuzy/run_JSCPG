@@ -642,10 +642,10 @@ def object_is(G: Graph, caller_ast, extra, _, value1: NodeHandleResult, value2: 
 
 
 def function_p_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
-    returned_objs, _, used_objs = objectGraphGenerator.call_function(
+    r, _ = objectGraphGenerator.call_function(
         G, func.obj_nodes, list(args), this, extra, caller_ast,
         stmt_id=f'Call{caller_ast}')
-    return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
+    return r 
 
 def function_p_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), arg_array=None):
     args = []
@@ -834,12 +834,11 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         none_flag = False
                         def python_cb(m):
                             nonlocal none_flag
-                            cb_returned_objs, _, _ = \
+                            cb_result, _ = \
                                 objectGraphGenerator.call_function(G, [callback],
                                 args=[NodeHandleResult(values=[m.group(0)])],
                                 extra=extra, caller_ast=caller_ast)
-                            cb_returned_values, _, _ = \
-                                to_values(G, NodeHandleResult(obj_nodes=cb_returned_objs))
+                            cb_returned_values, _, _ = to_values(G, cb_result)
                             cb_returned_values = \
                                 list(filter(lambda x: x != wildcard, cb_returned_values))
                             # multiple possibility is ignored here
@@ -874,12 +873,11 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         match_s = sv[start:start+len(ssv)]
                         left_s = sv[:start]
                         right_s = sv[start+len(ssv):]
-                        cb_returned_objs, _, _ = \
+                        cb_result, _ = \
                             objectGraphGenerator.call_function(G, [callback],
                             args=[NodeHandleResult(values=[match_s])],
                             extra=extra, caller_ast=caller_ast)
-                        cb_returned_values, _, _ = \
-                            to_values(G, NodeHandleResult(obj_nodes=cb_returned_objs))
+                        cb_returned_values, _, _ = to_values(G, cb_result)
                         for s1 in cb_returned_values:
                             returned_values.append(left_s + s1 + right_s)
                             # the part on the left of the match + substituted matched part + the part on the right of the match
@@ -950,12 +948,11 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         none_flag = False
                         def python_cb(m):
                             nonlocal none_flag
-                            cb_returned_objs, _, _ = \
+                            cb_result, _ = \
                                 objectGraphGenerator.call_function(G, [callback],
                                 args=[NodeHandleResult(values=[m.group(0)])],
                                 extra=extra, caller_ast=caller_ast)
-                            cb_returned_values, _, _ = \
-                                to_values(G, NodeHandleResult(obj_nodes=cb_returned_objs))
+                            cb_returned_values, _, _ = to_values(G, cb_result)
                             cb_returned_values = \
                                 list(filter(lambda x: x != wildcard, cb_returned_values))
                             # multiple possibility is ignored here
@@ -990,12 +987,11 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         match_s = sv[start:start+len(ssv)]
                         left_s = sv[:start]
                         right_s = sv[start+len(ssv):]
-                        cb_returned_objs, _, _ = \
+                        cb_result, _ = \
                             objectGraphGenerator.call_function(G, [callback],
                             args=[NodeHandleResult(values=[match_s])],
                             extra=extra, caller_ast=caller_ast)
-                        cb_returned_values, _, _ = \
-                            to_values(G, NodeHandleResult(obj_nodes=cb_returned_objs))
+                        cb_returned_values, _, _ = to_values(G, cb_result)
                         for s1 in cb_returned_values:
                             returned_values.append(left_s + s1 + right_s)
                             # the part on the left of the match + substituted matched part + the part on the right of the match
