@@ -507,9 +507,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
         #     if obj_node in G.pollutable_objs:
         #         flag1 = True
         #         break
-        print("+++++++++++++++++++", handled_left, handled_right, right_objs)
         for obj in right_objs:
-            print(G.get_node_attr(obj))
             if G.get_node_attr(obj).get('tainted'):
                 flag2 = True
                 break
@@ -2027,7 +2025,6 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                             js_type='object' if G.check_proto_pollution
                             else None, value=wildcard)
                     if mark_fake_args:
-                        print("++", added_obj)
                         G.set_node_attr(added_obj, ('tainted', True))
                         logger.debug("{} marked as tainted".format(added_obj))
                     G.add_obj_as_prop(prop_name=str(j),
