@@ -77,6 +77,7 @@ def main():
     logger = create_logger("main_logger", output_type="file")
     start_time = time.time()
     G = Graph()
+
     if args.print:
         logger = create_logger("main_logger", output_type="console",
             level=logging.DEBUG)

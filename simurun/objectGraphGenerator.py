@@ -536,43 +536,43 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
             G.assign_obj_nodes_to_name_node(name_node, right_objs,
                 branches=branches)
             returned_objs.extend(right_objs)
-        else:
-            logger.debug(f"  name node's for tags {nn_for_tags}")
-            for obj in right_objs:
-                obj_for_tags = G.get_node_attr(obj).get('for_tags', [])
-                flag = 2 # 0: ignore, 1: assign, 2: copy
-                for tag1 in nn_for_tags:
-                    for tag2 in obj_for_tags:
-                        if tag1 == tag2: # if tags are completely matched
-                            flag = 1
-                            break
-                        elif (tag1.point == tag2.point
-                            and tag1.branch == tag2.branch):
-                            # if tags are partially matched,
-                            # the object will be ignored
-                            flag = 0
-                            break
-                    # if no matched tags, the object will be copied
-                    if flag != 2:
-                        break
-                if flag == 1: # assign
-                    G.assign_obj_nodes_to_name_node(name_node, [obj],
-                        branches=branches)
-                    returned_objs.append(obj)
-                    logger.debug(f'  found matching obj {obj} with tags {obj_for_tags}')
-                elif flag == 2: # copy
-                    copied_obj = G.copy_obj(obj)
-                    for_tags = G.get_node_attr(obj).get('for_tags',
-                                                        BranchTagContainer())
-                    new_for_tags = [BranchTag(i, mark='C')
-                        for i in BranchTagContainer(nn_for_tags)
-                        .get_matched_tags(branches, level=1)]
-                    for_tags.extend(new_for_tags)
-                    G.set_node_attr(copied_obj, ('for_tags', for_tags))
-                    G.assign_obj_nodes_to_name_node(name_node, [copied_obj],
-                        branches=branches)
-                    returned_objs.append(copied_obj)
-                    logger.debug(f'  copied from obj {obj} with tags {for_tags}')
+        # else:
+        #     logger.debug(f"  name node's for tags {nn_for_tags}")
+        #     for obj in right_objs:
+        #         obj_for_tags = G.get_node_attr(obj).get('for_tags', [])
+        #         flag = 2 # 0: ignore, 1: assign, 2: copy
+        #         for tag1 in nn_for_tags:
+        #             for tag2 in obj_for_tags:
+        #                 if tag1 == tag2: # if tags are completely matched
+        #                     flag = 1
+        #                     break
+        #                 elif (tag1.point == tag2.point
+        #                     and tag1.branch == tag2.branch):
+        #                     # if tags are partially matched,
+        #                     # the object will be ignored
+        #                     flag = 0
+        #                     break
+        #             # if no matched tags, the object will be copied
+        #             if flag != 2:
+        #                 break
+        #         if flag == 1: # assign
+        #             G.assign_obj_nodes_to_name_node(name_node, [obj],
+        #                 branches=branches)
+        #             returned_objs.append(obj)
+        #             logger.debug(f'  found matching obj {obj} with tags {obj_for_tags}')
+        #         elif flag == 2: # copy
+        #             copied_obj = G.copy_obj(obj)
+        #             for_tags = G.get_node_attr(obj).get('for_tags',
+        #                                                 BranchTagContainer())
+        #             new_for_tags = [BranchTag(i, mark='C')
+        #                 for i in BranchTagContainer(nn_for_tags)
+        #                 .get_matched_tags(branches, level=1)]
+        #             for_tags.extend(new_for_tags)
+        #             G.set_node_attr(copied_obj, ('for_tags', for_tags))
+        #             G.assign_obj_nodes_to_name_node(name_node, [copied_obj],
+        #                 branches=branches)
+        #             returned_objs.append(copied_obj)
+        #             logger.debug(f'  copied from obj {obj} with tags {for_tags}')
 
     # used_objs = handled_right.used_objs
     # logger.debug(f'  assign used objs={used_objs}')
@@ -975,7 +975,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         branch_num_counter = 0
         # if it is sure (deterministic) that "else" needs to run 
         else_is_deterministic = True
-        for i, if_elem in enumerate(if_elems):
+        for if_elem in if_elems:
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
             if G.get_node_attr(condition).get('type') == 'NULL': # else
                 if else_is_deterministic or G.single_branch:
@@ -1409,18 +1409,19 @@ def merge(G, stmt, num_of_branches, parent_branch):
                     # logger.debug(f'create edge {u}->{v}')
                     G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ'})
 
+            # cancel out Deletion edges
             if flag_deleted:
                 if parent_branch:
-                    # find if there is an addition in parent if/switch (upper level)
-                    flag = True
+                    # find if there is any addition in parent if/switch (upper level)
+                    flag = False
                     for key, edge_attr in list(G.graph[u][v].items()):
                         branch_tag = edge_attr.get('branch', BranchTag())
                         if branch_tag == BranchTag(parent_branch, mark='A'):
                             # logger.debug(f'delete edge {u}->{v}')
                             G.graph.remove_edge(u, v, key)
-                            flag = False
+                            flag = True
                     # if there is not
-                    if flag:
+                    if not flag:
                         # add one deletion edge with parent if/switch's (upper level's) tags
                         # logger.debug(f"create edge {u}->{v}, branch={BranchTag(parent_branch, mark='D')}")
                         G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, mark='D')})

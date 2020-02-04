@@ -6,7 +6,7 @@ import io
 import logging
 import json
 from typing import List, Callable
-from .utilities import BranchTag, DictCounter, wildcard
+from .utilities import BranchTag, BranchTagContainer, DictCounter, wildcard
 from .logger import *
 import uuid
 from itertools import chain
@@ -905,7 +905,7 @@ class Graph:
         return list(s)
 
     def assign_obj_nodes_to_name_node(self, name_node, obj_nodes, multi=False,
-        branches: List[BranchTag] = []):
+        branches=BranchTagContainer()):
         '''
         Assign (multiple) object nodes to a name node.
         
@@ -919,7 +919,7 @@ class Graph:
             branches (List[BranchTag], optional):
                 List of branch tags. Defaults to [].
         '''
-        branch = branches[-1] if branches else None
+        branch = branches.get_last_choice_tag()
         # remove previous objects
         pre_objs = self.get_objs_by_name_node(name_node, branches)
         self.logger.debug(f'Assigning {obj_nodes} to {name_node}, ' \
