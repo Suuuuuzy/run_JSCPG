@@ -122,7 +122,11 @@ def vul_checking(G, pathes, vul_type):
             [('has_user_input', None), ('not_exist_func', signature_lists['sanitation'])]
             ]
     path_traversal = [
-            [('start_with_var', ['source_hqbpillvul_url']), ('not_exist_func', signature_lists['sanitation']), ('end_with_func', signature_lists['path_traversal'])]
+            [('start_with_var', ['source_hqbpillvul_url']),
+                ('not_exist_func', signature_lists['sanitation']), 
+                ('end_with_func', signature_lists['path_traversal']),
+                ('exist_func', ['sink_hqbpillvul_fs_read'])
+            ]
             ]
 
     vul_type_map = {

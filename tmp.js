@@ -1,12 +1,8 @@
-function extend(target, obj) {
-  Object.keys(obj).forEach(function (key) {
-    val = obj[key];
-    if (typeof val !== 'object') {
-      target[key] = val;
-    } else {
-      extend(target, extend(target[key], val))
-    }
-  });
-}
+var fs = require("fs");
+var http = require("http");
+http.createServer(function(req, res){
+  ret = req.url;//fs.readFile(req.url);
+  res.write(ret);
+  res.end();
+}).listen(8080);
 
-module.exports = extend;
