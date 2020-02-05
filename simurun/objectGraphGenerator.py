@@ -1948,12 +1948,12 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 try:
                     h = python_func(G, caller_ast,
                         ExtraInfo(extra, branches=next_branches), _this, *_args)
+                    branch_returned_objs = h.obj_nodes
+                    branch_used_objs = h.used_objs
+                    returned_values.extend(h.values)
+                    returned_value_sources.extend(h.value_sources)
                 except TypeError as e:
                     logger.error(e)
-                branch_returned_objs = h.obj_nodes
-                branch_used_objs = h.used_objs
-                returned_values.extend(h.values)
-                returned_value_sources.extend(h.value_sources)
         else: # JS function in AST
             # if AST cannot be found, create AST
             if func_ast is None or G.get_node_attr(func_ast).get('type') \
