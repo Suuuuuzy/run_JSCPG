@@ -1562,8 +1562,11 @@ def handle_require(G, node_id, extra=None):
 
     returned_objs = set()
     for module_name in module_names:
-        if module_name in modeled_builtin_modules.modeled_modules:
+        if module_name in modeled_builtin_modules.modeled_modules \
+            and G.vul_type != "path_traversal":
             # Python-modeled built-in modules
+            # for now mostly fs
+            # if it's path_traversal, do not do this
             returned_objs.add(
                 modeled_builtin_modules.get_module(G, module_name))
         else:
