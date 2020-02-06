@@ -7,8 +7,8 @@ import sklearn.metrics as SM
 sys.path.append("..")
 from npmtest.multi_run_helper import *
 
-command_injection_dir = "/media/data/lsong18/data/vulPackages/command_injection/"
-all_package_dir = "/media/data/lsong18/data/npmpackages/"
+command_injection_dir = "/media/data2/song/vulPackages/command_injection/"
+all_package_dir = "/media/data2/song/npmpackages/"
 
 def generateDatabase(
         location_number_map={all_package_dir: 80, command_injection_dir: 20}):
@@ -88,4 +88,5 @@ def run_tests(package_list, vul_type="os_command"):
     return res_list, timeout_cnt, success_cnt
 
 testing_database = generateDatabase()
+print("Seletected testing dataset: {}".format(testing_database))
 run_tests(testing_database)

@@ -1,6 +1,6 @@
-NUM_Thread=20
+NUM_Thread=30
 for V in $(seq 1 $NUM_Thread);
 do 
-  screen -dm python callfunctionGenerator.py -s -c $V $NUM_Thread 
+  screen -S runscreen_$V -dm python callfunctionGenerator.py -s -c $V $NUM_Thread -t path_traversal
 done
 
