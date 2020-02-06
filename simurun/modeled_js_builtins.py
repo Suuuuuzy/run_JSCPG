@@ -1116,8 +1116,10 @@ def string_p_split(G: Graph, caller_ast, extra, strs, separators=NodeHandleResul
                     add_contributes_to(G, [ss], v)
                     add_contributes_to(G, [ss], arr)
             else:
-                logger.debug('string split {} -> {}'.format(s, s.split(p)))
-                for k, d in enumerate(s.split(p)):
+                # Python does not support empty separator
+                result = s.split(p) if p != '' else list(s)
+                logger.debug('string split {} -> {}'.format(s, result))
+                for k, d in enumerate(result):
                     v = G.add_obj_as_prop(prop_name=str(k), value=d,
                         ast_node=caller_ast, js_type='string', parent_obj=arr)
                     for ss in s1[i]:

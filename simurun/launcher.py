@@ -21,7 +21,7 @@ def unittest_main(file_path, check_signatures=[], vul_type='os_command',
     G.check_proto_pollution = (vul_type == 'proto_pollution')
     if args is not None:
         G.single_branch = args.single_branch
-        G.run_all_time_limit = args.function_timeout
+        G.function_time_limit = args.function_timeout
     result = analyze_files(G, file_path, check_signatures=check_signatures)
     # output location of prototype pollution to a seperate file
     proto_pollution_logger = create_logger('proto_pollution',
@@ -85,7 +85,7 @@ def main():
             level=logging.DEBUG)
         G.print = True
     G.run_all = args.run_all or args.module
-    G.run_all_time_limit = args.function_timeout
+    G.function_time_limit = args.function_timeout
     G.exit_when_found = args.exit
     G.single_branch = args.single_branch
     G.vul_type = args.vul_type

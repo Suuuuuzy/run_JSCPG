@@ -1677,18 +1677,25 @@ def run_exported_functions(G, module_exports_objs, extra):
         if G.get_node_attr(obj).get('type') != 'function':
             continue
         # some times they write exports= new foo() eg. libnmap
-        try:
-            returned_result, newed_objs = func_timeout(
-                G.run_all_time_limit, call_function,
-                args=(G, [obj]),
-                kwargs={
-                    'this':
-                        NodeHandleResult(obj_nodes=[parent_obj]),
-                    'extra': extra, 'is_new': True,
-                    'mark_fake_args': True
-                })
-        except FunctionTimedOut:
-            continue
+        if G.function_time_limit:
+            try:
+                returned_result, newed_objs = func_timeout(
+                    G.function_time_limit, call_function,
+                    args=(G, [obj]),
+                    kwargs={
+                        'this':
+                            NodeHandleResult(obj_nodes=[parent_obj]),
+                        'extra': extra, 'is_new': True,
+                        'mark_fake_args': True
+                    })
+            except FunctionTimedOut:
+                continue
+        else:
+            # func_timeout may cause threading problems
+            returned_result, newed_objs = call_function(G, [obj],
+                this=NodeHandleResult(obj_nodes=[parent_obj]),
+                extra=extra, is_new=True, mark_fake_args=True
+            )
 
         if newed_objs is None:
             newed_objs = [obj] 
@@ -1945,12 +1952,12 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 try:
                     h = python_func(G, caller_ast,
                         ExtraInfo(extra, branches=next_branches), _this, *_args)
+                    branch_returned_objs = h.obj_nodes
+                    branch_used_objs = h.used_objs
+                    returned_values.extend(h.values)
+                    returned_value_sources.extend(h.value_sources)
                 except TypeError as e:
                     logger.error(e)
-                branch_returned_objs = h.obj_nodes
-                branch_used_objs = h.used_objs
-                returned_values.extend(h.values)
-                returned_value_sources.extend(h.value_sources)
         else: # JS function in AST
             # if AST cannot be found, create AST
             if func_ast is None or G.get_node_attr(func_ast).get('type') \
