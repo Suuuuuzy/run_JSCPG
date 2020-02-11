@@ -110,7 +110,7 @@ def run_tests(package_list, vul_type="os_command"):
                 res_list['jsopg'][sub_package_list][package] = 1
                 success_cnt['jsopg'][sub_package_list] += 1
             elif jsopg_res == 2:
-                timeout_cntp['jsopg'][sub_package_list] += 1
+                timeout_cnt['jsopg'][sub_package_list] += 1
                 res_list['jsopg'][sub_package_list][package] = 2
             else:
                 res_list['jsopg'][sub_package_list][package] = 3
