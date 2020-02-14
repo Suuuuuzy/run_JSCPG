@@ -18,8 +18,9 @@ from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
-#root_path = "/media/data2/song/npmpackages/"
-root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
+#root_path = "/media/data2/song/vulPackages/command_injection/"
+root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
+#root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
@@ -106,6 +107,10 @@ def get_entrance_files_of_package(package_path, get_all=False):
             main_file = 'index.js'
         else:
             main_file = package_json['main']
+
+        if 'bin' in package_json:
+            for key in package_json['bin']:
+                main_files.append(package_json['bin'][key])
 
     # entrance file maybe two different formats
     # ./index = ./index.js or ./index = ./index/index.js
@@ -409,6 +414,8 @@ def main(cur_no, num_split):
             npm_res_logger.error("Generate {} error".format(package))
         elif 0 in result:
             npm_res_logger.error("Not found path in {}".format(package))
+        elif len(result) == 0:
+            npm_res_logger.error("Package json error in {}".format(package, result))
         else:
             npm_res_logger.error("Other problems {} return {}".format(package, result))
 

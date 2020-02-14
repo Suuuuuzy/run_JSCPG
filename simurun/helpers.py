@@ -337,7 +337,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
     if not flag:
         handled = handling_func(G, ast_node, extra)
         true_num = 0
-        total_num = len(handled.obj_nodes) + len(handled.values)
+        total_num = len(list(filter(lambda x: x != G.undefined_obj, handled.obj_nodes))) + len(handled.values)
         if total_num == 0:
             return None, False # Value is unknown, cannot check
         for value in handled.values:
