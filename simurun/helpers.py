@@ -126,7 +126,7 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
         values.append(value)
         sources.append([obj])
         tags.append(G.get_node_attr(obj).get('for_tags', []))
-    #print(values, sources)
+    # print(values, sources)
     values, sources = combine_values(values, sources)
     return values, sources, tags
 
@@ -234,14 +234,18 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
         left, right = G.get_ordered_ast_child_nodes(ast_node)[:2]
         if op_type == 'BINARY_BOOL_OR':
             lp, ld = check_condition(G, left, extra, handling_func)
+            # print('binary bool or', lp, ld)
             rp, rd = check_condition(G, right, extra, handling_func)
+            # print('binary bool or', lp, ld, rp, rd)
             if lp is not None and rp is not None:
                 return lp + rp - lp * rp, ld and rd
             else:
                 return None, False
         elif op_type == 'BINARY_BOOL_AND':
             lp, ld = check_condition(G, left, extra, handling_func)
+            # print('binary bool and', lp, ld)
             rp, rd = check_condition(G, right, extra, handling_func)
+            # print('binary bool and', lp, ld, rp, rd)
             if lp is not None and rp is not None:
                 return lp * rp, ld and rd
             else:

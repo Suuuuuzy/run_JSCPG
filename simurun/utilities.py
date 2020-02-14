@@ -27,7 +27,7 @@ class NodeHandleResult:
             to customize print format. Defaults to None.
     '''
 
-    @classmethod
+    @staticmethod
     def _print(handle_result):
         print(str(handle_result))
 
@@ -45,6 +45,7 @@ class NodeHandleResult:
         self.ast_node = kwargs.get('ast_node')
         self.name_tainted = kwargs.get('name_tainted')
         self.parent_is_proto = kwargs.get('parent_is_proto')
+        self.terminated = kwargs.get('terminated')
         if self.ast_node:
             self.print_callback()
         if self.values and not self.value_sources:

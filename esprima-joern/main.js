@@ -1890,9 +1890,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
             dfs(currentNode.test, nodeIdCounter, currentId, 0, currentFunctionId, null);
             // body
-            nodeIdCounter++;
-            relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.body, nodeIdCounter, currentId, 1, currentFunctionId, null);
+            makeVirtualNodeForBody(currentNode.body, currentId, 1, currentFunctionId);
             nodes[currentId] = {
                 label: 'AST',
                 type: currentNode.type,
@@ -2030,9 +2028,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             }
             childNumberCounter++;
             // body
-            nodeIdCounter++;
-            relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.body, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, null);
+            makeVirtualNodeForBody(currentNode.body, currentId, childNumberCounter, currentFunctionId);
             nodes[currentId] = {
                 label: 'AST',
                 type: currentNode.type,
@@ -2432,32 +2428,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 };
             } else if (outputStyle == 'php') {
                 // If the child is not BlockStatement (AST_STMT_LIST in php), make the AST_STMT_LIST virtual node
-                if (currentNode.consequent.type != 'BlockStatement') {
-                    nodeIdCounter++;
-                    let consequentId = nodeIdCounter;
-                    relsStream.push([testId, consequentId, parentOf].join(delimiter) + '\n');
-                    nodeIdCounter++;
-                    relsStream.push([consequentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    dfs(currentNode.consequent, nodeIdCounter, consequentId, 0, currentFunctionId, null);
-                    // Write the AST_STMT_LIST virtual node
-                    nodes[consequentId] = {
-                        label: 'AST_V',
-                        type: 'IfStatementConsequent',
-                        phptype: 'AST_STMT_LIST',
-                        lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                        childNum: childNum,
-                        lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
-                        colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
-                        colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                        childNum: 1,
-                        funcId: currentFunctionId
-                    };
-                } else { // If the child is BlockStatement
-                    // goto the consequent child node
-                    nodeIdCounter++;
-                    relsStream.push([testId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    dfs(currentNode.consequent, nodeIdCounter, testId, 1, currentFunctionId, null);
-                }
+                makeVirtualNodeForBody(currentNode.consequent, testId, 1, currentFunctionId, 'IfStatementConsequent');
             }
             // alternate (else)
             if (currentNode.alternate) {
@@ -2478,31 +2449,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         funcId: currentFunctionId
                     };
                     // If the child is not BlockStatement (AST_STMT_LIST in php), make the second virtual node
-                    if (currentNode.alternate.type != 'BlockStatement') {
-                        nodeIdCounter++;
-                        let alternateId = nodeIdCounter;
-                        relsStream.push([elseIfElemId, alternateId, parentOf].join(delimiter) + '\n');
-                        nodeIdCounter++;
-                        relsStream.push([alternateId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                        dfs(currentNode.alternate, nodeIdCounter, alternateId, 0, currentFunctionId, null);
-                        // Write the second virtual node
-                        nodes[alternateId] = {
-                            label: 'AST_V',
-                            type: 'IfStatementAlternate',
-                            phptype: 'AST_STMT_LIST',
-                            lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                            childNum: childNum,
-                            lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
-                            colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
-                            colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                            childNum: 1,
-                            funcId: currentFunctionId
-                        };
-                    } else { // If the child is BlockStatement
-                        nodeIdCounter++;
-                        relsStream.push([elseIfElemId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                        dfs(currentNode.alternate, nodeIdCounter, elseIfElemId, 1, currentFunctionId, null);
-                    }
+                    makeVirtualNodeForBody(currentNode.alternate, elseIfElemId, 1, currentFunctionId, 'IfStatementAlternate');
                     // Write the first virtual node
                     nodes[elseIfElemId] = {
                         label: 'AST_V',
@@ -2800,6 +2747,36 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             break;
     }
 };
+
+function makeVirtualNodeForBody(body, parentNode, childNum, currentFunctionId, ctype){
+    if (!ctype){
+        ctype = 'BlockStatement';
+    }
+    if (body.type != 'BlockStatement') {
+        nodeIdCounter++;
+        let vNodeId = nodeIdCounter;
+        relsStream.push([parentNode, vNodeId, parentOf].join(delimiter) + '\n');
+        nodeIdCounter++;
+        relsStream.push([vNodeId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+        dfs(body, nodeIdCounter, vNodeId, 0, currentFunctionId, null);
+        // Write the second virtual node
+        nodes[vNodeId] = {
+            label: 'AST_V',
+            type: ctype,
+            phptype: 'AST_STMT_LIST',
+            lineLocStart: body.loc ? body.loc.start.line : null,
+            lineLocEnd: body.loc ? body.loc.end.line : null,
+            colLocStart: body.loc ? body.loc.start.column : null,
+            colLocEnd: body.loc ? body.loc.end.column : null,
+            childNum: childNum,
+            funcId: currentFunctionId
+        };
+    } else { // If the child is BlockStatement
+        nodeIdCounter++;
+        relsStream.push([parentNode, nodeIdCounter, parentOf].join(delimiter) + '\n');
+        dfs(body, nodeIdCounter, parentNode, childNum, currentFunctionId, null);
+    }
+}
 
 function walkDir(dir, parentNodeId, callback) {
     /**

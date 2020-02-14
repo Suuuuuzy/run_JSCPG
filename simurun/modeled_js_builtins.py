@@ -31,6 +31,7 @@ def setup_js_builtins(G: Graph):
 
 def setup_string(G: Graph):
     string_cons = G.add_blank_func_to_scope('String', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    G.builtin_constructors.append(string_cons)
     string_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=string_cons)[0]
     G.string_prototype = string_prototype
     # built-in functions for regexp
@@ -52,6 +53,7 @@ def setup_string(G: Graph):
 
 def setup_number(G: Graph):
     number_cons = G.add_blank_func_to_scope('Number', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    G.builtin_constructors.append(number_cons)
     number_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=number_cons)[0]
     G.number_prototype = number_prototype
     # Number.prototype.__proto__ = Object.prototype
@@ -59,7 +61,8 @@ def setup_number(G: Graph):
 
 
 def setup_array(G: Graph):
-    array_cons = G.add_blank_func_to_scope('Array', scope=G.BASE_SCOPE) # TODO: implement this
+    array_cons = G.add_blank_func_to_scope('Array', G.BASE_SCOPE, array_constructor)
+    G.builtin_constructors.append(array_cons)
     array_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=array_cons)[0]
     G.array_prototype = array_prototype
     # Array.prototype.__proto__ = Object.prototype
@@ -68,7 +71,7 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('push', array_prototype, array_p_push)
     G.add_blank_func_as_prop('pop', array_prototype, array_p_pop)
     G.add_blank_func_as_prop('unshift', array_prototype, array_p_push)
-    G.add_blank_func_as_prop('shift', array_prototype, array_p_shift)
+    # G.add_blank_func_as_prop('shift', array_prototype, array_p_shift) # broken
     G.add_blank_func_as_prop('join', array_prototype, array_p_join)
     G.add_blank_func_as_prop('forEach', array_prototype, array_p_for_each_value)
     G.add_blank_func_as_prop('keys', array_prototype, array_p_keys)
@@ -81,6 +84,7 @@ def setup_array(G: Graph):
 
 def setup_boolean(G: Graph):
     boolean_cons = G.add_blank_func_to_scope('Boolean', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    G.builtin_constructors.append(boolean_cons)
     boolean_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=boolean_cons)[0]
     G.boolean_prototype = boolean_prototype
     # Boolean.prototype.__proto__ = Object.prototype
@@ -89,6 +93,7 @@ def setup_boolean(G: Graph):
 
 def setup_symbol(G: Graph):
     symbol_cons = G.add_blank_func_to_scope('Symbol', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    G.builtin_constructors.append(symbol_cons)
     symbol_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=symbol_cons)[0]
     # Symbol.prototype.__proto__ = Object.prototype
     G.add_obj_as_prop(prop_name='__proto__', parent_obj=symbol_prototype, tobe_added_obj=G.object_prototype)
@@ -96,6 +101,7 @@ def setup_symbol(G: Graph):
 
 def setup_errors(G: Graph):
     error_cons = G.add_blank_func_to_scope('Error', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    G.builtin_constructors.append(error_cons)
     # # Error.prototype.__proto__ = Object.prototype
     # error_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=error_cons)[0]
     # G.add_obj_as_prop(prop_name='__proto__', parent_obj=error_prototype, tobe_added_obj=G.object_prototype)
@@ -109,6 +115,7 @@ def setup_errors(G: Graph):
 def setup_object_and_function(G: Graph):
     # add Object (function)
     object_cons = G.add_blank_func_to_scope('Object', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    G.builtin_constructors.append(object_cons)
     # get Object.prototype
     object_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=object_cons)[0]
     G.set_node_attr(object_prototype, ('code', 'Object.prototype'))
@@ -116,6 +123,7 @@ def setup_object_and_function(G: Graph):
     G.add_obj_as_prop(prop_name='__proto__', parent_obj=object_prototype, tobe_added_obj=G.null_obj)
     # add Function (function)
     function_cons = G.add_blank_func_to_scope('Function', scope=G.BASE_SCOPE) # TODO: implement this
+    G.builtin_constructors.append(function_cons)
     # get Function.prototype
     function_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=function_cons)[0]
     G.set_node_attr(function_prototype, ('code', 'Function.prototype'))
@@ -133,6 +141,8 @@ def setup_object_and_function(G: Graph):
     G.add_blank_func_as_prop('keys', object_cons, object_keys)
     G.add_blank_func_as_prop('values', object_cons, object_values)
     G.add_blank_func_as_prop('entries', object_cons, object_entries)
+    G.add_blank_func_as_prop('defineProperty', object_cons, blank_func)
+    G.add_blank_func_as_prop('defineProperties', object_cons, blank_func)
 
     G.add_blank_func_as_prop('toString', object_prototype, object_to_string)
     G.add_blank_func_as_prop('toLocaleString', object_prototype, object_to_string)
@@ -344,9 +354,10 @@ def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
                     for obj in objs:
                         G.remove_all_edges_between(prop_name_node, obj)
                 else:
-                    G.set_node_attr(prop_name_node, ('code', i - 1))
+                    G.set_node_attr(prop_name_node, ('name', i - 1))
             except ValueError:
-                logger.error('Array {} length error'.format(arr))
+                pass
+                # logger.error('Array {} length error'.format(arr))
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
@@ -502,6 +513,29 @@ def array_p_join(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=Nod
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
 
 
+def array_constructor(G: Graph, caller_ast, extra, _, length: NodeHandleResult, *args):
+    lengths, length_sources, _ = to_values(G, length)
+    returned_objs = []
+    used_objs = list(set(chain(*length_sources)))
+    for i, l in enumerate(lengths):
+        logger.debug('create an array length {}'.format(l))
+        if l == wildcard:
+            arr = G.add_obj_node(caller_ast, 'array', wildcard)
+            G.add_obj_as_prop('length', caller_ast, 'number', value=wildcard,
+                parent_obj=arr)
+            G.add_obj_as_prop(wildcard, caller_ast, 'object', value=wildcard,
+                parent_obj=arr)
+        else:
+            arr = G.add_obj_node(caller_ast, 'array')
+            G.add_obj_as_prop('length', caller_ast, 'number', value=l,
+                parent_obj=arr)
+            for j in range(l):
+                G.add_prop_name_node(str(j), arr)
+        add_contributes_to(G, length_sources[i], arr)
+        returned_objs.append(arr)
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
+
+
 def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
     returned_objs = []
     for obj in arg.obj_nodes:
@@ -509,8 +543,8 @@ def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array
         i = 0
         for name_node in G.get_prop_name_nodes(obj):
             name = G.get_node_attr(name_node).get('name')
-            if name is None:
-                print(name_node)
+            # if name is None:
+            #     print(name_node)
             assert name is not None
             if not for_array and name == wildcard:
                 continue
@@ -782,6 +816,7 @@ def json_parse(G: Graph, caller_ast, extra, _, text=None, reviver=None):
 def setup_regexp(G: Graph):
     regexp_cons = G.add_blank_func_to_scope('RegExp', scope=G.BASE_SCOPE,
         python_func=regexp_constructor)
+    G.builtin_constructors.append(regexp_cons)
     regexp_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=regexp_cons)[0]
     G.regexp_prototype = regexp_prototype
     # built-in functions
@@ -1041,13 +1076,13 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
     if regexps is None or not regexps.obj_nodes:
         added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
         G.add_obj_as_prop(ast_node=caller_ast, js_type='string', value='', parent_obj=added_array)
-        return NodeHandleResult(obj_nodes=added_array)
+        return NodeHandleResult(obj_nodes=[added_array])
     returned_objs = []
     for s in to_obj_nodes(G, strs, caller_ast):
         for regexp in to_obj_nodes(G, regexps, caller_ast):
             sv = G.get_node_attr(s).get('code')
             rv = G.get_node_attr(regexp).get('code')
-            if sv is None or ssv is None or sv == wildcard or rv == wildcard:
+            if sv is None or sv == wildcard or rv == wildcard:
                 added_array = G.add_obj_node(ast_node=caller_ast, js_type='array')
                 added_obj = G.add_obj_as_prop(ast_node=caller_ast,
                     prop_name='0', js_type='string', parent_obj=added_array)
