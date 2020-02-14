@@ -35,6 +35,9 @@ class Graph:
         self.string_prototype = None
         self.boolean_prototype = None
         self.regexp_prototype = None
+        
+        self.builtin_constructors = []
+        self.builtin_prototypes = []
 
         # scope name counter
         self.scope_counter = DictCounter()
@@ -60,6 +63,8 @@ class Graph:
         self.print = False
 
         self.vul_type = None
+
+        self.for_stack = []
 
         csv.field_size_limit(2 ** 31 - 1)
 
@@ -1356,15 +1361,15 @@ class Graph:
         self.logger.debug(sty.ef.inverse + 'Internal objects\n' + 
             str(self.internal_objs)[1:-1] + sty.rs.all)
 
-        self.prototypes = [
+        self.builtin_prototypes = [
             self.object_prototype, self.string_prototype,
             self.array_prototype, self.function_prototype,
             self.number_prototype, self.boolean_prototype, self.regexp_prototype
         ]
         self.pollutable_objs = set(chain(*
-            [self.get_prop_obj_nodes(p) for p in self.prototypes]))
+            [self.get_prop_obj_nodes(p) for p in self.builtin_prototypes]))
         self.pollutable_name_nodes = set(chain(*
-            [self.get_prop_name_nodes(p) for p in self.prototypes]))
+            [self.get_prop_name_nodes(p) for p in self.builtin_prototypes]))
 
     def get_parent_object_def(self, node_id):
         """
