@@ -2025,6 +2025,9 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     h = python_func(G, caller_ast,
                         ExtraInfo(extra, branches=next_branches), _this, *_args)
                     branch_returned_objs = h.obj_nodes
+                    # the obj_nodes may be node list
+                    if type(branch_returned_objs) != list:
+                        branch_returned_objs = [branch_returned_objs]
                     branch_used_objs = h.used_objs
                     returned_values.extend(h.values)
                     returned_value_sources.extend(h.value_sources)

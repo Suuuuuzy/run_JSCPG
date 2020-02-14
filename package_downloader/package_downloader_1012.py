@@ -41,6 +41,7 @@ def download_package(name, version):
         curl_cmd = 'curl --silent --remote-name https://registry.npmjs.org/{}/-/{}'.format(
             name, archive)
 
+        print(curl_cmd)
         os.system(curl_cmd)
         os.system('mkdir -p {}'.format(
             dir_name))
