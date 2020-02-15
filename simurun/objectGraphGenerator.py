@@ -2154,6 +2154,9 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             if is_new:
                 branch_created_obj, branch_returned_objs = instantiate_obj(G,
                     caller_ast, func_ast, branches=next_branches)
+                # tmp fix TODO
+                if branch_returned_objs is None:
+                    branch_returned_objs = []
             else:
                 backup_objs = G.cur_objs
                 if _this:
@@ -2214,6 +2217,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
 
                     call_function(G, callback_functions, caller_ast=caller_ast,
                         extra=extra, stmt_id=stmt_id, mark_fake_args=mark_fake_args)
+        
         if branch_returned_objs is None and branch_used_objs is None:
             any_func_skipped = True
         else:
