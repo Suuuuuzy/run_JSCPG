@@ -8,7 +8,7 @@ function read(a, b, c, d, e, f) {
   return ret;
 }
 
-function readFile(pathname, cb) {
+function readFile(pathname, options = {}, cb) {
   // just build a link from pathname to cb
   // mark the path used read
   var ret = sink_hqbpillvul_fs_read(pathname);

@@ -9,7 +9,7 @@
 //root("123 & touch asdf");
 //var test1 = require("./tmp.js");
 //test1('tt.js & touch 123');
-var test = require("/media/data2/song/vulPackages/path_traversal/knightjs@0.0.1/lib/create-server.js");
+var test = require("/media/data2/song/vulPackages/path_traversal/infraserver@0.0.1/Infra.data.js");
 //var cb = require('./tmp.js');
 //cb = new cb('123');
 //cb.worker();

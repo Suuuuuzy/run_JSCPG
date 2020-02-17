@@ -43,7 +43,6 @@ def traceback(G, vul_type, start_node=None):
                     path.append(uppernode)
                 #print('--', upper_nodes)
             """
-
             for path in pathes:
                 ret_pathes.append(path)
                 cur_path_str1 = ""
@@ -57,7 +56,11 @@ def traceback(G, vul_type, start_node=None):
                     start_lineno = int(cur_node_attr['lineno:int'])
                     end_lineno = int(cur_node_attr['endlineno:int']
                                     or start_lineno)
-                    content = G.get_node_file_content(node)
+                    content = None
+                    try:
+                        content = G.get_node_file_content(node)
+                    except:
+                        pass
                     if content is not None:
                         cur_path_str2 += "{}\t{}".format(start_lineno,
                                 ''.join(content[start_lineno:end_lineno + 1]))

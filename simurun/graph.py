@@ -1476,10 +1476,12 @@ class Graph:
                             nodes_group = [edge[0] for edge in edge_group]
                             stack.append((child, depth_now - 1, iter(nodes_group)))
                             if len(nodes_group) == 0:
-                                pathes.append([node[0] for node in stack])
+                                new_path = [node[0] for node in stack]
+                                str_pathes = [str(p) for p in pathes]
+                                if str(new_path) not in str_pathes:
+                                    pathes.append(new_path)
                 except StopIteration:
                     stack.pop()
-
         return pathes
 
     def get_node_file_path(self, node_id):
