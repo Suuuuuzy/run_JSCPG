@@ -151,3 +151,4 @@ def vul_checking(G, pathes, vul_type):
     print("success: ", success_pathes)
     return success_pathes
 
+

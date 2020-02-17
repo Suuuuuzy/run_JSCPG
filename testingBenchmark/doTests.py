@@ -22,9 +22,10 @@ class BenchMark():
 
         self.all_package_dir_num = 10
         self.location_number_map = {
-                self.command_injection_dir: 20,
-                self.code_exec_dir: 0,
-                self.path_traversal_dir: 0}
+                self.command_injection_dir: 30,
+                #self.code_exec_dir: 0,
+                #self.path_traversal_dir: 0
+                }
         self.dir_vul_map = {
                 self.command_injection_dir: "os_command",
                 self.code_exec_dir: "code_exec",
@@ -151,7 +152,7 @@ class BenchMark():
             res_matrix[key] = {}
 
             res_matrix[key]['tp'] = success_cnt[key][vul_dir]
-            res_matrix[key]['fp'] = success_cnt[key][vul_dir]
+            res_matrix[key]['fp'] = success_cnt[key][self.all_package_dir]
             res_matrix[key]['tn'] = self.all_package_dir_num - \
                 success_cnt[key][self.all_package_dir]
             res_matrix[key]['fn'] = self.location_number_map[vul_dir] - \
