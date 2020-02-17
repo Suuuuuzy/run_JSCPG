@@ -18,8 +18,8 @@ from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
-#root_path = "/media/data2/song/vulPackages/command_injection/"
-root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
+root_path = "/media/data2/song/vulPackages/code_exec/"
+#root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
