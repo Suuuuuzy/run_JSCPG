@@ -311,18 +311,20 @@ def get_random_hex(length=6):
     return secrets.token_hex(length // 2)
 
 
-class Wildcard(object):
+class _SpecialValue(object):
+    def __init__(self, alt):
+        self.alt = alt
     def __str__(self):
-        # assert False
-        return '*'
+        return self.alt
     def __repr__(self):
-        # assert False
-        return '*'
+        return self.alt
 
-wildcard = Wildcard()
+wildcard = _SpecialValue('*')
+undefined = _SpecialValue('undefined')
 
 
 class JSSpecialValue(Enum):
+    # deprecated
     UNDEFINED = 0
     NULL = 1
     NAN = 10

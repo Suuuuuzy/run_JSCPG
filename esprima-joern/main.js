@@ -747,7 +747,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     phpLiteralType = 'string';
                     phpflag = 'JS_REGEXP';
                     // replace slashes with double slashes
-                    code = '/' + currentNode.regex.pattern.replace(/\\/, '\\\\') + '/' + currentNode.regex.flags;
+                    code = '/' + currentNode.regex.pattern + '/' + currentNode.regex.flags;
                 } else if (phpLiteralType === 'number') {
                     if (Number.isInteger(currentNode.value))
                         phpLiteralType = 'integer';

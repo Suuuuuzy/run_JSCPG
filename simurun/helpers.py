@@ -1,5 +1,6 @@
 from .graph import Graph
-from .utilities import NodeHandleResult, ExtraInfo, BranchTag, wildcard
+from .utilities import NodeHandleResult, ExtraInfo, BranchTag
+from .utilities import wildcard, undefined
 import math
 from typing import Callable, List, Iterable
 from collections import defaultdict
@@ -110,6 +111,8 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
             if attrs.get('type') == 'object':
                 if attrs.get('code') == wildcard:
                     value = wildcard
+                elif obj == G.undefined_obj:
+                    value = undefined
                 else:
                     value = 'Obj#' + obj
             elif attrs.get('code') is not None:
@@ -416,7 +419,7 @@ def convert_prop_names_to_wildcard(G: Graph, obj, exclude_length=False,
         G.remove_all_edges_between(e1[0], e1[1])    
 
 def copy_objs_for_branch(G: Graph, handle_result: NodeHandleResult, branch,
-    ast_node=None) -> NodeHandleResult:
+    ast_node=None, deep=True) -> NodeHandleResult:
     returned_objs = list()
     for obj in handle_result.obj_nodes:
         copied_obj = None
@@ -426,7 +429,7 @@ def copy_objs_for_branch(G: Graph, handle_result: NodeHandleResult, branch,
             if name_node in handle_result.name_nodes and (eb is None or
                 (eb.point == branch.point and eb.branch != branch.branch)):
                 if copied_obj is None: # the object should be copied only once
-                    copied_obj = G.copy_obj(obj, ast_node)
+                    copied_obj = G.copy_obj(obj, ast_node, deep=deep)
                     returned_objs.append(copied_obj)
                 # assign the name node to the copied object and mark the
                 # previous edge as deleted (D)
@@ -444,6 +447,7 @@ def copy_objs_for_branch(G: Graph, handle_result: NodeHandleResult, branch,
 
 def copy_objs_for_parameters(G: Graph, handle_result: NodeHandleResult,
     ast_node=None, number_of_copies=1, delete_original=True) -> List[List]:
+    # deprecated
     returned_objs = list()
     for obj in handle_result.obj_nodes:
         copied_objs = []
@@ -473,7 +477,7 @@ def to_python_array(G: Graph, array_obj, value=False):
                 elements.append([])
                 data.append([])
         except (ValueError, TypeError):
-            i = 0
+            continue
         for e in G.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
             if value:
                 elements[i].append(val_to_str(G.get_node_attr(e[1])
