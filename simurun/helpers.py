@@ -216,7 +216,6 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             A boolean value if all results are not deterministic.
     '''
     
-    return 0.5, True
     node_type = G.get_node_attr(ast_node).get('type')
     op_type = G.get_node_attr(ast_node).get('flags:string[]')
     flag = True

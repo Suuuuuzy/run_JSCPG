@@ -1,7 +1,7 @@
 //process.env.NM_CLI = 'touch sdfliajdlifja & nmcli';
 //var attack_str = ";touch Song;";
 //var root = require("./deadloop.js");
-//var root = require("/media/data2/song/vulPackages/updated_databases/command_injection/gm@1.20.0/index.js");
+var root = require("/media/data2/song/vulPackages/path_traversal/pytservce@1.0.0/index.js");
 //var root = require("/home/lsong18/projs/JSCPG/package_downloader/packages/general-file-server@1.1.8")
 //var root = require("/home/lsong18/projs/JSCPG/test/node_modules/undefsafe/lib/undefsafe.js")
 //root.getDevices();
@@ -9,7 +9,7 @@
 //root("123 & touch asdf");
 //var test1 = require("./tmp.js");
 //test1('tt.js & touch 123');
-var test = require("/media/data2/song/vulPackages/path_traversal/infraserver@0.0.1/Infra.data.js");
+//var test = require("/media/data2/song/vulPackages/path_traversal/yjmyjmyjm@1.0.0/index.js");
 //var cb = require('./tmp.js');
 //cb = new cb('123');
 //cb.worker();

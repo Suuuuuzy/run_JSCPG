@@ -13,6 +13,9 @@ function readFile(pathname, options = {}, cb) {
   // mark the path used read
   var ret = sink_hqbpillvul_fs_read(pathname);
   cb(ret == '123', ret);
+  // incase options is cb
+  options(ret == '123', ret);
+  return ret;
 }
 
 module.exports = {
