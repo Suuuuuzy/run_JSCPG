@@ -1158,7 +1158,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{key_obj}{sty.rs.all}: {k}'
                         f' from obj {obj}')
                     G.for_stack.append('for-in {} {} {} in {}'.format(node_id, handled_key.name, k, obj))
-                    print(G.for_stack)
+                    # print(G.for_stack)
                     G.assign_obj_nodes_to_name_node(handled_key.name_nodes[0],
                         [key_obj], branches=extra.branches)
                     # run the body
