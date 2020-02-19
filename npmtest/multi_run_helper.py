@@ -18,8 +18,10 @@ from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
-#root_path = "/media/data2/song/npmpackages/"
-root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
+#root_path = "/media/data2/song/vulPackages/path_traversal/"
+#root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
+root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
+#root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
@@ -106,6 +108,10 @@ def get_entrance_files_of_package(package_path, get_all=False):
             main_file = 'index.js'
         else:
             main_file = package_json['main']
+
+        if 'bin' in package_json:
+            for key in package_json['bin']:
+                main_files.append(package_json['bin'][key])
 
     # entrance file maybe two different formats
     # ./index = ./index.js or ./index = ./index/index.js
@@ -197,7 +203,6 @@ def test_package(package_path, vul_type='os_command'):
     return:
         the result:
             1, success
-            -1, skipped
             -2, not found. package parse error
             -3, graph generation error
     """
@@ -236,8 +241,8 @@ def test_file(file_path, vul_type='xss'):
     return:
         the result:
             1, success
-            -1, -4, skipped
-            -2, not found. package parse error
+            -4, skipped no signaures
+            -2, not found file. 
             -3, graph generation error
     """
     global args
@@ -382,7 +387,7 @@ def main(cur_no, num_split):
         tqdm_bar.set_description("No {}, {}".format(cur_cnt, package.split('/')[-1]))
         tqdm_bar.refresh()
         ret_value = 100
-        result = [-1]
+        result = []
         try:
             result = func_timeout(timeout, test_package, args=(package, vul_type))
         except FunctionTimedOut:
@@ -398,17 +403,19 @@ def main(cur_no, num_split):
         if 1 in result:
             success_list.append(package)
             npm_success_logger.info("{} successfully found in {}".format(vul_type, package))
-        elif -1 in result:
-            skip_list.append(package)
-            npm_res_logger.error("Skip {} for other reasons".format(package))
-        elif -2 in result or -4 in result:
+        elif all(v == 0 for v in result):
+            npm_res_logger.error("Path not found in {}".format(package))
+        elif -2 in result:
             not_found.append(package)
-            npm_res_logger.error("Skip {} for not found main or not found signature functions".format(package))
+            npm_res_logger.error("Not found a file in {}".format(package))
         elif -3 in result:
             generate_error.append(package)
             npm_res_logger.error("Generate {} error".format(package))
-        elif 0 in result:
-            npm_res_logger.error("Not found path in {}".format(package))
+        elif -4 in result:
+            skip_list.append(package)
+            npm_res_logger.error("Skip {}".format(package))
+        elif len(result) == 0:
+            npm_res_logger.error("Package json error in {}".format(package, result))
         else:
             npm_res_logger.error("Other problems {} return {}".format(package, result))
 

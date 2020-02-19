@@ -1465,9 +1465,13 @@ class Graph:
         if depth_limit is None:
             depth_limit = len(G)
         for start in nodes:
+            # we do not have a global visited
+            # each path, or stack should have a visited list but not global
+            """
             if start in visited:
                 continue
             visited.add(start)
+            """
 
             edge_group = self.get_in_edges(start, edge_type=edge_type)
             nodes_group = [edge[0] for edge in edge_group]
@@ -1477,17 +1481,19 @@ class Graph:
                 parent, depth_now, children = stack[-1]
                 try:
                     child = next(children)
-                    if child not in visited:
+                    if child not in stack:
                         visited.add(child)
                         if depth_now > 1:
                             edge_group = self.get_in_edges(child, edge_type=edge_type)
                             nodes_group = [edge[0] for edge in edge_group]
                             stack.append((child, depth_now - 1, iter(nodes_group)))
                             if len(nodes_group) == 0:
-                                pathes.append([node[0] for node in stack])
+                                new_path = [node[0] for node in stack]
+                                str_pathes = [str(p) for p in pathes]
+                                if str(new_path) not in str_pathes:
+                                    pathes.append(new_path)
                 except StopIteration:
                     stack.pop()
-
         return pathes
 
     def get_node_file_path(self, node_id):

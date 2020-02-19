@@ -1,6 +1,42 @@
 from .trace_rule import TraceRule
 from .vulFuncLists import *
 
+def get_path_text(G, path, caller):
+    """
+    get the code by ast number
+    Args:
+        G: the graph
+        path: the path with ast nodes
+    Return:
+        str: a string with text path
+    """
+    res_path = ""
+    cur_path_str1 = ""
+    cur_path_str2 = ""
+    for node in path:
+        cur_node_attr = G.get_node_attr(node)
+        if cur_node_attr.get('lineno:int') is None:
+            continue
+        cur_path_str1 += cur_node_attr['lineno:int'] + '->'
+        start_lineno = int(cur_node_attr['lineno:int'])
+        end_lineno = int(cur_node_attr['endlineno:int']
+                        or start_lineno)
+        content = None
+        try:
+            content = G.get_node_file_content(node)
+        except:
+            pass
+        if content is not None:
+            cur_path_str2 += "{}\t{}".format(start_lineno,
+                    ''.join(content[start_lineno:end_lineno + 1]))
+    cur_path_str1 += G.get_node_attr(caller)['lineno:int']
+    G.logger.debug(cur_path_str1)
+
+    res_path += "==========================\n"
+    res_path += "{}\n".format(G.get_node_file_path(path[0]))
+    res_path += cur_path_str2
+    return res_path
+
 def traceback(G, vul_type, start_node=None):
     """
     traceback from the leak point, the edge is OBJ_REACHES
@@ -43,30 +79,10 @@ def traceback(G, vul_type, start_node=None):
                     path.append(uppernode)
                 #print('--', upper_nodes)
             """
-
             for path in pathes:
                 ret_pathes.append(path)
-                cur_path_str1 = ""
-                cur_path_str2 = ""
                 path.reverse()
-                for node in path:
-                    cur_node_attr = G.get_node_attr(node)
-                    if cur_node_attr.get('lineno:int') is None:
-                        continue
-                    cur_path_str1 += cur_node_attr['lineno:int'] + '->'
-                    start_lineno = int(cur_node_attr['lineno:int'])
-                    end_lineno = int(cur_node_attr['endlineno:int']
-                                    or start_lineno)
-                    content = G.get_node_file_content(node)
-                    if content is not None:
-                        cur_path_str2 += "{}\t{}".format(start_lineno,
-                                ''.join(content[start_lineno:end_lineno + 1]))
-                cur_path_str1 += G.get_node_attr(caller)['lineno:int']
-                G.logger.debug(cur_path_str1)
-
-                res_path += "==========================\n"
-                res_path += "{}\n".format(G.get_node_file_path(path[0]))
-                res_path += cur_path_str2
+                res_path += get_path_text(G, path, caller)
     return ret_pathes, res_path, caller_list
 
 def do_vul_checking(G, rule_list, pathes):
@@ -150,4 +166,5 @@ def vul_checking(G, pathes, vul_type):
         success_pathes += do_vul_checking(G, rule_list, pathes)
     print("success: ", success_pathes)
     return success_pathes
+
 

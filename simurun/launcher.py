@@ -150,4 +150,8 @@ def main():
 
         res_pathes = vul_checking(G, res_path[0], G.vul_type)
         print(res_pathes)
+        for path in res_pathes:
+            res_text_path = get_path_text(G, path, path[0])
+            print("Attack Path: ")
+            print(res_text_path)
         return res_path 

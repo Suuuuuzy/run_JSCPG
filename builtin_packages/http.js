@@ -1,27 +1,13 @@
 var request_builtin_object = function(){
   var source_hqbpillvul_url = '';
   this.url = source_hqbpillvul_url;
-  this.body = '';
-  this.bodyUsed = '';
-  this.cache = '';
-  this.context = '';
-  this.credentials = '';
-  this.destination = '';
-  this.headers = '';
-  this.integrity = '';
-  this.method = '';
-  this.mode = '';
-  this.redirect = '';
-  this.referrer = '';
-  this.referrerPolicy = '';
-  this.Accept = 'accept';
-  this.Authorization = '';
-  this.Expect = '';
-  this.From = '';
-  this.Host = '';
-  this.Range = '';
-  this.Referer = '';
-  this.TE = '';
+
+  this.on = function(str, cb) {
+    // on should be counted as input
+    var data1 = source_hqbpillvul_url;
+    var data2 = source_hqbpillvul_url;
+    cb(data1, data2);
+  }
 }
 
 var response_builtin_object = function() {

@@ -1,9 +1,12 @@
-var fs = require("fs");
-var http = require("http");
-http.createServer(function(req, res){
-  console.log('url', req.url);
-  ret = req.url;//fs.readFile(req.url);
-  res.write(ret);
-  res.end();
-}).listen(8080);
+var exec = require("child_process").exec;
+function exp(input) {
+  this.opt = input;
 
+  exp.prototype.getinfo = function(){
+    exec(this.opt.addtional.join(' '));
+  }
+}
+
+module.exports = function (input) {
+  return new exp(input);
+}

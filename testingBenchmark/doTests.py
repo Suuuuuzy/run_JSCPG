@@ -14,23 +14,23 @@ testing_benchmark_logger = create_logger("testing_benchmark", output_type = "fil
 class BenchMark():
 
     def __init__(self):
-        self.command_injection_dir = "/media/data2/song/vulPackages/command_injection/"
+        self.command_injection_dir = "/media/data2/song/vulPackages/updated_databases/command_injection/"
         self.code_exec_dir = "/media/data2/song/vulPackages/code_exec/"
         self.path_traversal_dir = "/media/data2/song/vulPackages/path_traversal/"
         #self.prototype_pollution_dir = "/media/data2/song/vulPackages/prototype_pollution/"
         self.all_package_dir = "/media/data2/song/npmpackages/"
 
-        self.all_package_dir_num = 80
+        self.all_package_dir_num = 10
         self.location_number_map = {
-                self.command_injection_dir: 20,
-                self.code_exec_dir: 20,
-                self.path_traversal_dir: 20}
+                self.command_injection_dir: 30,
+                #self.code_exec_dir: 0,
+                #self.path_traversal_dir: 0
+                }
         self.dir_vul_map = {
                 self.command_injection_dir: "os_command",
                 self.code_exec_dir: "code_exec",
                 self.path_traversal_dir: "path_traversal"
                 }
-
 
     def generateDatabase(self, location_number_map={}):
         """
@@ -80,7 +80,8 @@ class BenchMark():
                     args=(package, vul_type))
         except FunctionTimedOut:
             res = 2
-        except e:
+        except Exception as e:
+            testing_benchmark_logger.error("error for {} as {}".format(test_package, e))
             res = 3
 
         return res
@@ -151,7 +152,7 @@ class BenchMark():
             res_matrix[key] = {}
 
             res_matrix[key]['tp'] = success_cnt[key][vul_dir]
-            res_matrix[key]['fp'] = success_cnt[key][vul_dir]
+            res_matrix[key]['fp'] = success_cnt[key][self.all_package_dir]
             res_matrix[key]['tn'] = self.all_package_dir_num - \
                 success_cnt[key][self.all_package_dir]
             res_matrix[key]['fn'] = self.location_number_map[vul_dir] - \
