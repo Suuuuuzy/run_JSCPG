@@ -26,5 +26,6 @@ module.exports = {
   readFileSync: readFile,
   readlink: read,
   readlinkSync: read,
-  readSync: read
+  readSync: read,
+  createReadStream: read
 }
