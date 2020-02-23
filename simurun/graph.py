@@ -581,22 +581,30 @@ class Graph:
             if self.function_prototype is not None:
                 # prevent setting __proto__ before setup_object_and_function runs
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
-                obj_node, tobe_added_obj=self.function_prototype)
+                    obj_node, tobe_added_obj=self.function_prototype)
+                self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                    obj_node, tobe_added_obj=self.function_cons)
         elif js_type == "object":
             if self.object_prototype is not None:
                 # prevent setting __proto__ before setup_object_and_function runs
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.object_prototype)
+                self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                    obj_node, tobe_added_obj=self.object_cons)
         elif js_type == "array":
             # js_type = 'object'     # don't change, keep 'array' type in graph
             if self.array_prototype is not None:
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.array_prototype)
+                self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                    obj_node, tobe_added_obj=self.array_cons)
         elif js_type == "string":
             if self.string_prototype is not None:
                 # prevent setting __proto__ before setup_object_and_function runs
                 self.add_obj_as_prop(prop_name="__proto__", parent_obj=
                 obj_node, tobe_added_obj=self.string_prototype)
+                self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                    obj_node, tobe_added_obj=self.string_cons)
             if value is None or value == wildcard:
                 length = wildcard
             else:
@@ -988,7 +996,7 @@ class Graph:
             return tmp_edge[0][1]
 
 
-    def copy_obj(self, obj_node, ast_node=None, copied=None):
+    def copy_obj(self, obj_node, ast_node=None, copied=None, deep=False):
         '''
         Copy an object and its properties.
         '''
@@ -1015,15 +1023,19 @@ class Graph:
             # copy property object nodes
             for j in self.get_out_edges(prop_name_node, edge_type=
                 'NAME_TO_OBJ'):
-                # sometimes this loop may dead inside a graph with a circle
-                # check whether we copied this node before
-                if j[1] in copied:
-                    continue
-                copied.add(j[1])
-                new_prop_obj_node = self.copy_obj(j[1], ast_node, copied)
-                # self.add_node(new_prop_obj_node, self.get_node_attr(j[1])) # ?
-                self.add_edge(new_prop_name_node, new_prop_obj_node,
-                    {'type:TYPE': 'NAME_TO_OBJ'})
+                if deep:
+                    # sometimes this loop may dead inside a graph with a circle
+                    # check whether we copied this node before
+                    if j[1] in copied:
+                        continue
+                    copied.add(j[1])
+                    new_prop_obj_node = self.copy_obj(j[1], ast_node, copied)
+                    # self.add_node(new_prop_obj_node, self.get_node_attr(j[1])) # ?
+                    self.add_edge(new_prop_name_node, new_prop_obj_node,
+                        {'type:TYPE': 'NAME_TO_OBJ'})
+                else:
+                    self.add_edge(new_prop_name_node, j[1],
+                        {'type:TYPE': 'NAME_TO_OBJ'})
         # copy OBJ_DECL edges
         for e in self.get_out_edges(obj_node, edge_type='OBJ_DECL'):
             self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_DECL'})

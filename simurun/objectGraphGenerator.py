@@ -218,12 +218,17 @@ def find_prop(G, parent_objs, prop_name, branches=None,
             if __proto__name_node is not None:
                 __proto__obj_nodes = G.get_objs_by_name_node(__proto__name_node,
                     branches)
-                if set(__proto__obj_nodes) & set(parent_objs):
+                # if set(__proto__obj_nodes) & set(parent_objs):
+                #     logger.error('__proto__ ' \
+                #         f'{__proto__obj_nodes} and parent {parent_objs} ' \
+                #         'object nodes have intersection')
+                #     __proto__obj_nodes = list(set(__proto__obj_nodes) -
+                #         set(parent_objs))
+                if parent_obj in __proto__obj_nodes:
                     logger.error('__proto__ ' \
-                        f'{__proto__obj_nodes} and parent {parent_objs} ' \
-                        'object nodes have intersection')
-                    __proto__obj_nodes = list(set(__proto__obj_nodes) -
-                        set(parent_objs))
+                        f'{__proto__obj_nodes} and parent {parent_obj} ' \
+                        'have intersection')
+                    __proto__obj_nodes = __proto__obj_nodes.remove(parent_obj)
                 if __proto__obj_nodes:
                     __name_nodes, __obj_nodes = find_prop(G,
                         __proto__obj_nodes, prop_name, branches,
@@ -254,7 +259,8 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 added_name_node = G.add_prop_name_node(prop_name, parent_obj)
                 prop_name_nodes.add(added_name_node)
                 added_obj = G.add_obj_to_name_node(added_name_node,
-                    js_type=None, value=wildcard, ast_node=ast_node)                    
+                    js_type='object' if G.check_proto_pollution else None,
+                    value=wildcard, ast_node=ast_node)                    
                 prop_obj_nodes.add(added_obj)
                 logger.debug('{} is a wildcard object, creating a wildcard'
                     ' object {} for its properties'.format(parent_obj,
@@ -263,7 +269,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     G.set_node_attr(added_obj, ('tainted', True))
                     logger.debug("{} marked as tainted 1".format(added_obj))
                 for s in prop_name_sources:
-                    logger.debug('added contributes to from {} to {}'.format(s, added_obj))
                     add_contributes_to(G, [s], added_obj)
                 if prop_name_for_tags:
                     G.set_node_attr(added_name_node,
@@ -333,10 +338,13 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
                 parent_is_proto = True
                 break
 
-    if G.check_proto_pollution and prop_names == [wildcard] * len(prop_names):
-        # conservative: only if all property names are known,
+    # if G.check_proto_pollution and prop_names == [wildcard] * len(prop_names):
+        # conservative: only if all property names are unknown,
         # we fetch all properties
         # (including __proto__ for prototype pollution detection)
+
+    if G.check_proto_pollution and wildcard in prop_names:
+        # agressive: if any property name is unknown, we fetch all properties
         logger.debug('All property names are unknown, fetching all properties')
         for parent_obj in parent_objs:
             prop_name_nodes.update(G.get_prop_name_nodes(parent_obj))
@@ -366,11 +374,13 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
                 parent_objs = []
                 for name_node in parent_name_nodes:
                     obj = G.add_obj_to_name_node(name_node, ast_node,
-                        js_type=None, value=wildcard)
+                        js_type='object' if G.check_proto_pollution else None,
+                        value=wildcard)
                     parent_objs.append(obj)
             else:
-                obj = G.add_obj_to_scope(parent_name, ast_node, js_type=None,
-                                         scope=G.BASE_SCOPE, value=wildcard)
+                obj = G.add_obj_to_scope(parent_name, ast_node,
+                    js_type='object' if G.check_proto_pollution else None,
+                    scope=G.BASE_SCOPE, value=wildcard)
                 parent_objs = [obj]
             # else:
             #     logger.debug("PARENT OBJ {} NOT DEFINED, return undefined".
@@ -1087,8 +1097,6 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     ', '.join([(sty.fg.green+'{}'+sty.rs.all+' {}').format(obj,
                     val_to_str(G.get_node_attr(obj).get('code'))) for obj in obj_nodes]))
 
-            simurun_block(G, body, branches=extra.branches) # run the body
-            result = handle_node(G, inc, extra) # do the inc
             check_result, deterministic = check_condition(G, cond, extra,
                 handling_func=handle_node) # check if the condition is met
             logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
@@ -1098,6 +1106,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             if (not deterministic and counter > 3) or check_result == 0:
                 logger.debug('For loop {} finished'.format(node_id))
                 break
+            simurun_block(G, body, branches=extra.branches) # run the body
+            result = handle_node(G, inc, extra) # do the inc
             counter += 1
         # switch back the scope
         G.cur_scope = parent_scope
@@ -1125,9 +1135,14 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                         exclude_proto=not is_wildcard_obj(G, obj)
                     )))
                 if is_wildcard_obj(G, obj):
-                    # wildcard property for wildcard object
-                    prop_names.append(wildcard)
-                    logger.debug(f'{obj} is a wildcard object.')
+                    if G.check_proto_pollution:
+                        # wildcard property for wildcard object
+                        prop_names = [wildcard]
+                        logger.debug(f'{obj} is a wildcard object.')
+                    else:
+                        # wildcard property for wildcard object
+                        prop_names.insert(0, wildcard)
+                        logger.debug(f'{obj} is a wildcard object.')
                 for k in prop_names:
                     if G.get_node_attr(obj).get('type') == 'array' and \
                         not is_int(k):
@@ -1252,6 +1267,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                         G.get_obj_def_ast_node(obj), 'number', new_value))
             G.assign_obj_nodes_to_name_node(name_node, updated_objs,
                 branches=extra.branches)
+        returned_values, sources = combine_values(returned_values, sources)
         return NodeHandleResult(values=returned_values, value_sources=sources)
 
     elif cur_type == 'AST_UNARY_OP':
@@ -1408,6 +1424,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
         parent_branch (BranchTag): parent branch tag (if this branch is
             inside another branch statement).
      '''
+    logger.debug(f'Merging branches in {stmt}')
     name_nodes = G.get_node_by_attr('labels:label', 'Name')
     for u in name_nodes:
         for v in G.get_child_nodes(u, 'NAME_TO_OBJ'):
@@ -1598,7 +1615,7 @@ def run_toplevel_file(G: Graph, node_id):
 
     return module_exports_objs
 
-def handle_require(G, node_id, extra=None):
+def handle_require_legacy(G, node_id, extra=None):
     '''
     Returns:
         List: returned module.exports objects. we need to list the exported functions recursively
@@ -1669,6 +1686,83 @@ def handle_require(G, node_id, extra=None):
                     module_name, file_path))
     return list(returned_objs)
 
+def handle_require(G: Graph, caller_ast, extra, _, module_names):
+    # handle module name
+    module_names, src, _ = to_values(G, module_names, caller_ast)
+    if not module_names: return NodeHandleResult(obj_nodes=[])
+
+    returned_objs = set()
+    for module_name in module_names:
+        if module_name in modeled_builtin_modules.modeled_modules \
+            and G.vul_type != "path_traversal":
+            # Python-modeled built-in modules
+            # for now mostly fs
+            # if it's path_traversal, do not do this
+            returned_objs.add(
+                modeled_builtin_modules.get_module(G, module_name))
+        else:
+            # actual JS modules
+            # static require (module name is a literal)
+            # module's path is in 'name' field
+            file_path = G.get_node_attr(caller_ast).get('name')
+            module_exports_objs = []
+            if module_name and file_path:
+                module_exports_objs = \
+                    get_module_exports(G, file_path)
+            # dynamic require (module name is a variable)
+            if module_name is None or module_name == wildcard:
+                logger.error('{} trying to require unknown package.'
+                    .format(caller_ast))
+                continue
+            if not module_exports_objs:
+                # check if the file's AST is in the graph
+                file_path, _ = \
+                    esprima_search(module_name, G.get_cur_file_path(),
+                        print_func=logger.info)
+                if not file_path: # module not found
+                    continue
+                elif file_path == 'built-in': # unmodeled built-in module
+                    continue
+                else:
+                    module_exports_objs = \
+                        get_module_exports(G, file_path)
+            if not module_exports_objs:
+                # if the file's AST is not in the graph,
+                # generate its AST and run it
+                logger.log(ATTENTION, f'Generating AST on demand for module '
+                    f'{module_name} at {file_path}...')
+
+                # following code is copied from analyze_files,
+                # consider combining in future.
+                start_id = str(G.cur_id)
+                result = esprima_parse(file_path, ['-n', start_id, '-o', '-'],
+                    print_func=logger.info)
+                G.import_from_string(result)
+                # start from the AST_TOPLEVEL node instead of the File node
+                module_exports_objs = \
+                        run_toplevel_file(G, str(int(start_id) + 1))
+                G.set_node_attr(start_id,
+                    ('module_exports', module_exports_objs))
+            if module_exports_objs:
+                returned_objs.update(module_exports_objs)
+            else:
+                logger.error("Required module {} at {} not found!".format(
+                    module_name, file_path))
+        
+    returned_objs = list(returned_objs)
+    if returned_objs and G.run_all:
+        run_exported_functions(G, returned_objs, extra)
+
+    # for a require call, we need to run traceback immediately
+    if G.exit_when_found:
+        vul_type = G.vul_type
+        res_path = traceback(G, vul_type)
+        res_path = vul_checking(G, res_path[0], vul_type)
+        if len(res_path) != 0:
+            G.finished = True
+    return NodeHandleResult(obj_nodes=returned_objs,
+                            used_objs=list(chain(*src)))
+
 def get_module_exports(G, file_path):
     toplevel_nodes = G.get_nodes_by_type_and_flag(
         'AST_TOPLEVEL', 'TOPLEVEL_FILE')
@@ -1731,7 +1825,8 @@ def run_exported_functions(G, module_exports_objs, extra):
             continue
         # some times they write exports= new foo() eg. libnmap
         logger.log(ATTENTION, 'Run exported function {}'.format(obj))
-        if G.function_time_limit:
+        # if G.function_time_limit:
+        if False:
             try:
                 returned_result, newed_objs = func_timeout(
                     G.function_time_limit, call_function,
@@ -1796,22 +1891,23 @@ def ast_call_function(G, ast_node, extra):
         callee = G.get_ordered_ast_child_nodes(ast_node)[0]
         handled_callee = handle_node(G, callee, extra)
 
-    if handled_callee.name == 'require':
-        module_exports_objs = handle_require(G, ast_node)
-        # print(G.get_name_from_child(ast_node), module_exports_objs, G.get_node_file_path(ast_node))
-        # run the exported objs immediately
-        if module_exports_objs and G.run_all:
-            run_exported_functions(G, module_exports_objs, extra)
+    # require is now handled as a built-in function
+    # if handled_callee.name == 'require':
+    #     module_exports_objs = handle_require_legacy(G, ast_node)
+    #     # print(G.get_name_from_child(ast_node), module_exports_objs, G.get_node_file_path(ast_node))
+    #     # run the exported objs immediately
+    #     if module_exports_objs and G.run_all:
+    #         run_exported_functions(G, module_exports_objs, extra)
 
-        # for a require call, we need to run traceback immediately
-        if G.exit_when_found:
-            vul_type = G.vul_type
-            res_path = traceback(G, vul_type)
-            res_path = vul_checking(G, res_path[0], vul_type)
-            if len(res_path) != 0:
-                G.finished = True
-        return NodeHandleResult(obj_nodes=module_exports_objs,
-                                used_objs=handled_callee.obj_nodes)
+    #     # for a require call, we need to run traceback immediately
+    #     if G.exit_when_found:
+    #         vul_type = G.vul_type
+    #         res_path = traceback(G, vul_type)
+    #         res_path = vul_checking(G, res_path[0], vul_type)
+    #         if len(res_path) != 0:
+    #             G.finished = True
+    #     return NodeHandleResult(obj_nodes=module_exports_objs,
+    #                             used_objs=handled_callee.obj_nodes)
 
     # handle arguments
     handled_args = []
@@ -1826,11 +1922,11 @@ def ast_call_function(G, ast_node, extra):
         types = defaultdict(lambda: [])
         if handled_args:
             for obj in handled_args[0].obj_nodes:
-                if (G.get_node_attr(obj).get('type') == 'object' and
-                    G.get_node_attr(obj).get('code') == wildcard):
-                    types[wildcard].append(obj)
-                elif G.get_node_attr(obj).get('type') == 'array':
+                if G.get_node_attr(obj).get('type') == 'array':
                     types['object'].append(obj)
+                # elif (G.get_node_attr(obj).get('type') == 'object' and
+                #     G.get_node_attr(obj).get('code') == wildcard):
+                #     types[wildcard].append(obj)
                 else:
                     types[G.get_node_attr(obj).get('type')].append(obj)
             for i, val in enumerate(handled_args[0].values):
@@ -2076,6 +2172,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                                         parent_obj=arr, tobe_added_obj=obj)
                                 j += 1
                                 length += 1
+                            G.add_obj_as_prop('length', js_type='number',
+                                value=length, parent_obj=arr)
                         else:
                             logger.debug(f'add arg {param_name} <- '
                                 f'{arg_obj_nodes}, scope {func_scope}')
@@ -2319,6 +2417,8 @@ def print_handle_result_tainted(G: Graph, handle_result: NodeHandleResult):
     #     output += f'{sty.fg.li_black}, from_branches=' \
     #         f'{handle_result.from_branches}{sty.rs.all}'
     logger.debug(output)
+    # for o in handle_result.obj_nodes:
+    #     print(o, G.get_node_attr(o))
 
 def print_handle_result(handle_result: NodeHandleResult):
     output = f'{sty.ef.b}{sty.fg.cyan}{handle_result.ast_node}{sty.rs.all} ' \

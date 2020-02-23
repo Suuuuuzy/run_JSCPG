@@ -32,6 +32,7 @@ def setup_js_builtins(G: Graph):
 def setup_string(G: Graph):
     string_cons = G.add_blank_func_to_scope('String', scope=G.BASE_SCOPE, python_func=this_returning_func)
     G.builtin_constructors.append(string_cons)
+    G.string_cons = string_cons
     string_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=string_cons)[0]
     G.string_prototype = string_prototype
     # built-in functions for regexp
@@ -54,6 +55,7 @@ def setup_string(G: Graph):
 def setup_number(G: Graph):
     number_cons = G.add_blank_func_to_scope('Number', scope=G.BASE_SCOPE, python_func=this_returning_func)
     G.builtin_constructors.append(number_cons)
+    G.number_cons = number_cons
     number_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=number_cons)[0]
     G.number_prototype = number_prototype
     # Number.prototype.__proto__ = Object.prototype
@@ -63,6 +65,7 @@ def setup_number(G: Graph):
 def setup_array(G: Graph):
     array_cons = G.add_blank_func_to_scope('Array', G.BASE_SCOPE, array_constructor)
     G.builtin_constructors.append(array_cons)
+    G.array_cons = array_cons
     array_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=array_cons)[0]
     G.array_prototype = array_prototype
     # Array.prototype.__proto__ = Object.prototype
@@ -71,7 +74,7 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('push', array_prototype, array_p_push)
     G.add_blank_func_as_prop('pop', array_prototype, array_p_pop)
     G.add_blank_func_as_prop('unshift', array_prototype, array_p_push)
-    # G.add_blank_func_as_prop('shift', array_prototype, array_p_shift) # broken
+    G.add_blank_func_as_prop('shift', array_prototype, array_p_shift) # broken
     G.add_blank_func_as_prop('join', array_prototype, array_p_join)
     G.add_blank_func_as_prop('forEach', array_prototype, array_p_for_each_value)
     G.add_blank_func_as_prop('keys', array_prototype, array_p_keys)
@@ -85,6 +88,7 @@ def setup_array(G: Graph):
 def setup_boolean(G: Graph):
     boolean_cons = G.add_blank_func_to_scope('Boolean', scope=G.BASE_SCOPE, python_func=this_returning_func)
     G.builtin_constructors.append(boolean_cons)
+    G.boolean_cons = boolean_cons
     boolean_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=boolean_cons)[0]
     G.boolean_prototype = boolean_prototype
     # Boolean.prototype.__proto__ = Object.prototype
@@ -116,6 +120,7 @@ def setup_object_and_function(G: Graph):
     # add Object (function)
     object_cons = G.add_blank_func_to_scope('Object', scope=G.BASE_SCOPE, python_func=this_returning_func)
     G.builtin_constructors.append(object_cons)
+    G.object_cons = object_cons
     # get Object.prototype
     object_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=object_cons)[0]
     G.set_node_attr(object_prototype, ('code', 'Object.prototype'))
@@ -124,6 +129,7 @@ def setup_object_and_function(G: Graph):
     # add Function (function)
     function_cons = G.add_blank_func_to_scope('Function', scope=G.BASE_SCOPE) # TODO: implement this
     G.builtin_constructors.append(function_cons)
+    G.function_cons = function_cons
     # get Function.prototype
     function_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=function_cons)[0]
     G.set_node_attr(function_prototype, ('code', 'Function.prototype'))
@@ -147,6 +153,7 @@ def setup_object_and_function(G: Graph):
     G.add_blank_func_as_prop('toString', object_prototype, object_to_string)
     G.add_blank_func_as_prop('toLocaleString', object_prototype, object_to_string)
     G.add_blank_func_as_prop('valueOf', object_prototype, this_returning_func)
+    G.add_blank_func_as_prop('hasOwnProperty', object_prototype, blank_func)
 
     # function built-in functions
     G.add_blank_func_as_prop('call', function_prototype, function_p_call)
@@ -167,6 +174,8 @@ def setup_global_functions(G: Graph):
     clear_timeout = G.add_blank_func_to_scope('clearTimeout', G.BASE_SCOPE, blank_func)
     set_interval = G.add_blank_func_to_scope('setInterval', G.BASE_SCOPE, blank_func)
     clear_interval = G.add_blank_func_to_scope('clearInterval', G.BASE_SCOPE, blank_func)
+
+    require = G.add_blank_func_to_scope('require', G.BASE_SCOPE, objectGraphGenerator.handle_require)
 
 
 def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult(), this=None):
@@ -339,11 +348,13 @@ def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
         logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
         arrays = copy_objs_for_branch(G, arrays,
             branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
+        print('new arrays', arrays)
     for arr in arrays.obj_nodes:
         for prop_name_node in G.get_prop_name_nodes(arr):
             name = G.get_node_attr(prop_name_node).get('name')
             try:
                 assert name is not None
+                print('name=', name)
                 if name == wildcard:
                     returned_objs.update(G.get_obj_nodes(prop_name_node, extra.branches))
                     continue
@@ -353,8 +364,10 @@ def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
                     returned_objs.update(objs)
                     for obj in objs:
                         G.remove_all_edges_between(prop_name_node, obj)
+                    G.remove_all_edges_between(arr, prop_name_node)
                 else:
-                    G.set_node_attr(prop_name_node, ('name', i - 1))
+                    print(prop_name_node, i, '->', i-1)
+                    G.set_node_attr(prop_name_node, ('name', str(i - 1)))
             except ValueError:
                 pass
                 # logger.error('Array {} length error'.format(arr))
@@ -457,6 +470,11 @@ def array_p_slice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts=
     returned_arrays = []
     used_objs = set()
     for arr in arrays.obj_nodes:
+        if G.get_node_attr(arr).get('code') == wildcard:
+            return_arr = G.add_obj_node(caller_ast, 'array', wildcard)
+            returned_arrays.append(return_arr)
+            add_contributes_to(G, [arr], return_arr)
+            continue
         for i, start in enumerate(start_values):
             for j, end in enumerate(end_values):
                 if start != wildcard:
@@ -490,7 +508,7 @@ def array_p_join(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=Nod
             if sep == wildcard:
                 sep = ','
             a = to_python_array(G, arr, value=True)[0]
-            if wildcard in chain(*a):
+            if wildcard in chain(*a) or G.get_node_attr(arr).get('code') == wildcard:
                 # if any element's value in the array is unknown
                 # the result is set to unknown
                 # this is to prevent explosion of the number of different
@@ -543,8 +561,7 @@ def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array
         i = 0
         for name_node in G.get_prop_name_nodes(obj):
             name = G.get_node_attr(name_node).get('name')
-            # if name is None:
-            #     print(name_node)
+            # print(name_node, name)
             assert name is not None
             if not for_array and name == wildcard:
                 continue
@@ -559,6 +576,7 @@ def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array
         # wildcard object
         if G.get_node_attr(obj).get('type') in ['array', 'object'] and \
             G.get_node_attr(obj).get('code') == wildcard:
+            # print('**wildcard**')
             string = G.add_obj_node(caller_ast, 'string', wildcard)
             add_contributes_to(G, [obj], string)
             G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=string)
@@ -744,7 +762,7 @@ def this_returning_func(G: Graph, caller_ast, extra, this=None, *args):
 
 
 def string_returning_func(G: Graph, caller_ast, extra, _, *args):
-    returned_string = G.add_obj_node(caller_ast, 'string')
+    returned_string = G.add_obj_node(caller_ast, 'string', wildcard)
     used_objs = set()
     for arg in args:
         used_objs.update(arg.obj_nodes)
@@ -869,10 +887,12 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         none_flag = False
                         def python_cb(m):
                             nonlocal none_flag
+                            args = [NodeHandleResult(values=[m.group(0)])] + [
+                                NodeHandleResult(values=[g]) for g in m.groups()
+                            ]
                             cb_result, _ = \
                                 objectGraphGenerator.call_function(G, [callback],
-                                args=[NodeHandleResult(values=[m.group(0)])],
-                                extra=extra, caller_ast=caller_ast)
+                                args=args, extra=extra, caller_ast=caller_ast)
                             cb_returned_values, _, _ = to_values(G, cb_result)
                             cb_returned_values = \
                                 list(filter(lambda x: x != wildcard, cb_returned_values))
@@ -983,10 +1003,12 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         none_flag = False
                         def python_cb(m):
                             nonlocal none_flag
+                            args = [NodeHandleResult(values=[m.group(0)])] + [
+                                NodeHandleResult(values=[g]) for g in m.groups()
+                            ]
                             cb_result, _ = \
                                 objectGraphGenerator.call_function(G, [callback],
-                                args=[NodeHandleResult(values=[m.group(0)])],
-                                extra=extra, caller_ast=caller_ast)
+                                args=args, extra=extra, caller_ast=caller_ast)
                             cb_returned_values, _, _ = to_values(G, cb_result)
                             cb_returned_values = \
                                 list(filter(lambda x: x != wildcard, cb_returned_values))
