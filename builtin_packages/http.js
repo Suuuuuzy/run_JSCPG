@@ -25,6 +25,11 @@ var response_builtin_object = function() {
     sink_hqbpillvul_http_write(value);
     return null;
   }
+
+  this.send = function(value) {
+    sink_hqbpillvul_http_write(value);
+    return null;
+  }
 }
 
 function createServer(requestListener) {
