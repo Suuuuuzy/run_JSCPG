@@ -1,6 +1,7 @@
 var request_builtin_object = function(){
   var source_hqbpillvul_url = '';
   this.url = source_hqbpillvul_url;
+  this.path = source_hqbpillvul_url;
 
   this.on = function(str, cb) {
     // on should be counted as input
@@ -33,5 +34,7 @@ function createServer(requestListener) {
 }
 
 module.exports = {
-  createServer
+  createServer,
+  request_builtin_object,
+  response_builtin_object
 };
