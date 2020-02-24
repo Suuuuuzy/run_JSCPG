@@ -1,12 +1,12 @@
-var exec = require("child_process").exec;
-function exp(input) {
-  this.opt = input;
+var express = require("express");
+var app = express();
+var fs = require("fs");
+app.get("./", function(req, res){
+  tryRun(req.path, req, res);
+})
 
-  exp.prototype.getinfo = function(){
-    exec(this.opt.addtional.join(' '));
-  }
-}
-
-module.exports = function (input) {
-  return new exp(input);
+function tryRun(page, req, res) {
+  fs.readFile(page, function(err, data){
+    res.end(data);
+  })
 }

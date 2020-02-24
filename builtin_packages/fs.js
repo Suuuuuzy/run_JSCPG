@@ -20,11 +20,12 @@ function readFile(pathname, options = {}, cb) {
 
 module.exports = {
   read: read,
-  readdir: read,
-  readdirSync: read,
+  readdir: readFile,
+  readdirSync: readFile,
   readFile: readFile,
   readFileSync: readFile,
   readlink: read,
   readlinkSync: read,
-  readSync: read
+  readSync: read,
+  createReadStream: read
 }

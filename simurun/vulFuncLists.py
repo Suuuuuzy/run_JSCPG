@@ -22,6 +22,7 @@ signature_lists = {
             'parseInt'
             ],
         'path_traversal': [
+            'pipe',
             'sink_hqbpillvul_http_write'
             ]
 }

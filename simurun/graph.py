@@ -1481,7 +1481,7 @@ class Graph:
                 parent, depth_now, children = stack[-1]
                 try:
                     child = next(children)
-                    if child not in stack:
+                    if child not in [s[0] for s in stack]:
                         visited.add(child)
                         if depth_now > 1:
                             edge_group = self.get_in_edges(child, edge_type=edge_type)

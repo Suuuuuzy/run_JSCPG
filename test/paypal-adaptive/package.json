@@ -1,0 +1,80 @@
+{
+  "_args": [
+    [
+      "paypal-adaptive",
+      "/home/lsong18/projs/JSCPG"
+    ]
+  ],
+  "_from": "paypal-adaptive@latest",
+  "_id": "paypal-adaptive@0.4.2",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/paypal-adaptive",
+  "_npmUser": {
+    "email": "webaccounts@idea.me",
+    "name": "ideame"
+  },
+  "_npmVersion": "1.4.9",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "paypal-adaptive",
+    "raw": "paypal-adaptive",
+    "rawSpec": "",
+    "scope": null,
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/paypal-adaptive/-/paypal-adaptive-0.4.2.tgz",
+  "_shasum": "9d6c9da51742cfab952d6cc308d57882c99fb826",
+  "_shrinkwrap": null,
+  "_spec": "paypal-adaptive",
+  "_where": "/home/lsong18/projs/JSCPG",
+  "author": {
+    "name": "Gonzalo Aguirre"
+  },
+  "bugs": {
+    "url": "https://github.com/gaguirre/paypal-adaptive-sdk-nodejs/issues"
+  },
+  "dependencies": {},
+  "description": "Paypal Adaptive (Payments & Accounts) SDK in node.js",
+  "devDependencies": {
+    "mocha": "1.10.0",
+    "nock": "0.18.2"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "9d6c9da51742cfab952d6cc308d57882c99fb826",
+    "tarball": "https://registry.npmjs.org/paypal-adaptive/-/paypal-adaptive-0.4.2.tgz"
+  },
+  "engine": {
+    "node": ">=0.6"
+  },
+  "homepage": "https://github.com/gaguirre/paypal-adaptive-sdk-nodejs",
+  "keywords": [
+    "accounts",
+    "adaptive",
+    "api",
+    "node",
+    "payments",
+    "paypal",
+    "sdk"
+  ],
+  "main": "./lib/paypal-adaptive.js",
+  "maintainers": [
+    {
+      "name": "ideame",
+      "email": "webaccounts@idea.me"
+    }
+  ],
+  "name": "paypal-adaptive",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gaguirre/paypal-adaptive-sdk-nodejs.git"
+  },
+  "version": "0.4.2"
+}
