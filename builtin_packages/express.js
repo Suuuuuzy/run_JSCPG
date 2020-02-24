@@ -25,6 +25,11 @@ var response_builtin_object = function() {
     sink_hqbpillvul_http_write(value);
     return null;
   }
+
+  this.send = function(value) {
+    sink_hqbpillvul_http_write(value);
+    return null;
+  }
 }
 
 function express(requestListener) {
@@ -32,7 +37,8 @@ function express(requestListener) {
   var res = new response_builtin_object();
   requestListener(req, res);
 
-  this.use = function(cb) {
+  this.use = function(file_path, cb) {
+    file_path(req, res);
     cb(req, res);
   }
 
