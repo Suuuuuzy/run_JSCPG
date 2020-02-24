@@ -3,7 +3,7 @@
 //process.env.NM_CLI = 'touch sdfliajdlifja & nmcli';
 //var attack_str = ";touch Song;";
 //var root = require("./deadloop.js");
-var root = require("/media/data2/song/vulPackages/path_traversal/jikes@0.0.1/app.js");
+var root = require("/media/data2/song/vulPackages/path_traversal/shit-server@1.0.0/index.js");
 //var root = require("/media/data2/song/npmpackages/fast-http");
 //var root = require("/home/lsong18/projs/JSCPG/package_downloader/packages/general-file-server@1.1.8")
 //root.getDevices();
