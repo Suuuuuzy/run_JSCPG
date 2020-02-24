@@ -20,7 +20,7 @@ from simurun.vulFuncLists import *
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
 #root_path = "/media/data2/song/vulPackages/path_traversal/"
 #root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
-root_path = "/media/data2/song/vulPackages/path_traversal/"
+root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
@@ -104,15 +104,20 @@ def get_entrance_files_of_package(package_path, get_all=False):
         except:
             npm_test_logger.error("Special {}".format(package_path))
 
+
         if 'main' not in package_json:
             main_file = 'index.js'
         else:
             main_file = package_json['main']
 
         if 'bin' in package_json:
-            for key in package_json['bin']:
-                main_files.append(package_json['bin'][key])
+            if type(package_json['bin']) == str:
+                main_files.append(package_json['bin'])
+            else:
+                for key in package_json['bin']:
+                    main_files.append(package_json['bin'][key])
 
+    print("path ", main_files)
     # entrance file maybe two different formats
     # ./index = ./index.js or ./index = ./index/index.js
     if main_file[-3:] != ".js":
@@ -208,7 +213,6 @@ def test_package(package_path, vul_type='os_command'):
     """
     # pre-filtering the signature functions by grep
 
-
     line_count = dir_line_count(package_path)
     size_count = dir_size_count(package_path)
     npm_test_logger.info("Running {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
@@ -216,7 +220,6 @@ def test_package(package_path, vul_type='os_command'):
     # the main generating program can solve the main file
     # but we also get the entrance files
     package_main_files = get_entrance_files_of_package(package_path, get_all=False)
-    # print(package_main_files)
     res = []
 
     if package_main_files is None:
@@ -245,6 +248,7 @@ def test_file(file_path, vul_type='xss'):
             -2, not found file. 
             -3, graph generation error
     """
+
     global args
     print("Testing {} {}".format(vul_type, file_path))
     if file_path is None:
@@ -330,7 +334,7 @@ def main(cur_no, num_split):
         root_path = args.root_path
 
     testing_packages = []
-    # testing_packages = ['growl@1.9.2']
+    #testing_packages = ['unicorn-list@1.0.4']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, start_id=0, size=300000)
     else:

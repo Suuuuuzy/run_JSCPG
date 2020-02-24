@@ -1090,6 +1090,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         except ValueError as e:
             for n in G.get_ordered_ast_child_nodes(node_id):
                 logger.error(n, G.get_node_attr(n))
+                return None
         cond = G.get_ordered_ast_child_nodes(cond)[0]
         # switch scopes
         parent_scope = G.cur_scope

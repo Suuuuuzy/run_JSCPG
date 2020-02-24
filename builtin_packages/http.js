@@ -30,10 +30,19 @@ var response_builtin_object = function() {
   }
 }
 
+var server = function() {
+  var req = new request_builtin_object();
+  var res = new response_builtin_object();
+  this.on = function(key, cb) {
+    cb(req, res);
+  }
+}
+
 function createServer(requestListener) {
   var req = new request_builtin_object();
   var res = new response_builtin_object();
   requestListener(req, res);
+  return new server();
 }
 
 module.exports = {
