@@ -9,7 +9,8 @@ from .logger import *
 from . import modeled_js_builtins, modeled_builtin_modules
 from .helpers import to_values, to_obj_nodes, peek_variables, combine_values
 from .helpers import check_condition, val_to_str, val_to_float, is_int
-from .helpers import add_contributes_to, wildcard
+from .helpers import add_contributes_to, wildcard, undefined
+from .helpers import js_cmp
 from .esprima import esprima_parse, esprima_search
 from itertools import chain
 from collections import defaultdict
@@ -1035,7 +1036,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     elif cur_type == 'AST_SWITCH':
         condition, switch_list = G.get_ordered_ast_child_nodes(node_id)
         result = handle_node(G, condition, extra)
-        handle_node(G, switch_list, extra)
+        handle_node(G, switch_list, ExtraInfo(extra, switch_var=result))
         return result
 
     elif cur_type == 'AST_SWITCH_LIST':
@@ -1046,9 +1047,17 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         for i, case in enumerate(cases):
             branch_tag = BranchTag(point=stmt_id, branch=str(i))
             test, body = G.get_ordered_ast_child_nodes(case)
-            handle_node(G, test, extra)
-            simurun_block(G, body, G.cur_scope, branches+[branch_tag],
-                          block_scope=False)
+            # handle_node(G, test, extra)
+            p, d = check_switch_var(G, test, extra)
+            # print('check result =', p, d)
+            if d and p == 1:
+                simurun_block(G, body, G.cur_scope, branches,
+                            block_scope=False)
+            elif not d or 0 < p < 1:
+                simurun_block(G, body, G.cur_scope, branches+[branch_tag],
+                            block_scope=False)
+            else:
+                continue
         if not G.single_branch:
             merge(G, stmt_id, len(cases), parent_branch)
 
@@ -1285,6 +1294,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 new_values.append(-v)
             else:
                 new_values.append(v)
+        logger.debug(f'New values: {new_values}')
         return NodeHandleResult(values=new_values, value_sources=sources)
 
     # handle registered functions      # deprecated
@@ -1541,9 +1551,19 @@ def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
     if func_name is not None and func_name != '{closure}':
         G.add_obj_to_scope(name=func_name, scope=obj_parent_scope,
             tobe_added_obj=added_obj)
+        G.add_obj_as_prop('name', node_id, 'string', func_name, added_obj)
+
+    param_list = G.get_child_nodes(node_id, edge_type='PARENT_OF',
+        child_type='AST_PARAM_LIST')
+    params = G.get_ordered_ast_child_nodes(param_list)
+    length = len(params)
+    if length > 0:
+        if G.get_node_attr(params[-1]).get('flags:string[]') \
+            == 'PARAM_VARIADIC':
+            length -= 1
+    G.add_obj_as_prop('length', node_id, 'number', length, added_obj)
 
     # G.set_node_attr(node_id, ("VISITED", "1"))
-
     logger.debug(f'{sty.ef.b}Declare function{sty.rs.all} {func_name} as {added_obj}')
 
     return added_obj
@@ -2184,7 +2204,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         # this is used to print logs only
                         logger.debug(f'add arg arguments[{j}] <- '
                             f'{arg_obj_nodes}, scope {func_scope}')
-                elif j < len(params):
+                elif j < len(params) and mark_fake_args:
                     param = params[j]
                     param_name = G.get_name_from_child(param)
                     # add dummy arguments
@@ -2533,3 +2553,24 @@ def is_wildcard_obj(G, obj):
         or (attrs.get('type') in ['number', 'string'] and
             attrs.get('code')== wildcard)
 
+def check_switch_var(G: Graph, ast_node, extra: ExtraInfo):
+    left_values = to_values(G, extra.switch_var, ast_node)[0]
+    right_values = to_values(G, handle_node(G, ast_node, extra), ast_node)[0]
+    logger.debug(f'Switch variable values: {left_values}')
+    logger.debug(f'Case values: {right_values}')
+
+    true_num = 0
+    total_num = len(left_values) * len(right_values)
+    deter_flag = True
+    for v1 in left_values:
+        for v2 in right_values:
+            if v1 != wildcard and v2 != wildcard:
+                if js_cmp(v1, v2) == 0:
+                    true_num += 1
+            elif (v1 != undefined) != (v2 != undefined):
+                true_num += 0.5
+                deter_flag = False
+            else:
+                true_num += 0.5
+                deter_flag = False
+    return true_num / total_num, deter_flag

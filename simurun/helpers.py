@@ -271,6 +271,9 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                         if v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) == 0:
                                 true_num += 1
+                        elif (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
                         else:
                             true_num += 0.5
                             deter_flag = False
@@ -280,6 +283,9 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                         if v1 != wildcard and v2 != wildcard:
                             if v1 == v2:
                                 true_num += 1
+                        elif (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
                         else:
                             true_num += 0.5
                             deter_flag = False
@@ -289,6 +295,9 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                         if v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) != 0:
                                 true_num += 1
+                        elif (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
                         else:
                             true_num += 0.5
                             deter_flag = False
@@ -298,6 +307,9 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
                         if v1 != wildcard and v2 != wildcard:
                             if v1 != v2:
                                 true_num += 1
+                        elif (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
                         else:
                             true_num += 0.5
                             deter_flag = False

@@ -6,10 +6,12 @@ from .helpers import to_values, to_obj_nodes, val_to_str, is_int
 from .helpers import convert_prop_names_to_wildcard
 from .helpers import copy_objs_for_branch, copy_objs_for_parameters
 from .helpers import to_python_array, to_og_array, add_contributes_to
+from .helpers import val_to_float
 import sty
 import re
 from .logger import *
 from itertools import chain, product
+from math import isnan
 
 
 logger = create_logger("main_logger", output_type="file")
@@ -27,6 +29,7 @@ def setup_js_builtins(G: Graph):
     setup_global_objs(G)
     setup_json(G)
     setup_regexp(G)
+    setup_math(G)
 
 
 def setup_string(G: Graph):
@@ -537,17 +540,19 @@ def array_constructor(G: Graph, caller_ast, extra, _, length: NodeHandleResult, 
     used_objs = list(set(chain(*length_sources)))
     for i, l in enumerate(lengths):
         logger.debug('create an array length {}'.format(l))
-        if l == wildcard:
+        l = val_to_float(l)
+        if l == wildcard or isnan(l):
             arr = G.add_obj_node(caller_ast, 'array', wildcard)
             G.add_obj_as_prop('length', caller_ast, 'number', value=wildcard,
                 parent_obj=arr)
             G.add_obj_as_prop(wildcard, caller_ast, 'object', value=wildcard,
                 parent_obj=arr)
         else:
+            length = int(l)
             arr = G.add_obj_node(caller_ast, 'array')
             G.add_obj_as_prop('length', caller_ast, 'number', value=l,
                 parent_obj=arr)
-            for j in range(l):
+            for j in range(length):
                 G.add_prop_name_node(str(j), arr)
         add_contributes_to(G, length_sources[i], arr)
         returned_objs.append(arr)
@@ -1402,3 +1407,78 @@ def convert_to_python_re(code) -> (re.Pattern, bool, bool):
             return None, None, None
     else:
         return None, None, None
+
+
+def setup_math(G: Graph):
+    math_obj = G.add_obj_to_scope('Math', scope=G.BASE_SCOPE)
+    G.add_blank_func_as_prop('max', math_obj, math_max)
+    G.add_blank_func_as_prop('min', math_obj, math_min)
+
+
+def math_max(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
+    returned_values = []
+    returned_sources = []
+    sources_stack = []
+    def recurse(i, prev):
+        nonlocal args, returned_values, sources_stack
+        if i >= len(args):
+            returned_values.append(prev)
+            returned_sources.append(list(chain(*sources_stack)))
+            return
+        values, sources, _ = to_values(G, args[i], for_prop=True)
+        for j, v in enumerate(values):
+            new = None
+            v = val_to_float(v)
+            if prev is None:
+                new = v
+            elif v == wildcard:
+                new = wildcard
+            elif isnan(v) or (type(prev) == float and v > prev):
+                new = v
+            else:
+                new = prev
+            sources_stack.append(sources[j])
+            recurse(i + 1, new)
+            sources_stack.pop()
+    if not args:
+        return NodeHandleResult(values=[float("-inf")])
+    else:
+        recurse(0, None)
+        logger.debug(f'returned values: {returned_values}')
+        return NodeHandleResult(values=returned_values, 
+                                value_sources=returned_sources)
+
+
+
+def math_min(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
+    returned_values = []
+    returned_sources = []
+    sources_stack = []
+    def recurse(i, prev):
+        nonlocal args, returned_values, sources_stack
+        if i >= len(args):
+            returned_values.append(prev)
+            returned_sources.append(list(chain(*sources_stack)))
+            return
+        values, sources, _ = to_values(G, args[i], for_prop=True)
+        for j, v in enumerate(values):
+            new = None
+            v = val_to_float(v)
+            if prev is None:
+                new = v
+            elif v == wildcard:
+                new = wildcard
+            elif isnan(v) or (type(prev) == float and v < prev):
+                new = v
+            else:
+                new = prev
+            sources_stack.append(sources[j])
+            recurse(i + 1, new)
+            sources_stack.pop()
+    if not args:
+        return NodeHandleResult(values=[float("inf")])
+    else:
+        recurse(0, None)
+        logger.debug(f'returned values: {returned_values}')
+        return NodeHandleResult(values=returned_values, 
+                                value_sources=returned_sources)

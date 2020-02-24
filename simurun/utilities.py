@@ -263,11 +263,13 @@ class ExtraInfo:
         self.side = None
         self.parent_obj = None
         self.caller_ast = None
+        self.switch_var = None
         if original is not None:
             self.branches = original.branches
             self.side = original.side
             self.parent_obj = original.parent_obj
             self.caller_ast = original.caller_ast
+            self.switch_var = original.switch_var
         if 'branches' in kwargs:
             self.branches = kwargs.get('branches')
         if 'side' in kwargs:
@@ -276,10 +278,13 @@ class ExtraInfo:
             self.parent_obj = kwargs.get('parent_obj')
         if 'caller_ast' in kwargs:
             self.caller_ast = kwargs.get('caller_ast')
+        if 'switch_var' in kwargs:
+            self.switch_var = kwargs.get('switch_var')
 
     def __bool__(self):
         return bool(self.branches or (self.side is not None) or
-            (self.parent_obj is not None) or (self.caller_ast is not None))
+            (self.parent_obj is not None) or (self.caller_ast is not None)
+            or (self.switch_var is not None))
 
     def __repr__(self):
         s = []
