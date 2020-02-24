@@ -23,12 +23,10 @@ var response_builtin_object = function() {
 
   this.end = function(value) {
     sink_hqbpillvul_http_write(value);
-    return null;
   }
 
   this.send = function(value) {
     sink_hqbpillvul_http_write(value);
-    return null;
   }
 }
 
