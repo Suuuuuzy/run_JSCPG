@@ -45,6 +45,11 @@ function express(requestListener) {
   this.get = function(file_path, cb) {
     cb(req, res);
   }
+
+  this.all = function(file_path, cb) {
+    cb(req, res);
+  }
+
 }
 
 
