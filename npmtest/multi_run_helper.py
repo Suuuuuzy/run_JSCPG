@@ -20,6 +20,7 @@ from simurun.vulFuncLists import *
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
 #root_path = "/media/data2/song/vulPackages/path_traversal/"
 #root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
+#root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
 root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
@@ -280,7 +281,7 @@ def test_file(file_path, vul_type='xss'):
 
     try:
         os.remove(test_file_name)
-        os.remove("run_log.log")
+        #os.remove("run_log.log")
         os.remove("out.dat")
     except:
         pass
