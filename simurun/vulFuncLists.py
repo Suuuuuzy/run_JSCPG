@@ -16,6 +16,9 @@ signature_lists = {
         'code_exec': [
             'Function',
             'eval',
+            "sink_hqbpillvul_execFile",
+            'sink_hqbpillvul_exec',
+            'sink_hqbpillvul_execSync',
             'sink_hqbpillvul_eval'
             ],
         'sanitation': [

@@ -20,8 +20,8 @@ from simurun.vulFuncLists import *
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
 #root_path = "/media/data2/song/vulPackages/path_traversal/"
 #root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
+root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
 #root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
-root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
@@ -408,6 +408,8 @@ def main(cur_no, num_split):
         if 1 in result:
             success_list.append(package)
             npm_success_logger.info("{} successfully found in {}".format(vul_type, package))
+        elif len(result) == 0:
+            npm_res_logger.error("Package json error in {}".format(package, result))
         elif all(v == 0 for v in result):
             npm_res_logger.error("Path not found in {}".format(package))
         elif -2 in result:
@@ -419,8 +421,6 @@ def main(cur_no, num_split):
         elif -4 in result:
             skip_list.append(package)
             npm_res_logger.error("Skip {}".format(package))
-        elif len(result) == 0:
-            npm_res_logger.error("Package json error in {}".format(package, result))
         else:
             npm_res_logger.error("Other problems {} return {}".format(package, result))
 
