@@ -2581,3 +2581,7 @@ def check_switch_var(G: Graph, ast_node, extra: ExtraInfo):
                 true_num += 0.5
                 deter_flag = False
     return total_num if total_num == 0 else true_num / total_num, deter_flag
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3593361... fxiing

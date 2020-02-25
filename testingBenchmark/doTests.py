@@ -16,15 +16,15 @@ class BenchMark():
     def __init__(self):
         self.command_injection_dir = "/media/data2/song/vulPackages/updated_databases/command_injection/"
         self.code_exec_dir = "/media/data2/song/vulPackages/code_exec/"
-        self.path_traversal_dir = "/media/data2/song/vulPackages/path_traversal/"
+        self.path_traversal_dir = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
         #self.prototype_pollution_dir = "/media/data2/song/vulPackages/prototype_pollution/"
         self.all_package_dir = "/media/data2/song/npmpackages/"
 
-        self.all_package_dir_num = 10
+        self.all_package_dir_num = 70
         self.location_number_map = {
                 self.command_injection_dir: 30,
                 #self.code_exec_dir: 0,
-                #self.path_traversal_dir: 0
+                self.path_traversal_dir: 30
                 }
         self.dir_vul_map = {
                 self.command_injection_dir: "os_command",
