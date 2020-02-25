@@ -5,6 +5,7 @@ import os
 import sty
 import json
 import re
+import traceback as tb
 from .logger import *
 from . import modeled_js_builtins, modeled_builtin_modules
 from .helpers import to_values, to_obj_nodes, peek_variables, combine_values
@@ -174,30 +175,34 @@ def find_prop(G, parent_objs, prop_name, branches=None,
     prop_name_nodes = set()
     prop_obj_nodes = set()
     for parent_obj in parent_objs:
-        # filter out unrelated possibilities
-        skip = False
-        parent_matched_tags = BranchTagContainer(G.get_node_attr(parent_obj)
-            .get('for_tags', [])).get_matched_tags(branches, level=1)
-        # print(f'{sty.fg.yellow}Parent obj {parent_obj},'
-        #     f' parent name {parent_name}, prop name {prop_name},'
-        #     f' current tags: {branches},'
-        #     f' parent tags: {G.get_node_attr(parent_obj).get("for_tags", [])},'
-        #     f' parent matched tags: {parent_matched_tags},'
-        #     f' prop name for tags: {prop_name_for_tags}'
-        #     + sty.rs.all)
-        if prop_name_for_tags:
-            for t1 in parent_matched_tags:
-                for t2 in prop_name_for_tags:
-                    if t1.point == t2.point and t1.branch != t2.branch:
-                        skip = True
-                        # print(f'{sty.fg.red}Skip parent obj {parent_obj} and '
-                        #     f'prop name {prop_name} because of {t1}, {t2}'
-                        #     + sty.rs.all)
-                        break
-                if skip:
-                    break
-        if skip:
+        if prop_name == wildcard and not is_wildcard_obj(G, parent_obj) and \
+            not G.check_proto_pollution:
             continue
+
+        # filter out unrelated possibilities
+        # skip = False
+        # parent_matched_tags = BranchTagContainer(G.get_node_attr(parent_obj)
+        #     .get('for_tags', [])).get_matched_tags(branches, level=1)
+        # # print(f'{sty.fg.yellow}Parent obj {parent_obj},'
+        # #     f' parent name {parent_name}, prop name {prop_name},'
+        # #     f' current tags: {branches},'
+        # #     f' parent tags: {G.get_node_attr(parent_obj).get("for_tags", [])},'
+        # #     f' parent matched tags: {parent_matched_tags},'
+        # #     f' prop name for tags: {prop_name_for_tags}'
+        # #     + sty.rs.all)
+        # if prop_name_for_tags:
+        #     for t1 in parent_matched_tags:
+        #         for t2 in prop_name_for_tags:
+        #             if t1.point == t2.point and t1.branch != t2.branch:
+        #                 skip = True
+        #                 # print(f'{sty.fg.red}Skip parent obj {parent_obj} and '
+        #                 #     f'prop name {prop_name} because of {t1}, {t2}'
+        #                 #     + sty.rs.all)
+        #                 break
+        #         if skip:
+        #             break
+        # if skip:
+        #     continue
 
         # flag of whether any name node with prop_name under this parent
         # object is found
@@ -251,7 +256,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     for o in r2:
                         for s in prop_name_sources:
                             add_contributes_to(G, [s], o)
-        if not name_node_found and not in_proto and prop_name != wildcard:
+        if not name_node_found and not in_proto:
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
             if is_wildcard_obj(G, parent_obj):
@@ -271,10 +276,10 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     logger.debug("{} marked as tainted 1".format(added_obj))
                 for s in prop_name_sources:
                     add_contributes_to(G, [s], added_obj)
-                if prop_name_for_tags:
-                    G.set_node_attr(added_name_node,
-                        ('for_tags', prop_name_for_tags))
-            else: # normal (known) object
+                # if prop_name_for_tags:
+                #     G.set_node_attr(added_name_node,
+                #         ('for_tags', prop_name_for_tags))
+            elif prop_name != wildcard: # normal (known) object
                 if side == 'right':
                     continue
                 elif parent_obj in [G.object_prototype, G.string_prototype,
@@ -285,9 +290,9 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     added_name_node = \
                         G.add_prop_name_node(prop_name, parent_obj)
                     prop_name_nodes.add(added_name_node)
-                    if prop_name_for_tags:
-                        G.set_node_attr(added_name_node,
-                                        ('for_tags', prop_name_for_tags))
+                    # if prop_name_for_tags:
+                    #     G.set_node_attr(added_name_node,
+                    #                     ('for_tags', prop_name_for_tags))
                     logger.debug(f'{sty.ef.b}Add prop name node{sty.rs.all} '
                     f'{parent_name}.{prop_name} '
                     f'({parent_obj}->{added_name_node})')
@@ -343,7 +348,6 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
         # conservative: only if all property names are unknown,
         # we fetch all properties
         # (including __proto__ for prototype pollution detection)
-
     if G.check_proto_pollution and wildcard in prop_names:
         # agressive: if any property name is unknown, we fetch all properties
         logger.debug('All property names are unknown, fetching all properties')
@@ -389,7 +393,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
             #     return NodeHandleResult()
 
         # find property name nodes and object nodes
-        prop_names = list(filter(lambda x: x != wildcard, prop_names))
+        # (filtering is moved to find_prop)
         for i, prop_name in enumerate(prop_names):
             # if prop_name == wildcard:
             #     continue
@@ -406,7 +410,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
         if len(prop_names) == 1:
             name = f'{parent_name}.{prop_names[0]}'
         else:
-            name = f'{parent_name}.{"/".join(prop_names)}'
+            name = f'{parent_name}.{"/".join(map(str, prop_names))}'
 
         # tricky fix, we don't really link name nodes to the undefined object
         if not prop_obj_nodes:
@@ -547,11 +551,11 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
 
     # do the assignment
     for name_node in handled_left.name_nodes:
-        nn_for_tags = G.get_node_attr(name_node).get('for_tags')
-        if not nn_for_tags: # empty array or None
-            G.assign_obj_nodes_to_name_node(name_node, right_objs,
-                branches=branches)
-            returned_objs.extend(right_objs)
+        # nn_for_tags = G.get_node_attr(name_node).get('for_tags')
+        # if not nn_for_tags: # empty array or None
+        G.assign_obj_nodes_to_name_node(name_node, right_objs,
+            branches=branches)
+        returned_objs.extend(right_objs)
         # else:
         #     logger.debug(f"  name node's for tags {nn_for_tags}")
         #     for obj in right_objs:
@@ -693,18 +697,18 @@ def handle_var(G: Graph, ast_node, extra=None):
     assert None not in now_objs
 
     # add from_branches information
-    from_branches = []
-    cur_branches = extra.branches if extra else BranchTagContainer()
-    for obj in now_objs:
-        from_branches.append(cur_branches.get_matched_tags(
-            G.get_node_attr(obj).get('for_tags') or []))
+    # from_branches = []
+    # cur_branches = extra.branches if extra else BranchTagContainer()
+    # for obj in now_objs:
+    #     from_branches.append(cur_branches.get_matched_tags(
+    #         G.get_node_attr(obj).get('for_tags') or []))
 
     # tricky fix, we don't really link name nodes to the undefined object
     if not now_objs:
         now_objs = [G.undefined_obj]
 
     return NodeHandleResult(obj_nodes=now_objs, name=var_name,
-        name_nodes=name_nodes, from_branches=from_branches,
+        name_nodes=name_nodes, # from_branches=[from_branches],
         ast_node=ast_node)
 
 def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
@@ -1945,9 +1949,11 @@ def ast_call_function(G, ast_node, extra):
             for obj in handled_args[0].obj_nodes:
                 if G.get_node_attr(obj).get('type') == 'array':
                     types['object'].append(obj)
-                # elif (G.get_node_attr(obj).get('type') == 'object' and
-                #     G.get_node_attr(obj).get('code') == wildcard):
-                #     types[wildcard].append(obj)
+                # should we consider wildcard objects' type as 
+                # wildcard or fixed "object"?
+                elif (G.get_node_attr(obj).get('type') == 'object' and
+                    G.get_node_attr(obj).get('code') == wildcard):
+                    types[wildcard].append(obj)
                 else:
                     types[G.get_node_attr(obj).get('type')].append(obj)
             for i, val in enumerate(handled_args[0].values):
@@ -2132,7 +2138,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         created_objs.extend(h.obj_nodes)
                         branch_used_objs = h.used_objs
                     except TypeError as e:
-                        logger.error(e)
+                        logger.error(tb.format_exc())
                 else:
                     logger.error(f'Error: try to new Python function {func_obj} {python_func}...')
                     continue
@@ -2149,7 +2155,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     returned_values.extend(h.values)
                     returned_value_sources.extend(h.value_sources)
                 except TypeError as e:
-                    logger.error(e)
+                    logger.error(tb.format_exc())
         else: # JS function in AST
             # if AST cannot be found, create AST
             if func_ast is None or G.get_node_attr(func_ast).get('type') \
@@ -2574,4 +2580,4 @@ def check_switch_var(G: Graph, ast_node, extra: ExtraInfo):
             else:
                 true_num += 0.5
                 deter_flag = False
-    return true_num / total_num, deter_flag
+    return total_num if total_num == 0 else true_num / total_num, deter_flag
