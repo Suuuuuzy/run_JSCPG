@@ -1169,7 +1169,8 @@ class Graph:
         '''
         assert obj != self.undefined_obj
         assert obj != self.null_obj
-        self.set_node_attr(obj, ('type', 'function'))
+        if self.get_node_attr(obj).get('code') != wildcard:
+            self.set_node_attr(obj, ('type', 'function'))
         self.add_obj_as_prop("prototype", func_ast, "object", 
                 parent_obj=obj)
         if self.function_prototype is not None:
@@ -1294,14 +1295,19 @@ class Graph:
                 edge_type = "OBJ_DECL")[0]
         edges = self.get_in_edges(ast_upper_func_node,
                 edge_type = "OBJ_TO_AST")
+        func_decl_obj_node = None
         for edge in edges:
             if self.get_node_attr(edge[0])['type'] == "function":
                 func_decl_obj_node = edge[0]
                 break
-        prototype_obj_nodes = self.get_prop_obj_nodes(
-            parent_obj=func_decl_obj_node, prop_name='prototype')
-        self.logger.debug(f'prototype obj node is {prototype_obj_nodes}')
-        return prototype_obj_nodes
+        if func_decl_obj_node is None: # TODO: what is cause of this bug?
+            self.logger.error('Cannot find function object node!')
+            return []
+        else:
+            prototype_obj_nodes = self.get_prop_obj_nodes(
+                parent_obj=func_decl_obj_node, prop_name='prototype')
+            self.logger.debug(f'prototype obj node is {prototype_obj_nodes}')
+            return prototype_obj_nodes
     
     def build_proto(self, obj_node):
         """
