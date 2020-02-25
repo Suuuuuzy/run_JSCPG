@@ -1063,7 +1063,41 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 // body (statement list), childnum = 3 (named), 4 (anonymous)
                 nodeIdCounter++;
                 relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                dfs(currentNode.body, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, null);
+                if (currentNode.body.type == 'BlockStatement'){
+                    dfs(currentNode.body, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, null);
+                } else {
+                    let vBlockStatementNode = nodeIdCounter;
+                    nodeIdCounter++;
+                    let vReturnNode = nodeIdCounter;
+                    relsStream.push([vBlockStatementNode, vReturnNode, parentOf].join(delimiter) + '\n');
+                    nodes[vReturnNode] = {
+                        label: 'AST',
+                        type: 'ReturnStatement',
+                        phptype: 'AST_RETURN',
+                        lineLocStart: currentNode.body.loc ? currentNode.body.loc.start.line : null,
+                        childNum: 0,
+                        lineLocEnd: currentNode.body.loc ? currentNode.body.loc.end.line : null,
+                        colLocStart: currentNode.body.loc ? currentNode.body.loc.start.column : null,
+                        colLocEnd: currentNode.body.loc ? currentNode.body.loc.end.column : null,
+                        code: getCode(currentNode, sourceCode),
+                        funcId: currentFunctionId
+                    };
+                    nodeIdCounter++;
+                    let vArgumentNode = nodeIdCounter;
+                    relsStream.push([vReturnNode, vArgumentNode, parentOf].join(delimiter) + '\n');
+                    dfs(currentNode.body, vArgumentNode, vReturnNode, 0, currentFunctionId, null);
+                    nodes[vBlockStatementNode] = {
+                        label: 'AST_V',
+                        type: 'BlockStatement',
+                        phptype: 'AST_STMT_LIST',
+                        lineLocStart: currentNode.body.loc ? currentNode.body.loc.start.line : null,
+                        lineLocEnd: currentNode.body.loc ? currentNode.body.loc.end.line : null,
+                        colLocStart: currentNode.body.loc ? currentNode.body.loc.start.column : null,
+                        colLocEnd: currentNode.body.loc ? currentNode.body.loc.end.column : null,
+                        childNum: childNumberCounter,
+                        funcId: currentFunctionId
+                    };
+                }
                 childNumberCounter++;
                 // NULL node, childnum = 4 (named), 5 (anonymous)
                 nodeIdCounter++;
