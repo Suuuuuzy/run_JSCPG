@@ -323,7 +323,7 @@ def main(cur_no, num_split):
 
     if args.vul_type == 'prototype_pollution':
         args.vul_type = 'proto_pollution'
-    if args.print:
+    if False and args.print:
         create_logger("main_logger", output_type="console",
             level=logging.DEBUG)
         create_logger("graph_logger", output_type="console",
