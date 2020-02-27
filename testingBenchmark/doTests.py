@@ -131,7 +131,8 @@ class BenchMark():
                 dfg_generator = DFG_generator(package, 
                         sink_funcs=jstap_vul_sink_map[vul_type])
                 try:
-                    jstap_res = dfg_generator.check_all_files()
+                    jstap_res = func_timeout(timeout, 
+                        dfg_generator.check_all_files)
                 except FunctionTimedOut:
                     jstap_res = None
 

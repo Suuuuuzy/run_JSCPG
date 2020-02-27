@@ -23,6 +23,12 @@ class Graph:
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
 
+        # for evaluation
+        self.covered_num_stat = 0
+        self.total_num_stat = 0
+        self.covered_list = []
+        self.all_stat_list = []
+
         # exit immediately when vulnerability is found
         self.finished = False
         self.exit_when_found = False
@@ -492,6 +498,23 @@ class Graph:
             bfs_queue += out_nodes
 
         return None
+
+    def is_statement(self, node_id):
+        """
+        Return wether a node is a statement node of not
+
+        Args:
+            node_id: the node_id
+        """
+        parent_edges = self.get_in_edges(node_id, edge_type = "PARENT_OF")
+        if parent_edges is None or len(parent_edges) == 0:
+            return False 
+        parent_node = parent_edges[0][0]
+        parent_node_attr = self.get_node_attr(parent_node)
+        if parent_node_attr.get('type') in ["AST_STMT_LIST"]:
+            return True
+        return False
+
 
     def find_nearest_upper_CPG_node(self, node_id):
         """
@@ -1568,4 +1591,21 @@ class Graph:
             if func_name in func_names:
                 return True
         return False
+
+    def get_total_num_statements(self):
+        """
+        return the total number of statements of AST
+        """
+        if self.total_num_stat != 0:
+            return self.total_num_stat
+
+        all_nodes = self.get_all_nodes()
+        for n in all_nodes:
+            if 'type' in all_nodes[n]:
+                if 'AST_' in all_nodes[n]['type'] and self.is_statement(n):
+                    self.all_stat_list.append(n)
+                    self.total_num_stat += 1
+        # print(len(set(self.all_stat_list)), len(set(self.covered_list)), len(self.covered_list))
+        return len(set(self.all_stat_list))
+
 
