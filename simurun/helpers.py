@@ -108,21 +108,16 @@ def to_values(G: Graph, handle_result: NodeHandleResult,
     for obj in handle_result.obj_nodes:
         attrs = G.get_node_attr(obj)
         if for_prop:
-            if attrs.get('type') == 'object':
-                if attrs.get('code') == wildcard:
-                    value = wildcard
-                elif obj == G.undefined_obj:
-                    value = undefined
-                else:
-                    value = 'Obj#' + obj
+            if attrs.get('code') == wildcard:
+                value = wildcard
+            elif obj == G.undefined_obj:
+                value = undefined
             elif attrs.get('code') is not None:
                 value = val_to_str(attrs.get('code'))
             else:
-                value = wildcard
+                value = 'Obj#' + obj
         else:
-            if attrs.get('type') == 'object':
-                value = wildcard
-            elif attrs.get('code') is not None:
+            if attrs.get('code') is not None:
                 value = attrs.get('code')
             else:
                 value = wildcard
@@ -180,7 +175,7 @@ def val_to_str(value, default=wildcard):
         return str(value)
 
 def val_to_float(value, default=wildcard):
-    if value is None or value == wildcard:
+    if value is None or value == wildcard or value == undefined:
         return default
     try:
         return float(value)
@@ -192,7 +187,10 @@ def cmp(a, b):
 
 def js_cmp(v1, v2):
     if type(v1) == type(v2):
-        return cmp(v1, v2)
+        if v1 == undefined and v2 == undefined:
+            return 0
+        else:
+            return cmp(v1, v2)
     else:
         # s1 = val_to_str(v1)
         # s2 = val_to_str(v2)
@@ -256,8 +254,8 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
         else:
             handled_left = handling_func(G, left, extra)
             handled_right = handling_func(G, right, extra)
-            left_values = to_values(G, handled_left, ast_node)[0]
-            right_values = to_values(G, handled_right, ast_node)[0]
+            left_values = to_values(G, handled_left, ast_node, for_prop=True)[0]
+            right_values = to_values(G, handled_right, ast_node, for_prop=True)[0]
             # print(f'Comparing {handled_left.name}: {left_values} and '
             #     f'{handled_right.name}: {right_values}')
 
@@ -268,55 +266,58 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             if op_type == 'BINARY_IS_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 != wildcard and v2 != wildcard:
-                            if js_cmp(v1, v2) == 0:
-                                true_num += 1
-                        elif (v1 != undefined) != (v2 != undefined):
+                        if (v1 != undefined) != (v2 != undefined):
                             true_num += 0.5
                             deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) == 0:
+                                true_num += 1
                         else:
                             true_num += 0.5
                             deter_flag = False
             elif op_type == 'BINARY_IS_IDENTICAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 != wildcard and v2 != wildcard:
-                            if v1 == v2:
-                                true_num += 1
-                        elif (v1 != undefined) != (v2 != undefined):
+                        if (v1 != undefined) != (v2 != undefined):
                             true_num += 0.5
                             deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if v1 == v2:
+                                true_num += 1
                         else:
                             true_num += 0.5
                             deter_flag = False
             elif op_type == 'BINARY_IS_NOT_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 != wildcard and v2 != wildcard:
-                            if js_cmp(v1, v2) != 0:
-                                true_num += 1
-                        elif (v1 != undefined) != (v2 != undefined):
+                        if (v1 != undefined) != (v2 != undefined):
                             true_num += 0.5
                             deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) != 0:
+                                true_num += 1
                         else:
                             true_num += 0.5
                             deter_flag = False
             elif op_type == 'BINARY_IS_NOT_IDENTICAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 != wildcard and v2 != wildcard:
-                            if v1 != v2:
-                                true_num += 1
-                        elif (v1 != undefined) != (v2 != undefined):
+                        if (v1 != undefined) != (v2 != undefined):
                             true_num += 0.5
                             deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if v1 != v2:
+                                true_num += 1
                         else:
                             true_num += 0.5
                             deter_flag = False
             elif op_type == 'BINARY_IS_SMALLER':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 != wildcard and v2 != wildcard:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) < 0:
                                 true_num += 1
                         else:
@@ -325,7 +326,10 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_GREATER':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 != wildcard and v2 != wildcard:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) > 0:
                                 true_num += 1
                         else:
@@ -334,7 +338,10 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_SMALLER_OR_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 != wildcard and v2 != wildcard:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) <= 0:
                                 true_num += 1
                         else:
@@ -343,7 +350,10 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo,
             elif op_type == 'BINARY_IS_GREATER_OR_EQUAL':
                 for v1 in left_values:
                     for v2 in right_values:
-                        if v1 != wildcard and v2 != wildcard:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
                             if js_cmp(v1, v2) >= 0:
                                 true_num += 1
                         else:
