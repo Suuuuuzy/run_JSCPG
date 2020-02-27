@@ -19,9 +19,9 @@ from simurun.vulFuncLists import *
 
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
 #root_path = "/media/data2/song/vulPackages/path_traversal/"
-root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
+#root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
 #root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
-#root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
+root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
@@ -94,6 +94,7 @@ def get_entrance_files_of_package(package_path, get_all=False):
     entrance_files = []
     package_json_path = os.path.join(package_path, 'package.json')
     main_files = []
+
     if not validate_package(package_path):
         print("ERROR: {} do not exist".format(package_json_path)) 
         return None
@@ -335,7 +336,7 @@ def main(cur_no, num_split):
         root_path = args.root_path
 
     testing_packages = []
-    #testing_packages = ['unicorn-list@1.0.4']
+    # testing_packages = ['wizard-syncronizer@0.0.1']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, start_id=0, size=300000)
     else:
