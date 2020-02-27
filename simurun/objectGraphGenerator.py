@@ -2531,6 +2531,7 @@ def analyze_json(G, json_str, start_node_id=0, extra=None):
     return handle_node(G, str(start_node_id), extra)
 
 def analyze_json_python(G, json_str, extra=None, caller_ast=None):
+    json_str = str(json_str)
     if json_str is None:
         return None
     try:
