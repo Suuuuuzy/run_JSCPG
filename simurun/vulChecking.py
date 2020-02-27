@@ -132,7 +132,9 @@ def vul_checking(G, pathes, vul_type):
     code_exec_lists = [
             [('has_user_input', None), ('not_start_within_file', ['eval.js']), ('not_exist_func', ['parseInt'])],
             [('has_user_input', None), ('end_with_func', ['Function']), ('not_exist_func', ['parseInt'])],
-            [('has_user_input', None), ('end_with_func', ['eval']), ('not_exist_func', ['parseInt'])]
+            [('has_user_input', None), ('end_with_func', ['eval']), ('not_exist_func', ['parseInt'])],
+            # include os command here
+            [('has_user_input', None), ('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt'])]
             ]
     proto_pollution = [
             [('has_user_input', None), ('not_exist_func', signature_lists['sanitation'])]
@@ -166,5 +168,4 @@ def vul_checking(G, pathes, vul_type):
         success_pathes += do_vul_checking(G, rule_list, pathes)
     print("success: ", success_pathes)
     return success_pathes
-
 
