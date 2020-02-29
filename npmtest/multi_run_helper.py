@@ -37,8 +37,6 @@ skip_packages = []
 args = None
 
 npm_test_logger = create_logger("npmtest", output_type = "file", level=10, file_name="npmtest.log")
-npm_res_logger = create_logger("npmres", output_type = "file", level=10, file_name="npmres.log")
-npm_success_logger = create_logger("npmsuccess", output_type = "file", level=10, file_name="npmsuccess.log")
 npm_run_logger = create_logger("npmrun", output_type = "file", level=10, file_name="npmrun.log")
 
 def validate_package(package_path):
@@ -393,6 +391,9 @@ def main(cur_no, num_split):
         end_id = int((worker_id + 1) * total_cnt / num_workers)
         if worker_id == num_workers - 1:
             end_id = total_cnt 
+
+    npm_res_logger = create_logger("npmres", output_type = "file", level=10, file_name="npmres_{}_{}.log".format(args.work, vul_type))
+    npm_success_logger = create_logger("npmsuccess", output_type = "file", level=10, file_name="npmsuccess_{}_{}.log".format(args.work, vul_type))
 
     # print(total_cnt, worker_id, num_workers, start_id, end_id)
     packages = packages[start_id: end_id]
