@@ -331,7 +331,7 @@ def main(cur_no, num_split):
 
     if args.vul_type == 'prototype_pollution':
         args.vul_type = 'proto_pollution'
-    if False and args.print:
+    if args.print:
         create_logger("main_logger", output_type="console",
             level=logging.DEBUG)
         create_logger("graph_logger", output_type="console",
@@ -411,7 +411,7 @@ def main(cur_no, num_split):
 
         try:
             # for jsopg
-            if args.work == 'jsopg':
+            if args.work is None or args.work == 'jsopg':
                 result = func_timeout(timeout, test_package, args=(package, vul_type))
             # for jstap
             elif args.work == 'jstap':
