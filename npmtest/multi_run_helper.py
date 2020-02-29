@@ -17,12 +17,17 @@ from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
+sys.path.append("../../JStap/pdg_generation/")
+from build_cpg_csv import DFG_generator
+import core.scanner as njsscan
+
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
-#root_path = "/media/data2/song/vulPackages/path_traversal/"
-#root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
+#root_path = "/media/data2/song/random/"
+root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
 #root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
-root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
+#root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
+#root_path = "/media/data2/song/vulPackages/code_exec/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
@@ -318,6 +323,8 @@ def main(cur_no, num_split):
     argparser.add_argument('-f', '--function-timeout', type=float)
     argparser.add_argument('-s', '--single-branch', action='store_true')
     argparser.add_argument('root_path', action='store', nargs='?')
+    argparser.add_argument('-w', '--work')
+
     args = argparser.parse_args()
 
     chunk_detail = args.c
@@ -352,6 +359,13 @@ def main(cur_no, num_split):
     #vul_type = 'os_command'
     vul_type = 'proto_pollution'
     timeout = 120
+
+    # jsTap
+    jstap_vul_sink_map = {
+        "os_command": ["exec", "execFile", "execSync", "spawn", "spa    wnSync"],
+        "code_exec": ["exec", "eval", "execFile"],
+        "path_traversal": ["end", "write"]
+    }
 
     if args.vul_type is not None:
         vul_type = args.vul_type
@@ -394,8 +408,45 @@ def main(cur_no, num_split):
         tqdm_bar.refresh()
         ret_value = 100
         result = []
+
         try:
-            result = func_timeout(timeout, test_package, args=(package, vul_type))
+            # for jsopg
+            if args.work == 'jsopg':
+                result = func_timeout(timeout, test_package, args=(package, vul_type))
+            # for jstap
+            elif args.work == 'jstap':
+                dfg_generator = DFG_generator(package,
+                sink_funcs=jstap_vul_sink_map[vul_type])
+                result = func_timeout(timeout,
+                    dfg_generator.check_all_files)
+                result = sum([len(result[k]) for k in result])
+                if result != 0:
+                    result = [1]
+                else:
+                    result = [0]
+
+            # for nodejsscan
+            elif args.work == 'njsscan':
+                result = njsscan.scan_dirs([package])
+                security_issues = result['sec_issues']
+                jsscan_cur_res = False
+                for key in security_issues:
+                    if vul_type == "os_command" and \
+                        ("Code Injection" in key or "Command Execution" in key):
+                        jsscan_cur_res = True
+                        break
+                    elif vul_type == "code_exec" and "Command Execution" in key:
+                        jsscan_cur_res = True
+                        break
+                    elif vul_type == "path_traversal" and "Traversal" in key:
+                        jsscan_cur_res = True
+                        break
+
+                if jsscan_cur_res:
+                    result = [1]
+                else:
+                    result = [0]
+
         except FunctionTimedOut:
             npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))
             skip_list.append(package)
@@ -405,7 +456,7 @@ def main(cur_no, num_split):
             print(e)
             # tb.print_exc()
 
-        print(result)
+        print('Result:', result)
         if 1 in result:
             success_list.append(package)
             npm_success_logger.info("{} successfully found in {}".format(vul_type, package))
