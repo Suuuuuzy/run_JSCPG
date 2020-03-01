@@ -12,6 +12,7 @@ import re
 from .logger import *
 from itertools import chain, product
 from math import isnan
+import math
 
 
 logger = create_logger("main_logger", output_type="file")
@@ -53,10 +54,11 @@ def setup_string(G: Graph):
     G.add_blank_func_as_prop('trimEnd', string_prototype, string_p_trim_end)
     G.add_blank_func_as_prop('trimStart', string_prototype, string_p_trim_start)
     G.add_blank_func_as_prop('charAt', string_prototype, string_p_char_at)
+    G.add_blank_func_as_prop('slice', string_prototype, string_returning_func)
 
 
 def setup_number(G: Graph):
-    number_cons = G.add_blank_func_to_scope('Number', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    number_cons = G.add_blank_func_to_scope('Number', scope=G.BASE_SCOPE, python_func=number_constructor)
     G.builtin_constructors.append(number_cons)
     G.number_cons = number_cons
     number_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=number_cons)[0]
@@ -73,6 +75,9 @@ def setup_array(G: Graph):
     G.array_prototype = array_prototype
     # Array.prototype.__proto__ = Object.prototype
     G.add_obj_as_prop(prop_name='__proto__', parent_obj=array_prototype, tobe_added_obj=G.object_prototype)
+
+    G.add_blank_func_as_prop('isArray', array_cons, array_is_array)
+
     # built-in functions
     G.add_blank_func_as_prop('push', array_prototype, array_p_push)
     G.add_blank_func_as_prop('pop', array_prototype, array_p_pop)
@@ -86,6 +91,8 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('splice', array_prototype, array_p_splice)
     G.add_blank_func_as_prop('slice', array_prototype, array_p_slice)
     G.add_blank_func_as_prop('filter', array_prototype, this_returning_func)
+    G.add_blank_func_as_prop('map', array_prototype, array_p_map)
+    G.add_blank_func_as_prop('reduce', array_prototype, array_p_reduce)
 
 
 def setup_boolean(G: Graph):
@@ -121,7 +128,7 @@ def setup_errors(G: Graph):
 
 def setup_object_and_function(G: Graph):
     # add Object (function)
-    object_cons = G.add_blank_func_to_scope('Object', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    object_cons = G.add_blank_func_to_scope('Object', scope=G.BASE_SCOPE, python_func=object_constructor)
     G.builtin_constructors.append(object_cons)
     G.object_cons = object_cons
     # get Object.prototype
@@ -152,16 +159,19 @@ def setup_object_and_function(G: Graph):
     G.add_blank_func_as_prop('entries', object_cons, object_entries)
     G.add_blank_func_as_prop('defineProperty', object_cons, blank_func)
     G.add_blank_func_as_prop('defineProperties', object_cons, blank_func)
+    G.add_obj_as_prop('getOwnPropertySymbols', parent_obj=object_cons, tobe_added_obj=G.false_obj)
 
-    G.add_blank_func_as_prop('toString', object_prototype, object_to_string)
-    G.add_blank_func_as_prop('toLocaleString', object_prototype, object_to_string)
+    G.add_blank_func_as_prop('toString', object_prototype, object_p_to_string)
+    G.add_blank_func_as_prop('toLocaleString', object_prototype, object_p_to_string)
     G.add_blank_func_as_prop('valueOf', object_prototype, this_returning_func)
-    G.add_blank_func_as_prop('hasOwnProperty', object_prototype, blank_func)
+    G.add_blank_func_as_prop('hasOwnProperty', object_prototype, object_p_has_own_property)
 
     # function built-in functions
     G.add_blank_func_as_prop('call', function_prototype, function_p_call)
     G.add_blank_func_as_prop('apply', function_prototype, function_p_apply)
     G.add_blank_func_as_prop('bind', function_prototype, function_p_bind)
+
+    G.add_obj_to_name('__opgWildcard', value=wildcard, scope=G.BASE_SCOPE)
 
 
 def setup_global_functions(G: Graph):
@@ -534,7 +544,91 @@ def array_p_join(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=Nod
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
 
 
-def array_constructor(G: Graph, caller_ast, extra, _, length: NodeHandleResult, *args):
+def array_p_reduce(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callback: NodeHandleResult,
+    initial_values=None):
+    returned_objs = []
+    returned_values = []
+    returned_value_sources = []
+    for arr in arrays.obj_nodes:
+        # wildcard_elems = G.get_prop_obj_nodes(arr, wildcard, extra.branches)
+        length_objs = G.get_prop_obj_nodes(arr, 'length')
+        if len(length_objs) != 1:
+            length = wildcard
+        else:
+            try:
+                length = int(G.get_node_attr(length_objs[0]).get('code'))
+            except (ValueError, TypeError) as e:
+                logger.error(e)
+                length = wildcard
+        if initial_values is None:
+            accumulator = NodeHandleResult(obj_nodes=G.get_prop_obj_nodes(arr, '0', extra.branches))
+            start = 1
+        else:
+            accumulator = initial_values
+            start = 0
+        returns = None
+        if length != wildcard:
+            for i in range(start, length):
+                returns = objectGraphGenerator.call_function(G, callback.obj_nodes,
+                    args=[accumulator, NodeHandleResult(
+                        obj_nodes=G.get_prop_obj_nodes(arr, str(i), extra.branches)),
+                        NodeHandleResult(values=[i], value_sources=[[arr]]),
+                        NodeHandleResult(obj_nodes=[arr])],
+                    extra=extra, caller_ast=caller_ast)[0]
+                accumulator = returns
+        else:
+            for name_node in G.get_prop_name_nodes(arr):
+                name = G.get_node_attr(name_node).get('name')
+                if name in ['length', '__proto__', 'constructor']:
+                    continue
+                if start == 1 and str(name) == '0':
+                    continue
+                returns = objectGraphGenerator.call_function(G, callback.obj_nodes,
+                    args=[accumulator, NodeHandleResult(
+                        obj_nodes=G.get_objs_by_name_node(name_node, extra.branches)),
+                        NodeHandleResult(values=[name], value_sources=[[arr]]),
+                        NodeHandleResult(obj_nodes=[arr])],
+                    extra=extra, caller_ast=caller_ast)[0]
+                accumulator = returns
+        if returns is not None:
+            returned_objs.extend(returns.obj_nodes)
+            returned_values.extend(returns.values)
+            returned_value_sources.extend(returns.value_sources)
+    return NodeHandleResult(obj_nodes=returned_objs, values=returned_values, value_sources=returned_value_sources)
+        
+
+def array_p_map(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callback: NodeHandleResult,
+    this_args=None):
+    if this_args is None:
+        this_args = NodeHandleResult(obj_nodes=[G.undefined_obj])
+    returned_arrs = []
+    for arr in arrays.obj_nodes:
+        new_arr = G.add_obj_node(caller_ast, 'array')
+        for name_node in G.get_prop_name_nodes(arr):
+            name = G.get_node_attr(name_node).get('name')
+            if name in ['__proto__', 'constructor']:
+                continue
+            if name == 'length':
+                for o in G.get_objs_by_name_node(name_node, extra.branches):
+                    G.add_obj_as_prop(name, parent_obj=new_arr, tobe_added_obj=o)
+                continue
+            returned = objectGraphGenerator.call_function(G, callback.obj_nodes,
+                args=[NodeHandleResult(obj_nodes=G.get_objs_by_name_node(name_node, extra.branches)),
+                    NodeHandleResult(value=[name], value_sources=[[arr]]),
+                    NodeHandleResult(obj_nodes=[arr])],
+                this=this_args,
+                extra=extra, caller_ast=caller_ast)[0]
+            new_elem_objs = to_obj_nodes(G, returned, caller_ast)
+            for o in new_elem_objs:
+                G.add_obj_as_prop(name, parent_obj=new_arr, tobe_added_obj=o)
+                # we don't add element-level CONTRIBUTES_TO here
+        returned_arrs.append(new_arr)
+        add_contributes_to(G, [arr], new_arr)
+    return NodeHandleResult(obj_nodes=returned_arrs, used_objs=arrays.obj_nodes)
+                
+
+
+def array_constructor(G: Graph, caller_ast, extra, _, length=NodeHandleResult(values=[0]), *args):
     lengths, length_sources, _ = to_values(G, length)
     returned_objs = []
     used_objs = list(set(chain(*length_sources)))
@@ -671,12 +765,28 @@ def array_p_entries(G: Graph, caller_ast, extra, this: NodeHandleResult, for_arr
     return object_entries(G, caller_ast, extra, None, this, for_array=True)
 
 
-def object_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult, 
+def array_is_array(G: Graph, caller_ast, extra, _, arrs: NodeHandleResult, *args):
+    returned_objs = []
+    returned_values = []
+    for arr in arrs.obj_nodes:
+        # if G.get_node_attr(arr).get('code') == wildcard:
+        #     if wildcard not in returned_values:
+        #         returned_values.append(wildcard)
+        if G.get_node_attr(arr).get('type') == 'array':
+            if G.true_obj not in returned_objs:
+                returned_objs.append(G.true_obj)
+        else:
+            if G.false_obj not in returned_objs:
+                returned_objs.append(G.false_obj)
+    return NodeHandleResult(values=returned_values, obj_nodes=returned_objs)
+
+
+def object_p_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult, 
         *args):
     returned_objs = []
     for obj in this.obj_nodes:
-        value = G.get_node_attr(obj).get('code')
-        string = G.add_obj_node(caller_ast, 'string', value)
+        # value = G.get_node_attr(obj).get('code')
+        string = G.add_obj_node(caller_ast, 'string', '[object Object]')
         add_contributes_to(G, [obj], string)
         returned_objs.append(string)
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=this.obj_nodes)
@@ -692,10 +802,20 @@ def object_create(G: Graph, caller_ast, extra, _, proto=NodeHandleResult()):
 
 
 def object_is(G: Graph, caller_ast, extra, _, value1: NodeHandleResult, value2: NodeHandleResult):
-    if value1.obj_nodes == value2.obj_nodes:
-        return NodeHandleResult(obj_nodes=G.true_obj)
+    if set(value1.obj_nodes) == set(value2.obj_nodes) and \
+            set(value1.values) == set(value2.values):
+        return NodeHandleResult(obj_nodes=[G.true_obj])
     else:
-        return NodeHandleResult(obj_nodes=G.false_obj)
+        return NodeHandleResult(obj_nodes=[G.false_obj])
+
+
+# def object_get_own_property_symbols(G: Graph, caller_ast, extra, _, *args):
+#     return NodeHandleResult(obj_nodes=[G.false_obj])
+
+
+def object_p_has_own_property(G: Graph, caller_ast, extra, this, *args):
+    return NodeHandleResult(obj_nodes=[G.true_obj])
+
 
 
 def function_p_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
@@ -783,6 +903,22 @@ def boolean_returning_func(G: Graph, caller_ast, extra, _, *args):
         used_objs.update(arg.obj_nodes)
         # used_objs.update(arg.used_objs)
     return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj], used_objs=list(used_objs))
+
+
+def object_constructor(G: Graph, caller_ast, extra, _, *args):
+    returned_obj = G.add_obj_node(caller_ast)
+    used_objs = chain(*[arg.obj_nodes for arg in args])
+    add_contributes_to(G, used_objs, returned_obj)
+    return NodeHandleResult(obj_nodes=[returned_obj], used_objs=list(used_objs))
+
+
+def number_constructor(G: Graph, caller_ast, extra, _, *args):
+    returned_obj = G.add_obj_node(caller_ast, None)
+    G.add_obj_as_prop('__proto__', parent_obj=returned_obj, tobe_added_obj=G.number_prototype)
+    G.add_obj_as_prop('constructor', parent_obj=returned_obj, tobe_added_obj=G.number_cons)
+    used_objs = chain(*[arg.obj_nodes for arg in args])
+    add_contributes_to(G, used_objs, returned_obj)
+    return NodeHandleResult(obj_nodes=[returned_obj], used_objs=list(used_objs))
 
 
 def setup_global_objs(G: Graph):
@@ -1413,6 +1549,7 @@ def setup_math(G: Graph):
     math_obj = G.add_obj_to_scope('Math', scope=G.BASE_SCOPE)
     G.add_blank_func_as_prop('max', math_obj, math_max)
     G.add_blank_func_as_prop('min', math_obj, math_min)
+    G.add_blank_func_as_prop('sqrt', math_obj, math_sqrt)
 
 
 def math_max(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
@@ -1482,3 +1619,22 @@ def math_min(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
         logger.debug(f'returned values: {returned_values}')
         return NodeHandleResult(values=returned_values, 
                                 value_sources=returned_sources)
+
+
+def math_sqrt(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
+    xs, sources, _ = to_values(G, args[0], for_prop=True)
+    returned_values = []
+    returned_sources = []
+    for i, x in enumerate(xs):
+        if x == wildcard:
+            returned_values.append(wildcard)
+            returned_sources.append(sources[i])
+            continue
+        try:
+            x = float(x)
+        except (ValueError, TypeError) as e:
+            x = float('nan')
+        returned_values.append(math.sqrt(x))
+        returned_sources.append(sources[i])
+    return NodeHandleResult(values=returned_values, value_sources=returned_sources)
+    
