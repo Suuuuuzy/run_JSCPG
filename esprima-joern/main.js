@@ -1692,7 +1692,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     nodeIdCounter++;
                     relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                     dfs(currentNode.callee.property, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, {
-                        doNotUseVar: true
+                        doNotUseVar: !currentNode.callee.computed
                     });
                 } else if (currentNode.callee.type == 'Identifier') {
                     nodeIdCounter++; // virtual Callee node
