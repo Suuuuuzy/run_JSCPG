@@ -121,7 +121,9 @@ def main():
             # analyze from CSVs
             G.import_from_CSV("./nodes.csv", "./rels.csv")
             generate_obj_graph(G, '0')
-    G.get_total_num_statements()
+    total_num_stat = G.get_total_num_statements()
+    print("Statements:", len(G.covered_stat), total_num_stat)
+    print("Functions:", len(G.covered_func), G.get_total_num_functions())
     # G.relabel_nodes()
     G.export_to_CSV("./testnodes.csv", "./testrels.csv")
     logger.log(ATTENTION, 'Analysis finished at ' +
