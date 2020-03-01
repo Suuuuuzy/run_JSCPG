@@ -17,12 +17,17 @@ from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
+sys.path.append("../../JStap/pdg_generation/")
+from build_cpg_csv import DFG_generator
+import core.scanner as njsscan
+
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
-#root_path = "/media/data2/song/vulPackages/path_traversal/"
-root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
-#root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
-#root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
+#root_path = "/media/data2/song/random/"
+os_command_root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
+code_exec_root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
+path_traversal_root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
+#root_path = "/media/data2/song/vulPackages/code_exec/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
 #root_path = "/media/data/lsong18/data/vulPackages/command_injection/"
 #root_path = "/media/data/lsong18/data/vulPackages/packages/"
@@ -32,8 +37,6 @@ skip_packages = []
 args = None
 
 npm_test_logger = create_logger("npmtest", output_type = "file", level=10, file_name="npmtest.log")
-npm_res_logger = create_logger("npmres", output_type = "file", level=10, file_name="npmres.log")
-npm_success_logger = create_logger("npmsuccess", output_type = "file", level=10, file_name="npmsuccess.log")
 npm_run_logger = create_logger("npmrun", output_type = "file", level=10, file_name="npmrun.log")
 
 def validate_package(package_path):
@@ -94,6 +97,7 @@ def get_entrance_files_of_package(package_path, get_all=False):
     entrance_files = []
     package_json_path = os.path.join(package_path, 'package.json')
     main_files = []
+
     if not validate_package(package_path):
         print("ERROR: {} do not exist".format(package_json_path)) 
         return None
@@ -317,6 +321,8 @@ def main(cur_no, num_split):
     argparser.add_argument('-f', '--function-timeout', type=float)
     argparser.add_argument('-s', '--single-branch', action='store_true')
     argparser.add_argument('root_path', action='store', nargs='?')
+    argparser.add_argument('-w', '--work')
+
     args = argparser.parse_args()
 
     chunk_detail = args.c
@@ -331,11 +337,19 @@ def main(cur_no, num_split):
         create_logger("npmtest", output_type="console",
             level=logging.DEBUG)
         G.print = True
+
     if args.root_path is not None:
         root_path = args.root_path
+    else:
+        if args.vul_type == 'os_command':
+            root_path = os_command_root_path
+        elif args.vul_type == 'path_traversal':
+            root_path = path_traversal_root_path
+        elif args.vul_type == 'code_exec':
+            root_path = code_exec_root_path
 
     testing_packages = []
-    #testing_packages = ['unicorn-list@1.0.4']
+    # testing_packages = ['wizard-syncronizer@0.0.1']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, start_id=0, size=300000)
     else:
@@ -351,6 +365,13 @@ def main(cur_no, num_split):
     #vul_type = 'os_command'
     vul_type = 'proto_pollution'
     timeout = 120
+
+    # jsTap
+    jstap_vul_sink_map = {
+        "os_command": ["exec", "execFile", "execSync", "spawn", "spa    wnSync"],
+        "code_exec": ["exec", "eval", "execFile"],
+        "path_traversal": ["end", "write"]
+    }
 
     if args.vul_type is not None:
         vul_type = args.vul_type
@@ -379,6 +400,9 @@ def main(cur_no, num_split):
         if worker_id == num_workers - 1:
             end_id = total_cnt 
 
+    npm_res_logger = create_logger("npmres", output_type = "file", level=10, file_name="npmres_{}_{}.log".format(args.work, vul_type))
+    npm_success_logger = create_logger("npmsuccess", output_type = "file", level=10, file_name="npmsuccess_{}_{}.log".format(args.work, vul_type))
+
     # print(total_cnt, worker_id, num_workers, start_id, end_id)
     packages = packages[start_id: end_id]
     tqdm_bar = tqdm(packages)
@@ -393,8 +417,46 @@ def main(cur_no, num_split):
         tqdm_bar.refresh()
         ret_value = 100
         result = []
+
         try:
-            result = func_timeout(timeout, test_package, args=(package, vul_type))
+            # for jsopg
+            if args.work is None or args.work == 'jsopg':
+                result = func_timeout(timeout, test_package, args=(package, vul_type))
+            # for jstap
+            elif args.work == 'jstap':
+                dfg_generator = DFG_generator(package,
+                sink_funcs=jstap_vul_sink_map[vul_type])
+                result = func_timeout(timeout,
+                    dfg_generator.check_all_files)
+                result = sum([len(result[k]) for k in result])
+                if result != 0:
+                    result = [1]
+                else:
+                    result = [0]
+
+            # for nodejsscan
+            elif args.work == 'njsscan':
+                result = njsscan.scan_dirs([package])
+                security_issues = result['sec_issues']
+                jsscan_cur_res = False
+                for key in security_issues:
+                    if vul_type == "os_command" and \
+                        ("Code Injection" in key or "Command Execution" in key):
+                        jsscan_cur_res = True
+                        break
+                    elif vul_type == "code_exec" and \
+                        ("Code Injection" in key or "Command Execution" in key):
+                        jsscan_cur_res = True
+                        break
+                    elif vul_type == "path_traversal" and "Traversal" in key:
+                        jsscan_cur_res = True
+                        break
+
+                if jsscan_cur_res:
+                    result = [1]
+                else:
+                    result = [0]
+
         except FunctionTimedOut:
             npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))
             skip_list.append(package)
@@ -404,7 +466,7 @@ def main(cur_no, num_split):
             print(e)
             # tb.print_exc()
 
-        print(result)
+        print('Result:', result)
         if 1 in result:
             success_list.append(package)
             npm_success_logger.info("{} successfully found in {}".format(vul_type, package))

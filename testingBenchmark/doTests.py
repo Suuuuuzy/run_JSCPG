@@ -4,6 +4,7 @@ import os
 from tqdm import tqdm
 import sys
 import sklearn.metrics as SM
+import json
 import core.scanner as njsscan
 sys.path.append("..")
 from npmtest.multi_run_helper import *
@@ -14,25 +15,37 @@ testing_benchmark_logger = create_logger("testing_benchmark", output_type = "fil
         level=10, file_name="testing_benchmark.log")
 
 class BenchMark():
-
     def __init__(self):
         self.command_injection_dir = "/media/data2/song/vulPackages/updated_databases/command_injection/"
-        self.code_exec_dir = "/media/data2/song/vulPackages/code_exec/"
+        self.code_exec_dir = "/media/data2/song/vulPackages/updated_databases/code_exec/"
         self.path_traversal_dir = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
-        #self.prototype_pollution_dir = "/media/data2/song/vulPackages/prototype_pollution/"
+        self.prototype_pollution_dir = "/media/data2/song/vulPackages/updated_databases/prototype_pollution/"
         self.all_package_dir = "/media/data2/song/npmpackages/"
 
-        self.all_package_dir_num = 70
+        self.all_package_dir_num = 100
         self.location_number_map = {
-                self.command_injection_dir: 30,
-                self.code_exec_dir: 30,
-                self.path_traversal_dir: 30
+                self.code_exec_dir: 300,
+                self.command_injection_dir: 300,
+                self.path_traversal_dir: 300
                 }
         self.dir_vul_map = {
                 self.command_injection_dir: "os_command",
                 self.code_exec_dir: "code_exec",
                 self.path_traversal_dir: "path_traversal"
                 }
+        self.tested_packages = {}
+        try:
+            self.load_tested("tested_packages.json")
+        except:
+            print("Load tested packages error")
+
+    def load_tested(self, path):
+        """
+        load a json file
+        """
+        self.tested_packages = json.load(open(path, 'r'))
+        print("Loaded tested: {}".format(self.tested_packages))
+        return self.tested_packages
 
     def generateDatabase(self, location_number_map={}):
         """
@@ -103,7 +116,11 @@ class BenchMark():
                 in each dir
         """
         testing_tools = ['nodejsscan', 'jsopg', 'jstap']
-        timeout = 120
+
+        for t in testing_tools:
+            self.tested_packages[t] = {}
+
+        timeout = 240
         res_list = {}
         success_cnt = {}
         timeout_cnt = {}
@@ -121,6 +138,39 @@ class BenchMark():
                 success_cnt[tool][sub_package_list] = 0
 
             for package in package_list[sub_package_list]:
+                package_tested = False
+                for t in testing_tools:
+                    if t in self.tested_packages and \
+                        package in self.tested_packages[t] and \
+                        vul_type in self.tested_packages[t][package]:
+                        if self.tested_packages[t][package][vul_type]:
+                            success_cnt[t][sub_package_list] += 1
+                        package_tested = True
+                    else:
+                        self.tested_packages[t][package] = {}
+                if package_tested:
+                    print("{} tested".format(package))
+                    continue
+
+                # jsTap
+                jstap_vul_sink_map = {
+                        "os_command": ["exec", "execFile", "execSync", "spawn", "spawnSync"],
+                        "code_exec": ["exec", "eval", "execFile"],
+                        "path_traversal": ["end", "write"]
+                        }
+                dfg_generator = DFG_generator(package, 
+                        sink_funcs=jstap_vul_sink_map[vul_type])
+                try:
+                    jstap_res = func_timeout(timeout, 
+                        dfg_generator.check_all_files)
+                except FunctionTimedOut:
+                    jstap_res = None
+
+                if jstap_res and sum([len(jstap_res[k]) for k in jstap_res]) != 0:
+                    success_cnt['jstap'][sub_package_list] += 1
+                    self.tested_packages['jstap'][package][vul_type] = True
+                else:
+                    self.tested_packages['jstap'][package][vul_type] = False
 
                 # jsTap
                 jstap_vul_sink_map = {
@@ -142,26 +192,34 @@ class BenchMark():
                 # nodejsscan
                 jsscan_res = {}
                 jsscan_res = njsscan.scan_dirs([package])
+                jsscan_cur_res = False
 
                 security_issues= jsscan_res['sec_issues']
                 res_list['nodejsscan'][sub_package_list][package] = security_issues
                 for key in security_issues:
                     if vul_type == "os_command" and \
                         ("Code Injection" in key or "Command Execution" in key):
-                        success_cnt['nodejsscan'][sub_package_list] += 1
+                        jsscan_cur_res = True
                         break
                     elif vul_type == "code_exec" and "Command Execution" in key:
-                        success_cnt['nodejsscan'][sub_package_list] += 1
+                        jsscan_cur_res = True
                         break
                     elif vul_type == "path_traversal" and "Traversal" in key:
-                        success_cnt['nodejsscan'][sub_package_list] += 1
+                        jsscan_cur_res = True
                         break
+
+                if jsscan_cur_res:
+                    success_cnt['nodejsscan'][sub_package_list] += 1
+                    self.tested_packages['nodejsscan'][package][vul_type] = True
+                else:
+                    self.tested_packages['nodejsscan'][package][vul_type] = False
 
                 # jsopg
                 jsopg_res = self.jsopg_test(package, vul_type, timeout=timeout)
                 if type(jsopg_res) == list and 1 in jsopg_res:
                     res_list['jsopg'][sub_package_list][package] = 1
                     success_cnt['jsopg'][sub_package_list] += 1
+                    self.tested_packages['jsopg'][package][vul_type] = True
                 elif jsopg_res == 2:
                     timeout_cnt['jsopg'][sub_package_list] += 1
                     res_list['jsopg'][sub_package_list][package] = 2
@@ -169,6 +227,11 @@ class BenchMark():
                     res_list['jsopg'][sub_package_list][package] = 3
                 else:
                     res_list['jsopg'][sub_package_list][package] = 4
+                if vul_type not in self.tested_packages['jsopg'][package]:
+                    self.tested_packages['jsopg'][package][vul_type] = False
+
+                with open("tested_packages.json", 'w') as json_file:
+                    json.dump(self.tested_packages, json_file)
 
         return res_list, timeout_cnt, success_cnt
 
@@ -179,6 +242,7 @@ class BenchMark():
         res_matrix = {}
         for key in success_cnt:
             res_matrix[key] = {}
+            self.all_package_dir_num = self.location_number_map[vul_dir]
 
             res_matrix[key]['tp'] = success_cnt[key][vul_dir]
             res_matrix[key]['fp'] = success_cnt[key][self.all_package_dir]
@@ -206,16 +270,25 @@ class BenchMark():
     def main(self):
         for sub_dir in self.location_number_map:
             tmp_map = {}
-            tmp_map[self.all_package_dir] = self.all_package_dir_num
-            tmp_map[sub_dir] = self.location_number_map[sub_dir]
+
+            cur_list = get_list_of_packages(sub_dir)
+            cur_list_len = len(cur_list)
+
+            tmp_map[self.all_package_dir] = min(self.all_package_dir_num, 
+                    cur_list_len)
+            tmp_map[sub_dir] = min(self.location_number_map[sub_dir], 
+                    cur_list_len)
+
+            # rebuild the number of sub dir
+            self.location_number_map[sub_dir] = tmp_map[sub_dir]
 
             testing_database = self.generateDatabase(location_number_map=tmp_map)
-
-            testing_benchmark_logger.info("Seletected testing dataset: {}".format(
-                testing_database))
+            #testing_benchmark_logger.info("Seletected testing dataset: {}".format(
+            #    testing_database))
 
             res_list, timeout_cnt, success_cnt = self.run_tests(testing_database, 
                     vul_type=self.dir_vul_map[sub_dir])
+            testing_benchmark_logger.info("Vul Type: {}".format(self.dir_vul_map[sub_dir]))
             testing_benchmark_logger.info("results: {}".format(res_list))
             testing_benchmark_logger.info("timeout: {}".format(timeout_cnt))
             testing_benchmark_logger.info("success_cnt: {}".format(success_cnt))
@@ -225,4 +298,8 @@ class BenchMark():
                 testing_benchmark_logger.info("{}; {}".format(key, res_matrix[key]))
 
 benchMark = BenchMark()
-benchMark.main()
+#benchMark.main()
+generated = benchMark.generateDatabase(location_number_map = {"/media/data2/song/npmpackages/": 20})
+for package in generated:
+    for p in generated[package]:
+        print("cp -r {} {};".format(p, "/media/data2/song/random/"))
