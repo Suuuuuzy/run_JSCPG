@@ -348,15 +348,16 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
         # conservative: only if all property names are unknown,
         # we fetch all properties
         # (including __proto__ for prototype pollution detection)
+        # logger.debug('All property names are unknown, fetching all properties')
     if G.check_proto_pollution and wildcard in prop_names:
         # agressive: if any property name is unknown, we fetch all properties
-        logger.debug('All property names are unknown, fetching all properties')
+        logger.debug('One of property names is unknown, fetching all properties')
         for parent_obj in parent_objs:
             prop_name_nodes.update(G.get_prop_name_nodes(parent_obj))
             objs = G.get_prop_obj_nodes(parent_obj, branches=branches,
                 exclude_proto=False)
-            objs = filter(lambda obj: G.get_node_attr(obj).get('type')
-                                                        != 'function', objs)
+            objs = filter(lambda obj: obj in G.builtin_constructors or
+                          G.get_node_attr(obj).get('type') != 'function', objs)
             prop_obj_nodes.update(objs)
             if is_wildcard_obj(G, parent_obj) and not G.get_prop_obj_nodes(
                     parent_obj, wildcard, extra.branches):
@@ -2060,6 +2061,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         for obj in arg.obj_nodes:
             if G.get_node_attr(obj).get('type') == 'function':
                 callback_functions.add(obj)
+    callback_functions = list(callback_functions)
 
     # if the function declaration has multiple possibilities,
     # and need to merge afterwards
@@ -2086,6 +2088,10 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     any_func_run = False
     # if any function is skipped in this call
     any_func_skipped = False
+
+    # manage branches
+    branches = extra.branches
+    parent_branch = branches.get_last_choice_tag()
 
     # for each possible function declaration
     for i, func_obj in enumerate(func_objs):
@@ -2130,7 +2136,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         python_func = G.get_node_attr(func_obj).get('pythonfunc')
         if python_func: # special Python function
             if is_new:
-                if func_obj in []:
+                if func_obj in G.builtin_constructors:
                     logger.log(ATTENTION, f'Running Python function {func_obj} {python_func}...')
                     try:
                         h = python_func(G, caller_ast, ExtraInfo(extra,
@@ -2295,6 +2301,12 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             G.cur_scope = backup_scope
             G.cur_stmt = backup_stmt
 
+            # delete "arguments" (avoid parent explosion)
+            for name_node in G.get_prop_name_nodes(arguments_obj):
+                for obj_node in G.get_child_nodes(name_node, edge_type='NAME_TO_OBJ'):
+                    G.remove_all_edges_between(name_node, obj_node)
+                G.remove_all_edges_between(arguments_obj, name_node)
+
             # if it's an unmodeled built-in function
             if G.get_node_attr(func_ast).get('labels:label') \
                 == 'Artificial_AST':
@@ -2358,7 +2370,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             in ['AST_FUNC_DECL', 'AST_CLOSURE']:
             G.add_edge_if_not_exist(caller_ast, func_ast, {"type:TYPE": "CALLS"})
 
-    if has_branches and not G.single_branch:
+    if has_branches and not G.single_branch and any_func_run:
         merge(G, stmt_id, len(func_objs), parent_branch)
 
     if not any_func_run:

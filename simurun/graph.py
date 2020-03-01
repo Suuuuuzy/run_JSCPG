@@ -205,8 +205,11 @@ class Graph:
         return result
 
     def remove_all_edges_between(self, u, v):
-        while self.graph.has_edge(u, v):
-            self.graph.remove_edge(u, v)
+        while True:
+            try:
+                self.graph.remove_edge(u, v)
+            except nx.NetworkXError:
+                break
 
     def get_successors(self, node_id):
         return self.graph.successors(node_id)
@@ -815,7 +818,7 @@ class Graph:
             list: list of object nodes.
         '''
         # if var_name == 'this':    # "this" will be handled in handle_node
-        #     return [self.cur_obj]
+        #     return self.cur_objs
         name_node = self.get_name_node(var_name, scope)
         if name_node == None:
             return []
@@ -1332,11 +1335,18 @@ class Graph:
 
         self.BASE_OBJ = self.add_obj_to_scope(name='global',
                             scope=self.BASE_SCOPE, combined=False)
-        self.cur_obj = self.BASE_OBJ
+        self.cur_objs = [self.BASE_OBJ]
 
         # setup JavaScript built-in values
         self.null_obj = self.add_obj_to_scope(name='null', value='null',
                                               scope=self.BASE_SCOPE)
+
+        self.true_obj = self.add_obj_node(None, 'boolean', 'true')
+        self.add_obj_to_name('true', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.true_obj)
+        self.false_obj = self.add_obj_node(None, 'boolean', 'false')
+        self.add_obj_to_name('false', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.false_obj)
 
     def setup2(self):
         # self.tainted_user_input = self.add_obj_to_scope(
@@ -1358,12 +1368,6 @@ class Graph:
         self.nan_obj = self.add_obj_node(None, 'number', float('nan'))
         self.add_obj_to_name('NaN', scope=self.BASE_SCOPE,
                              tobe_added_obj=self.nan_obj)
-        self.true_obj = self.add_obj_node(None, 'boolean', 'true')
-        self.add_obj_to_name('true', scope=self.BASE_SCOPE,
-                             tobe_added_obj=self.true_obj)
-        self.false_obj = self.add_obj_node(None, 'boolean', 'false')
-        self.add_obj_to_name('false', scope=self.BASE_SCOPE,
-                             tobe_added_obj=self.false_obj)
 
         self.internal_objs = {
             'undefined': self.undefined_obj,
