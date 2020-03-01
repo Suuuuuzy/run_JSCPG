@@ -23,9 +23,9 @@ import core.scanner as njsscan
 
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
 #root_path = "/media/data2/song/random/"
-root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
-#root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
-#root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
+os_command_root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
+code_exec_root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
+path_traversal_root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
 #root_path = "/home/lsong18/projs/JSCPG/package_downloader/packages/"
 #root_path = "/media/data2/song/vulPackages/code_exec/"
 #root_path = "/home/lsong18/projs/JSCPG/test/"
@@ -337,8 +337,16 @@ def main(cur_no, num_split):
         create_logger("npmtest", output_type="console",
             level=logging.DEBUG)
         G.print = True
+
     if args.root_path is not None:
         root_path = args.root_path
+    else:
+        if args.vul_type == 'os_command':
+            root_path = os_command_root_path
+        elif args.vul_type == 'path_traversal':
+            root_path = path_traversal_root_path
+        elif args.vul_type == 'code_exec':
+            root_path = code_exec_root_path
 
     testing_packages = []
     # testing_packages = ['wizard-syncronizer@0.0.1']
@@ -436,7 +444,8 @@ def main(cur_no, num_split):
                         ("Code Injection" in key or "Command Execution" in key):
                         jsscan_cur_res = True
                         break
-                    elif vul_type == "code_exec" and "Command Execution" in key:
+                    elif vul_type == "code_exec" and \
+                        ("Code Injection" in key or "Command Execution" in key):
                         jsscan_cur_res = True
                         break
                     elif vul_type == "path_traversal" and "Traversal" in key:

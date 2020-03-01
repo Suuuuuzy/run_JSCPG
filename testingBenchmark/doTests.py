@@ -282,7 +282,7 @@ class BenchMark():
 
 benchMark = BenchMark()
 #benchMark.main()
-generated = benchMark.generateDatabase(location_number_map = {"/media/data2/song/npmpackages/": 100})
+generated = benchMark.generateDatabase(location_number_map = {"/media/data2/song/npmpackages/": 20})
 for package in generated:
     for p in generated[package]:
         print("cp -r {} {};".format(p, "/media/data2/song/random/"))
