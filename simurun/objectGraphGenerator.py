@@ -725,6 +725,11 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     cur_lineno = cur_node_attr['lineno:int']
     node_name = cur_node_attr.get('name') or G.get_name_from_child(node_id, 2)
     node_color = sty.fg.li_white + sty.bg.li_black
+    
+    # for code coverage
+    if G.is_statement(node_id):
+        G.covered_list.append(node_id)
+
     if G.get_node_attr(node_id).get('labels:label') == 'Artificial':
         node_color = sty.fg.li_white + sty.bg.red
     elif G.get_node_attr(node_id).get('labels:label') == 'Artificial_AST':
