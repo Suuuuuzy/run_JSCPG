@@ -830,7 +830,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             # used_objs.update(handle_res.used_objs)
             for obj in handle_res.obj_nodes:
                 add_contributes_to(G, [obj], added_obj)
-        return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs,
+        return NodeHandleResult(obj_nodes=[added_obj], used_objs=list(used_objs),
             callback=get_df_callback(G))
 
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME' or cur_type == 'AST_CONST':
@@ -2598,7 +2598,3 @@ def check_switch_var(G: Graph, ast_node, extra: ExtraInfo):
                 true_num += 0.5
                 deter_flag = False
     return total_num if total_num == 0 else true_num / total_num, deter_flag
-<<<<<<< HEAD
-=======
-
->>>>>>> 3593361... fxiing
