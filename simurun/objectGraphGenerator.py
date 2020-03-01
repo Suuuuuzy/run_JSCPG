@@ -489,6 +489,14 @@ def handle_assign(G, ast_node, extra=None, right_override=None):
     else:
         # normal assignment
         handled_left = handle_node(G, left, ExtraInfo(extra, side='left'))
+        # set function name
+        name = handled_left.name
+        if name and G.get_node_attr(right).get('type') in \
+            ['AST_FUNC_DECL', 'AST_CLOSURE']:
+            for func_obj in handled_right.obj_nodes:
+                old_name = G.get_node_attr(func_obj).get('name')
+                if not old_name or old_name == '{closure}':
+                    G.set_node_attr(func_obj, ('name', name))
         return do_assign(G, handled_left, handled_right, branches, ast_node)
 
 def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
@@ -512,7 +520,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
 
-    # print('parent is proto =', handled_left.parent_is_proto, 'name tainted =', handled_left.name_tainted)
+    print('parent is proto =', handled_left.parent_is_proto, 'name tainted =', handled_left.name_tainted)
 
     if G.check_proto_pollution and (handled_left.name_tainted and handled_left.parent_is_proto):
         flag1 = False
@@ -529,7 +537,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
             if G.get_node_attr(obj).get('tainted'):
                 flag2 = True
                 break
-        # print('right object is tainted =', flag2)
+        print('right object is tainted =', flag2)
         if flag2:
             name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)
                 .get('name')))) for x in handled_left.name_nodes]
@@ -1026,7 +1034,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 # if the condition is surely true
                 simurun_block(G, body, G.cur_scope, branches)
                 break
-            elif G.single_branch:
+            elif G.single_branch and possibility != 0:
                 simurun_block(G, body, G.cur_scope)
             elif not deterministic or possibility is None or 0 < possibility < 1:
                 # if the condition is unsure
@@ -1175,7 +1183,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                         key_obj = G.add_obj_node(ast_node=node_id,
                             js_type='string', value=k)
                         add_contributes_to(G, [obj], key_obj)
-                    logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{key_obj}{sty.rs.all}: {k}'
+                    print(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{key_obj}{sty.rs.all}: {k}'
                         f' from obj {obj}')
                     G.for_stack.append('for-in {} {} {} in {}'.format(node_id, handled_key.name, k, obj))
                     # print(G.for_stack)
@@ -1184,7 +1192,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     # run the body
                     simurun_block(G, body, branches=extra.branches)
                     G.for_stack.pop()
-                logger.debug('For-in loop {} finished'.format(node_id))
+                print('For-in loop {} finished'.format(node_id))
             elif G.get_node_attr(node_id).get('flags:string[]') == 'JS_FOR_OF':
                 # handle and declare the loop variable
                 handled_value = handle_node(G, value, extra)
@@ -1366,7 +1374,7 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
     if caller_ast is not None:
         if G.call_counter[caller_ast] >= G.call_limit:
             logger.warning(f'{caller_ast}: Function {func_ast} in call stack '
-                    f'{G.call_counter[caller_ast]} times, skip simulating')            
+                    f'{G.call_counter[caller_ast]} times, skip simulating')
             return None, None # don't change this to [], []
                               # we need to distinguish skipped functions
         else:
@@ -1959,7 +1967,10 @@ def ast_call_function(G, ast_node, extra):
                 # wildcard or fixed "object"?
                 elif (G.get_node_attr(obj).get('type') == 'object' and
                     G.get_node_attr(obj).get('code') == wildcard):
-                    types[wildcard].append(obj)
+                    # types[wildcard].append(obj)
+                    types['object'].append(obj)
+                    types['string'].append(obj)
+                    types['number'].append(obj)
                 else:
                     types[G.get_node_attr(obj).get('type')].append(obj)
             for i, val in enumerate(handled_args[0].values):
@@ -2024,7 +2035,7 @@ def ast_call_function(G, ast_node, extra):
     return returned_result
 
 def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
-    caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}',
+    caller_ast=None, is_new=False, stmt_id='Unknown', func_name=None,
     mark_fake_args=False):
     '''
     Directly call a function.
@@ -2072,8 +2083,15 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     # and need to merge afterwards
     has_branches = (len(func_objs) > 1 and not G.single_branch)
 
+    # process function name
+    if not func_name:
+        if func_objs:
+            func_name = G.get_node_attr(func_objs[0]).get('name')
+    if not func_name:
+        func_name = '{anonymous}'
+
     G.call_stack.append('{} {} {}'.format(caller_ast, func_name, len(func_objs)))
-    # print(G.call_stack)
+    print(len(G.call_stack), G.call_stack)
 
     if stmt_id == 'Unknown' and caller_ast is not None:
         stmt_id = caller_ast
@@ -2093,7 +2111,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     any_func_run = False
     # if any function is skipped in this call
     any_func_skipped = False
-
+    
     # manage branches
     branches = extra.branches
     parent_branch = branches.get_last_choice_tag()
@@ -2124,9 +2142,6 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             continue
         any_func_run = True
 
-        # manage branches
-        branches = extra.branches
-        parent_branch = branches.get_last_choice_tag()
         # if branches exist, add a new branch tag to the list
         if has_branches and not G.single_branch:
             next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
@@ -2185,6 +2200,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             # add "arguments" array
             arguments_obj = G.add_obj_to_scope(name='arguments',
                     js_type='array', scope=func_scope, ast_node=func_ast)
+            logger.debug(f'arguments obj node {arguments_obj}')
             j = 0
             while j < len(params) or j < len(_args) or j < 3:
                 if j < len(_args):
@@ -2382,6 +2398,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         logger.error('Error: No function was run during this function call')
 
     G.call_stack.pop()
+    print(len(G.call_stack), G.call_stack)
 
     return NodeHandleResult(obj_nodes=list(returned_objs),
             used_objs=list(used_objs),
@@ -2414,10 +2431,10 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if node_attrs.get('type') == 'object' and node_attrs.get('code') == wildcard:
             for e1 in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
                 for e2 in G.get_in_edges(e1[0], edge_type='OBJ_TO_PROP'):
-                    # logger.debug("{}-----{}".format(cur_stmt, used_objs))
                     if e2[0] not in used_obj_set:
                         used_objs.append(e2[0])
                         used_obj_set.add(e2[0])
+                        logger.debug("{}-----{}-----{}".format(obj, e1[0], e2[0]))
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
         # print("?", cur_stmt, used_objs, def_ast_node)
