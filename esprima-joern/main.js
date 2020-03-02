@@ -607,6 +607,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                         phptype = 'AST_ASSIGN_OP';
                         phpflag = 'BINARY_DIV';
                         break;
+                    default:
+                        phptype = 'AST_ASSIGN_OP';
+                        break;
                 }
             } else if (currentNode.type == 'BinaryExpression') {
                 phptype = 'AST_BINARY_OP';
@@ -1681,7 +1684,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 relsStream.push([vCalleeId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                 dfs(currentNode.callee, nodeIdCounter, vCalleeId, 0, currentFunctionId, null);
             } else if (outputStyle == 'php') {
-                if (currentNode.callee.type == 'MemberExpression') {
+                if (currentNode.callee.type == 'MemberExpression' && currentNode.type != 'NewExpression') {
                     // if it's a member function call, we need to convert it to the PHP format
                     phptype = 'AST_METHOD_CALL';
                     nodeIdCounter++;
@@ -2673,9 +2676,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             break;
         case 'CatchClause':
             // make a virtual AST_NAME_LIST node
-            nodeIdCounter++;
-            relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            nodes[nodeIdCounter] = {
+            let vAstNameListId = ++nodeIdCounter;
+            relsStream.push([currentId, vAstNameListId, parentOf].join(delimiter) + '\n');
+            nodes[vAstNameListId] = {
                 label: 'AST_V',
                 type: 'AstNameList',
                 phptype: 'AST_NAME_LIST',
@@ -2687,9 +2690,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 funcId: currentFunctionId
             };
             // make a virtual AST_NAME node
-            nodeIdCounter++;
-            relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            nodes[nodeIdCounter] = {
+            let vAstNameId = ++nodeIdCounter;
+            relsStream.push([vAstNameListId, vAstNameId, parentOf].join(delimiter) + '\n');
+            nodes[vAstNameId] = {
                 label: 'AST_V',
                 type: 'AstName',
                 phptype: 'AST_NAME',
@@ -2703,7 +2706,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
             };
             // make a virtual string node
             nodeIdCounter++;
-            relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+            relsStream.push([vAstNameId, nodeIdCounter, parentOf].join(delimiter) + '\n');
             nodes[nodeIdCounter] = {
                 label: 'AST_V',
                 type: 'Literal',
@@ -2916,7 +2919,10 @@ function analyze(filePath, parentNodeId) {
             if (code === undefined || code === null) {
                 code = '';
             } else {
-                code = code.replace(/\n/g, '').replace(/\t/g, ' ').replace(/"/g, '""');
+                if (code.length > 1024){
+                    code = code.substr(0, 1024);
+                }
+                code = code.replace(/\n|\r/g, '').replace(/\t/g, ' ').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
                 code = '"' + code + '"';
             }
             nodesStream.push([i, label, u.phptype || u.type, u.phpflag || '',

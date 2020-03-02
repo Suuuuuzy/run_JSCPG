@@ -75,6 +75,11 @@ class Graph:
         self.vul_type = None
 
         csv.field_size_limit(2 ** 31 - 1)
+        class joern_dialect(csv.excel_tab):
+            def __init__(self):
+                super().__init__(self)
+                self.escapechar = '\\'
+        self.csv_dialect = joern_dialect
 
     # Basic graph operations
 
@@ -300,7 +305,7 @@ class Graph:
             raise e
 
         with io.StringIO(nodes) as fp:
-            reader = csv.DictReader(fp, delimiter='\t')
+            reader = csv.DictReader(fp, dialect=self.csv_dialect)
             for row in reader:
                 if 'id:ID' not in row:
                     continue
@@ -311,7 +316,7 @@ class Graph:
                     self.set_node_attr(cur_id, (attr, val))
 
         with io.StringIO(rels) as fp:
-            reader = csv.DictReader(fp, delimiter='\t')
+            reader = csv.DictReader(fp, dialect=self.csv_dialect)
             edge_list = []
             for row in reader:
                 attrs = dict(row)
@@ -330,7 +335,7 @@ class Graph:
 
     def import_from_CSV(self, nodes_file_name, rels_file_name, offset=0):
         with open(nodes_file_name) as fp:
-            reader = csv.DictReader(fp, delimiter='\t')
+            reader = csv.DictReader(fp, dialect=self.csv_dialect)
             for row in reader:
                 cur_id = row['id:ID']
                 self.add_node(cur_id)
@@ -339,7 +344,7 @@ class Graph:
                     self.set_node_attr(cur_id, (attr, val))
 
         with open(rels_file_name) as fp:
-            reader = csv.DictReader(fp, delimiter='\t')
+            reader = csv.DictReader(fp, dialect=self.csv_dialect)
             edge_list = []
             for row in reader:
                 attrs = dict(row)
@@ -359,7 +364,7 @@ class Graph:
         """
         with open(nodes_file_name, 'w') as fp:
             headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment']
-            writer = csv.DictWriter(fp, delimiter='\t', fieldnames=headers, extrasaction='ignore')
+            writer = csv.DictWriter(fp, dialect=self.csv_dialect, fieldnames=headers, extrasaction='ignore')
             writer.writeheader()
             nodes = list(self.graph.nodes(data = True))
             nodes.sort(key = lambda x: int(x[0]))
@@ -371,7 +376,7 @@ class Graph:
 
         with open(rels_file_name, 'w') as fp:
             headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
-            writer = csv.DictWriter(fp, delimiter='\t', fieldnames=headers, extrasaction='ignore')
+            writer = csv.DictWriter(fp, dialect=self.csv_dialect, fieldnames=headers, extrasaction='ignore')
             writer.writeheader()
             light_edge_type = ['FLOWS_TO', 'REACHES', 'OBJ_REACHES', 'ENTRY', 'EXIT']
             edges = []
