@@ -48,7 +48,8 @@ def validate_package(package_path):
         True or False
     """
     package_json_path = '{}/package.json'.format(package_path)
-    return os.path.exists(package_json_path)
+    index_path = os.path.join(package_path, 'index.js')
+    return os.path.exists(package_json_path) or os.path.exists(index_path)
     
 def get_list_of_packages(path, start_id=None, size=None):
     """
@@ -101,6 +102,10 @@ def get_entrance_files_of_package(package_path, get_all=False):
     if not validate_package(package_path):
         print("ERROR: {} do not exist".format(package_json_path)) 
         return None
+
+    if not os.path.exists(package_json_path):
+        index_path = os.path.join(package_path, 'index.js')
+        return [index_path]
 
     with open(package_json_path) as fp:
         package_json = {}
