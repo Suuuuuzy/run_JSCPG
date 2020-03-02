@@ -735,8 +735,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     node_color = sty.fg.li_white + sty.bg.li_black
     
     # for code coverage
-    if G.is_statement(node_id):
-        G.covered_list.append(node_id)
+    # if G.is_statement(node_id):
+    #     G.covered_list.append(node_id)
 
     if G.get_node_attr(node_id).get('labels:label') == 'Artificial':
         node_color = sty.fg.li_white + sty.bg.red
@@ -1001,7 +1001,11 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
 
     elif cur_type == 'AST_RETURN':
         returned_exp = G.get_ordered_ast_child_nodes(node_id)[0]
-        return handle_node(G, returned_exp, extra)
+        results = handle_node(G, returned_exp, extra)
+        print(f'Returns: {results} -> {G.function_returns[G.find_ancestor_scope()]}')
+        obj_nodes = to_obj_nodes(G, results, node_id)
+        G.function_returns[G.find_ancestor_scope()].extend(obj_nodes)
+        return results
     
     elif cur_type == 'AST_IF':
         # lineno = G.get_node_attr(node_id).get('lineno:int')
@@ -1062,18 +1066,27 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         branches = extra.branches
         parent_branch = branches.get_last_choice_tag()
         cases = G.get_ordered_ast_child_nodes(node_id)
+        default_is_deterministic = True
         for i, case in enumerate(cases):
             branch_tag = BranchTag(point=stmt_id, branch=str(i))
             test, body = G.get_ordered_ast_child_nodes(case)
+            if G.get_node_attr(test).get('type') == 'NULL': # default
+                if default_is_deterministic or G.single_branch:
+                    simurun_block(G, body, G.cur_scope, branches)
+                else:
+                    # not deterministic
+                    simurun_block(G, body, G.cur_scope, branches+[branch_tag])
             # handle_node(G, test, extra)
             p, d = check_switch_var(G, test, extra)
             # print('check result =', p, d)
             if d and p == 1:
                 simurun_block(G, body, G.cur_scope, branches,
                             block_scope=False)
+                break
             elif not d or 0 < p < 1:
                 simurun_block(G, body, G.cur_scope, branches+[branch_tag],
                             block_scope=False)
+                default_is_deterministic = False
             else:
                 continue
         if not G.single_branch:
@@ -1430,13 +1443,15 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         #     stmt_used_objs = handled_res.used_objs
         #     build_df_by_def_use(G, stmt, stmt_used_objs)
 
-        if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
-            stmt_returned_objs = to_obj_nodes(G, handled_res, ast_node=stmt)
-            stmt_used_objs = handled_res.used_objs
-            if stmt_returned_objs:
-                returned_objs.update(stmt_returned_objs)
-            if stmt_used_objs:
-                used_objs.update(stmt_used_objs)
+        # if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
+        #     stmt_returned_objs = to_obj_nodes(G, handled_res, ast_node=stmt)
+        #     stmt_used_objs = handled_res.used_objs
+        #     if stmt_returned_objs:
+        #         returned_objs.update(stmt_returned_objs)
+        #     if stmt_used_objs:
+        #         used_objs.update(stmt_used_objs)
+    returned_objs = G.function_returns[G.find_ancestor_scope()]
+    
     if block_scope:
         G.cur_scope = parent_scope
     
@@ -1797,7 +1812,7 @@ def handle_require(G: Graph, caller_ast, extra, _, module_names):
         vul_type = G.vul_type
         res_path = traceback(G, vul_type)
         res_path = vul_checking(G, res_path[0], vul_type)
-        if len(res_path) != 0:
+        if len(res_path) != 0 and G.vul_type != 'proto_pollution':
             G.finished = True
     return NodeHandleResult(obj_nodes=returned_objs,
                             used_objs=list(chain(*src)))
@@ -1832,6 +1847,15 @@ def run_exported_functions(G, module_exports_objs, extra):
     exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
     exported_objs += module_exports_objs
 
+    # if G.func_entry_point is not None:
+    #     objs = []
+    #     for obj in exported_objs:
+    #         attrs = G.get_node_attr(obj)
+    #         if attrs.get('type') == 'function' and \
+    #             attrs.get('name') == G.func_entry_point:
+    #             objs.append(obj)
+    #     exported_objs = objs
+
     #print("======================", module_exports_objs, exported_objs)
     # if len(exported_objs) == 0:
         # we only have one exported funcs
@@ -1851,6 +1875,10 @@ def run_exported_functions(G, module_exports_objs, extra):
             parent_obj = obj
 
         if 'pythonfunc' in G.get_node_attr(obj):
+            continue
+        if G.func_entry_point is not None and not (
+            G.get_node_attr(obj).get('type') == 'function' and
+            G.get_node_attr(obj).get('name') == G.func_entry_point):
             continue
 
         if obj in G.require_obj_stack:
@@ -1971,6 +1999,7 @@ def ast_call_function(G, ast_node, extra):
                     types['object'].append(obj)
                     types['string'].append(obj)
                     types['number'].append(obj)
+                    types['boolean'].append(obj)
                 else:
                     types[G.get_node_attr(obj).get('type')].append(obj)
             for i, val in enumerate(handled_args[0].values):
@@ -2596,8 +2625,8 @@ def is_wildcard_obj(G, obj):
             attrs.get('code')== wildcard)
 
 def check_switch_var(G: Graph, ast_node, extra: ExtraInfo):
-    left_values = to_values(G, extra.switch_var, ast_node)[0]
-    right_values = to_values(G, handle_node(G, ast_node, extra), ast_node)[0]
+    left_values = to_values(G, extra.switch_var, ast_node, for_prop=True)[0]
+    right_values = to_values(G, handle_node(G, ast_node, extra), ast_node, for_prop=True)[0]
     logger.debug(f'Switch variable values: {left_values}')
     logger.debug(f'Case values: {right_values}')
 
@@ -2606,12 +2635,12 @@ def check_switch_var(G: Graph, ast_node, extra: ExtraInfo):
     deter_flag = True
     for v1 in left_values:
         for v2 in right_values:
-            if v1 != wildcard and v2 != wildcard:
-                if js_cmp(v1, v2) == 0:
-                    true_num += 1
-            elif (v1 != undefined) != (v2 != undefined):
+            if (v1 != undefined) != (v2 != undefined):
                 true_num += 0.5
                 deter_flag = False
+            elif v1 != wildcard and v2 != wildcard:
+                if js_cmp(v1, v2) == 0:
+                    true_num += 1
             else:
                 true_num += 0.5
                 deter_flag = False

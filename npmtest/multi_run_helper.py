@@ -17,9 +17,9 @@ from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 
-sys.path.append("../../JStap/pdg_generation/")
-from build_cpg_csv import DFG_generator
-import core.scanner as njsscan
+# sys.path.append("../../JStap/pdg_generation/")
+# from build_cpg_csv import DFG_generator
+# import core.scanner as njsscan
 
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
 #root_path = "/media/data2/song/random/"
@@ -423,39 +423,39 @@ def main(cur_no, num_split):
             if args.work is None or args.work == 'jsopg':
                 result = func_timeout(timeout, test_package, args=(package, vul_type))
             # for jstap
-            elif args.work == 'jstap':
-                dfg_generator = DFG_generator(package,
-                sink_funcs=jstap_vul_sink_map[vul_type])
-                result = func_timeout(timeout,
-                    dfg_generator.check_all_files)
-                result = sum([len(result[k]) for k in result])
-                if result != 0:
-                    result = [1]
-                else:
-                    result = [0]
+            # elif args.work == 'jstap':
+            #     dfg_generator = DFG_generator(package,
+            #     sink_funcs=jstap_vul_sink_map[vul_type])
+            #     result = func_timeout(timeout,
+            #         dfg_generator.check_all_files)
+            #     result = sum([len(result[k]) for k in result])
+            #     if result != 0:
+            #         result = [1]
+            #     else:
+            #         result = [0]
 
-            # for nodejsscan
-            elif args.work == 'njsscan':
-                result = njsscan.scan_dirs([package])
-                security_issues = result['sec_issues']
-                jsscan_cur_res = False
-                for key in security_issues:
-                    if vul_type == "os_command" and \
-                        ("Code Injection" in key or "Command Execution" in key):
-                        jsscan_cur_res = True
-                        break
-                    elif vul_type == "code_exec" and \
-                        ("Code Injection" in key or "Command Execution" in key):
-                        jsscan_cur_res = True
-                        break
-                    elif vul_type == "path_traversal" and "Traversal" in key:
-                        jsscan_cur_res = True
-                        break
+            # # for nodejsscan
+            # elif args.work == 'njsscan':
+            #     result = njsscan.scan_dirs([package])
+            #     security_issues = result['sec_issues']
+            #     jsscan_cur_res = False
+            #     for key in security_issues:
+            #         if vul_type == "os_command" and \
+            #             ("Code Injection" in key or "Command Execution" in key):
+            #             jsscan_cur_res = True
+            #             break
+            #         elif vul_type == "code_exec" and \
+            #             ("Code Injection" in key or "Command Execution" in key):
+            #             jsscan_cur_res = True
+            #             break
+            #         elif vul_type == "path_traversal" and "Traversal" in key:
+            #             jsscan_cur_res = True
+            #             break
 
-                if jsscan_cur_res:
-                    result = [1]
-                else:
-                    result = [0]
+            #     if jsscan_cur_res:
+            #         result = [1]
+            #     else:
+            #         result = [0]
 
         except FunctionTimedOut:
             npm_res_logger.error("{} takes more than {} seconds".format(package, timeout))

@@ -10,6 +10,7 @@ from .utilities import BranchTag, BranchTagContainer, DictCounter, wildcard
 from .logger import *
 import uuid
 from itertools import chain
+from collections import defaultdict
 
 class Graph:
 
@@ -50,11 +51,13 @@ class Graph:
 
         # contains a list of node ids based on the ast id
         self.call_stack = [] # deprecated, only for debugging
+        self.for_stack = [] # for debugging
         self.call_counter = DictCounter() # callers (instead of callees)
         self.call_limit = 3
         self.file_stack = []
         self.require_obj_stack = []
         self.cur_stmt = None # for building data flows
+        self.function_returns = defaultdict(lambda: [])
 
         # Python-modeled built-in modules
         self.builtin_modules = {}
@@ -62,6 +65,7 @@ class Graph:
         # prototype pollution
         self.check_proto_pollution = False
         self.proto_pollution = set()
+        self.func_entry_point = None
 
         self.run_all = True
         self.function_time_limit = None
@@ -69,8 +73,6 @@ class Graph:
         self.print = False
 
         self.vul_type = None
-
-        self.for_stack = []
 
         csv.field_size_limit(2 ** 31 - 1)
 
@@ -617,6 +619,11 @@ class Graph:
                 obj_node, tobe_added_obj=self.object_prototype)
                 self.add_obj_as_prop(prop_name="constructor", parent_obj=
                     obj_node, tobe_added_obj=self.object_cons)
+                if self.check_proto_pollution and value == wildcard:
+                    self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                    obj_node, tobe_added_obj=self.array_cons)
+                    self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                    obj_node, tobe_added_obj=self.number_cons)
         elif js_type == "array":
             # js_type = 'object'     # don't change, keep 'array' type in graph
             if self.array_prototype is not None:

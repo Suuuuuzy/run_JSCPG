@@ -31,6 +31,8 @@ def setup_js_builtins(G: Graph):
     setup_json(G)
     setup_regexp(G)
     setup_math(G)
+    G.add_blank_func_to_scope('Date', scope=G.BASE_SCOPE, python_func=blank_func)
+    G.add_obj_to_name('__opgWildcard', value=wildcard, scope=G.BASE_SCOPE)
 
 
 def setup_string(G: Graph):
@@ -170,8 +172,6 @@ def setup_object_and_function(G: Graph):
     G.add_blank_func_as_prop('call', function_prototype, function_p_call)
     G.add_blank_func_as_prop('apply', function_prototype, function_p_apply)
     G.add_blank_func_as_prop('bind', function_prototype, function_p_bind)
-
-    G.add_obj_to_name('__opgWildcard', value=wildcard, scope=G.BASE_SCOPE)
 
 
 def setup_global_functions(G: Graph):
@@ -666,7 +666,7 @@ def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array
                 continue
             if name == '__proto__':
                 continue
-            if for_array and not name.isdigit():
+            if for_array and not str(name).isdigit():
                 continue # Array only returns numeric keys/corresponding values
             string = G.add_obj_node(caller_ast, 'string', str(name))
             add_contributes_to(G, [obj], string)
@@ -694,7 +694,7 @@ def object_values(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_arr
                 continue
             if name == '__proto__':
                 continue
-            if for_array and not name.isdigit():
+            if for_array and not str(name).isdigit():
                 continue # Array only returns numeric keys/corresponding values
             prop_objs = G.get_objs_by_name_node(name_node)
             for prop_obj in prop_objs:
@@ -725,7 +725,7 @@ def object_entries(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_ar
                 continue
             if name == '__proto__':
                 continue
-            if for_array and not name.isdigit():
+            if for_array and not str(name).isdigit():
                 continue # Array only returns numeric keys/corresponding values
             string = G.add_obj_node(caller_ast, 'string', name)
             G.add_obj_as_prop('0', parent_obj=child_arr, tobe_added_obj=string)
@@ -814,8 +814,8 @@ def object_is(G: Graph, caller_ast, extra, _, value1: NodeHandleResult, value2: 
 
 
 def object_p_has_own_property(G: Graph, caller_ast, extra, this, *args):
-    return NodeHandleResult(obj_nodes=[G.true_obj])
-
+    # return NodeHandleResult(obj_nodes=[G.true_obj])
+    return NodeHandleResult(values=[wildcard])
 
 
 def function_p_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
