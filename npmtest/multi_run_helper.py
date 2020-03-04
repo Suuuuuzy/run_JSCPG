@@ -27,7 +27,7 @@ sys.path.append("../../JSJoern/jsjoern_traverse/")
 from analyze import analyze as jsjoern_analyzer
 
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
-random_root_path = "/media/data2/song/random500/"
+random_root_path = "/media/data2/song/random120/"
 os_command_root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
 code_exec_root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
 path_traversal_root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
@@ -362,7 +362,11 @@ def main(cur_no, num_split):
         elif args.vul_type == 'code_exec':
             root_path = code_exec_root_path
 
+    # TMP
+    root_path = random_root_path
+
     testing_packages = []
+    # single
     #testing_packages = ['lsof@0.1.0']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, start_id=0, size=300000)
@@ -437,7 +441,8 @@ def main(cur_no, num_split):
         try:
             if args.work == 'jsjoern':
                 # for jsjoern
-                result = jsjoern_analyzer(package, jstap_vul_sink_map[vul_type])
+                result = func_timeout(timeout, jsjoern_analyzer, 
+                        args=(package, jstap_vul_sink_map[vul_type]))
                 result = [result]
 
             # for jsopg
@@ -447,9 +452,10 @@ def main(cur_no, num_split):
             # for jstap
             elif args.work == 'jstap':
                 dfg_generator = DFG_generator(package,
-                sink_funcs=jstap_vul_sink_map[vul_type])
+                        sink_funcs=jstap_vul_sink_map[vul_type])
                 result = func_timeout(timeout,
                     dfg_generator.check_all_files)
+                print("Result:", result)
                 result = sum([len(result[k]) for k in result])
                 if result != 0:
                     result = [1]
