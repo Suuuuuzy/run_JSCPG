@@ -728,7 +728,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     
     # for code coverage
     if G.is_statement(node_id):
-        G.covered_list.append(node_id)
+        G.covered_stat.add(node_id)
 
     if G.get_node_attr(node_id).get('labels:label') == 'Artificial':
         node_color = sty.fg.li_white + sty.bg.red
@@ -2171,6 +2171,14 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             not in ['AST_FUNC_DECL', 'AST_CLOSURE']:
                 G.add_blank_func_with_og_nodes(func_name, func_obj)
                 func_ast = G.get_obj_def_ast_node(func_obj, aim_type='function')
+            # add to coverage
+            func_ast_attr = G.get_node_attr(func_ast)
+            if 'labels:label' in func_ast_attr and \
+                    func_ast_attr['labels:label'] == 'Artificial_AST':
+                pass
+            else:
+                G.covered_func.add(func_ast)
+
             # add function scope (see comments in decl_function)
             parent_scope = G.get_node_attr(func_obj).get('parent_scope')
             func_scope = G.add_scope('FUNC_SCOPE', func_ast,

@@ -62,8 +62,15 @@ class BenchMark():
             if location_number_map[aim_dir] == 0:
                 continue
             cur_full_list = get_list_of_packages(aim_dir)
-            selected_lists[aim_dir] = random.choices(cur_full_list, 
-                    k=location_number_map[aim_dir])
+            cur_selected = random.choices(cur_full_list, 
+                    k=location_number_map[aim_dir] * 10)
+            selected_lists[aim_dir] = []
+            # make sure all packages are valid
+            for package in cur_selected:
+                if os.path.exists(os.path.join(package, 'package.json')):
+                    selected_lists[aim_dir].append(package)
+                    if len(selected_lists[aim_dir]) == location_number_map[aim_dir]:
+                        break
 
         return selected_lists
 
@@ -299,7 +306,7 @@ class BenchMark():
 
 benchMark = BenchMark()
 #benchMark.main()
-generated = benchMark.generateDatabase(location_number_map = {"/media/data2/song/npmpackages/": 20})
+generated = benchMark.generateDatabase(location_number_map = {"/media/data2/song/npmpackages/": 120})
 for package in generated:
     for p in generated[package]:
-        print("cp -r {} {};".format(p, "/media/data2/song/random/"))
+        print("cp -r {} {};".format(p, "/media/data2/song/random120/"))

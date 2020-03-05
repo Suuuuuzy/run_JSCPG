@@ -26,8 +26,10 @@ class Graph:
         # for evaluation
         self.covered_num_stat = 0
         self.total_num_stat = 0
-        self.covered_list = []
-        self.all_stat_list = []
+        self.covered_stat = set()
+        self.all_stat = set()
+        self.all_func = set()
+        self.covered_func = set()
 
         # exit immediately when vulnerability is found
         self.finished = False
@@ -1596,16 +1598,34 @@ class Graph:
         """
         return the total number of statements of AST
         """
-        if self.total_num_stat != 0:
-            return self.total_num_stat
+        if len(self.all_stat) != 0:
+            return len(self.all_stat)
 
         all_nodes = self.get_all_nodes()
         for n in all_nodes:
             if 'type' in all_nodes[n]:
                 if 'AST_' in all_nodes[n]['type'] and self.is_statement(n):
-                    self.all_stat_list.append(n)
+                    self.all_stat.add(n)
                     self.total_num_stat += 1
         # print(len(set(self.all_stat_list)), len(set(self.covered_list)), len(self.covered_list))
-        return len(set(self.all_stat_list))
+        return len(self.all_stat)
+
+    def get_total_num_functions(self):
+        """
+        return the total number of statements of AST
+        """
+        if len(self.all_func) != 0:
+            return len(self.all_func)
+
+        all_nodes = self.get_all_nodes()
+        for n in all_nodes:
+            if 'type' in all_nodes[n]:
+                if all_nodes[n]['type'] in ['AST_FUNC_DECL', 'AST_CLOSURE']:
+                    if 'labels:label' in all_nodes[n] and \
+                            all_nodes[n]['labels:label'] == 'Artificial_AST':
+                        pass
+                    else:
+                        self.all_func.add(n)
+        return len(self.all_func)
 
 

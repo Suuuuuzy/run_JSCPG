@@ -1,0 +1,370 @@
+Function call error: Name node not found for None!
+No definition found for function None
+Function call error: Name node not found for ifaces.__proto__.forEach!
+No definition found for function ifaces.__proto__.forEach
+Function call error: Name node not found for None!
+No definition found for function None
+Function call error: Name node not found for None!
+No definition found for function None
+Function call error: Name node not found for None!
+235 trying to require unknown package.
+266 trying to require unknown package.
+235 trying to require unknown package.
+266 trying to require unknown package.
+Error: try to new Python function 1677 <function this_returning_func at 0x7f2f847389e0>...
+Error: try to new Python function 1677 <function this_returning_func at 0x7f2f847389e0>...
+Error: try to new Python function 1761 <function regexp_constructor at 0x7f91ffd62e60>...
+Error: try to new Python function 1766 <function regexp_constructor at 0x7f2f84738e60>...
+Error: No function was run during this function call
+Error: No function was run during this function call
+Function call error: Name node not found for None!
+No definition found for function None
+Function call error: Name node not found for None!
+Error: try to new Python function 1751 <function regexp_constructor at 0x7fda4f0cee60>...
+Function call error: Name node not found for None!
+No definition found for function None
+Error: try to new Python function 1742 <function regexp_constructor at 0x7ff59b20ee60>...
+Function call error: Name node not found for None!
+No definition found for function None
+Error: try to new Python function 2092 <function regexp_constructor at 0x7fda4f0cee60>...
+Function call error: Name node not found for arr.forEach!
+No definition found for function arr.forEach
+Function call error: Name node not found for arr.forEach!
+No definition found for function arr.forEach
+Function call error: Name node not found for arr.forEach!
+No definition found for function arr.forEach
+Function call error: Name node not found for None!
+No definition found for function None
+Error: try to new Python function 3718 <function this_returning_func at 0x7fda4f0ce9e0>...
+Error: try to new Python function 3718 <function this_returning_func at 0x7fda4f0ce9e0>...
+Function call error: Name node not found for None!
+No definition found for function None
+Function call error: Name node not found for None!
+No definition found for function None
+Error: try to new Python function 1220 <function array_constructor at 0x7fda4f0ce170>...
+524 trying to require unknown package.
+524 trying to require unknown package.
+Function call error: Name node not found for file.replace!
+No definition found for function file.replace
+524 trying to require unknown package.
+8345 trying to require unknown package.
+Error: try to new Python function 9875 <function regexp_constructor at 0x7fe1e24fde60>...
+8345 trying to require unknown package.
+Error: try to new Python function 9875 <function regexp_constructor at 0x7fe1e24fde60>...
+92094
+92264
+92094
+92264
+92094
+92264
+Error: try to new Python function 9875 <function regexp_constructor at 0x7fe1e24fde60>...
+92094
+92264
+92094
+92264
+92094
+92264
+92094
+92264
+Error: try to new Python function 9875 <function regexp_constructor at 0x7fe1e24fde60>...
+92094
+92264
+92094
+8345 trying to require unknown package.
+92264
+92094
+Function call error: Name node not found for callbacks.each!
+No definition found for function callbacks.each
+Function call error: Name node not found for callbacks.each!
+No definition found for function callbacks.each
+92264
+92094
+92264
+92094
+92264
+92094
+92264
+Error: try to new Python function 1706 <function regexp_constructor at 0x7f2f84738e60>...
+Error: try to new Python function 1706 <function regexp_constructor at 0x7f2f84738e60>...
+Error: try to new Python function 1706 <function regexp_constructor at 0x7f2f84738e60>...
+Error: try to new Python function 1706 <function regexp_constructor at 0x7f2f84738e60>...
+Cannot find function object node!
+61 trying to require unknown package.
+Error: try to new Python function 1220 <function array_constructor at 0x7f2f84738170>...
+Function call error: Name node not found for None!
+No definition found for function None
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Function call error: Name node not found for None!
+No definition found for function None
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Cannot find function object node!
+Cannot find function object node!
+Cannot find function object node!
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Cannot find function object node!
+Cannot find function object node!
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Cannot find function object node!
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Cannot find function object node!
+Cannot find function object node!
+Cannot find function object node!
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Function call error: Name node not found for callbacks.each!
+No definition found for function callbacks.each
+Function call error: Name node not found for network.__proto__.forEach!
+No definition found for function network.__proto__.forEach
+Function call error: Name node not found for network.__proto__.forEach!
+No definition found for function network.__proto__.forEach
+Function call error: Name node not found for network.__proto__.forEach!
+No definition found for function network.__proto__.forEach
+Function call error: Name node not found for None!
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Error: try to new Python function 1782 <function regexp_constructor at 0x7f91ffd62e60>...
+Function call error: Name node not found for None!
+No definition found for function None
+Error: try to new Python function 1711 <function regexp_constructor at 0x7f4f18acfe60>...
+Error: try to new Python function 1723 <function regexp_constructor at 0x7f91ffd62e60>...
+Cannot find function object node!
+Function call error: Name node not found for None!
+No definition found for function None
+2529 trying to require unknown package.
+2529 trying to require unknown package.
+Error: try to new Python function 6383 <function this_returning_func at 0x7f4f18acf9e0>...
+Error: try to new Python function 6383 <function this_returning_func at 0x7f4f18acf9e0>...
+5272 trying to require unknown package.
+Function call error: Name node not found for None!
+No definition found for function None
+5272 trying to require unknown package.
+Function call error: Name node not found for None!
+No definition found for function None
+5272 trying to require unknown package.
+Function call error: Name node not found for None!
+No definition found for function None
+5272 trying to require unknown package.
+Function call error: Name node not found for None!
+No definition found for function None
+5272 trying to require unknown package.
+Function call error: Name node not found for None!
+No definition found for function None
+5272 trying to require unknown package.
+Function call error: Name node not found for None!
+No definition found for function None
+5272 trying to require unknown package.
+Function call error: Name node not found for None!
+No definition found for function None
+5272 trying to require unknown package.
+Function call error: Name node not found for None!
+No definition found for function None
+2529 trying to require unknown package.
+Function call error: Name node not found for None!
+No definition found for function None
+Error: try to new Python function 6383 <function this_returning_func at 0x7f4f18acf9e0>...
+2529 trying to require unknown package.
+Error: try to new Python function 1766 <function regexp_constructor at 0x7fe1e24fde60>...
+Error: try to new Python function 6383 <function this_returning_func at 0x7f4f18acf9e0>...
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Error: try to new Python function 6383 <function this_returning_func at 0x7f4f18acf9e0>...
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Traceback (most recent call last):
+  File "../simurun/objectGraphGenerator.py", line 2154, in call_function
+    ExtraInfo(extra, branches=next_branches), _this, *_args)
+TypeError: array_constructor() missing 1 required positional argument: 'length'
+
+Function call error: Name node not found for None!

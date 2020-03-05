@@ -10,19 +10,24 @@ import argparse
 import uuid
 import gc
 import sys
+import time
 sys.path.append("..")
 from simurun.launcher import unittest_main
 from simurun.logger import *
 from simurun.trace_rule import TraceRule
 from simurun.vulChecking import *
 from simurun.vulFuncLists import *
+from simurun.graph import Graph
 
 sys.path.append("../../JStap/pdg_generation/")
 from build_cpg_csv import DFG_generator
 import core.scanner as njsscan
 
+sys.path.append("../../JSJoern/jsjoern_traverse/")
+from analyze import analyze as jsjoern_analyzer
+
 #root_path = "/media/data2/lsong18/data/pre_npmpackages/"
-#root_path = "/media/data2/song/random/"
+random_root_path = "/media/data2/song/random120/"
 os_command_root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
 code_exec_root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
 path_traversal_root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
@@ -38,6 +43,8 @@ args = None
 
 npm_test_logger = create_logger("npmtest", output_type = "file", level=10, file_name="npmtest.log")
 npm_run_logger = create_logger("npmrun", output_type = "file", level=10, file_name="npmrun.log")
+npm_run_time_logger = create_logger("npmruntime", output_type = "file", level=10, file_name="npmrun_time.log")
+npm_code_coveragr_logger = create_logger("npmcc", output_type = "file", level=10, file_name="npm_code_coverage.log")
 
 def validate_package(package_path):
     """
@@ -48,7 +55,8 @@ def validate_package(package_path):
         True or False
     """
     package_json_path = '{}/package.json'.format(package_path)
-    return os.path.exists(package_json_path)
+    index_path = os.path.join(package_path, 'index.js')
+    return os.path.exists(package_json_path) or os.path.exists(index_path)
     
 def get_list_of_packages(path, start_id=None, size=None):
     """
@@ -101,6 +109,10 @@ def get_entrance_files_of_package(package_path, get_all=False):
     if not validate_package(package_path):
         print("ERROR: {} do not exist".format(package_json_path)) 
         return None
+
+    if not os.path.exists(package_json_path):
+        # index based
+        return [os.path.join(package_path, 'index.js')]
 
     with open(package_json_path) as fp:
         package_json = {}
@@ -204,7 +216,7 @@ def unit_check_log(G, vul_type, package=None):
         """
         return 0
 
-def test_package(package_path, vul_type='os_command'):
+def test_package(package_path, vul_type='os_command', graph=None):
     # TODO: change the return value
     """
     test a specific package
@@ -230,8 +242,9 @@ def test_package(package_path, vul_type='os_command'):
     if package_main_files is None:
         return []
 
+
     for package_file in package_main_files:
-        test_res = test_file(package_file, vul_type)
+        test_res = test_file(package_file, vul_type, graph)
         res.append(test_res)
         if test_res == 1:
             # successfully found
@@ -241,7 +254,7 @@ def test_package(package_path, vul_type='os_command'):
     npm_test_logger.info("Finished {}, size: {}, cloc: {}".format(package_path, size_count, line_count))
     return res
 
-def test_file(file_path, vul_type='xss'):
+def test_file(file_path, vul_type='xss', graph=None):
     """
     test a specific file 
     Args:
@@ -268,10 +281,10 @@ def test_file(file_path, vul_type='xss'):
     with open(test_file_name, 'w') as jcp:
         jcp.write(js_call_templete)
 
-    G = None
     try:
         if vul_type == 'proto_pollution':
-            G = unittest_main(test_file_name, vul_type=vul_type, args=args)
+            G = unittest_main(test_file_name, vul_type=vul_type, args=args, 
+                    graph=graph)
         else:
             G = unittest_main(test_file_name, vul_type=vul_type, args=args,
                 check_signatures=get_all_sign_list())
@@ -282,6 +295,7 @@ def test_file(file_path, vul_type='xss'):
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())
         return -3
+
 
     try:
         os.remove(test_file_name)
@@ -348,8 +362,12 @@ def main(cur_no, num_split):
         elif args.vul_type == 'code_exec':
             root_path = code_exec_root_path
 
+    # TMP
+    root_path = random_root_path
+
     testing_packages = []
-    # testing_packages = ['wizard-syncronizer@0.0.1']
+    # single
+    #testing_packages = ['lsof@0.1.0']
     if len(testing_packages) == 0:
         packages = get_list_of_packages(root_path, start_id=0, size=300000)
     else:
@@ -364,11 +382,11 @@ def main(cur_no, num_split):
 
     #vul_type = 'os_command'
     vul_type = 'proto_pollution'
-    timeout = 120
+    timeout = 30
 
     # jsTap
     jstap_vul_sink_map = {
-        "os_command": ["exec", "execFile", "execSync", "spawn", "spa    wnSync"],
+        "os_command": ["exec", "execFile", "execSync", "spawn", "spawnSync"],
         "code_exec": ["exec", "eval", "execFile"],
         "path_traversal": ["end", "write"]
     }
@@ -417,17 +435,27 @@ def main(cur_no, num_split):
         tqdm_bar.refresh()
         ret_value = 100
         result = []
+        G = Graph()
 
+        start_time = time.time()
         try:
+            if args.work == 'jsjoern':
+                # for jsjoern
+                result = func_timeout(timeout, jsjoern_analyzer, 
+                        args=(package, jstap_vul_sink_map[vul_type]))
+                result = [result]
+
             # for jsopg
             if args.work is None or args.work == 'jsopg':
-                result = func_timeout(timeout, test_package, args=(package, vul_type))
+                result = func_timeout(timeout, test_package, args=(package, vul_type, G))
+
             # for jstap
             elif args.work == 'jstap':
                 dfg_generator = DFG_generator(package,
-                sink_funcs=jstap_vul_sink_map[vul_type])
+                        sink_funcs=jstap_vul_sink_map[vul_type])
                 result = func_timeout(timeout,
                     dfg_generator.check_all_files)
+                print("Result:", result)
                 result = sum([len(result[k]) for k in result])
                 if result != 0:
                     result = [1]
@@ -462,7 +490,7 @@ def main(cur_no, num_split):
             skip_list.append(package)
             continue
         except Exception as e:
-            npm_res_logger.error("{} ERROR generating".format(package))
+            npm_res_logger.error("{} ERROR generating {}".format(package, e))
             print(e)
             # tb.print_exc()
 
