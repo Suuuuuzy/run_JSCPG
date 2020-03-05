@@ -814,7 +814,9 @@ def object_is(G: Graph, caller_ast, extra, _, value1: NodeHandleResult, value2: 
 
 
 def object_p_has_own_property(G: Graph, caller_ast, extra, this, *args):
-    return NodeHandleResult(obj_nodes=[G.true_obj])
+    used_objs = this.obj_nodes
+    used_objs.extend(chain(*[r.obj_nodes for r in args]))
+    return NodeHandleResult(obj_nodes=[G.true_obj], used_objs=used_objs)
 
 
 
@@ -859,7 +861,7 @@ def function_p_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this=No
             G.set_node_attr(new_func, ('bound_args', args))
         returned_objs.append(new_func)
         logger.log(ATTENTION, 'Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this.obj_nodes, ast_node))
-    return NodeHandleResult(obj_nodes=returned_objs)
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=func.obj_nodes)
 
 
 def parse_number(G: Graph, caller_ast, extra, _, s=NodeHandleResult(), rad=None):
@@ -873,7 +875,11 @@ def parse_number(G: Graph, caller_ast, extra, _, s=NodeHandleResult(), rad=None)
 
 
 def blank_func(G: Graph, caller_ast, extra, _, *args):
-    return NodeHandleResult()
+    used_objs = []
+    if _ is not None:    
+        used_objs.extend(_.obj_nodes)
+        used_objs.extend(chain(*[r.obj_nodes for r in args]))
+    return NodeHandleResult(used_objs=used_objs)
 
 
 def this_returning_func(G: Graph, caller_ast, extra, this=None, *args):
@@ -983,9 +989,10 @@ def setup_regexp(G: Graph):
     G.add_blank_func_as_prop('test', regexp_prototype, None)
 
 
-def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=None, flags=None):
+def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=NodeHandleResult(),
+    flags=NodeHandleResult()):
     returned_objs = []
-    if pattern is not None:
+    if pattern.obj_nodes:
         flag_objs = flags.obj_nodes if flags else []
         for p in pattern.obj_nodes:
             for f in flag_objs:
@@ -1000,7 +1007,8 @@ def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=None, flags=None)
                 G.add_obj_as_prop(prop_name='__proto__', parent_obj=added_obj,
                     tobe_added_obj=G.regexp_prototype)
                 returned_objs.append(added_obj)
-    return NodeHandleResult(obj_nodes=returned_objs)
+    return NodeHandleResult(obj_nodes=returned_objs,
+        used_objs=pattern.obj_nodes+flags.obj_nodes)
 
 
 def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
@@ -1582,8 +1590,10 @@ def math_max(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
     else:
         recurse(0, None)
         logger.debug(f'returned values: {returned_values}')
+        used_objs = list(chain(*returned_sources))
         return NodeHandleResult(values=returned_values, 
-                                value_sources=returned_sources)
+                                value_sources=returned_sources,
+                                used_objs=used_objs)
 
 
 
@@ -1617,8 +1627,10 @@ def math_min(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
     else:
         recurse(0, None)
         logger.debug(f'returned values: {returned_values}')
+        used_objs = list(chain(*returned_sources))
         return NodeHandleResult(values=returned_values, 
-                                value_sources=returned_sources)
+                                value_sources=returned_sources,
+                                used_objs=used_objs)
 
 
 def math_sqrt(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
@@ -1636,5 +1648,7 @@ def math_sqrt(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
             x = float('nan')
         returned_values.append(math.sqrt(x))
         returned_sources.append(sources[i])
-    return NodeHandleResult(values=returned_values, value_sources=returned_sources)
+    used_objs = list(chain(*sources))
+    return NodeHandleResult(values=returned_values, value_sources=returned_sources,
+        used_objs=used_objs)
     
