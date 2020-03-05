@@ -97,6 +97,9 @@ class Graph:
         self.graph.add_node(node_for_adding, **attr)
         return node_for_adding
 
+    def add_node_from_list(self, node_list):
+        return self.graph.add_nodes_from(node_list)
+
     def set_node_attr(self, node_id, attr):
         """
         attr should be a tuple like (key, value)
@@ -189,9 +192,6 @@ class Graph:
         if edge_id == None:
             return self.graph.get_edge_data(from_ID, to_ID)
         return self.graph[from_ID][to_ID][edge_id]
-
-    def add_node_from_list(self, node_list):
-        return self.graph.add_nodes_from(node_list)
 
     def add_edges_from_list(self, edge_list):
         return self.graph.add_edges_from(edge_list)

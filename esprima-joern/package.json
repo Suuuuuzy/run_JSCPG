@@ -1,6 +1,6 @@
 {
   "name": "esprima-joern",
-  "version": "0.10.1",
+  "version": "0.11.1",
   "description": "A tool that generates JavaScript AST for Joern",
   "main": "main.js",
   "dependencies": {

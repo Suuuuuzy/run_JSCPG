@@ -13,7 +13,7 @@ const ansicolor = require('ansicolor').nice;
 const Readable = require('stream').Readable;
 const program = require('commander');
 program
-    .version('0.10.1')
+    .version('0.11.1')
     .usage('<filename or package name> [options]')
     .description('A tool that generates JavaScript AST in Joern compatible CSV format.\n\n' +
         'You can choose a filename or package name as input. Use "-" to accept stdin.')
@@ -953,7 +953,10 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     // rest parameter (variable length arguments)
                     if (param.type == 'RestElement'){
                         phpflag = 'PARAM_VARIADIC';
-                    }
+                    } else if (param.type == 'ObjectPattern' || param.type == 'ArrayPattern'){
+                        console.log(`  Warning: uncompleted support for ${currentNode.type} here, skipped.`);
+                        continue;
+                    } 
                     // write the Parameter virtual node
                     nodeIdCounter++;
                     let vParameterId = nodeIdCounter;
@@ -1154,6 +1157,11 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     label: 'AST_V',
                     type: 'AST_TOPLEVEL',
                     phpflag: 'TOPLEVEL_CLASS',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: childNum,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     funcId: prevFunctionId
                 };
                 // make CFG_FUNC_ENTRY artificial node
@@ -2769,6 +2777,37 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 funcId: currentFunctionId
             };
             break;
+        case 'Super':
+            if (outputStyle == 'php'){
+                nodes[currentId] = {
+                    label: 'AST',
+                    phptype: 'AST_NAME',
+                    phpflag: 'NAME_NOT_FQ',
+                    childNum: childNum,
+                    // code: currentNode.callee.name || getCode(currentNode.callee, sourceCode) || '',
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                    funcId: currentFunctionId
+                };
+                nodeIdCounter++;
+                relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                nodes[nodeIdCounter] = {
+                    label: 'AST',
+                    type: currentNode.type,
+                    phptype: 'string',
+                    phpflag: (extra ? extra.flag : null) || null,
+                    lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                    childNum: 0,
+                    lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
+                    colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
+                    colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
+                    code: 'super',
+                    funcId: currentFunctionId
+                };
+            }
+            break;
         default:
             console.log(`  ${currentNode.type} goes default.`);
             nodes[currentId] = {
@@ -2926,8 +2965,8 @@ function analyze(filePath, parentNodeId) {
                 code = '"' + code + '"';
             }
             nodesStream.push([i, label, u.phptype || u.type, u.phpflag || '',
-                u.lineLocStart || '', code, childNum, u.funcId || '',
-                '', '', u.lineLocEnd || '', u.name || '', ''
+                u.lineLocStart !== null ? u.lineLocStart : '', code, childNum, u.funcId || '',
+                '', '', u.lineLocEnd !== null ? u.lineLocEnd : '', u.name || '', ''
             ].join(delimiter) + '\n');
         } else if (outputStyle == 'c') {
             if (i == 0) continue;
