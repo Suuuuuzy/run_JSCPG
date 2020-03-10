@@ -21,6 +21,7 @@ from simurun.graph import Graph
 skip_packages = []
 
 args = None
+root_path = None
 
 npm_test_logger = create_logger("npmtest", output_type = "file", level=10, file_name="npmtest.log")
 npm_run_logger = create_logger("npmrun", output_type = "file", level=10, file_name="npmrun.log")
