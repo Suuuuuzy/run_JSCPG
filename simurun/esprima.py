@@ -2,9 +2,9 @@ import os
 import subprocess
 
 main_js_path = os.path.realpath(os.path.join(__file__,
-                                '../../esprima/main.js'))
+                                '../../esprima-csv/main.js'))
 search_js_path = os.path.realpath(os.path.join(__file__,
-                                '../../esprima/search.js'))
+                                '../../esprima-csv/search.js'))
 
 def esprima_parse(path='-', args=[], input=None, print_func=print):
     # use "universal_newlines" instead of "text" if you're using Python <3.7

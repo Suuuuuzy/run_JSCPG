@@ -1,4 +1,3 @@
 func_timeout
 networkx
-pygount
 sty
