@@ -1,22 +1,12 @@
-*.pyc
-*.log
-*.dat
-/package-lock.json
-.testDB/
-testreport/
-/tmp/
-run_tmp/
-
-# package download
-/package_downloader/packages/
-
-
 # global
+*.pyc
 logs
 *.log
 *.csv
+*.dat
+*.out
 
-# esprima-joern
+# esprima-csv
 node_modules/
 /node_modules/
 /esprima-joern/*.csv
