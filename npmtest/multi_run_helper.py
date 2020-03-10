@@ -1,6 +1,5 @@
 import os
 import json 
-import pygount
 import traceback as tb
 from tqdm import tqdm
 import subprocess
@@ -19,12 +18,7 @@ from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 from simurun.graph import Graph
 
-#root_path = "/media/data2/lsong18/data/pre_npmpackages/"
-random_root_path = "/media/data2/song/random120/"
-os_command_root_path = "/media/data2/song/vulPackages/updated_databases/command_injection/"
-code_exec_root_path = "/media/data2/song/vulPackages/updated_databases/code_exec/"
-path_traversal_root_path = "/media/data2/song/vulPackages/updated_databases/path_traversal/"
-proto_pollution_path = "/media/data2/mkang31/data/vul-packages/prototype_pollution/"
+
 skip_packages = []
 
 args = None
@@ -315,7 +309,7 @@ def main():
     argparser.add_argument('-l', '--timeout', type=float)
     argparser.add_argument('-f', '--function-timeout', type=float)
     argparser.add_argument('-s', '--single-branch', action='store_true')
-    argparser.add_argument('root_path', action='store', nargs='?')
+    argparser.add_argument('root_path', action='store', nargs=1)
 
     args = argparser.parse_args()
 
@@ -333,19 +327,9 @@ def main():
         G.print = True
 
     if args.root_path is not None:
-        root_path = args.root_path
+        root_path = args.root_path[0]
     else:
-        if args.vul_type == 'os_command':
-            root_path = os_command_root_path
-        elif args.vul_type == 'path_traversal':
-            root_path = path_traversal_root_path
-        elif args.vul_type == 'code_exec':
-            root_path = code_exec_root_path
-        elif args.vul_type == 'proto_pollution':
-            root_path = proto_pollution_path
-
-    # TMP
-    #root_path = random_root_path
+        print("ERROR: {}".format("Please provide a valid testing path"))
 
     testing_packages = []
     # single
