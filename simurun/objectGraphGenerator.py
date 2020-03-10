@@ -520,7 +520,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
 
-    print('parent is proto =', handled_left.parent_is_proto, 'name tainted =', handled_left.name_tainted)
+    # print('parent is proto =', handled_left.parent_is_proto, 'name tainted =', handled_left.name_tainted)
 
     if G.check_proto_pollution and (handled_left.name_tainted and handled_left.parent_is_proto):
         flag1 = False
@@ -537,7 +537,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
             if G.get_node_attr(obj).get('tainted'):
                 flag2 = True
                 break
-        print('right object is tainted =', flag2)
+        # print('right object is tainted =', flag2)
         if flag2:
             name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)
                 .get('name')))) for x in handled_left.name_nodes]
@@ -1002,7 +1002,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     elif cur_type == 'AST_RETURN':
         returned_exp = G.get_ordered_ast_child_nodes(node_id)[0]
         results = handle_node(G, returned_exp, extra)
-        print(f'Returns: {results} -> {G.function_returns[G.find_ancestor_scope()]}')
+        # print(f'Returns: {results} -> {G.function_returns[G.find_ancestor_scope()]}')
         obj_nodes = to_obj_nodes(G, results, node_id)
         G.function_returns[G.find_ancestor_scope()].extend(obj_nodes)
         return results
@@ -1194,8 +1194,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                         key_obj = G.add_obj_node(ast_node=node_id,
                             js_type='string', value=k)
                         add_contributes_to(G, [obj], key_obj)
-                    print(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{key_obj}{sty.rs.all}: {k}'
-                        f' from obj {obj}')
+                    logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: '
+                        f'{sty.fg.green}{key_obj}{sty.rs.all}: {k} from obj {obj}')
                     G.for_stack.append('for-in {} {} {} in {}'.format(node_id, handled_key.name, k, obj))
                     # print(G.for_stack)
                     G.assign_obj_nodes_to_name_node(handled_key.name_nodes[0],
@@ -1203,7 +1203,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     # run the body
                     simurun_block(G, body, branches=extra.branches)
                     G.for_stack.pop()
-                print('For-in loop {} finished'.format(node_id))
+                logger.debug('For-in loop {} finished'.format(node_id))
             elif G.get_node_attr(node_id).get('flags:string[]') == 'JS_FOR_OF':
                 # handle and declare the loop variable
                 handled_value = handle_node(G, value, extra)
@@ -2118,7 +2118,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         func_name = '{anonymous}'
 
     G.call_stack.append('{} {} {}'.format(caller_ast, func_name, len(func_objs)))
-    print(len(G.call_stack), G.call_stack)
+    # print(len(G.call_stack), G.call_stack)
 
     if stmt_id == 'Unknown' and caller_ast is not None:
         stmt_id = caller_ast
@@ -2433,7 +2433,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         logger.error('Error: No function was run during this function call')
 
     G.call_stack.pop()
-    print(len(G.call_stack), G.call_stack)
+    # print(len(G.call_stack), G.call_stack)
 
     return NodeHandleResult(obj_nodes=list(returned_objs),
             used_objs=list(used_objs),
