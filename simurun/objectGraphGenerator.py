@@ -724,6 +724,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     cur_lineno = cur_node_attr['lineno:int']
     node_name = cur_node_attr.get('name') or G.get_name_from_child(node_id, 2)
     node_color = sty.fg.li_white + sty.bg.li_black
+
+    #print(cur_lineno, G.get_node_file_path(node_id))
     
     # for code coverage
     if G.is_statement(node_id):
@@ -2070,8 +2072,12 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     # and need to merge afterwards
     has_branches = (len(func_objs) > 1 and not G.single_branch)
 
-    G.call_stack.append('{} {} {}'.format(caller_ast, func_name, len(func_objs)))
-    # print(G.call_stack)
+    call_stack_item = '{}'.format(func_name)
+    if G.call_stack.count(call_stack_item) > 20:
+        return NodeHandleResult(), []
+
+    G.call_stack.append(call_stack_item)
+    #print(G.call_stack)
 
     if stmt_id == 'Unknown' and caller_ast is not None:
         stmt_id = caller_ast

@@ -3,7 +3,8 @@
 //process.env.NM_CLI = 'touch sdfliajdlifja & nmcli';
 //var attack_str = ";touch Song;";
 //var root = require("./deadloop.js");
-var root = require("/media/data2/song/vulPackages/updated_databases/command_injection/addax@1.0.6/index.js");
+//var root = require("/media/data2/song/vulPackages/updated_databases/code_exec/mathjs@3.16.5/index.js");
+var root = require("/media/data2/mkang31/data/vul-packages/prototype_pollution/deap@1.0.0/");
 //var root = require("/media/data2/song/npmpackages/is-emoji/index.js");
 //var root = require("/home/lsong18/projs/JSCPG/package_downloader/packages/general-file-server@1.1.8")
 //root.getDevices();
