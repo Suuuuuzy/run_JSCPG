@@ -18,7 +18,6 @@ from simurun.vulChecking import *
 from simurun.vulFuncLists import *
 from simurun.graph import Graph
 
-
 skip_packages = []
 
 args = None
@@ -324,7 +323,6 @@ def main():
             level=logging.DEBUG)
         create_logger("npmtest", output_type="console",
             level=logging.DEBUG)
-        G.print = True
 
     if args.root_path is not None:
         root_path = args.root_path[0]

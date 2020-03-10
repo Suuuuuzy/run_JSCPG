@@ -10,6 +10,7 @@ from .utilities import BranchTag, BranchTagContainer, DictCounter, wildcard
 from .logger import *
 import uuid
 from itertools import chain
+from collections import defaultdict
 
 class Graph:
 
@@ -52,11 +53,13 @@ class Graph:
 
         # contains a list of node ids based on the ast id
         self.call_stack = [] # deprecated, only for debugging
+        self.for_stack = [] # for debugging
         self.call_counter = DictCounter() # callers (instead of callees)
         self.call_limit = 3
         self.file_stack = []
         self.require_obj_stack = []
         self.cur_stmt = None # for building data flows
+        self.function_returns = defaultdict(lambda: [])
 
         # Python-modeled built-in modules
         self.builtin_modules = {}
@@ -64,6 +67,7 @@ class Graph:
         # prototype pollution
         self.check_proto_pollution = False
         self.proto_pollution = set()
+        self.func_entry_point = None
 
         self.run_all = True
         self.function_time_limit = None
@@ -72,9 +76,12 @@ class Graph:
 
         self.vul_type = None
 
-        self.for_stack = []
-
         csv.field_size_limit(2 ** 31 - 1)
+        class joern_dialect(csv.excel_tab):
+            def __init__(self):
+                super().__init__(self)
+                self.escapechar = '\\'
+        self.csv_dialect = joern_dialect
 
     # Basic graph operations
 
@@ -91,6 +98,9 @@ class Graph:
     def add_node(self, node_for_adding, attr={}):
         self.graph.add_node(node_for_adding, **attr)
         return node_for_adding
+
+    def add_node_from_list(self, node_list):
+        return self.graph.add_nodes_from(node_list)
 
     def set_node_attr(self, node_id, attr):
         """
@@ -185,9 +195,6 @@ class Graph:
             return self.graph.get_edge_data(from_ID, to_ID)
         return self.graph[from_ID][to_ID][edge_id]
 
-    def add_node_from_list(self, node_list):
-        return self.graph.add_nodes_from(node_list)
-
     def add_edges_from_list(self, edge_list):
         return self.graph.add_edges_from(edge_list)
 
@@ -213,8 +220,11 @@ class Graph:
         return result
 
     def remove_all_edges_between(self, u, v):
-        while self.graph.has_edge(u, v):
-            self.graph.remove_edge(u, v)
+        while True:
+            try:
+                self.graph.remove_edge(u, v)
+            except nx.NetworkXError:
+                break
 
     def get_successors(self, node_id):
         return self.graph.successors(node_id)
@@ -297,7 +307,7 @@ class Graph:
             raise e
 
         with io.StringIO(nodes) as fp:
-            reader = csv.DictReader(fp, delimiter='\t')
+            reader = csv.DictReader(fp, dialect=self.csv_dialect)
             for row in reader:
                 if 'id:ID' not in row:
                     continue
@@ -308,7 +318,7 @@ class Graph:
                     self.set_node_attr(cur_id, (attr, val))
 
         with io.StringIO(rels) as fp:
-            reader = csv.DictReader(fp, delimiter='\t')
+            reader = csv.DictReader(fp, dialect=self.csv_dialect)
             edge_list = []
             for row in reader:
                 attrs = dict(row)
@@ -327,7 +337,7 @@ class Graph:
 
     def import_from_CSV(self, nodes_file_name, rels_file_name, offset=0):
         with open(nodes_file_name) as fp:
-            reader = csv.DictReader(fp, delimiter='\t')
+            reader = csv.DictReader(fp, dialect=self.csv_dialect)
             for row in reader:
                 cur_id = row['id:ID']
                 self.add_node(cur_id)
@@ -336,7 +346,7 @@ class Graph:
                     self.set_node_attr(cur_id, (attr, val))
 
         with open(rels_file_name) as fp:
-            reader = csv.DictReader(fp, delimiter='\t')
+            reader = csv.DictReader(fp, dialect=self.csv_dialect)
             edge_list = []
             for row in reader:
                 attrs = dict(row)
@@ -356,7 +366,7 @@ class Graph:
         """
         with open(nodes_file_name, 'w') as fp:
             headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment']
-            writer = csv.DictWriter(fp, delimiter='\t', fieldnames=headers, extrasaction='ignore')
+            writer = csv.DictWriter(fp, dialect=self.csv_dialect, fieldnames=headers, extrasaction='ignore')
             writer.writeheader()
             nodes = list(self.graph.nodes(data = True))
             nodes.sort(key = lambda x: int(x[0]))
@@ -368,7 +378,7 @@ class Graph:
 
         with open(rels_file_name, 'w') as fp:
             headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
-            writer = csv.DictWriter(fp, delimiter='\t', fieldnames=headers, extrasaction='ignore')
+            writer = csv.DictWriter(fp, dialect=self.csv_dialect, fieldnames=headers, extrasaction='ignore')
             writer.writeheader()
             light_edge_type = ['FLOWS_TO', 'REACHES', 'OBJ_REACHES', 'ENTRY', 'EXIT']
             edges = []
@@ -616,6 +626,11 @@ class Graph:
                 obj_node, tobe_added_obj=self.object_prototype)
                 self.add_obj_as_prop(prop_name="constructor", parent_obj=
                     obj_node, tobe_added_obj=self.object_cons)
+                if self.check_proto_pollution and value == wildcard:
+                    self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                    obj_node, tobe_added_obj=self.array_cons)
+                    self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                    obj_node, tobe_added_obj=self.number_cons)
         elif js_type == "array":
             # js_type = 'object'     # don't change, keep 'array' type in graph
             if self.array_prototype is not None:
@@ -840,7 +855,7 @@ class Graph:
             list: list of object nodes.
         '''
         # if var_name == 'this':    # "this" will be handled in handle_node
-        #     return [self.cur_obj]
+        #     return self.cur_objs
         name_node = self.get_name_node(var_name, scope)
         if name_node == None:
             return []
@@ -1357,11 +1372,18 @@ class Graph:
 
         self.BASE_OBJ = self.add_obj_to_scope(name='global',
                             scope=self.BASE_SCOPE, combined=False)
-        self.cur_obj = self.BASE_OBJ
+        self.cur_objs = [self.BASE_OBJ]
 
         # setup JavaScript built-in values
         self.null_obj = self.add_obj_to_scope(name='null', value='null',
                                               scope=self.BASE_SCOPE)
+
+        self.true_obj = self.add_obj_node(None, 'boolean', 'true')
+        self.add_obj_to_name('true', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.true_obj)
+        self.false_obj = self.add_obj_node(None, 'boolean', 'false')
+        self.add_obj_to_name('false', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.false_obj)
 
     def setup2(self):
         # self.tainted_user_input = self.add_obj_to_scope(
@@ -1383,12 +1405,6 @@ class Graph:
         self.nan_obj = self.add_obj_node(None, 'number', float('nan'))
         self.add_obj_to_name('NaN', scope=self.BASE_SCOPE,
                              tobe_added_obj=self.nan_obj)
-        self.true_obj = self.add_obj_node(None, 'boolean', 'true')
-        self.add_obj_to_name('true', scope=self.BASE_SCOPE,
-                             tobe_added_obj=self.true_obj)
-        self.false_obj = self.add_obj_node(None, 'boolean', 'false')
-        self.add_obj_to_name('false', scope=self.BASE_SCOPE,
-                             tobe_added_obj=self.false_obj)
 
         self.internal_objs = {
             'undefined': self.undefined_obj,

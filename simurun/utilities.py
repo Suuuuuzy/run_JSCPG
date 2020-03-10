@@ -46,6 +46,8 @@ class NodeHandleResult:
         self.name_tainted = kwargs.get('name_tainted')
         self.parent_is_proto = kwargs.get('parent_is_proto')
         self.terminated = kwargs.get('terminated')
+        assert type(self.obj_nodes) == list
+        assert type(self.used_objs) == list
         if self.ast_node:
             self.print_callback()
         if self.values and not self.value_sources:

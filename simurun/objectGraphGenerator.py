@@ -9,7 +9,7 @@ import traceback as tb
 from .logger import *
 from . import modeled_js_builtins, modeled_builtin_modules
 from .helpers import to_values, to_obj_nodes, peek_variables, combine_values
-from .helpers import check_condition, val_to_str, val_to_float, is_int
+from .helpers import val_to_str, val_to_float, is_int
 from .helpers import add_contributes_to, wildcard, undefined
 from .helpers import js_cmp
 from .esprima import esprima_parse, esprima_search
@@ -348,15 +348,16 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
         # conservative: only if all property names are unknown,
         # we fetch all properties
         # (including __proto__ for prototype pollution detection)
+        # logger.debug('All property names are unknown, fetching all properties')
     if G.check_proto_pollution and wildcard in prop_names:
         # agressive: if any property name is unknown, we fetch all properties
-        logger.debug('All property names are unknown, fetching all properties')
+        logger.debug('One of property names is unknown, fetching all properties')
         for parent_obj in parent_objs:
             prop_name_nodes.update(G.get_prop_name_nodes(parent_obj))
             objs = G.get_prop_obj_nodes(parent_obj, branches=branches,
                 exclude_proto=False)
-            objs = filter(lambda obj: G.get_node_attr(obj).get('type')
-                                                        != 'function', objs)
+            objs = filter(lambda obj: obj in G.builtin_constructors or
+                          G.get_node_attr(obj).get('type') != 'function', objs)
             prop_obj_nodes.update(objs)
             if is_wildcard_obj(G, parent_obj) and not G.get_prop_obj_nodes(
                     parent_obj, wildcard, extra.branches):
@@ -488,6 +489,14 @@ def handle_assign(G, ast_node, extra=None, right_override=None):
     else:
         # normal assignment
         handled_left = handle_node(G, left, ExtraInfo(extra, side='left'))
+        # set function name
+        name = handled_left.name
+        if name and G.get_node_attr(right).get('type') in \
+            ['AST_FUNC_DECL', 'AST_CLOSURE']:
+            for func_obj in handled_right.obj_nodes:
+                old_name = G.get_node_attr(func_obj).get('name')
+                if not old_name or old_name == '{closure}':
+                    G.set_node_attr(func_obj, ('name', name))
         return do_assign(G, handled_left, handled_right, branches, ast_node)
 
 def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
@@ -831,7 +840,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             # used_objs.update(handle_res.used_objs)
             for obj in handle_res.obj_nodes:
                 add_contributes_to(G, [obj], added_obj)
-        return NodeHandleResult(obj_nodes=[added_obj], used_objs=used_objs,
+        return NodeHandleResult(obj_nodes=[added_obj], used_objs=list(used_objs),
             callback=get_df_callback(G))
 
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME' or cur_type == 'AST_CONST':
@@ -936,7 +945,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             'BINARY_IS_NOT_IDENTICAL', 'BINARY_IS_SMALLER',
             'BINARY_IS_GREATER', 'BINARY_IS_SMALLER_OR_EQUAL',
             'BINARY_IS_GREATER_OR_EQUAL']:
-            p, d = check_condition(G, node_id, extra, handling_func=handle_node)
+            p, d = check_condition(G, node_id, extra)
             if not d:
                 return NodeHandleResult(values=[wildcard], 
                                         obj_nodes=[G.true_obj, G.false_obj])
@@ -994,7 +1003,11 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
 
     elif cur_type == 'AST_RETURN':
         returned_exp = G.get_ordered_ast_child_nodes(node_id)[0]
-        return handle_node(G, returned_exp, extra)
+        results = handle_node(G, returned_exp, extra)
+        # print(f'Returns: {results} -> {G.function_returns[G.find_ancestor_scope()]}')
+        obj_nodes = to_obj_nodes(G, results, node_id)
+        G.function_returns[G.find_ancestor_scope()].extend(obj_nodes)
+        return results
     
     elif cur_type == 'AST_IF':
         # lineno = G.get_node_attr(node_id).get('lineno:int')
@@ -1018,8 +1031,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     simurun_block(G, body, G.cur_scope, branches+[branch_tag])
                 break
             # check condition
-            possibility, deterministic = check_condition(G, condition, extra,
-                handling_func=handle_node, printing_func=logger.debug)
+            possibility, deterministic = check_condition(G, condition, extra)
             logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
                 G.get_node_attr(condition).get('code') + sty.rs.all,
                 possibility, deterministic))
@@ -1027,7 +1039,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                 # if the condition is surely true
                 simurun_block(G, body, G.cur_scope, branches)
                 break
-            elif G.single_branch:
+            elif G.single_branch and possibility != 0:
                 simurun_block(G, body, G.cur_scope)
             elif not deterministic or possibility is None or 0 < possibility < 1:
                 # if the condition is unsure
@@ -1055,18 +1067,27 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
         branches = extra.branches
         parent_branch = branches.get_last_choice_tag()
         cases = G.get_ordered_ast_child_nodes(node_id)
+        default_is_deterministic = True
         for i, case in enumerate(cases):
             branch_tag = BranchTag(point=stmt_id, branch=str(i))
             test, body = G.get_ordered_ast_child_nodes(case)
+            if G.get_node_attr(test).get('type') == 'NULL': # default
+                if default_is_deterministic or G.single_branch:
+                    simurun_block(G, body, G.cur_scope, branches)
+                else:
+                    # not deterministic
+                    simurun_block(G, body, G.cur_scope, branches+[branch_tag])
             # handle_node(G, test, extra)
             p, d = check_switch_var(G, test, extra)
             # print('check result =', p, d)
             if d and p == 1:
                 simurun_block(G, body, G.cur_scope, branches,
                             block_scope=False)
+                break
             elif not d or 0 < p < 1:
                 simurun_block(G, body, G.cur_scope, branches+[branch_tag],
                             block_scope=False)
+                default_is_deterministic = False
             else:
                 continue
         if not G.single_branch:
@@ -1075,8 +1096,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
     elif cur_type == 'AST_CONDITIONAL':
         test, consequent, alternate = G.get_ordered_ast_child_nodes(node_id)
         logger.debug(f'Ternary operator: {test} ? {consequent} : {alternate}')
-        possibility, deterministic = check_condition(G, test, extra,
-            handling_func=handle_node)
+        possibility, deterministic = check_condition(G, test, extra)
         if deterministic and possibility == 1:
             return handle_node(G, consequent, extra)
         elif deterministic and possibility == 0:
@@ -1118,8 +1138,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                     ', '.join([(sty.fg.green+'{}'+sty.rs.all+' {}').format(obj,
                     val_to_str(G.get_node_attr(obj).get('code'))) for obj in obj_nodes]))
 
-            check_result, deterministic = check_condition(G, cond, extra,
-                handling_func=handle_node) # check if the condition is met
+            # check if the condition is met
+            check_result, deterministic = check_condition(G, cond, extra)
             logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
                 G.get_node_attr(cond).get('code') + sty.rs.all, check_result,
                 deterministic))
@@ -1176,8 +1196,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                         key_obj = G.add_obj_node(ast_node=node_id,
                             js_type='string', value=k)
                         add_contributes_to(G, [obj], key_obj)
-                    logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: {sty.fg.green}{key_obj}{sty.rs.all}: {k}'
-                        f' from obj {obj}')
+                    logger.debug(f'For-in loop variables: {sty.ef.i}{handled_key.name}{sty.rs.all}: '
+                        f'{sty.fg.green}{key_obj}{sty.rs.all}: {k} from obj {obj}')
                     G.for_stack.append('for-in {} {} {} in {}'.format(node_id, handled_key.name, k, obj))
                     # print(G.for_stack)
                     G.assign_obj_nodes_to_name_node(handled_key.name_nodes[0],
@@ -1245,8 +1265,8 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
                       scope_name=G.scope_counter.gets(f'Block{body}'))
         counter = 0
         while True:
-            check_result, deterministic = check_condition(G, test, extra,
-                handling_func=handle_node) # check if the condition is met
+            # check if the condition is met
+            check_result, deterministic = check_condition(G, test, extra)
             logger.debug('While loop condition {} result: {} {}'.format(
                 sty.ef.i + G.get_node_attr(test).get('code') + sty.rs.all,
                 check_result, deterministic))
@@ -1367,7 +1387,7 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
     if caller_ast is not None:
         if G.call_counter[caller_ast] >= G.call_limit:
             logger.warning(f'{caller_ast}: Function {func_ast} in call stack '
-                    f'{G.call_counter[caller_ast]} times, skip simulating')            
+                    f'{G.call_counter[caller_ast]} times, skip simulating')
             return None, None # don't change this to [], []
                               # we need to distinguish skipped functions
         else:
@@ -1423,13 +1443,15 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         #     stmt_used_objs = handled_res.used_objs
         #     build_df_by_def_use(G, stmt, stmt_used_objs)
 
-        if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
-            stmt_returned_objs = to_obj_nodes(G, handled_res, ast_node=stmt)
-            stmt_used_objs = handled_res.used_objs
-            if stmt_returned_objs:
-                returned_objs.update(stmt_returned_objs)
-            if stmt_used_objs:
-                used_objs.update(stmt_used_objs)
+        # if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
+        #     stmt_returned_objs = to_obj_nodes(G, handled_res, ast_node=stmt)
+        #     stmt_used_objs = handled_res.used_objs
+        #     if stmt_returned_objs:
+        #         returned_objs.update(stmt_returned_objs)
+        #     if stmt_used_objs:
+        #         used_objs.update(stmt_used_objs)
+    returned_objs = G.function_returns[G.find_ancestor_scope()]
+    
     if block_scope:
         G.cur_scope = parent_scope
     
@@ -1790,7 +1812,7 @@ def handle_require(G: Graph, caller_ast, extra, _, module_names):
         vul_type = G.vul_type
         res_path = traceback(G, vul_type)
         res_path = vul_checking(G, res_path[0], vul_type)
-        if len(res_path) != 0:
+        if len(res_path) != 0 and G.vul_type != 'proto_pollution':
             G.finished = True
     return NodeHandleResult(obj_nodes=returned_objs,
                             used_objs=list(chain(*src)))
@@ -1825,6 +1847,15 @@ def run_exported_functions(G, module_exports_objs, extra):
     exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
     exported_objs += module_exports_objs
 
+    # if G.func_entry_point is not None:
+    #     objs = []
+    #     for obj in exported_objs:
+    #         attrs = G.get_node_attr(obj)
+    #         if attrs.get('type') == 'function' and \
+    #             attrs.get('name') == G.func_entry_point:
+    #             objs.append(obj)
+    #     exported_objs = objs
+
     #print("======================", module_exports_objs, exported_objs)
     # if len(exported_objs) == 0:
         # we only have one exported funcs
@@ -1844,6 +1875,10 @@ def run_exported_functions(G, module_exports_objs, extra):
             parent_obj = obj
 
         if 'pythonfunc' in G.get_node_attr(obj):
+            continue
+        if G.func_entry_point is not None and not (
+            G.get_node_attr(obj).get('type') == 'function' and
+            G.get_node_attr(obj).get('name') == G.func_entry_point):
             continue
 
         if obj in G.require_obj_stack:
@@ -1960,7 +1995,11 @@ def ast_call_function(G, ast_node, extra):
                 # wildcard or fixed "object"?
                 elif (G.get_node_attr(obj).get('type') == 'object' and
                     G.get_node_attr(obj).get('code') == wildcard):
-                    types[wildcard].append(obj)
+                    # types[wildcard].append(obj)
+                    types['object'].append(obj)
+                    types['string'].append(obj)
+                    types['number'].append(obj)
+                    types['boolean'].append(obj)
                 else:
                     types[G.get_node_attr(obj).get('type')].append(obj)
             for i, val in enumerate(handled_args[0].values):
@@ -2025,7 +2064,7 @@ def ast_call_function(G, ast_node, extra):
     return returned_result
 
 def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
-    caller_ast=None, is_new=False, stmt_id='Unknown', func_name='{anonymous}',
+    caller_ast=None, is_new=False, stmt_id='Unknown', func_name=None,
     mark_fake_args=False):
     '''
     Directly call a function.
@@ -2067,10 +2106,18 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         for obj in arg.obj_nodes:
             if G.get_node_attr(obj).get('type') == 'function':
                 callback_functions.add(obj)
+    callback_functions = list(callback_functions)
 
     # if the function declaration has multiple possibilities,
     # and need to merge afterwards
     has_branches = (len(func_objs) > 1 and not G.single_branch)
+
+    # process function name
+    if not func_name:
+        if func_objs:
+            func_name = G.get_node_attr(func_objs[0]).get('name')
+    if not func_name:
+        func_name = '{anonymous}'
 
     call_stack_item = '{}'.format(func_name)
     if G.call_stack.count(call_stack_item) > 20:
@@ -2097,6 +2144,10 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     any_func_run = False
     # if any function is skipped in this call
     any_func_skipped = False
+    
+    # manage branches
+    branches = extra.branches
+    parent_branch = branches.get_last_choice_tag()
 
     # for each possible function declaration
     for i, func_obj in enumerate(func_objs):
@@ -2124,9 +2175,6 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             continue
         any_func_run = True
 
-        # manage branches
-        branches = extra.branches
-        parent_branch = branches.get_last_choice_tag()
         # if branches exist, add a new branch tag to the list
         if has_branches and not G.single_branch:
             next_branches = branches+[BranchTag(point=stmt_id, branch=i)]
@@ -2141,7 +2189,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         python_func = G.get_node_attr(func_obj).get('pythonfunc')
         if python_func: # special Python function
             if is_new:
-                if func_obj in []:
+                if func_obj in G.builtin_constructors:
                     logger.log(ATTENTION, f'Running Python function {func_obj} {python_func}...')
                     try:
                         h = python_func(G, caller_ast, ExtraInfo(extra,
@@ -2193,6 +2241,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             # add "arguments" array
             arguments_obj = G.add_obj_to_scope(name='arguments',
                     js_type='array', scope=func_scope, ast_node=func_ast)
+            logger.debug(f'arguments obj node {arguments_obj}')
             j = 0
             while j < len(params) or j < len(_args) or j < 3:
                 if j < len(_args):
@@ -2314,6 +2363,12 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             G.cur_scope = backup_scope
             G.cur_stmt = backup_stmt
 
+            # delete "arguments" (avoid parent explosion)
+            for name_node in G.get_prop_name_nodes(arguments_obj):
+                for obj_node in G.get_child_nodes(name_node, edge_type='NAME_TO_OBJ'):
+                    G.remove_all_edges_between(name_node, obj_node)
+                G.remove_all_edges_between(arguments_obj, name_node)
+
             # if it's an unmodeled built-in function
             if G.get_node_attr(func_ast).get('labels:label') \
                 == 'Artificial_AST':
@@ -2377,13 +2432,14 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             in ['AST_FUNC_DECL', 'AST_CLOSURE']:
             G.add_edge_if_not_exist(caller_ast, func_ast, {"type:TYPE": "CALLS"})
 
-    if has_branches and not G.single_branch:
+    if has_branches and not G.single_branch and any_func_run:
         merge(G, stmt_id, len(func_objs), parent_branch)
 
     if not any_func_run:
         logger.error('Error: No function was run during this function call')
 
     G.call_stack.pop()
+    # print(len(G.call_stack), G.call_stack)
 
     return NodeHandleResult(obj_nodes=list(returned_objs),
             used_objs=list(used_objs),
@@ -2416,10 +2472,10 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if node_attrs.get('type') == 'object' and node_attrs.get('code') == wildcard:
             for e1 in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
                 for e2 in G.get_in_edges(e1[0], edge_type='OBJ_TO_PROP'):
-                    # logger.debug("{}-----{}".format(cur_stmt, used_objs))
                     if e2[0] not in used_obj_set:
                         used_objs.append(e2[0])
                         used_obj_set.add(e2[0])
+                        logger.debug("{}-----{}-----{}".format(obj, e1[0], e2[0]))
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
         # print("?", cur_stmt, used_objs, def_ast_node)
@@ -2580,9 +2636,226 @@ def is_wildcard_obj(G, obj):
         or (attrs.get('type') in ['number', 'string'] and
             attrs.get('code')== wildcard)
 
+def check_condition(G: Graph, ast_node, extra: ExtraInfo):
+    '''
+    Check if a condition is true or false.
+    
+    Args:
+        G (Graph): Graph.
+        ast_node: AST node of the condition expression.
+        extra (ExtraInfo): Extra info.
+
+    Returns:
+        float, bool: A number (range [0, 1]) indicates how possible the
+            condition is true. If both left side and right side are
+            single possibility, it returns 0 for false, and 1 for true.
+            A boolean value if all results are not deterministic.
+    '''
+    
+    node_type = G.get_node_attr(ast_node).get('type')
+    op_type = G.get_node_attr(ast_node).get('flags:string[]')
+    flag = True
+    deter_flag = True
+    if node_type == 'AST_EXPR_LIST':
+        child = G.get_ordered_ast_child_nodes(ast_node)[0]
+        return check_condition(G, child, extra)
+    elif node_type == 'AST_UNARY_OP' and op_type == 'UNARY_BOOL_NOT':
+        child = G.get_ordered_ast_child_nodes(ast_node)[0]
+        p, d = check_condition(G, child, extra)
+        if p is not None:
+            return 1 - p, d
+        else:
+            return None, d
+    if node_type == 'AST_BINARY_OP':
+        left, right = G.get_ordered_ast_child_nodes(ast_node)[:2]
+        if op_type == 'BINARY_BOOL_OR':
+            lp, ld = check_condition(G, left, extra)
+            # print('binary bool or', lp, ld)
+            rp, rd = check_condition(G, right, extra)
+            # print('binary bool or', lp, ld, rp, rd)
+            if lp is not None and rp is not None:
+                return lp + rp - lp * rp, ld and rd
+            else:
+                return None, False
+        elif op_type == 'BINARY_BOOL_AND':
+            lp, ld = check_condition(G, left, extra)
+            # print('binary bool and', lp, ld)
+            rp, rd = check_condition(G, right, extra)
+            # print('binary bool and', lp, ld, rp, rd)
+            if lp is not None and rp is not None:
+                return lp * rp, ld and rd
+            else:
+                return None, False
+        else:
+            handled_left = handle_node(G, left, extra)
+            handled_right = handle_node(G, right, extra)
+            build_df_by_def_use(G, ast_node, handled_left.obj_nodes)
+            build_df_by_def_use(G, ast_node, handled_right.obj_nodes)
+            left_values = to_values(G, handled_left, ast_node, for_prop=True)[0]
+            right_values = to_values(G, handled_right, ast_node, for_prop=True)[0]
+            # print(f'Comparing {handled_left.name}: {left_values} and '
+            #     f'{handled_right.name}: {right_values}')
+
+            true_num = 0
+            total_num = len(left_values) * len(right_values)
+            if total_num == 0:
+                return None, False # Value is unknown, cannot check
+            if op_type == 'BINARY_IS_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) == 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_IDENTICAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if v1 == v2:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_NOT_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) != 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_NOT_IDENTICAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if v1 != v2:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_SMALLER':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) < 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_GREATER':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) > 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_SMALLER_OR_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) <= 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_GREATER_OR_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) >= 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            else:
+                flag = False
+    else:
+        flag = False
+    if not flag:
+        handled = handle_node(G, ast_node, extra)
+        build_df_by_def_use(G, ast_node, handled.obj_nodes)
+        true_num = 0
+        total_num = len(list(filter(lambda x: x != G.undefined_obj, handled.obj_nodes))) + len(handled.values)
+        if total_num == 0:
+            return None, False # Value is unknown, cannot check
+        for value in handled.values:
+            if value == wildcard:
+                true_num += 0.5
+                deter_flag = False
+            elif value == 0:
+                pass
+            else:
+                true_num += 1
+        for obj in handled.obj_nodes:
+            if obj in [G.undefined_obj, G.null_obj, G.false_obj]:
+                pass
+            elif obj in [G.infinity_obj, G.negative_infinity_obj, G.nan_obj,
+                G.true_obj]:
+                true_num += 1
+            else:
+                value = G.get_node_attr(obj).get('code')
+                typ = G.get_node_attr(obj).get('type')
+                if typ == 'number':
+                    if value == wildcard:
+                        true_num += 0.5
+                        deter_flag = False
+                    elif val_to_float(value) != 0:
+                        true_num += 1
+                elif typ == 'string':
+                    if value == wildcard:
+                        true_num += 0.5
+                        deter_flag = False
+                    elif value:
+                        true_num += 1
+                elif typ == 'function':
+                    # how should we determine when it's a function?
+                    true_num += 0.5
+                    deter_flag = False
+                else:
+                    if value == wildcard:
+                        true_num += 0.5
+                        deter_flag = False
+                    else:
+                        true_num += 1
+        for value in handled.values:
+            if value:
+                true_num += 1
+    if 0 == total_num:
+        return None, False
+    return true_num / total_num, deter_flag
+
 def check_switch_var(G: Graph, ast_node, extra: ExtraInfo):
-    left_values = to_values(G, extra.switch_var, ast_node)[0]
-    right_values = to_values(G, handle_node(G, ast_node, extra), ast_node)[0]
+    left_values = to_values(G, extra.switch_var, ast_node, for_prop=True)[0]
+    right_values = to_values(G, handle_node(G, ast_node, extra), ast_node, for_prop=True)[0]
     logger.debug(f'Switch variable values: {left_values}')
     logger.debug(f'Case values: {right_values}')
 
@@ -2591,12 +2864,12 @@ def check_switch_var(G: Graph, ast_node, extra: ExtraInfo):
     deter_flag = True
     for v1 in left_values:
         for v2 in right_values:
-            if v1 != wildcard and v2 != wildcard:
-                if js_cmp(v1, v2) == 0:
-                    true_num += 1
-            elif (v1 != undefined) != (v2 != undefined):
+            if (v1 != undefined) != (v2 != undefined):
                 true_num += 0.5
                 deter_flag = False
+            elif v1 != wildcard and v2 != wildcard:
+                if js_cmp(v1, v2) == 0:
+                    true_num += 1
             else:
                 true_num += 0.5
                 deter_flag = False
