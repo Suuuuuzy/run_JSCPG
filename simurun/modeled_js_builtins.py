@@ -361,13 +361,13 @@ def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
         logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
         arrays = copy_objs_for_branch(G, arrays,
             branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
-        print('new arrays', arrays)
+        # print('new arrays', arrays)
     for arr in arrays.obj_nodes:
         for prop_name_node in G.get_prop_name_nodes(arr):
             name = G.get_node_attr(prop_name_node).get('name')
             try:
                 assert name is not None
-                print('name=', name)
+                # print('name=', name)
                 if name == wildcard:
                     returned_objs.update(G.get_obj_nodes(prop_name_node, extra.branches))
                     continue
@@ -379,7 +379,7 @@ def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
                         G.remove_all_edges_between(prop_name_node, obj)
                     G.remove_all_edges_between(arr, prop_name_node)
                 else:
-                    print(prop_name_node, i, '->', i-1)
+                    # print(prop_name_node, i, '->', i-1)
                     G.set_node_attr(prop_name_node, ('name', str(i - 1)))
             except ValueError:
                 pass
