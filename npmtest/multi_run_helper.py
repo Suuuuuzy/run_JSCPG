@@ -283,8 +283,7 @@ def test_file(file_path, vul_type='xss', graph=None):
 
     try:
         if vul_type == 'proto_pollution':
-            G = unittest_main(test_file_name, vul_type=vul_type, args=args, 
-                    graph=graph)
+            G = unittest_main(test_file_name, vul_type=vul_type, args=args)
         else:
             G = unittest_main(test_file_name, vul_type=vul_type, args=args,
                 check_signatures=get_all_sign_list())
@@ -343,14 +342,13 @@ def main(cur_no, num_split):
 
     if args.vul_type == 'prototype_pollution':
         args.vul_type = 'proto_pollution'
-    if False and args.print:
+    if args.print:
         create_logger("main_logger", output_type="console",
             level=logging.DEBUG)
         create_logger("graph_logger", output_type="console",
             level=logging.DEBUG)
         create_logger("npmtest", output_type="console",
             level=logging.DEBUG)
-        G.print = True
 
     if args.root_path is not None:
         root_path = args.root_path
@@ -361,9 +359,6 @@ def main(cur_no, num_split):
             root_path = path_traversal_root_path
         elif args.vul_type == 'code_exec':
             root_path = code_exec_root_path
-
-    # TMP
-    root_path = random_root_path
 
     testing_packages = []
     # single
