@@ -2241,7 +2241,6 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             # add "arguments" array
             arguments_obj = G.add_obj_to_scope(name='arguments',
                     js_type='array', scope=func_scope, ast_node=func_ast)
-            logger.debug(f'arguments obj node {arguments_obj}')
             j = 0
             while j < len(params) or j < len(_args) or j < 3:
                 if j < len(_args):
@@ -2475,7 +2474,7 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
                     if e2[0] not in used_obj_set:
                         used_objs.append(e2[0])
                         used_obj_set.add(e2[0])
-                        logger.debug("{}-----{}-----{}".format(obj, e1[0], e2[0]))
+                        # logger.debug("{}-----{}-----{}".format(obj, e1[0], e2[0]))
     for obj in used_objs:
         def_ast_node = G.get_obj_def_ast_node(obj)
         # print("?", cur_stmt, used_objs, def_ast_node)
