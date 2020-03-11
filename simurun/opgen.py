@@ -1402,6 +1402,9 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
         G.cur_scope, func_obj, G.cur_objs,
         branches) + sty.rs.all)
     returned_objs, used_objs = [], []
+    # update graph register for cur_func
+    G.cur_func = G.get_cur_function_decl()
+
     for child in G.get_child_nodes(func_ast, child_type='AST_STMT_LIST'):
         returned_objs, used_objs = simurun_block(G, child,
             parent_scope=G.cur_scope, branches=branches,
@@ -1439,17 +1442,6 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         if G.finished:
             return [], []
 
-        # if handled_res:
-        #     stmt_used_objs = handled_res.used_objs
-        #     build_df_by_def_use(G, stmt, stmt_used_objs)
-
-        # if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
-        #     stmt_returned_objs = to_obj_nodes(G, handled_res, ast_node=stmt)
-        #     stmt_used_objs = handled_res.used_objs
-        #     if stmt_returned_objs:
-        #         returned_objs.update(stmt_returned_objs)
-        #     if stmt_used_objs:
-        #         used_objs.update(stmt_used_objs)
     returned_objs = G.function_returns[G.find_ancestor_scope()]
     
     if block_scope:
@@ -1958,24 +1950,6 @@ def ast_call_function(G, ast_node, extra):
         callee = G.get_ordered_ast_child_nodes(ast_node)[0]
         handled_callee = handle_node(G, callee, extra)
 
-    # require is now handled as a built-in function
-    # if handled_callee.name == 'require':
-    #     module_exports_objs = handle_require_legacy(G, ast_node)
-    #     # print(G.get_name_from_child(ast_node), module_exports_objs, G.get_node_file_path(ast_node))
-    #     # run the exported objs immediately
-    #     if module_exports_objs and G.run_all:
-    #         run_exported_functions(G, module_exports_objs, extra)
-
-    #     # for a require call, we need to run traceback immediately
-    #     if G.exit_when_found:
-    #         vul_type = G.vul_type
-    #         res_path = traceback(G, vul_type)
-    #         res_path = vul_checking(G, res_path[0], vul_type)
-    #         if len(res_path) != 0:
-    #             G.finished = True
-    #     return NodeHandleResult(obj_nodes=module_exports_objs,
-    #                             used_objs=handled_callee.obj_nodes)
-
     # handle arguments
     handled_args = []
     arg_list_node = G.get_ordered_ast_child_nodes(ast_node)[-1]
@@ -2327,16 +2301,6 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 j += 1
             arguments_length_obj = G.add_obj_as_prop(prop_name='length',
                  parent_obj=arguments_obj, value=j, js_type='number')
-
-            # if the function is defined in a for loop, restore the branches
-            # this design is obsolete
-            # for_tags = \
-            #     BranchTagContainer(G.get_node_attr(func_obj).get('for_tags',
-            #     BranchTagContainer())).get_creating_for_tags()
-            # if for_tags:
-            #     for_tags = [BranchTag(i, mark=None) for i in for_tags]
-            #     next_branches.extend(for_tags)
-            # logger.debug(f'next branch tags: {next_branches}')
 
             # switch scopes ("new" will swtich scopes and object by itself)
             backup_scope = G.cur_scope
