@@ -18,11 +18,15 @@ class Graph:
         self.graph = nx.MultiDiGraph()
         self.cur_objs = []
         self.cur_scope = None
+        self.cur_func = None
         self.cur_id = 0
         self.entry_file_path = None
         self.cur_file_path = None # deprecated, use G.get_cur_file_path()
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
+
+        # for block opt
+        self.register = {}
 
         # for evaluation
         self.covered_num_stat = 0
@@ -84,7 +88,6 @@ class Graph:
         self.csv_dialect = joern_dialect
 
     # Basic graph operations
-
     # node
 
     def _get_new_nodeid(self):
@@ -168,7 +171,6 @@ class Graph:
         assert from_ID is not None, "Failed to add an edge, from_ID is None."
         assert to_ID is not None, "Failed to add an edge, to_ID is None."
         assert from_ID != 'string' and to_ID != 'string'
-        # self.graph.add_edges_from([(from_ID, to_ID, attr)])
         self.graph.add_edge(from_ID, to_ID, None, **attr)
     
     def add_edge_if_not_exist(self, from_ID, to_ID, attr):
@@ -717,7 +719,6 @@ class Graph:
                 tobe_added_obj=tobe_added_obj, combined=False)
         return tobe_added_obj
 
-
     def add_obj_to_scope(self, name=None, ast_node=None, js_type='object',
         value=None, scope=None, tobe_added_obj=None, combined=True):
         """
@@ -1035,7 +1036,6 @@ class Graph:
 
             return tmp_edge[0][1]
 
-
     def copy_obj(self, obj_node, ast_node=None, copied=None, deep=False):
         '''
         Copy an object and its properties.
@@ -1087,7 +1087,6 @@ class Graph:
             for e in self.get_out_edges(obj_node, edge_type='OBJ_TO_AST'):
                 self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_TO_AST'})
         return new_obj_node
-
 
     # scopes
 
@@ -1141,6 +1140,19 @@ class Graph:
                 return None
 
     # functions and calls
+
+    def get_cur_function_decl(self):
+        """
+        get current running function definition ast node 
+
+        Return:
+            the decl ast node of this function
+        """
+        # get the current running function scope
+        cur_func_scope = self.find_ancestor_scope()
+        cur_func_decl = self.get_out_edges(cur_func_scope,
+                        edge_type='SCOPE_TO_AST')[0][1]
+        return cur_func_decl
 
     def get_func_decl_objs_by_ast_node(self, ast_node, scope=None):
         objs = []
@@ -1317,7 +1329,6 @@ class Graph:
         file_ast = self.get_out_edges(file_scope,
                         edge_type='SCOPE_TO_AST')[0][1]
         return self.get_node_attr(file_ast).get('name')
-
 
     # prototype
 
@@ -1639,5 +1650,4 @@ class Graph:
                     else:
                         self.all_func.add(n)
         return len(self.all_func)
-
 
