@@ -84,7 +84,6 @@ class Graph:
         self.csv_dialect = joern_dialect
 
     # Basic graph operations
-
     # node
 
     def _get_new_nodeid(self):
@@ -168,7 +167,6 @@ class Graph:
         assert from_ID is not None, "Failed to add an edge, from_ID is None."
         assert to_ID is not None, "Failed to add an edge, to_ID is None."
         assert from_ID != 'string' and to_ID != 'string'
-        # self.graph.add_edges_from([(from_ID, to_ID, attr)])
         self.graph.add_edge(from_ID, to_ID, None, **attr)
     
     def add_edge_if_not_exist(self, from_ID, to_ID, attr):
@@ -1035,7 +1033,6 @@ class Graph:
 
             return tmp_edge[0][1]
 
-
     def copy_obj(self, obj_node, ast_node=None, copied=None, deep=False):
         '''
         Copy an object and its properties.
@@ -1087,7 +1084,6 @@ class Graph:
             for e in self.get_out_edges(obj_node, edge_type='OBJ_TO_AST'):
                 self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_TO_AST'})
         return new_obj_node
-
 
     # scopes
 
@@ -1317,7 +1313,6 @@ class Graph:
         file_ast = self.get_out_edges(file_scope,
                         edge_type='SCOPE_TO_AST')[0][1]
         return self.get_node_attr(file_ast).get('name')
-
 
     # prototype
 
@@ -1639,5 +1634,4 @@ class Graph:
                     else:
                         self.all_func.add(n)
         return len(self.all_func)
-
 
