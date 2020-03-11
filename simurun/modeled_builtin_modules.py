@@ -1,6 +1,6 @@
 from .graph import Graph
 from .utilities import NodeHandleResult, BranchTag, BranchTagContainer
-from . import objectGraphGenerator
+from . import opgen
 from .helpers import to_values, to_obj_nodes
 import sty
 import re
@@ -35,7 +35,7 @@ def setup_fs(G: Graph):
 def read_file(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
     options=None, callback=NodeHandleResult()):
     data = read_file_sync(G, caller_ast, extra, None, path, options)
-    objectGraphGenerator.call_function(G, callback.obj_nodes,
+    opgen.call_function(G, callback.obj_nodes,
         args=[NodeHandleResult(obj_nodes=[G.null_obj]), data],
         extra=extra)
     return NodeHandleResult()

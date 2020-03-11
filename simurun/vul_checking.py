@@ -1,5 +1,5 @@
 from .trace_rule import TraceRule
-from .vulFuncLists import *
+from .vul_func_lists import *
 
 def get_path_text(G, path, caller):
     """

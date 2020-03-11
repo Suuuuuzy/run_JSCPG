@@ -1,7 +1,7 @@
 from .graph import Graph
 from .utilities import NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
 from .utilities import wildcard
-from . import objectGraphGenerator
+from . import opgen
 from .helpers import to_values, to_obj_nodes, val_to_str, is_int
 from .helpers import convert_prop_names_to_wildcard
 from .helpers import copy_objs_for_branch, copy_objs_for_parameters
@@ -188,7 +188,7 @@ def setup_global_functions(G: Graph):
     set_interval = G.add_blank_func_to_scope('setInterval', G.BASE_SCOPE, blank_func)
     clear_interval = G.add_blank_func_to_scope('clearInterval', G.BASE_SCOPE, blank_func)
 
-    require = G.add_blank_func_to_scope('require', G.BASE_SCOPE, objectGraphGenerator.handle_require)
+    require = G.add_blank_func_to_scope('require', G.BASE_SCOPE, opgen.handle_require)
 
 
 def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult(), this=None):
@@ -205,7 +205,7 @@ def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), call
                     js_type='number', value=float(name))
             obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
             logger.debug(f'Array forEach callback arguments: index={name} ({sty.fg.green}{name_obj_node}{sty.rs.all}), obj_nodes={obj_nodes_log}, array={arr}')
-            objectGraphGenerator.call_function(G, callback.obj_nodes,
+            opgen.call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                         obj_nodes=obj_nodes),
                     NodeHandleResult(obj_nodes=[name_obj_node]),
@@ -229,7 +229,7 @@ def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult()
                 index_arg = NodeHandleResult(values=[float(name)])
             obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
             logger.debug(f'Array forEach callback arguments: index={name}, obj_nodes={obj_nodes_log}, array={arr}')
-            objectGraphGenerator.call_function(G, callback.obj_nodes,
+            opgen.call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                     obj_nodes=obj_nodes), index_arg, 
                     NodeHandleResult(name=array.name, obj_nodes=[arr])],
@@ -249,7 +249,7 @@ def array_p_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult
         func_decl = G.get_obj_def_ast_node(func)
         func_name = G.get_name_from_child(func_decl)
         func_scope = G.add_scope('FUNC_SCOPE', func, f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
-        objectGraphGenerator.call_callback_function(G, caller_ast, func_decl,
+        opgen.call_callback_function(G, caller_ast, func_decl,
             func_scope, args=[NodeHandleResult(obj_nodes=objs)],
             branches=extra.branches)
     return NodeHandleResult()
@@ -285,7 +285,7 @@ def array_p_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleRe
             array]
     logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
     new_extra = ExtraInfo(extra, branches=extra.branches+[BranchTag(point=f'ForEach{caller_ast}')])
-    objectGraphGenerator.call_function(G, callback.obj_nodes, args=args,
+    opgen.call_function(G, callback.obj_nodes, args=args,
         extra=new_extra, caller_ast=caller_ast, func_name=callback.name)
     return NodeHandleResult()
 
@@ -569,7 +569,7 @@ def array_p_reduce(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callba
         returns = None
         if length != wildcard:
             for i in range(start, length):
-                returns = objectGraphGenerator.call_function(G, callback.obj_nodes,
+                returns = opgen.call_function(G, callback.obj_nodes,
                     args=[accumulator, NodeHandleResult(
                         obj_nodes=G.get_prop_obj_nodes(arr, str(i), extra.branches)),
                         NodeHandleResult(values=[i], value_sources=[[arr]]),
@@ -583,7 +583,7 @@ def array_p_reduce(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callba
                     continue
                 if start == 1 and str(name) == '0':
                     continue
-                returns = objectGraphGenerator.call_function(G, callback.obj_nodes,
+                returns = opgen.call_function(G, callback.obj_nodes,
                     args=[accumulator, NodeHandleResult(
                         obj_nodes=G.get_objs_by_name_node(name_node, extra.branches)),
                         NodeHandleResult(values=[name], value_sources=[[arr]]),
@@ -612,7 +612,7 @@ def array_p_map(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callback:
                 for o in G.get_objs_by_name_node(name_node, extra.branches):
                     G.add_obj_as_prop(name, parent_obj=new_arr, tobe_added_obj=o)
                 continue
-            returned = objectGraphGenerator.call_function(G, callback.obj_nodes,
+            returned = opgen.call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(obj_nodes=G.get_objs_by_name_node(name_node, extra.branches)),
                     NodeHandleResult(value=[name], value_sources=[[arr]]),
                     NodeHandleResult(obj_nodes=[arr])],
@@ -820,7 +820,7 @@ def object_p_has_own_property(G: Graph, caller_ast, extra, this, *args):
 
 
 def function_p_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
-    r, _ = objectGraphGenerator.call_function(
+    r, _ = opgen.call_function(
         G, func.obj_nodes, list(args), this, extra, caller_ast,
         stmt_id=f'Call{caller_ast}')
     return r 
@@ -966,7 +966,7 @@ def json_parse(G: Graph, caller_ast, extra, _, text=None, reviver=None):
     returned_objs = []
     used_objs = set()
     for i, json_string in enumerate(json_strings):
-        obj = objectGraphGenerator.analyze_json_python(G, json_string,
+        obj = opgen.analyze_json_python(G, json_string,
             extra=extra, caller_ast=caller_ast)
         if obj is None:
             obj = G.add_obj_node(ast_node=caller_ast, js_type=None, value=wildcard)
@@ -1039,7 +1039,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                                 NodeHandleResult(values=[g]) for g in m.groups()
                             ]
                             cb_result, _ = \
-                                objectGraphGenerator.call_function(G, [callback],
+                                opgen.call_function(G, [callback],
                                 args=args, extra=extra, caller_ast=caller_ast)
                             cb_returned_values, _, _ = to_values(G, cb_result)
                             cb_returned_values = \
@@ -1077,7 +1077,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         left_s = sv[:start]
                         right_s = sv[start+len(ssv):]
                         cb_result, _ = \
-                            objectGraphGenerator.call_function(G, [callback],
+                            opgen.call_function(G, [callback],
                             args=[NodeHandleResult(values=[match_s])],
                             extra=extra, caller_ast=caller_ast)
                         cb_returned_values, _, _ = to_values(G, cb_result)
@@ -1155,7 +1155,7 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                                 NodeHandleResult(values=[g]) for g in m.groups()
                             ]
                             cb_result, _ = \
-                                objectGraphGenerator.call_function(G, [callback],
+                                opgen.call_function(G, [callback],
                                 args=args, extra=extra, caller_ast=caller_ast)
                             cb_returned_values, _, _ = to_values(G, cb_result)
                             cb_returned_values = \
@@ -1193,7 +1193,7 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         left_s = sv[:start]
                         right_s = sv[start+len(ssv):]
                         cb_result, _ = \
-                            objectGraphGenerator.call_function(G, [callback],
+                            opgen.call_function(G, [callback],
                             args=[NodeHandleResult(values=[match_s])],
                             extra=extra, caller_ast=caller_ast)
                         cb_returned_values, _, _ = to_values(G, cb_result)

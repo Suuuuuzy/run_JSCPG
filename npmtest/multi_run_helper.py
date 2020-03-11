@@ -14,8 +14,8 @@ sys.path.append("..")
 from simurun.launcher import unittest_main
 from simurun.logger import *
 from simurun.trace_rule import TraceRule
-from simurun.vulChecking import *
-from simurun.vulFuncLists import *
+from simurun.vul_checking import *
+from simurun.vul_func_lists import *
 from simurun.graph import Graph
 
 skip_packages = []

@@ -16,7 +16,7 @@ from .esprima import esprima_parse, esprima_search
 from itertools import chain
 from collections import defaultdict
 from .trace_rule import TraceRule
-from .vulChecking import *
+from .vul_checking import *
 from func_timeout import func_timeout, FunctionTimedOut
 import time
 

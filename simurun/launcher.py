@@ -3,10 +3,10 @@ import sys
 import sty
 from .graph import Graph
 from .logger import *
-from .objectGraphGenerator import register_func, handle_node, \
+from .opgen import register_func, handle_node, \
     add_edges_between_funcs, analyze_files, analyze_string, generate_obj_graph
 from .trace_rule import TraceRule
-from .vulChecking import *
+from .vul_checking import *
 from datetime import datetime
 import time
 
