@@ -1402,6 +1402,9 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
         G.cur_scope, func_obj, G.cur_objs,
         branches) + sty.rs.all)
     returned_objs, used_objs = [], []
+    # update graph register for cur_func
+    G.cur_func = G.get_cur_function_decl()
+
     for child in G.get_child_nodes(func_ast, child_type='AST_STMT_LIST'):
         returned_objs, used_objs = simurun_block(G, child,
             parent_scope=G.cur_scope, branches=branches,

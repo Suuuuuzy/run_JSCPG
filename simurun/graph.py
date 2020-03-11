@@ -18,11 +18,15 @@ class Graph:
         self.graph = nx.MultiDiGraph()
         self.cur_objs = []
         self.cur_scope = None
+        self.cur_func = None
         self.cur_id = 0
         self.entry_file_path = None
         self.cur_file_path = None # deprecated, use G.get_cur_file_path()
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
+
+        # for block opt
+        self.register = {}
 
         # for evaluation
         self.covered_num_stat = 0
@@ -715,7 +719,6 @@ class Graph:
                 tobe_added_obj=tobe_added_obj, combined=False)
         return tobe_added_obj
 
-
     def add_obj_to_scope(self, name=None, ast_node=None, js_type='object',
         value=None, scope=None, tobe_added_obj=None, combined=True):
         """
@@ -1137,6 +1140,19 @@ class Graph:
                 return None
 
     # functions and calls
+
+    def get_cur_function_decl(self):
+        """
+        get current running function definition ast node 
+
+        Return:
+            the decl ast node of this function
+        """
+        # get the current running function scope
+        cur_func_scope = self.find_ancestor_scope()
+        cur_func_decl = self.get_out_edges(cur_func_scope,
+                        edge_type='SCOPE_TO_AST')[0][1]
+        return cur_func_decl
 
     def get_func_decl_objs_by_ast_node(self, ast_node, scope=None):
         objs = []
