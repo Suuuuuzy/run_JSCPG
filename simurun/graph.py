@@ -580,6 +580,13 @@ class Graph:
 
     # Object graph
 
+    # block opt 
+    def register_graph_change(self, command=None, node_id=None, edge_id=None):
+        """
+        register the graph change of a function 
+
+        """
+
     # name nodes and object nodes
 
     def add_obj_node(self, ast_node=None, js_type='object', value=None):
