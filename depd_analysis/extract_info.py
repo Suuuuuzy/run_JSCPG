@@ -34,6 +34,8 @@ def main():
             cur_list = depd.get_value(f)
         else:
             cur_list = [p for p in cur_list if p in depd.get_value(f)]
+            
     print(cur_list)
+    print(len(cur_list))
 
 main()
