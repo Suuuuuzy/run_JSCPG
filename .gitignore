@@ -24,6 +24,10 @@ out.dat
 /simurun/*.log
 /npmtest/run_tmp/*.js
 
+# depd analysis
+/depd_analysis/*.json
+package-lock.json
+
 # vscode
 .vscode/*
 !.vscode/settings.json

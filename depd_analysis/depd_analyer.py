@@ -63,15 +63,21 @@ class Analyzer:
         package_json_path = "{}/package.json".format(package_path)
         depd = []
         if os.path.exists(package_json_path):
-            with open(package_json_path) as json_file:
-                try:
+            try:
+                with open(package_json_path) as json_file:
                     data = json.load(json_file)
                     if 'dependencies' in data:
-                        depd.extend(data['dependencies'])
+                        if type(data['dependencies']) == dict:
+                            depd.extend(data['dependencies'].keys())
+                        else:
+                            depd.extend(data['dependencies'])
                     if 'devDependencies' in data:
-                        depd.extend(data['devDependencies'])
-                except Exception as e:
-                    print(e)
+                        if type(data['devDependencies']) == dict:
+                            depd.extend(data['devDependencies'].keys())
+                        else:
+                            depd.extend(data['devDependencies'])
+            except Exception as e:
+                print(e)
         return depd
 
 def main():
@@ -87,12 +93,15 @@ def main():
 
         depd_list[package] = cur_depd_list
         for depd in cur_depd_list:
-            if depd not in back_depd_list:
-                back_depd_list[depd] = []
-            back_depd_list[depd].append(package)
+            try:
+                if depd not in back_depd_list:
+                    back_depd_list[depd] = []
+                back_depd_list[depd].append(package)
+            except Exception as e:
+                print(e)
 
         cnt += 1
-        if cnt % 1000 == 0:
+        if cnt % 100000 == 0:
             with open("depd.json", "w") as outfile:
                 json.dump(depd_list, outfile)
 
