@@ -271,7 +271,6 @@ def test_file(file_path, vul_type='xss', graph=None):
                 check_signatures=get_all_sign_list())
     except Exception as e:
         os.remove(test_file_name)
-        del G
         npm_test_logger.error("ERROR when generate graph for {}.".format(file_path))
         npm_test_logger.error(e)
         npm_test_logger.debug(tb.format_exc())

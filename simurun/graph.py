@@ -1539,7 +1539,10 @@ class Graph:
                 try:
                     child = next(children)
                     if child not in [s[0] for s in stack]:
+                        if child in visited:
+                            continue
                         visited.add(child)
+                        # incase deadloop
                         if depth_now > 1:
                             edge_group = self.get_in_edges(child, edge_type=edge_type)
                             nodes_group = [edge[0] for edge in edge_group]
