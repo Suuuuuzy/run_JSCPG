@@ -27,7 +27,13 @@ signature_lists = {
         'path_traversal': [
             'pipe',
             'sink_hqbpillvul_http_write'
+            ],
+        'depd': [
+            'sink_hqbpillvul_pp',
+            'sink_hqbpillvul_code_execution',
+            'sink_hqbpillvul_exec'
             ]
+
 }
 
 def get_all_sign_list():

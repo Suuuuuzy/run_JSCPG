@@ -1600,7 +1600,10 @@ def run_toplevel_file(G: Graph, node_id):
     return a obj and scope
     """
     # switch current file path
-    file_path = G.get_node_attr(node_id)['name']
+    if 'name' in G.get_node_attr(node_id):
+        file_path = G.get_node_attr(node_id)['name']
+    else:
+        print(G.get_node_attr(node_id))
 
     # loop call
     if file_path in G.file_stack:

@@ -1,6 +1,11 @@
-var cp = require("child_process");
+//var cp = require("child_process");
+var undefsafe = require("undefsafe");
+//var thenify = require("thenify");
+var codecov = require("codecov");
 function expolit(string){
-  cp.exec(string);
+  //undefsafe(string, 123, 234);
+  //thenify(string);
+    codecov.handleInput.upload(string, function(){}, function(){});
 }
 
 module.exports = expolit;

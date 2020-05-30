@@ -147,13 +147,21 @@ def vul_checking(G, pathes, vul_type):
             ]
             ]
 
+    depd = [
+            [('has_user_input', None), ('not_exist_func', signature_lists['sanitation']), 
+                ('end_with_func', signature_lists['depd']), ('not_start_within_file', ['undefsafe.js', 'thenify.js', 'codecov.js'])
+            ]
+            ]
+
     vul_type_map = {
             "xss": xss_rule_lists,
             "os_command": os_command_rule_lists,
             "code_exec": code_exec_lists,
             "proto_pollution": proto_pollution,
-            "path_traversal": path_traversal
+            "path_traversal": path_traversal,
+            "depd": depd
             }
+
 
     rule_lists = vul_type_map[vul_type]
     success_pathes = []
