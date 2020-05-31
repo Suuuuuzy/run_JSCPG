@@ -149,7 +149,7 @@ def vul_checking(G, pathes, vul_type):
 
     depd = [
             [('has_user_input', None), ('not_exist_func', signature_lists['sanitation']), 
-                ('end_with_func', signature_lists['depd']), ('not_start_within_file', ['undefsafe.js', 'thenify.js', 'codecov.js', 'class-transformer.js', 'dot-object.js'])
+                ('end_with_func', signature_lists['depd']), ('not_start_within_file', ['undefsafe.js', 'thenify.js', 'codecov.js', 'class-transformer.js', 'dot-object.js', 'git-revision-webpack-plugin.js'])
             ]
             ]
 
