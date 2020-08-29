@@ -244,7 +244,8 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                         name_node_found = True
                         prop_name_nodes.update(__name_nodes)
                         prop_obj_nodes.update(__obj_nodes)
-        if not name_node_found and not in_proto and prop_name != wildcard:
+        if not name_node_found and not in_proto and prop_name != wildcard and \
+            side != 'left':
             # try wildcard (*)
             r1, r2 = find_prop(G, [parent_obj], wildcard, branches, side,
                 parent_name, in_proto, depth, prop_name_for_tags)
@@ -259,7 +260,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         if not name_node_found and not in_proto:
             # we cannot create name node under __proto__
             # name nodes are only created under the original parent objects
-            if is_wildcard_obj(G, parent_obj):
+            if is_wildcard_obj(G, parent_obj) and side != 'left':
                 # if this is an wildcard (unknown) object, add another
                 # wildcard object as its property
                 added_name_node = G.add_prop_name_node(prop_name, parent_obj)
@@ -298,7 +299,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     f'({parent_obj}->{added_name_node})')
     return prop_name_nodes, prop_obj_nodes
 
-def handle_prop(G, ast_node, extra=ExtraInfo) \
+def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
     -> (NodeHandleResult, NodeHandleResult):
     '''
     Handle property.
@@ -324,7 +325,7 @@ def handle_prop(G, ast_node, extra=ExtraInfo) \
     parent_name_nodes = handled_parent.name_nodes
 
     branches = extra.branches
-    side = extra.side
+    # side = extra.side # Do not use extra.side, may have been removed
     prop_name_nodes, prop_obj_nodes = set(), set()
 
     # prepare property names
@@ -458,7 +459,7 @@ def handle_assign(G, ast_node, extra=None, right_override=None):
             for child in children:
                 value, key = G.get_ordered_ast_child_nodes(child)
                 handled_left = \
-                    handle_var(G, value, ExtraInfo(extra, side='left'))
+                    handle_var(G, value, side='left', extra=extra)
                 _key = G.get_name_from_child(key)
                 for obj in handled_right.obj_nodes:
                     prop_obj_nodes= G.get_prop_obj_nodes(parent_obj=obj,
@@ -474,7 +475,7 @@ def handle_assign(G, ast_node, extra=None, right_override=None):
             added_obj = G.add_obj_node(ast_node=ast_node, js_type='array')
             for i, child in enumerate(children):
                 handled_left = \
-                    handle_var(G, child, ExtraInfo(extra, side='left'))
+                    handle_var(G, child, side='left', extra=extra)
                 for obj in handled_right.obj_nodes:
                     prop_obj_nodes= G.get_prop_obj_nodes(parent_obj=obj,
                         prop_name=str(i), branches=branches)
@@ -663,7 +664,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
 
     return created_obj, returned_objs
 
-def handle_var(G: Graph, ast_node, extra=None):
+def handle_var(G: Graph, ast_node, side=None, extra=None):
     cur_node_attr = G.get_node_attr(ast_node)
     var_name = G.get_name_from_child(ast_node)
 
@@ -684,7 +685,7 @@ def handle_var(G: Graph, ast_node, extra=None):
         if name_node is not None:
             now_objs = list(
                 set(G.get_objs_by_name_node(name_node, branches=branches)))
-        elif not (extra and extra.side == 'right'):
+        elif side != 'right':
             logger.log(ATTENTION, f'Name node {var_name} not found, create name node')
             if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
                 # we use the function scope
@@ -761,6 +762,7 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
 
     # remove side information
     # because assignment's side affects its direct children
+    side = extra.side if extra else None
     extra = ExtraInfo(extra, side=None)
 
     if cur_type == 'File' or cur_type == 'Directory':
@@ -844,14 +846,14 @@ def handle_node(G: Graph, node_id, extra=None) -> NodeHandleResult:
             callback=get_df_callback(G))
 
     elif cur_type == 'AST_VAR' or cur_type == 'AST_NAME' or cur_type == 'AST_CONST':
-        return handle_var(G, node_id, extra)
+        return handle_var(G, node_id, side, extra)
 
     elif cur_type == 'AST_DIM':
         # G.set_node_attr(node_id, ('type', 'AST_PROP'))
-        return handle_prop(G, node_id, extra)[0]
+        return handle_prop(G, node_id, side, extra)[0]
 
     elif cur_type == 'AST_PROP':
-        return handle_prop(G, node_id, extra)[0]
+        return handle_prop(G, node_id, side, extra)[0]
 
     elif cur_type == 'AST_TOPLEVEL':
         module_exports_objs = run_toplevel_file(G, node_id)

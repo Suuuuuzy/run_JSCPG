@@ -151,7 +151,7 @@ def peek_variables(G: Graph, ast_node, handling_func: Callable,
     returned_dict = {}
     if G.get_node_attr(ast_node).get('type') == 'AST_VAR' or \
         G.get_node_attr(ast_node).get('type') == 'AST_NAME':
-        handle_result = handling_func(G, ast_node, extra)
+        handle_result = handling_func(G, ast_node, extra=extra)
         if handle_result.name:
             returned_dict[handle_result.name] = handle_result.obj_nodes
     else:
