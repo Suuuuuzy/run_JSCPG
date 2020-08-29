@@ -82,9 +82,8 @@ class Graph:
 
         csv.field_size_limit(2 ** 31 - 1)
         class joern_dialect(csv.excel_tab):
-            def __init__(self):
-                super().__init__(self)
-                self.escapechar = '\\'
+            doublequote = False
+            escapechar = '\\'
         self.csv_dialect = joern_dialect
 
     # Basic graph operations
@@ -273,8 +272,8 @@ class Graph:
                 node = e[0]
                 if _candidates is not None and node not in _candidates:
                     continue
-                if node_types is not None and self.get_node_attr(node).get('type') \
-                    not in node_types:
+                if node_types is not None and \
+                    self.get_node_attr(node).get('type') not in node_types:
                     continue
                 if step == 1:
                     results.append(node)
@@ -1378,7 +1377,7 @@ class Graph:
         the init function of setup a run
         """
         # base scope is not related to any file
-        self.BASE_SCOPE = self.add_scope("BASE_SCOPE")
+        self.BASE_SCOPE = self.add_scope("BASE_SCOPE", scope_name='Base')
 
         self.BASE_OBJ = self.add_obj_to_scope(name='global',
                             scope=self.BASE_SCOPE, combined=False)

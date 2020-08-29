@@ -162,6 +162,7 @@ def setup_object_and_function(G: Graph):
     G.add_blank_func_as_prop('defineProperty', object_cons, blank_func)
     G.add_blank_func_as_prop('defineProperties', object_cons, blank_func)
     G.add_obj_as_prop('getOwnPropertySymbols', parent_obj=object_cons, tobe_added_obj=G.false_obj)
+    G.add_blank_func_as_prop('create', object_cons, object_create)
 
     G.add_blank_func_as_prop('toString', object_prototype, object_p_to_string)
     G.add_blank_func_as_prop('toLocaleString', object_prototype, object_p_to_string)
@@ -795,8 +796,12 @@ def object_p_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult,
 def object_create(G: Graph, caller_ast, extra, _, proto=NodeHandleResult()):
     returned_objs = []
     for p in proto.obj_nodes:
+        if p == G.undefined_obj:
+            logger.error('Object prototype cannot be undefined')
+            continue
         new_obj = G.add_obj_node(caller_ast, None)
-        G.add_obj_as_prop(prop_name='__proto__', parent_obj=new_obj, tobe_added_obj=p)
+        if p != G.null_obj:
+            G.add_obj_as_prop(prop_name='__proto__', parent_obj=new_obj, tobe_added_obj=p)
         returned_objs.append(new_obj)
     return NodeHandleResult(obj_nodes=returned_objs)
 
