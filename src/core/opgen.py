@@ -1,8 +1,8 @@
 from .graph import Graph
 from .utils import * 
-from .helpers import *
+from .helpers import * 
 from ..plugins.internal.internal import Internal_plugins
-from ..plugins.internal.helpers import *
+from ..plugins.internal.helpers import setup_opg
 
 class OPGen:
     """
@@ -12,5 +12,23 @@ class OPGen:
     def __init__(self):
         self.graph = Graph()
 
-    def run(self):
+    def get_graph(self):
+        """
+        get the current graph
+        Returns:
+            Graph: the current OPG
+        """
+        return self.graph
+
+    def run(self, args):
+        print(args)
+        if args.module:
+            # pretend another file is requiring this module
+            script = "var main_func=require('{}');".format(args.input_file)
+            parse_string(self.graph, script)
+        else:
+            # analyze from JS source code files
+            parse_file(self.graph, args.input_file)
+
         setup_opg(self.graph)
+        generate_obj_graph(self.graph)

@@ -1,4 +1,6 @@
 from . import modeled_js_builtins
+import sty
+from itertools import chain
 
 def setup_opg(G):
     """
@@ -6,7 +8,7 @@ def setup_opg(G):
     setup scopes, add build-in functions etc.
 
     Args:
-        graph (Graph): the OPG itG
+        graph (Graph): the OPG itself
     """
 
     # base scope is not related to any file

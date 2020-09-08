@@ -5,6 +5,7 @@ import os
 
 ATTENTION = 15
 
+
 class ColorFormatter(logging.Formatter):
     def format(self, record):
         res = super(ColorFormatter, self).format(record)
@@ -55,3 +56,9 @@ def create_logger(name, output_type="file", level=logging.DEBUG, file_name='run_
         logger.addHandler(stream_handler)
 
     return logger
+
+class Loggers:
+    def __init__(self):
+        self.main_logger = create_logger("main", file_name='main.log')
+
+loggers = Loggers()

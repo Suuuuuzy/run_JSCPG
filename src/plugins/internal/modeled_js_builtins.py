@@ -2,15 +2,16 @@ from src.core.graph import Graph
 from src.core.utils import *
 #NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
 #from .utilities import wildcard
-from . import opgen
-from .helpers import to_values, to_obj_nodes, val_to_str, is_int
-from .helpers import convert_prop_names_to_wildcard
-from .helpers import copy_objs_for_branch, copy_objs_for_parameters
-from .helpers import to_python_array, to_og_array, add_contributes_to
-from .helpers import val_to_float
+#from . import opgen
+from src.core.helpers import to_values, to_obj_nodes, val_to_str, is_int
+from src.core.helpers import convert_prop_names_to_wildcard
+from src.core.helpers import copy_objs_for_branch, copy_objs_for_parameters
+from src.core.helpers import to_python_array, to_og_array, add_contributes_to
+from src.core.helpers import val_to_float
+from .handlers.require_handler import handle_require
 import sty
 import re
-from .logger import *
+from src.core.logger import *
 from itertools import chain, product
 from math import isnan
 import math
@@ -190,7 +191,7 @@ def setup_global_functions(G: Graph):
     set_interval = G.add_blank_func_to_scope('setInterval', G.BASE_SCOPE, blank_func)
     clear_interval = G.add_blank_func_to_scope('clearInterval', G.BASE_SCOPE, blank_func)
 
-    require = G.add_blank_func_to_scope('require', G.BASE_SCOPE, opgen.handle_require)
+    require = G.add_blank_func_to_scope('require', G.BASE_SCOPE, handle_require)
 
 
 def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult(), this=None):
@@ -960,7 +961,6 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
         logger.debug(f'Argument {i} values: ' + ', '.join(values))
     return NodeHandleResult(obj_nodes=[G.undefined_obj], used_objs=list(used_objs))
 
-
 def setup_json(G: Graph):
     console_obj = G.add_obj_to_scope(name='JSON', scope=G.BASE_SCOPE)
     G.add_blank_func_as_prop('parse', console_obj, json_parse)
@@ -1130,7 +1130,6 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
     return NodeHandleResult(obj_nodes=returned_objs,
         used_objs=list(set(strs.obj_nodes + substrs.obj_nodes + new_sub_strs.obj_nodes
         + strs.used_objs + substrs.used_objs + new_sub_strs.used_objs)))
-
 
 
 def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
