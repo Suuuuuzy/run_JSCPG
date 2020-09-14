@@ -34,6 +34,7 @@ class NodeHandleResult:
     print_callback = _print
 
     def __init__(self, **kwargs):
+        self.successors = kwargs.get('successors', [])
         self.obj_nodes = kwargs.get('obj_nodes', [])
         self.values = kwargs.get('values', [])
         self.name = kwargs.get('name')

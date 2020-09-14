@@ -4,6 +4,126 @@ from src.core.utils import wildcard, undefined
 import math
 from typing import Callable, List, Iterable
 from collections import defaultdict
+from src.core.logger import *
+
+def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
+    scope_parent_scope=None):
+    '''
+    Declare a function as an object node.
+    
+    Args:
+        G (Graph): Graph.
+        node_id: The function's AST node (AST_FUNC_DECL).
+        func_name (str, optional): The function's name. Defaults to
+            None, which means getting name from its AST children.
+        obj_parent_scope (optional): Which scope the function object
+            should be placed to. Defaults to current scope.
+        scope_parent_scope (optional): Where the function's scopes
+            should be put. See comments below. Defaults to current
+            scope.
+    
+    Returns:
+        added_obj: The function's object node.
+    '''
+
+    if obj_parent_scope is None:
+        obj_parent_scope = G.cur_scope
+    if scope_parent_scope is None:
+        scope_parent_scope = G.cur_scope
+    if func_name is None:
+        func_name = G.get_name_from_child(node_id)
+
+    # add function declaration object
+    added_obj = G.add_obj_node(node_id, "function")
+    G.set_node_attr(added_obj, ('name', func_name))
+    # memorize its parent scope
+    # Function scopes are not created when the function is declared.
+    # Instead, they are created before each time the function is
+    # executed. Because the function can be called in any scope but its
+    # scope should be put under where it is defined, we need to memorize
+    # its original parent scope.
+    G.set_node_attr(added_obj, ('parent_scope', scope_parent_scope))
+
+    if func_name is not None and func_name != '{closure}':
+        G.add_obj_to_scope(name=func_name, scope=obj_parent_scope,
+            tobe_added_obj=added_obj)
+        G.add_obj_as_prop('name', node_id, 'string', func_name, added_obj)
+
+    param_list = G.get_child_nodes(node_id, edge_type='PARENT_OF',
+        child_type='AST_PARAM_LIST')
+    params = G.get_ordered_ast_child_nodes(param_list)
+    length = len(params)
+    if length > 0:
+        if G.get_node_attr(params[-1]).get('flags:string[]') \
+            == 'PARAM_VARIADIC':
+            length -= 1
+    G.add_obj_as_prop('length', node_id, 'number', length, added_obj)
+
+    # G.set_node_attr(node_id, ("VISITED", "1"))
+    loggers.main_logger.debug(f'{sty.ef.b}Declare function{sty.rs.all} {func_name} as {added_obj}')
+
+    return added_obj
+
+def register_func(G, node_id):
+    """
+    deprecated
+
+    register the function to the nearest parent function like node
+    we assume the 1-level parent node is the stmt of parent function
+
+    Args:
+        G (Graph): the graph object
+        node_id (str): the node that needed to be registered
+    """
+    # we assume this node only have one parent node
+    # sometimes this could be the root node and do not have any parent nodes
+    if len(G.get_in_edges(node_id, edge_type="PARENT_OF")) == 0:
+        return None
+    parent_stmt_nodeid = G.get_in_edges(node_id, edge_type = "PARENT_OF")[0][0]
+    parent_func_nodeid = G.get_in_edges(parent_stmt_nodeid, edge_type = "PARENT_OF")[0][0]
+    G.set_node_attr(parent_func_nodeid, ("HAVE_FUNC", node_id))
+    if parent_func_nodeid not in G.registered_funcs:
+        G.registered_funcs[parent_func_nodeid] = set()
+    G.registered_funcs[parent_func_nodeid].add(node_id)
+
+    loggers.main_logger.info(sty.ef.b + sty.fg.green + "REGISTER {} to {}".format(node_id, parent_func_nodeid) + sty.rs.all)
+
+def decl_vars_and_funcs(G, ast_node, var=True, func=True):
+    # pre-declare variables and functions
+    func_scope = G.find_ancestor_scope()
+    children = G.get_ordered_ast_child_nodes(ast_node)
+    for child in children:
+        node_type = G.get_node_attr(child)['type']
+        if var and node_type == 'AST_VAR' and \
+            G.get_node_attr(child)['flags:string[]'] == 'JS_DECL_VAR':
+            # var a;
+            name = G.get_name_from_child(child)
+            if G.get_name_node(name, scope=func_scope,
+                               follow_scope_chain=False) is None:
+                G.add_obj_to_scope(name=name, scope=func_scope,
+                                   tobe_added_obj=G.undefined_obj)
+        elif var and node_type == 'AST_ASSIGN':
+            # var a = ...;
+            children = G.get_ordered_ast_child_nodes(child)
+            if G.get_node_attr(children[0])['type'] == 'AST_VAR' and \
+                G.get_node_attr(children[0])['flags:string[]'] == 'JS_DECL_VAR':
+                name = G.get_name_from_child(children[0])
+                # if name node does not exist, add a name node in the scope
+                # and assign it to the undefined object
+                if G.get_name_node(name, scope=func_scope,
+                                   follow_scope_chain=False) is None:
+                    G.add_obj_to_scope(name=name, scope=func_scope,
+                                       tobe_added_obj=G.undefined_obj)
+                else:
+                    pass
+        elif func and node_type == 'AST_FUNC_DECL':
+            func_name = G.get_name_from_child(child)
+            func_obj = decl_function(G, child, obj_parent_scope=func_scope)
+        # elif node_type == 'AST_STMT_LIST':
+        #     decl_vars_and_funcs(G, child, var=var, func=func)
+        elif node_type in ['AST_IF', 'AST_IF_ELEM', 'AST_FOR', 'AST_FOREACH',
+            'AST_WHILE', 'AST_SWITCH', 'AST_SWITCH_CASE', 'AST_EXPR_LIST']:
+            decl_vars_and_funcs(G, child, var=var, func=False)
 
 def eval_value(G: Graph, s: str, return_obj_node=False, ast_node=None):
     '''

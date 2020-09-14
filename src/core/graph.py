@@ -24,6 +24,7 @@ class Graph:
         self.cur_file_path = None # deprecated, use G.get_cur_file_path()
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
+        self.registered_funcs = {}
 
         # for block opt
         self.register = {}

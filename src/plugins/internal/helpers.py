@@ -68,3 +68,4 @@ def setup_opg(G):
         [G.get_prop_obj_nodes(p) for p in G.builtin_prototypes]))
     G.pollutable_name_nodes = set(chain(*
         [G.get_prop_name_nodes(p) for p in G.builtin_prototypes]))
+

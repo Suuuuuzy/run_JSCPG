@@ -1,7 +1,7 @@
 from .graph import Graph
 from .utils import * 
 from .helpers import * 
-from ..plugins.internal.internal import Internal_plugins
+from ..plugins.internal.internal import InternalPlugins 
 from ..plugins.internal.helpers import setup_opg
 
 class OPGen:
@@ -31,4 +31,5 @@ class OPGen:
             parse_file(self.graph, args.input_file)
 
         setup_opg(self.graph)
-        generate_obj_graph(self.graph)
+        internal_plugins = InternalPlugins(self.graph)
+        generate_obj_graph(self.graph, internal_plugins)

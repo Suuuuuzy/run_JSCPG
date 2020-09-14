@@ -1,8 +1,5 @@
 from src.core.graph import Graph
 from src.core.utils import *
-#NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo
-#from .utilities import wildcard
-#from . import opgen
 from src.core.helpers import to_values, to_obj_nodes, val_to_str, is_int
 from src.core.helpers import convert_prop_names_to_wildcard
 from src.core.helpers import copy_objs_for_branch, copy_objs_for_parameters

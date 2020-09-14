@@ -6,13 +6,65 @@ from typing import Callable, List, Iterable
 from collections import defaultdict
 from src.core.esprima import esprima_parse
 from src.core.logger import loggers
+from src.plugins.internal.utils import register_func
+from src.plugins.internal.internal import InternalPlugins 
 import sty
 
-def generate_obj_graph(G, entry_nodeid='0'):
+def add_edges_between_funcs(G):
+    """
+    we need to add CFG and DF edges between funcs
+    find callers, if no flow to this node, go upper to find 
+    a flow to. add CFG edges to callee CFG_ENTRY an DF edges
+    to PARAS
+    """
+    call_edges = G.get_edges_by_type('CALLS')
+    added_edge_list = []
+    for call_edge in call_edges:
+        caller_id = call_edge[0]
+        callee_id = call_edge[1]
+
+        # incase caller is not a CPG node, find the nearest
+        # CPG node
+        CPG_caller_id = G.find_nearest_upper_CPG_node(caller_id)
+        entry_edge = G.get_out_edges(callee_id, data = True, edge_type = 'ENTRY')[0]
+        # add CFG edge to ENTRY
+        ln1 = G.get_node_attr(CPG_caller_id).get('lineno:int')
+        ln2 = G.get_node_attr(list(G.get_in_edges(entry_edge[1]))[0][0]).get('lineno:int')
+        ln2 = 'Line ' + ln2 if ln2 else 'Built-in'
+        logger.info(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {} (Line {} -> {})'.format(CPG_caller_id, entry_edge[1], ln1, ln2))
+        added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
+
+        # add DF edge to PARAM
+        # the order of para in paras matters!
+        caller_para_names = get_argnames_from_funcaller(G, caller_id)
+        callee_paras = get_argids_from_funcallee(G, callee_id)
+        for idx in range(min(len(callee_paras), len(caller_para_names))):
+            ln2 = G.get_node_attr(callee_paras[idx]).get('lineno:int')
+            logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(CPG_caller_id, callee_paras[idx], ln1, ln2))
+            assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
+            assert callee_paras[idx] != None, f"Failed to add CFG edge. callee_paras[{idx}] is None."
+            added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
+
+        # add data flows for return values
+        for child in G.get_child_nodes(callee_id, 'PARENT_OF'):
+            if G.get_node_attr(child)['type'] == 'AST_STMT_LIST':
+                for stmt in G.get_child_nodes(child, 'PARENT_OF'):
+                    if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
+                        ln1 = G.get_node_attr(stmt).get('lineno:int')
+                        ln2 = G.get_node_attr(CPG_caller_id).get('lineno:int')
+                        logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(stmt, CPG_caller_id, ln1, ln2))
+                        assert stmt != None, "Failed to add CFG edge. Statement ID is None."
+                        assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
+                        added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
+
+    G.add_edges_from_list_if_not_exist(added_edge_list)
+
+def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     """
     generate the object graph of a program
     Args:
         G (Graph): the graph to generate
+        internal_plugins （InternalPlugins): the plugin obj
         entry_nodeid (str) 0: the entry node id,
             by default 0
     """
@@ -25,7 +77,7 @@ def generate_obj_graph(G, entry_nodeid='0'):
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
         register_func(G, node[0])
-    handle_node(G, entry_nodeid)
+    internal_plugins.dispatch_node(entry_nodeid)
     add_edges_between_funcs(G)
 
 def parse_file(G, path, start_node_id=0):
