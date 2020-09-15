@@ -58,7 +58,16 @@ def create_logger(name, output_type="file", level=logging.DEBUG, file_name='run_
     return logger
 
 class Loggers:
+    class __Loggers:
+        def __init__(self):
+            self.main_logger = create_logger("main", file_name='main.log')
+    instance = None
     def __init__(self):
-        self.main_logger = create_logger("main", file_name='main.log')
+        if not Loggers.instance:
+            Loggers.instance = Loggers.__Loggers()
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
+    def __setattr__(self, name):
+        return setattr(self.instance, name)
 
 loggers = Loggers()
