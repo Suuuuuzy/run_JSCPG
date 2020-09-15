@@ -15,6 +15,7 @@ from . import modeled_builtin_modules
 from . import file
 from ..utils import get_df_callback
 import sty
+import traceback as tb
 
 class HandleASTCall(Handler):
 
@@ -294,7 +295,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     returned_values.extend(h.values)
                     returned_value_sources.extend(h.value_sources)
                 except TypeError as e:
-                    logger.error(tb.format_exc())
+                    loggers.main_logger.error(tb.format_exc())
         else: # JS function in AST
             # if AST cannot be found, create AST
             if func_ast is None or G.get_node_attr(func_ast).get('type') \

@@ -9,6 +9,47 @@ from src.core.logger import loggers
 from src.plugins.internal.utils import register_func
 import sty
 
+def get_argnames_from_funcaller(G, node_id):
+    """
+    given a func node id, return a list of para ids
+    """
+    paras = []
+    nodes = G.get_successors(node_id)
+    for node in nodes:
+        if node == None:
+            continue
+        if G.get_node_attr(node)['type'] == 'AST_ARG_LIST':
+            params_id = list(G.get_successors(node))
+            for i in range(len(params_id)):
+                paras.append(0)
+            for param_id in params_id:
+                # only on child node
+                try:
+                    para_num = int(G.get_node_attr(param_id)['childnum:int'])
+                    sub_param_id = list(G.get_successors(param_id))[0]
+                    paras[para_num] = G.get_node_attr(sub_param_id)['code']
+                except:
+                    pass
+    return paras
+
+def get_argids_from_funcallee(G, node_id):
+    """
+    given a func node id, return a list of para ids
+    """
+    paras = []
+    nodes = G.get_successors(node_id)
+    for node in nodes:
+        if G.get_node_attr(node)['type'] == 'AST_PARAM_LIST':
+            params_id = list(G.get_successors(node))
+            for i in range(len(params_id)):
+                paras.append(0)
+            for param_id in params_id:
+                # only on child node
+                para_num = int(G.get_node_attr(param_id)['childnum:int'])
+                paras[para_num] = param_id 
+
+    return paras
+
 def add_edges_between_funcs(G):
     """
     we need to add CFG and DF edges between funcs
@@ -30,7 +71,7 @@ def add_edges_between_funcs(G):
         ln1 = G.get_node_attr(CPG_caller_id).get('lineno:int')
         ln2 = G.get_node_attr(list(G.get_in_edges(entry_edge[1]))[0][0]).get('lineno:int')
         ln2 = 'Line ' + ln2 if ln2 else 'Built-in'
-        logger.info(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {} (Line {} -> {})'.format(CPG_caller_id, entry_edge[1], ln1, ln2))
+        loggers.main_logger.info(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {} (Line {} -> {})'.format(CPG_caller_id, entry_edge[1], ln1, ln2))
         added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
 
         # add DF edge to PARAM

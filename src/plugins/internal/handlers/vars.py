@@ -2,6 +2,7 @@ from src.core.graph import Graph
 from src.core.utils import ExtraInfo, NodeHandleResult
 from src.plugins.handler import Handler
 from src.core.helpers import to_values
+from src.core.logger import loggers, ATTENTION
 
 class HandleVar(Handler):
     """
@@ -35,7 +36,7 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
             now_objs = list(
                 set(G.get_objs_by_name_node(name_node, branches=branches)))
         elif side != 'right':
-            logger.log(ATTENTION, f'Name node {var_name} not found, create name node')
+            loggers.main_logger.log(ATTENTION, f'Name node {var_name} not found, create name node')
             if cur_node_attr.get('flags:string[]') == 'JS_DECL_VAR':
                 # we use the function scope
                 name_node = G.add_name_node(var_name,
