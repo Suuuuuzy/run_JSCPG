@@ -6,12 +6,12 @@ class Handler(object):
     this is the parent class for all the handlers, including a 
     pre_successors method, a post_successors method.
     """
-
     def __init__(self, G: Graph, node_id: str, extra=None):
+        from .internal.manager_instance import internal_manager as internal_manager
+        self.internal_manager = internal_manager
         self.G = G
         self.node_id = node_id
         self.extra = extra
-        self.pipeline = []
 
     def pre_processing(self):
         """

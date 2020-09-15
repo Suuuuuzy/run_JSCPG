@@ -7,7 +7,6 @@ from collections import defaultdict
 from src.core.esprima import esprima_parse
 from src.core.logger import loggers
 from src.plugins.internal.utils import register_func
-from src.plugins.internal.internal import InternalPlugins 
 import sty
 
 def add_edges_between_funcs(G):
@@ -59,27 +58,6 @@ def add_edges_between_funcs(G):
 
     G.add_edges_from_list_if_not_exist(added_edge_list)
 
-def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
-    """
-    generate the object graph of a program
-    Args:
-        G (Graph): the graph to generate
-        internal_plugins （InternalPlugins): the plugin obj
-        entry_nodeid (str) 0: the entry node id,
-            by default 0
-    """
-    if G.print:
-        NodeHandleResult.print_callback = lambda x: print_handle_result_tainted(G, x)
-    else:
-        NodeHandleResult.print_callback = print_handle_result
-    entry_nodeid = str(entry_nodeid)
-    loggers.main_logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
-    obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
-    for node in obj_nodes:
-        register_func(G, node[0])
-    internal_plugins.dispatch_node(entry_nodeid)
-    add_edges_between_funcs(G)
-
 def parse_file(G, path, start_node_id=0):
     """
     parse a file, from a path to a AST by esprima
@@ -115,7 +93,7 @@ def print_handle_result(handle_result: NodeHandleResult):
         output += f', used_objs={handle_result.used_objs}'
     if handle_result.name_tainted:
         output += f', name_tainted={handle_result.name_tainted}'
-    logger.debug(output)
+    loggers.main_logger.debug(output)
 
 def eval_value(G: Graph, s: str, return_obj_node=False, ast_node=None):
     '''

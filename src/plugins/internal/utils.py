@@ -437,3 +437,46 @@ def add_contributes_to(G: Graph, sources: Iterable, target,
     if chain_tainted and tainted:
         G.set_node_attr(target, ('tainted', True))
 
+def get_df_callback(G, ast_node=None):
+    if ast_node is None:
+        cpg_node = G.cur_stmt
+    else:
+        cpg_node = G.find_nearest_upper_CPG_node(ast_node)
+    return lambda result: build_df_by_def_use(G, cpg_node, result.used_objs)
+
+def build_df_by_def_use(G, cur_stmt, used_objs):
+    """
+    Build data flows for objects used in current statement.
+    The flow will be from the object's definition to current statement (current node).
+    """
+    if not used_objs or cur_stmt is None:
+        return
+    start_time = time.time()
+    cur_lineno = G.get_node_attr(cur_stmt).get('lineno:int')
+    # If an used object is a wildcard object, add its parent object as
+    # used object too, until it is not a wildcard object.
+    used_objs = list(used_objs)
+    used_obj_set = set(used_objs)
+    for obj in used_objs:
+        node_attrs = G.get_node_attr(obj)
+        if node_attrs.get('type') == 'object' and node_attrs.get('code') == wildcard:
+            for e1 in G.get_in_edges(obj, edge_type='NAME_TO_OBJ'):
+                for e2 in G.get_in_edges(e1[0], edge_type='OBJ_TO_PROP'):
+                    if e2[0] not in used_obj_set:
+                        used_objs.append(e2[0])
+                        used_obj_set.add(e2[0])
+                        # logger.debug("{}-----{}-----{}".format(obj, e1[0], e2[0]))
+    for obj in used_objs:
+        def_ast_node = G.get_obj_def_ast_node(obj)
+        # print("?", cur_stmt, used_objs, def_ast_node)
+        if def_ast_node is None: continue
+        def_cpg_node = G.find_nearest_upper_CPG_node(def_ast_node)
+        if def_cpg_node is None: continue
+        if def_cpg_node == cur_stmt: continue
+        def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')
+        logger.info(sty.fg.li_magenta + sty.ef.inverse + "OBJ REACHES" + sty.rs.all +
+        " {} -> {} (Line {} -> Line {}), by OBJ {}".format(def_cpg_node,
+        cur_stmt, def_lineno, cur_lineno, obj))
+        G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
+    # if time.time() - start_time > 0.1:
+    #     print('df time = %.3f, %d' % (time.time() - start_time, len(used_objs)))

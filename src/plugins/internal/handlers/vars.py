@@ -1,3 +1,17 @@
+from src.core.graph import Graph 
+from src.core.utils import ExtraInfo, NodeHandleResult
+from src.plugins.handler import Handler
+from src.core.helpers import to_values
+
+class HandleVar(Handler):
+    """
+    the var type handler including 
+    AST_VAR, AST_CONST, AST_NAME
+    """
+    def process(self):
+        side = self.extra.side if self.extra else None
+        return handle_var(self.G, 
+                self.node_id, side, self.extra)
 
 def handle_var(G: Graph, ast_node, side=None, extra=None):
     cur_node_attr = G.get_node_attr(ast_node)
@@ -55,3 +69,4 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
     return NodeHandleResult(obj_nodes=now_objs, name=var_name,
         name_nodes=name_nodes, # from_branches=[from_branches],
         ast_node=ast_node)
+

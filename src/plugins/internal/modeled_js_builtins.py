@@ -5,7 +5,7 @@ from src.core.helpers import convert_prop_names_to_wildcard
 from src.core.helpers import copy_objs_for_branch, copy_objs_for_parameters
 from src.core.helpers import to_python_array, to_og_array, add_contributes_to
 from src.core.helpers import val_to_float
-from .handlers.require_handler import handle_require
+from .handlers.functions import handle_require
 import sty
 import re
 from src.core.logger import *
