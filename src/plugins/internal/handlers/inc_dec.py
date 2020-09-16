@@ -1,7 +1,7 @@
 from src.core.graph import Graph
 from src.plugins.handler import Handler
-from src.core.utils import NodeHandleResult
-from ..utils import combine_values
+from src.core.utils import NodeHandleResult, wildcard
+from ..utils import combine_values, val_to_float
 
 class HandleIncDec(Handler):
     """
@@ -9,6 +9,7 @@ class HandleIncDec(Handler):
     """
     def process(self):
         G = self.G
+        cur_type = self.G.get_node_attr(self.node_id)['type']
         child = self.G.get_ordered_ast_child_nodes(self.node_id)[0]
         handled_child = self.internal_manager.dispatch_node(child, self.extra)
         returned_values = []

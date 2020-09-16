@@ -7,6 +7,7 @@ from collections import defaultdict
 from src.core.esprima import esprima_parse
 from src.core.logger import loggers
 from src.plugins.internal.utils import register_func
+from .logger import loggers, sty
 import sty
 
 def get_argnames_from_funcaller(G, node_id):
@@ -80,7 +81,7 @@ def add_edges_between_funcs(G):
         callee_paras = get_argids_from_funcallee(G, callee_id)
         for idx in range(min(len(callee_paras), len(caller_para_names))):
             ln2 = G.get_node_attr(callee_paras[idx]).get('lineno:int')
-            logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(CPG_caller_id, callee_paras[idx], ln1, ln2))
+            loggers.main_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(CPG_caller_id, callee_paras[idx], ln1, ln2))
             assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
             assert callee_paras[idx] != None, f"Failed to add CFG edge. callee_paras[{idx}] is None."
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))

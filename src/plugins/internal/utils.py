@@ -5,6 +5,7 @@ import math
 from typing import Callable, List, Iterable
 from collections import defaultdict
 from src.core.logger import *
+import secrets
 
 def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
     scope_parent_scope=None):
@@ -701,3 +702,99 @@ def is_wildcard_obj(G, obj):
             attrs.get('code') == wildcard) \
         or (attrs.get('type') in ['number', 'string'] and
             attrs.get('code')== wildcard)
+
+def get_random_hex(length=6):
+    return secrets.token_hex(length // 2)
+
+def has_else(G, if_ast_node):
+    '''
+    Check if an if statement has 'else'.
+    '''
+    # Check by finding if the last if element's condition is NULL
+    elems = G.get_ordered_ast_child_nodes(if_ast_node)
+    if elems:
+        last_elem = elems[-1]
+        cond = G.get_ordered_ast_child_nodes(last_elem)[0]
+        if G.get_node_attr(cond).get('type') == 'NULL':
+            return True
+    return False
+
+def merge(G, stmt, num_of_branches, parent_branch):
+    '''
+    Merge two or more branches.
+    
+    Args:
+        G: graph
+        stmt: AST node ID of the if/switch statement.
+        num_of_branches (int): number of branches.
+        parent_branch (BranchTag): parent branch tag (if this branch is
+            inside another branch statement).
+     '''
+    loggers.main_logger.debug(f'Merging branches in {stmt}')
+    name_nodes = G.get_node_by_attr('labels:label', 'Name')
+    for u in name_nodes:
+        for v in G.get_child_nodes(u, 'NAME_TO_OBJ'):
+            created = [False] * num_of_branches
+            deleted = [False] * num_of_branches
+            for key, edge_attr in G.graph[u][v].items():
+                branch_tag = edge_attr.get('branch')
+                if branch_tag and branch_tag.point == stmt:
+                    if branch_tag.mark == 'A':
+                        created[int(branch_tag.branch)] = True
+                    if branch_tag.mark == 'D':
+                        deleted[int(branch_tag.branch)] = True
+
+            # We flatten Addition edges if they exist in any branch, because
+            # the possibilities will continue to exist in parent branches.
+            # We ignore those edges without tags related to current
+            # statement.
+            flag_created = any(created)
+            # We always delete Deletion edges because they are useless in
+            # parent branches.
+            # If they exist in all current branches, the Addition edge in the
+            # parent branch will be deleted (or maked by a Deletion edge).
+            flag_deleted = deleted and all(deleted)
+
+            # we'll delete edges, so we save them in a list
+            # otherwise the graph is changed and Python will raise an error
+            edges = list(G.graph[u][v].items())
+
+            # deleted all branch edges (both Addition and Deletion)
+            for key, edge_attr in edges:
+                branch_tag = edge_attr.get('branch', BranchTag())
+                if branch_tag.point == stmt:
+                    G.graph.remove_edge(u, v, key)
+
+            # flatten Addition edges
+            if flag_created:
+                # logger.debug(f'add edge {u}->{v}, branch={stmt}')
+                if parent_branch:
+                    # add one addition edge with parent if/switch's (upper level's) tags
+                    # logger.debug(f"create edge {u}->{v}, branch={BranchTag(parent_branch, mark='A')}")
+                    G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, mark='A')})
+                else:
+                    # logger.debug(f'create edge {u}->{v}')
+                    G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ'})
+
+            # cancel out Deletion edges
+            if flag_deleted:
+                if parent_branch:
+                    # find if there is any addition in parent if/switch (upper level)
+                    flag = False
+                    for key, edge_attr in list(G.graph[u][v].items()):
+                        branch_tag = edge_attr.get('branch', BranchTag())
+                        if branch_tag == BranchTag(parent_branch, mark='A'):
+                            # logger.debug(f'delete edge {u}->{v}')
+                            G.graph.remove_edge(u, v, key)
+                            flag = True
+                    # if there is not
+                    if not flag:
+                        # add one deletion edge with parent if/switch's (upper level's) tags
+                        # logger.debug(f"create edge {u}->{v}, branch={BranchTag(parent_branch, mark='D')}")
+                        G.add_edge(u, v, {'type:TYPE': 'NAME_TO_OBJ', 'branch': BranchTag(parent_branch, mark='D')})
+                else:
+                    # find if there is an addition in upper level
+                    for key, edge_attr in list(G.graph[u][v].items()):
+                        if 'branch' not in edge_attr:
+                            # logger.debug(f'delete edge {u}->{v}')
+                            G.graph.remove_edge(u, v, key)

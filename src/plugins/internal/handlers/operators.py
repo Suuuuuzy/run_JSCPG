@@ -1,9 +1,7 @@
 from src.core.graph import Graph
 from src.core.utils import *
+from ..utils import to_obj_nodes, get_df_callback
 from src.core.logger import loggers
-# okay great, handle var will not introduce circle import
-# this is not the design, but we can import the handle var function
-# for better performance
 from . import vars
 from src.plugins.handler import Handler
 
@@ -88,9 +86,10 @@ class HandleAssign(Handler):
                     old_name = G.get_node_attr(func_obj).get('name')
                     if not old_name or old_name == '{closure}':
                         G.set_node_attr(func_obj, ('name', name))
+            assert type(handled_right) == NodeHandleResult
             return do_assign(G, handled_left, handled_right, branches, ast_node)
 
-def do_assign(self, G, handled_left, handled_right, branches=None, ast_node=None):
+def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     if branches is None:
         branches = BranchTagContainer()
 

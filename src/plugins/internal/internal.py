@@ -19,6 +19,7 @@ class PluginManager(object):
         from .handlers.loop import HandleFor as HandleFor
         from .handlers.expr_list import HandleExprList as HandleExprList
         from .handlers.inc_dec import HandleIncDec as HandleIncDec
+        from .handlers.condition import HandleIf as HandleIf
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -47,6 +48,7 @@ class PluginManager(object):
                     'AST_POST_INC': self.HandleIncDec,
                     'AST_PRE_DEC': self.HandleIncDec,
                     'AST_POST_DEC': self.HandleIncDec,
+                    'AST_IF': self.HandleIf,
                     }
 
         def dispatch_node(self, node_id, extra=None):

@@ -350,7 +350,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                             G.add_obj_as_prop('length', js_type='number',
                                 value=length, parent_obj=arr)
                         else:
-                            logger.debug(f'add arg {param_name} <- '
+                            loggers.main_logger.debug(f'add arg {param_name} <- '
                                 f'{arg_obj_nodes}, scope {func_scope}')
                             for obj in arg_obj_nodes:
                                 G.add_obj_to_scope(name=param_name,
@@ -383,11 +383,11 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                             else None, value=wildcard)
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('tainted', True))
-                        logger.debug("{} marked as tainted 3".format(added_obj))
+                        loggers.main_logger.debug("{} marked as tainted 3".format(added_obj))
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
 
-                    logger.debug(f'add arg {param_name} <- new obj {added_obj}, '
+                    loggers.main_logger.debug(f'add arg {param_name} <- new obj {added_obj}, '
                             f'scope {func_scope}, ast node {param}')
                 elif j < 3:
                     # in case the function only use "arguments"
@@ -398,7 +398,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         else None, value=wildcard)
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('tainted', True))
-                        logger.debug("{} marked as tainted 4".format(added_obj))
+                        loggers.main_logger.debug("{} marked as tainted 4".format(added_obj))
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
                     loggers.main_logger.debug(f'add arguments[{j}] <- new obj {added_obj}, '
@@ -691,7 +691,7 @@ def run_exported_functions(G, module_exports_objs, extra):
         if G.get_node_attr(obj).get('type') != 'function':
             continue
         # some times they write exports= new foo() eg. libnmap
-        logger.log(ATTENTION, 'Run exported function {}'.format(obj))
+        loggers.main_logger.log(ATTENTION, 'Run exported function {}'.format(obj))
         # if G.function_time_limit:
         if False:
             try:
@@ -734,3 +734,44 @@ def run_exported_functions(G, module_exports_objs, extra):
                 if G.get_node_attr(obj).get('type') == 'function':
                     #print(obj, G.get_node_attr(obj))
                     exported_objs.append((newed_obj, obj))
+
+def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
+    '''
+    Instantiate an object (create a new object).
+    
+    Args:
+        G (Graph): Graph.
+        exp_ast_node: The New expression's AST node.
+        constructor_decl: The constructor's function declaration AST
+            node.
+        branches (optional): Branch information.. Defaults to [].
+    
+    Returns:
+        obj_node: The created object. Note that this function returns a
+            single object (not an array of objects).
+        returned_obj: list, The return object of the function
+    '''
+    # create the instantiated object
+    # js_type=None: avoid automatically adding prototype
+    created_obj = G.add_obj_node(ast_node=exp_ast_node, js_type=None)
+    # add edge between obj and obj decl
+    G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
+    # build the prototype chain
+    G.build_proto(created_obj)
+
+    # update current object (this)
+    backup_objs = G.cur_objs
+    G.cur_objs = [created_obj]
+
+    returned_objs, _ = simurun_function(G, constructor_decl, branches=branches,
+        caller_ast=exp_ast_node)
+
+    G.cur_objs = backup_objs
+
+    # finally add call edge from caller to callee
+    # added in call_function, no need to add here
+    # if exp_ast_node is not None:
+    #     G.add_edge_if_not_exist(exp_ast_node, constructor_decl,
+    #                             {"type:TYPE": "CALLS"})
+
+    return created_obj, returned_objs

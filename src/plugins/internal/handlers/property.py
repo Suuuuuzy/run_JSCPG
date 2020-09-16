@@ -3,7 +3,7 @@ from src.core.utils import NodeHandleResult, ExtraInfo
 from src.core.helpers import to_values
 from ..utils import wildcard, undefined
 from ..utils import is_wildcard_obj
-from src.core.logger import loggers
+from src.core.logger import loggers, sty
 from ..utils import get_df_callback
 
 class HandleProp(Handler):
@@ -45,9 +45,9 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         return [], []
 
     if in_proto:
-        logger.debug('Cannot find "direct" property, going into __proto__ ' \
+        loggers.main_logger.debug('Cannot find "direct" property, going into __proto__ ' \
                 f'{parent_objs}...')
-        logger.debug(f'  {parent_name}.{prop_name}')
+        loggers.main_logger.debug(f'  {parent_name}.{prop_name}')
     prop_name_nodes = set()
     prop_obj_nodes = set()
     for parent_obj in parent_objs:
@@ -145,7 +145,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     # if prop_name_for_tags:
                     #     G.set_node_attr(added_name_node,
                     #                     ('for_tags', prop_name_for_tags))
-                    logger.debug(f'{sty.ef.b}Add prop name node{sty.rs.all} '
+                    loggers.main_logger.debug(f'{sty.ef.b}Add prop name node{sty.rs.all} '
                     f'{parent_name}.{prop_name} '
                     f'({parent_obj}->{added_name_node})')
     return prop_name_nodes, prop_obj_nodes

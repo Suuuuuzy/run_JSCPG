@@ -1475,7 +1475,6 @@ def merge(G, stmt, num_of_branches, parent_branch):
                         created[int(branch_tag.branch)] = True
                     if branch_tag.mark == 'D':
                         deleted[int(branch_tag.branch)] = True
-            # logger.debug(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
 
             # We flatten Addition edges if they exist in any branch, because
             # the possibilities will continue to exist in parent branches.
@@ -1487,9 +1486,6 @@ def merge(G, stmt, num_of_branches, parent_branch):
             # If they exist in all current branches, the Addition edge in the
             # parent branch will be deleted (or maked by a Deletion edge).
             flag_deleted = deleted and all(deleted)
-
-            # if flag_created or flag_deleted:
-            #     logger.debug(f'{u}->{v}\ncreated: {created}\ndeleted: {deleted}')
 
             # we'll delete edges, so we save them in a list
             # otherwise the graph is changed and Python will raise an error

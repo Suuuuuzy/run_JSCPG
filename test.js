@@ -18,8 +18,12 @@ function expolit(string){
   }
 }
 string = "abcs";
-for (i=0;i<string.length; ++i){
-  undefsafe(i);
+if(string == "abc"){
+  string = "abcs";
+} else {
+  for (i=0;i<string.length; ++i){
+    undefsafe(i);
+  }
 }
 
 module.exports = expolit;
