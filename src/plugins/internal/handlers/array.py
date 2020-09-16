@@ -36,7 +36,7 @@ class HandleArrayElem(Handler):
     """
     def process(self):
         if not (self.extra and self.extra.parent_obj is not None):
-            logger.error("AST_ARRAY_ELEM occurs outside AST_ARRAY")
+            loggers.main_logger.error("AST_ARRAY_ELEM occurs outside AST_ARRAY")
             return None
         else:
             # should only have two childern

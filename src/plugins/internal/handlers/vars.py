@@ -1,5 +1,5 @@
 from src.core.graph import Graph 
-from src.core.utils import ExtraInfo, NodeHandleResult
+from src.core.utils import ExtraInfo, NodeHandleResult, BranchTagContainer
 from src.plugins.handler import Handler
 from src.core.helpers import to_values
 from src.core.logger import loggers, ATTENTION

@@ -451,7 +451,6 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
     """
     if not used_objs or cur_stmt is None:
         return
-    start_time = time.time()
     cur_lineno = G.get_node_attr(cur_stmt).get('lineno:int')
     # If an used object is a wildcard object, add its parent object as
     # used object too, until it is not a wildcard object.
@@ -474,9 +473,231 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if def_cpg_node is None: continue
         if def_cpg_node == cur_stmt: continue
         def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')
-        logger.info(sty.fg.li_magenta + sty.ef.inverse + "OBJ REACHES" + sty.rs.all +
+        loggers.main_logger.info(sty.fg.li_magenta + sty.ef.inverse + "OBJ REACHES" + sty.rs.all +
         " {} -> {} (Line {} -> Line {}), by OBJ {}".format(def_cpg_node,
         cur_stmt, def_lineno, cur_lineno, obj))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
-    # if time.time() - start_time > 0.1:
-    #     print('df time = %.3f, %d' % (time.time() - start_time, len(used_objs)))
+
+def check_condition(G: Graph, ast_node, extra: ExtraInfo):
+    '''
+    Check if a condition is true or false.
+    
+    Args:
+        G (Graph): Graph.
+        ast_node: AST node of the condition expression.
+        extra (ExtraInfo): Extra info.
+
+    Returns:
+        float, bool: A number (range [0, 1]) indicates how possible the
+            condition is true. If both left side and right side are
+            single possibility, it returns 0 for false, and 1 for true.
+            A boolean value if all results are not deterministic.
+    '''
+    node_type = G.get_node_attr(ast_node).get('type')
+    op_type = G.get_node_attr(ast_node).get('flags:string[]')
+    flag = True
+    deter_flag = True
+    if node_type == 'AST_EXPR_LIST':
+        child = G.get_ordered_ast_child_nodes(ast_node)[0]
+        return check_condition(G, child, extra)
+    elif node_type == 'AST_UNARY_OP' and op_type == 'UNARY_BOOL_NOT':
+        child = G.get_ordered_ast_child_nodes(ast_node)[0]
+        p, d = check_condition(G, child, extra)
+        if p is not None:
+            return 1 - p, d
+        else:
+            return None, d
+    if node_type == 'AST_BINARY_OP':
+        left, right = G.get_ordered_ast_child_nodes(ast_node)[:2]
+        if op_type == 'BINARY_BOOL_OR':
+            lp, ld = check_condition(G, left, extra)
+            # print('binary bool or', lp, ld)
+            rp, rd = check_condition(G, right, extra)
+            # print('binary bool or', lp, ld, rp, rd)
+            if lp is not None and rp is not None:
+                return lp + rp - lp * rp, ld and rd
+            else:
+                return None, False
+        elif op_type == 'BINARY_BOOL_AND':
+            lp, ld = check_condition(G, left, extra)
+            # print('binary bool and', lp, ld)
+            rp, rd = check_condition(G, right, extra)
+            # print('binary bool and', lp, ld, rp, rd)
+            if lp is not None and rp is not None:
+                return lp * rp, ld and rd
+            else:
+                return None, False
+        else:
+            from .manager_instance import internal_manager
+            handled_left = internal_manager.dispatch_node(left, extra)
+            handled_right = internal_manager.dispatch_node(right, extra)
+            build_df_by_def_use(G, ast_node, handled_left.obj_nodes)
+            build_df_by_def_use(G, ast_node, handled_right.obj_nodes)
+            left_values = to_values(G, handled_left, ast_node, for_prop=True)[0]
+            right_values = to_values(G, handled_right, ast_node, for_prop=True)[0]
+            # print(f'Comparing {handled_left.name}: {left_values} and '
+            #     f'{handled_right.name}: {right_values}')
+
+            true_num = 0
+            total_num = len(left_values) * len(right_values)
+            if total_num == 0:
+                return None, False # Value is unknown, cannot check
+            if op_type == 'BINARY_IS_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) == 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_IDENTICAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if v1 == v2:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_NOT_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) != 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_NOT_IDENTICAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) != (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if v1 != v2:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_SMALLER':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) < 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_GREATER':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) > 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_SMALLER_OR_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) <= 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            elif op_type == 'BINARY_IS_GREATER_OR_EQUAL':
+                for v1 in left_values:
+                    for v2 in right_values:
+                        if (v1 != undefined) or (v2 != undefined):
+                            true_num += 0.5
+                            deter_flag = False
+                        elif v1 != wildcard and v2 != wildcard:
+                            if js_cmp(v1, v2) >= 0:
+                                true_num += 1
+                        else:
+                            true_num += 0.5
+                            deter_flag = False
+            else:
+                flag = False
+    else:
+        flag = False
+    if not flag:
+        handled = handle_node(G, ast_node, extra)
+        build_df_by_def_use(G, ast_node, handled.obj_nodes)
+        true_num = 0
+        total_num = len(list(filter(lambda x: x != G.undefined_obj, handled.obj_nodes))) + len(handled.values)
+        if total_num == 0:
+            return None, False # Value is unknown, cannot check
+        for value in handled.values:
+            if value == wildcard:
+                true_num += 0.5
+                deter_flag = False
+            elif value == 0:
+                pass
+            else:
+                true_num += 1
+        for obj in handled.obj_nodes:
+            if obj in [G.undefined_obj, G.null_obj, G.false_obj]:
+                pass
+            elif obj in [G.infinity_obj, G.negative_infinity_obj, G.nan_obj,
+                G.true_obj]:
+                true_num += 1
+            else:
+                value = G.get_node_attr(obj).get('code')
+                typ = G.get_node_attr(obj).get('type')
+                if typ == 'number':
+                    if value == wildcard:
+                        true_num += 0.5
+                        deter_flag = False
+                    elif val_to_float(value) != 0:
+                        true_num += 1
+                elif typ == 'string':
+                    if value == wildcard:
+                        true_num += 0.5
+                        deter_flag = False
+                    elif value:
+                        true_num += 1
+                elif typ == 'function':
+                    # how should we determine when it's a function?
+                    true_num += 0.5
+                    deter_flag = False
+                else:
+                    if value == wildcard:
+                        true_num += 0.5
+                        deter_flag = False
+                    else:
+                        true_num += 1
+        for value in handled.values:
+            if value:
+                true_num += 1
+    if 0 == total_num:
+        return None, False
+    return true_num / total_num, deter_flag
+
+def is_wildcard_obj(G, obj):
+    attrs = G.get_node_attr(obj)
+    return (attrs.get('type') in ['object', 'array'] and
+            attrs.get('code') == wildcard) \
+        or (attrs.get('type') in ['number', 'string'] and
+            attrs.get('code')== wildcard)

@@ -13,6 +13,13 @@ function expolit(string){
   //dot_object.set(string);
   test = new git_revision(string);
   test.commithash();
+  for (i=0;i<string.length; ++i){
+    undefsafe(i);
+  }
+}
+string = "abcs";
+for (i=0;i<string.length; ++i){
+  undefsafe(i);
 }
 
 module.exports = expolit;

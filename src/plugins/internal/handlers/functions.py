@@ -13,7 +13,7 @@ from src.plugins.handler import Handler
 from itertools import chain
 from . import modeled_builtin_modules
 from . import file
-from ..utils import get_df_callback
+from ..utils import get_df_callback, to_obj_nodes, add_contributes_to
 import sty
 import traceback as tb
 
@@ -357,7 +357,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                                     scope=func_scope, tobe_added_obj=obj)
                     else:
                         # this is used to print logs only
-                        logger.debug(f'add arg arguments[{j}] <- '
+                        loggers.main_logger.debug(f'add arg arguments[{j}] <- '
                             f'{arg_obj_nodes}, scope {func_scope}')
                 elif j < len(params) and mark_fake_args:
                     param = params[j]
@@ -401,7 +401,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         logger.debug("{} marked as tainted 4".format(added_obj))
                     G.add_obj_as_prop(prop_name=str(j),
                         parent_obj=arguments_obj, tobe_added_obj=added_obj)
-                    logger.debug(f'add arguments[{j}] <- new obj {added_obj}, '
+                    loggers.main_logger.debug(f'add arguments[{j}] <- new obj {added_obj}, '
                                 f'scope {func_scope}, ast node {caller_ast}')
                 else:
                     break

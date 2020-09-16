@@ -1,7 +1,9 @@
 from src.plugins.handler import Handler
 from src.core.utils import NodeHandleResult, ExtraInfo
 from src.core.helpers import to_values
-from src.core.utils import wildcard, undefined
+from ..utils import wildcard, undefined
+from ..utils import is_wildcard_obj
+from src.core.logger import loggers
 from ..utils import get_df_callback
 
 class HandleProp(Handler):
@@ -12,7 +14,6 @@ class HandleProp(Handler):
         side = self.extra.side if self.extra else None
         return handle_prop(self.G, 
                 self.node_id, side, self.extra)[0]
-
 
 
 def find_prop(G, parent_objs, prop_name, branches=None,
@@ -119,7 +120,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     js_type='object' if G.check_proto_pollution else None,
                     value=wildcard, ast_node=ast_node)                    
                 prop_obj_nodes.add(added_obj)
-                logger.debug('{} is a wildcard object, creating a wildcard'
+                loggers.main_logger.debug('{} is a wildcard object, creating a wildcard'
                     ' object {} for its properties'.format(parent_obj,
                     added_obj))
                 if G.get_node_attr(parent_obj).get('tainted'):
@@ -164,6 +165,8 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
     '''
     # recursively handle both parts
     from src.plugins.internal.manager_instance import internal_manager
+    if extra is None:
+        extra = ExtraInfo()
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)[:2]
     handled_parent = internal_manager.dispatch_node(parent, extra)
     handled_prop = internal_manager.dispatch_node(prop, extra)
@@ -224,7 +227,7 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
         # create parent object if it doesn't exist
         parent_objs = list(filter(lambda x: x != G.undefined_obj, parent_objs))
         if not parent_objs:
-            logger.debug(
+            loggers.main_logger.debug(
                 "PARENT OBJ {} NOT DEFINED, creating object nodes".
                 format(parent_name))
             # we assume this happens when it's a built-in var name

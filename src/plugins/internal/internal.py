@@ -16,6 +16,9 @@ class PluginManager(object):
         from .handlers.property import HandleProp as HandleProp
         from .handlers.array import HandleArray as HandleArray, \
                 HandleArrayElem as HandleArrayElem
+        from .handlers.loop import HandleFor as HandleFor
+        from .handlers.expr_list import HandleExprList as HandleExprList
+        from .handlers.inc_dec import HandleIncDec as HandleIncDec
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -37,7 +40,13 @@ class PluginManager(object):
                     'AST_FUNC_DECL': self.HandleFuncDecl,
                     'AST_CLOSURE': self.HandleFuncDecl,
                     'AST_ARRAY': self.HandleArray,
-                    'AST_ARRAY_ELEM': self.HandleArrayElem
+                    'AST_ARRAY_ELEM': self.HandleArrayElem,
+                    'AST_FOR': self.HandleFor,
+                    'AST_EXPR_LIST': self.HandleExprList,
+                    'AST_PRE_INC': self.HandleIncDec,
+                    'AST_POST_INC': self.HandleIncDec,
+                    'AST_PRE_DEC': self.HandleIncDec,
+                    'AST_POST_DEC': self.HandleIncDec,
                     }
 
         def dispatch_node(self, node_id, extra=None):
