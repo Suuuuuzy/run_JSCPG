@@ -24,6 +24,10 @@ if(string == "abc"){
   for (i=0;i<string.length; ++i){
     undefsafe(i);
   }
+  t = ['a', 'b', 'c'];
+  t.forEach(function(elem){
+    undefsafe(elem);
+  });
 }
 
 module.exports = expolit;

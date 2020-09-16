@@ -7,6 +7,7 @@ from .blocks import simurun_block
 # a little bit risky to use handle prop
 # should be fine
 from . import vars
+from . import property
 from src.core.utils import get_random_hex, wildcard, undefined
 from src.core.helpers import to_values
 from src.plugins.handler import Handler
@@ -52,7 +53,7 @@ def ast_call_function(G, ast_node, extra):
     # handle the callee and parent object (for method calls)
     handled_parent = None
     if G.get_node_attr(ast_node).get('type') == 'AST_METHOD_CALL':
-        handled_callee, handled_parent = handle_prop(G, ast_node, extra)
+        handled_callee, handled_parent = property.handle_prop(G, ast_node, extra)
     else:
         callee = G.get_ordered_ast_child_nodes(ast_node)[0]
         handled_callee = internal_manager.dispatch_node(callee, extra)
