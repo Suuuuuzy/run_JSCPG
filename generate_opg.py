@@ -73,5 +73,4 @@ if __name__ == '__main__':
     setup_graph_env(G)
     opg.run(args)
     pathes = traceback(G, args.vul_type)
-    print(pathes[1])
     vul_pathes = vul_checking(G, pathes[0], args.vul_type)

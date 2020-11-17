@@ -174,5 +174,9 @@ def vul_checking(G, pathes, vul_type):
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)
     print("success: ", success_pathes)
+    for path in success_pathes:
+        res_text_path = get_path_text(G, path, path[0])
+        print("Attack Path: ")
+        print(res_text_path)
     return success_pathes
 
