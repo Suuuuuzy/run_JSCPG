@@ -110,7 +110,6 @@ def parse_file(G, path, start_node_id=0):
     """
     result = esprima_parse(path, ['-n', str(start_node_id), '-o', '-'],
         print_func=loggers.main_logger.info)
-    print(result)
     G.import_from_string(result)
 
 def parse_string(G, source, start_node_id=0):

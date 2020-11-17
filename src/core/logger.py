@@ -61,6 +61,7 @@ class Loggers:
     class __Loggers:
         def __init__(self):
             self.main_logger = create_logger("main", file_name='main.log')
+            self.debug_logger = create_logger("debug", file_name="debug.log")
     instance = None
     def __init__(self):
         if not Loggers.instance:

@@ -22,9 +22,6 @@ class HandleFile(Handler):
         for child in self.G.get_child_nodes(self.node_id):
             self.internal_manager.dispatch_node(child, self.extra)
 
-    def post_successors(self, handle_res):
-        pass
-
 class HandleToplevel(Handler):
     
     def process(self):
@@ -86,17 +83,21 @@ def run_toplevel_file(G: Graph, node_id):
     G.add_obj_to_scope(name="this", tobe_added_obj=added_module_exports)
 
     # simurun the file
+    print("simurun ", G.get_node_attr(node_id))
     simurun_function(G, node_id, block_scope=True)
 
     # get current module.exports
     # because module.exports may be assigned to another object
     # TODO: test if module is assignable
     module_obj = G.get_objs_by_name('module')[0]
+    print(module_obj)
     module_exports_objs = G.get_prop_obj_nodes(parent_obj=module_obj,
         prop_name='exports')
+
     #final_exported_objs = []
-    #for obj in module_exports_objs:
-    #    final_exported_objs = final_exported_objs + G.get_prop_obj_nodes_recur(parent_obj=obj)
+    for obj in module_exports_objs:
+        for o in G.get_prop_obj_nodes(obj):
+            print('exported', G.get_node_attr(o))
 
 
     # switch back scope, object, path and statement AST node id

@@ -1,2 +1,2 @@
-from .internal import PluginManager
+from ..manager import PluginManager
 internal_manager = PluginManager()

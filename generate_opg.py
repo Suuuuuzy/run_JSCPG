@@ -1,6 +1,7 @@
 from src.core.opgen import OPGen
 from src.core.graph import Graph
 from src.core.logger import *
+from src.core.checker import traceback, vul_checking
 
 import argparse
 
@@ -44,7 +45,7 @@ def parse_args():
     return args
 
 def setup_graph_env(G: Graph):
-    logger = create_logger("main_logger", output_type="file")
+    #logger = create_logger("main_logger", output_type="file")
     G = Graph()
 
     if args.print:
@@ -53,6 +54,7 @@ def setup_graph_env(G: Graph):
         create_logger("graph_logger", output_type="console",
             level=logging.DEBUG)
         G.print = True
+
     G.run_all = args.run_all or args.module
     G.function_time_limit = args.function_timeout
     G.exit_when_found = args.exit
@@ -70,3 +72,6 @@ if __name__ == '__main__':
     G = opg.get_graph()
     setup_graph_env(G)
     opg.run(args)
+    pathes = traceback(G, args.vul_type)
+    print(pathes)
+    vul_pathes = vul_checking(G, pathes[0], args.vul_type)

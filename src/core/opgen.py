@@ -1,8 +1,8 @@
 from .graph import Graph
 from .utils import * 
 from .helpers import * 
-from ..plugins.internal.internal import PluginManager 
-from ..plugins.internal.helpers import setup_opg
+from ..plugins.manager import PluginManager 
+from ..plugins.internal.setup_env import setup_opg
 
 class OPGen:
     """

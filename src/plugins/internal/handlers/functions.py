@@ -206,7 +206,6 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         return NodeHandleResult(), []
 
     G.call_stack.append(call_stack_item)
-    #print(G.call_stack)
 
     if stmt_id == 'Unknown' and caller_ast is not None:
         stmt_id = caller_ast
@@ -733,7 +732,6 @@ def run_exported_functions(G, module_exports_objs, extra):
             generated_objs.append(newed_obj)
             for obj in generated_objs:
                 if G.get_node_attr(obj).get('type') == 'function':
-                    #print(obj, G.get_node_attr(obj))
                     exported_objs.append((newed_obj, obj))
 
 def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
