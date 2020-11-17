@@ -67,7 +67,6 @@ def traceback(G, vul_type, start_node=None):
 
             # here we treat the single calling as a possible path
             # pathes.append([caller])
-            G.logger.debug('Paths:')
 
             # give the end node one more chance, find the parent obj of the ending point
             """

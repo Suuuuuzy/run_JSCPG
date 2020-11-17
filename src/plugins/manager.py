@@ -10,6 +10,7 @@ class PluginManager(object):
         from .internal.handlers.file import HandleToplevel \
                 as HandleToplevel
         from .internal.handlers.operators import HandleAssign as HandleAssign
+        from .internal.handlers.operators import HandleBinaryOP as HandleBinaryOP
         from .internal.handlers.functions import HandleASTCall as HandleASTCall
         from .internal.handlers.vars import HandleVar as HandleVar
         from .internal.handlers.const import HandleConst as HandleConst
@@ -50,6 +51,7 @@ class PluginManager(object):
                     'AST_PRE_DEC': self.HandleIncDec,
                     'AST_POST_DEC': self.HandleIncDec,
                     'AST_IF': self.HandleIf,
+                    'AST_BINARY_OP': self.HandleBinaryOP,
                     }
 
         def dispatch_node(self, node_id, extra=None):

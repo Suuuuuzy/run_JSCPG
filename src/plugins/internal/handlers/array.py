@@ -41,24 +41,24 @@ class HandleArrayElem(Handler):
         else:
             # should only have two childern
             try:
-                value_node, key_node = G.get_ordered_ast_child_nodes(node_id)
+                value_node, key_node = self.G.get_ordered_ast_child_nodes(self.node_id)
             except:
                 # TODO: Check what happend here for colorider
                 return NodeHandleResult()
                 
-            key = G.get_name_from_child(key_node)
+            key = self.G.get_name_from_child(key_node)
             if key is not None:
                 key = key.strip("'\"")
             else:
                 # shouldn't convert it to int
-                key = G.get_node_attr(node_id).get('childnum:int')
+                key = self.G.get_node_attr(self.node_id).get('childnum:int')
             if key is None:
                 key = wildcard
-            handled_value = self.internal_manager.dispatch_node(G, value_node, self.extra)
-            value_objs = to_obj_nodes(G, handled_value, node_id)
+            handled_value = self.internal_manager.dispatch_node(value_node, self.extra)
+            value_objs = to_obj_nodes(self.G, handled_value, self.node_id)
             # used_objs = list(set(handled_value.used_objs))
             for obj in value_objs:
-                G.add_obj_as_prop(key, node_id,
+                self.G.add_obj_as_prop(key, self.node_id,
                     parent_obj=self.extra.parent_obj, tobe_added_obj=obj)
         return NodeHandleResult(obj_nodes=value_objs, # used_objs=used_objs,
-            callback=get_df_callback(G))
+            callback=get_df_callback(self.G))

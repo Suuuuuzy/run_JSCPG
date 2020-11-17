@@ -669,8 +669,11 @@ def run_exported_functions(G, module_exports_objs, extra):
         obj = exported_objs.pop()
         parent_obj = None
         if type(obj) == type((1,2)):
+            print("Run exported ", G.get_node_attr(obj[0]))
             parent_obj = obj[0]
             obj = obj[1]
+        else:
+            print("Run exported ", G.get_node_attr(obj))
         if not parent_obj:
             parent_obj = obj
 

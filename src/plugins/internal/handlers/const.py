@@ -8,6 +8,8 @@ class HandleConst(Handler) :
     """
 
     def process(self):
+        G = self.G
+        node_id = self.node_id
         cur_type = self.G.get_node_attr(self.node_id)['type']
 
         js_type = 'string' if cur_type == 'string' else 'number'

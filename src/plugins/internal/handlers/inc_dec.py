@@ -9,6 +9,7 @@ class HandleIncDec(Handler):
     """
     def process(self):
         G = self.G
+        node_id = self.node_id
         cur_type = self.G.get_node_attr(self.node_id)['type']
         child = self.G.get_ordered_ast_child_nodes(self.node_id)[0]
         handled_child = self.internal_manager.dispatch_node(child, self.extra)

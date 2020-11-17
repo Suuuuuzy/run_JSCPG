@@ -6,9 +6,4 @@ function expolit(string){
 function foo(foo_input) {
   cp.exec(foo_input);
 }
-
-module.exports = {
-  expolit,
-  foo
-}
-
+module.exports = expolit;
