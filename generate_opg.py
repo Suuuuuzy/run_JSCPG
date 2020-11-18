@@ -1,7 +1,6 @@
 from src.core.opgen import OPGen
 from src.core.graph import Graph
 from src.core.logger import *
-from src.core.checker import traceback, vul_checking
 
 import argparse
 
@@ -72,5 +71,3 @@ if __name__ == '__main__':
     G = opg.get_graph()
     setup_graph_env(G)
     opg.run(args)
-    pathes = traceback(G, args.vul_type)
-    vul_pathes = vul_checking(G, pathes[0], args.vul_type)
