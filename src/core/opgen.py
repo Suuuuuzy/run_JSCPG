@@ -3,6 +3,7 @@ from .utils import *
 from .helpers import * 
 from ..plugins.manager import PluginManager 
 from ..plugins.internal.setup_env import setup_opg
+from .checker import traceback, vul_checking
 
 class OPGen:
     """
@@ -20,6 +21,18 @@ class OPGen:
         """
         return self.graph
 
+    def check_vuls(self, vul_type, G):
+        """
+        check different type of vulnerabilities
+        Args:
+            vul_type: the type of vuls
+            G: the graph 
+        """
+        if vul_type == 'os_command':
+            pathes = traceback(G, vul_type)
+            vul_pathes = vul_checking(G, pathes[0], vul_type)
+
+
     def run(self, args):
         print(args)
         if args.module:
@@ -33,6 +46,10 @@ class OPGen:
         setup_opg(self.graph)
         internal_plugins = PluginManager(self.graph)
         generate_obj_graph(self.graph, internal_plugins)
+
+        if args.vul_type is not None:
+            self.check_vuls(args.vul_type, self.graph)
+
 
 def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     """

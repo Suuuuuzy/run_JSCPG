@@ -93,11 +93,11 @@ def run_toplevel_file(G: Graph, node_id):
         prop_name='exports')
 
     #final_exported_objs = []
+    """
     for obj in module_exports_objs:
         for o in G.get_prop_obj_nodes(obj):
             print('exported', G.get_node_attr(o))
-
-
+    """
     # switch back scope, object, path and statement AST node id
     G.cur_scope = backup_scope
     # G.cur_objs = backup_objs

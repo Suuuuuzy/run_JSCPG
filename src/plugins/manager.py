@@ -1,8 +1,10 @@
 from src.core.logger import loggers
 class PluginManager(object):
     """
-    this is the parent class for all the internal plugins
+    this is the parent class for all the plugins
     the Obj should be a singleton
+    if you want to use different handlers,
+    change the location of the handlers here
     """
     instance = None
     class __PluginManager:
@@ -69,7 +71,6 @@ class PluginManager(object):
             """
             node_attr = self.G.get_node_attr(node_id)
             loggers.debug_logger.info("processing " + str(node_attr));
-            # print(node_attr)
             node_type = node_attr['type']
 
             if node_type not in self.handler_map:
