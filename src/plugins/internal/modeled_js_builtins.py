@@ -1597,7 +1597,6 @@ def math_max(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
                                 used_objs=used_objs)
 
 
-
 def math_min(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
     returned_values = []
     returned_sources = []

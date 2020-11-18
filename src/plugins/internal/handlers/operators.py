@@ -107,7 +107,6 @@ class HandleBinaryOP(Handler):
             else:
                 return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj])
 
-
 class HandleAssign(Handler):
 
     def process(self, right_override=None):

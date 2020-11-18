@@ -50,7 +50,6 @@ class OPGen:
         if args.vul_type is not None:
             self.check_vuls(args.vul_type, self.graph)
 
-
 def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     """
     generate the object graph of a program
