@@ -22,6 +22,7 @@ class PluginManager(object):
         from .internal.handlers.array import HandleArray as HandleArray, \
                 HandleArrayElem as HandleArrayElem
         from .internal.handlers.loop import HandleFor as HandleFor
+        from .internal.handlers.loop import HandleForEach as HandleForEach
         from .internal.handlers.expr_list import HandleExprList as HandleExprList
         from .internal.handlers.inc_dec import HandleIncDec as HandleIncDec
         from .internal.handlers.condition import HandleIf as HandleIf
@@ -48,6 +49,7 @@ class PluginManager(object):
                     'AST_ARRAY': self.HandleArray,
                     'AST_ARRAY_ELEM': self.HandleArrayElem,
                     'AST_FOR': self.HandleFor,
+                    'AST_FOREACH': self.HandleForEach,
                     'AST_EXPR_LIST': self.HandleExprList,
                     'AST_PRE_INC': self.HandleIncDec,
                     'AST_POST_INC': self.HandleIncDec,

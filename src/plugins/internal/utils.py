@@ -529,7 +529,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo):
             else:
                 return None, False
         else:
-            from .manager_instance import internal_manager
+            from src.plugins.manager_instance import internal_manager
             handled_left = internal_manager.dispatch_node(left, extra)
             handled_right = internal_manager.dispatch_node(right, extra)
             build_df_by_def_use(G, ast_node, handled_left.obj_nodes)

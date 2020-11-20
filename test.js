@@ -1,7 +1,16 @@
-//var cp = require("child_process");
+var cp = require("child_process");
 function expolit(string, input, val){
   var inner = string + 123;
   var base = {"basekey": inner};
-  eval(base['basekey']);
+
+  for (var key in base) {
+    eval(base[key]);
+  }
+
+  if (inner == "bad") {
+    eval(base['basekey']);
+  } else {
+    cp.exec(inner);
+  }
 }
 module.exports = expolit;
