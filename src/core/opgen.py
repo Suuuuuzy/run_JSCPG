@@ -32,7 +32,6 @@ class OPGen:
             pathes = traceback(G, vul_type)
             vul_pathes = vul_checking(G, pathes[0], vul_type)
 
-
     def run(self, args):
         print(args)
         if args.module:
@@ -44,8 +43,12 @@ class OPGen:
             parse_file(self.graph, args.input_file)
 
         setup_opg(self.graph)
+        self.graph.export_node = True 
         internal_plugins = PluginManager(self.graph)
         generate_obj_graph(self.graph, internal_plugins)
+
+        #export to csv
+        self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
 
         if args.vul_type is not None:
             self.check_vuls(args.vul_type, self.graph)

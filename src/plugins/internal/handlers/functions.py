@@ -174,6 +174,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         return NodeHandleResult(), []
 
     # No function objects found, return immediately
+    logger = loggers.main_logger
+
     if not func_objs:
         logger.error(f'No definition found for function {func_name}')
         return NodeHandleResult(), []
@@ -271,7 +273,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         if python_func: # special Python function
             if is_new:
                 if func_obj in G.builtin_constructors:
-                    logger.log(ATTENTION, f'Running Python function {func_obj} {python_func}...')
+                    loggers.main_logger.log(ATTENTION, f'Running Python function {func_obj} {python_func}...')
                     try:
                         h = python_func(G, caller_ast, ExtraInfo(extra,
                             branches=next_branches), _this, *_args)

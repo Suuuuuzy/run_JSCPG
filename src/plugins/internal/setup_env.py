@@ -11,6 +11,7 @@ def setup_opg(G):
         graph (Graph): the OPG itself
     """
 
+    G.export_node = True
     # base scope is not related to any file
     G.BASE_SCOPE = G.add_scope("BASE_SCOPE", scope_name='Base')
 
@@ -29,7 +30,9 @@ def setup_opg(G):
     G.add_obj_to_name('false', scope=G.BASE_SCOPE,
                          tobe_added_obj=G.false_obj)
 
+    G.export_node = False 
     modeled_js_builtins.setup_js_builtins(G)
+    G.export_node = True
 
     # setup JavaScript built-in values
     G.undefined_obj = G.add_obj_node(None, 'undefined',

@@ -41,6 +41,9 @@ class Graph:
         self.finished = False
         self.exit_when_found = False
 
+        # mark the type of the node, built-in or application
+        self.export_node = True
+
         # JS internal values
         self.function_prototype = None
         self.object_prototype = None
@@ -99,11 +102,15 @@ class Graph:
         # return str(uuid.uuid4().int)
 
     def add_node(self, node_for_adding, attr={}):
+        attr['export'] = self.export_node
         self.graph.add_node(node_for_adding, **attr)
         return node_for_adding
 
+    """
     def add_node_from_list(self, node_list):
+        print(node_list)
         return self.graph.add_nodes_from(node_list)
+    """
 
     def set_node_attr(self, node_id, attr):
         """
@@ -366,8 +373,11 @@ class Graph:
         """
         export to CSV to import to neo4j
         """
+
+        # store the really exported nodes
+        exported_nodes = []
         with open(nodes_file_name, 'w') as fp:
-            headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment']
+            headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment', 'export']
             writer = csv.DictWriter(fp, dialect=self.csv_dialect, fieldnames=headers, extrasaction='ignore')
             writer.writeheader()
             nodes = list(self.graph.nodes(data = True))
@@ -375,22 +385,29 @@ class Graph:
             for node in nodes:
                 node_id, attr = node
                 row = dict(attr)
+
+                if light:
+                    print(row)
+                    if not row['export']:
+                        continue
+
                 row['id:ID'] = node_id
                 writer.writerow(row)
+                exported_nodes.append(node_id)
 
         with open(rels_file_name, 'w') as fp:
             headers = ['start:START_ID','end:END_ID','type:TYPE','var','taint_src','taint_dst']
             writer = csv.DictWriter(fp, dialect=self.csv_dialect, fieldnames=headers, extrasaction='ignore')
             writer.writeheader()
-            light_edge_type = ['FLOWS_TO', 'REACHES', 'OBJ_REACHES', 'ENTRY', 'EXIT']
-            edges = []
-            if light:
-                for edge_type in light_edge_type:
-                    edges += self.get_edges_by_type(edge_type)
-            else:
-                edges = list(self.graph.edges(data = True, keys = True))
+            edges = list(self.graph.edges(data = True, keys = True))
+
             for edge in edges:
                 edge_from, edge_to, _, attr = edge
+
+                if edge_from not in exported_nodes or \
+                        edge_to not in exported_nodes:
+                        continue
+
                 row = dict(attr)
                 row['start:START_ID'] = edge_from
                 row['end:END_ID'] = edge_to
@@ -661,7 +678,7 @@ class Graph:
 
         return obj_node
 
-    def add_name_node(self, name, scope = None):
+    def add_name_node(self, name, scope=None):
         """
         helper function
         add a namenode to scope
@@ -671,9 +688,12 @@ class Graph:
             cur_scope = scope 
 
         new_name_node = str(self._get_new_nodeid())
+        self.add_node(new_name_node, {'labels:label': 'Name', 'name': name})
         self.add_edge(cur_scope, new_name_node, {"type:TYPE": "SCOPE_TO_VAR"})
+        """
         self.set_node_attr(new_name_node, ('labels:label', 'Name'))
         self.set_node_attr(new_name_node, ('name', name))
+        """
         return new_name_node
 
     def add_prop_name_node(self, name, parent_obj):
@@ -731,10 +751,7 @@ class Graph:
         name_node = self.get_name_node(name, scope=scope, follow_scope_chain=False)
         if name_node == None:
             self.logger.debug(f'{sty.ef.b}Add name node{sty.rs.all} {name} in scope {scope}')
-            name_node = str(self._get_new_nodeid())
-            self.add_edge(scope, name_node, {"type:TYPE": "SCOPE_TO_VAR"})
-            self.set_node_attr(name_node, ('labels:label', 'Name'))
-            self.set_node_attr(name_node, ('name', name))
+            name_node = self.add_name_node(name, scope=scope)
 
         if tobe_added_obj == None:
             # here we do not add obj to current obj when add to scope
