@@ -1,5 +1,6 @@
 signature_lists = {
         'os_command': [
+            'eval',
             "sink_hqbpillvul_execFile",
             'sink_hqbpillvul_exec',
             'sink_hqbpillvul_execSync',

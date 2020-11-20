@@ -45,7 +45,12 @@ class OPGen:
         setup_opg(self.graph)
         self.graph.export_node = True 
         internal_plugins = PluginManager(self.graph)
-        generate_obj_graph(self.graph, internal_plugins)
+        entry_id = '0'
+
+        # TODO: add entry func to entry id
+        if args.entry_func is not None:
+            entry_id = args.entry_func
+        generate_obj_graph(self.graph, internal_plugins, entry_nodeid=entry_id)
 
         #export to csv
         if args.export is not None:

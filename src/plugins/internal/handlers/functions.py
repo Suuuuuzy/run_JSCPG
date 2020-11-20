@@ -46,7 +46,7 @@ def ast_call_function(G, ast_node, extra):
     Returns:
         NodeHandleResult: Returned objects and used objects.
     '''
-    from ..manager_instance import internal_manager
+    from src.plugins.manager_instance import internal_manager
     if G.finished:
         return NodeHandleResult()
 

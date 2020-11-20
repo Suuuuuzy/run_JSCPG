@@ -1,4 +1,5 @@
 from src.core.logger import loggers
+
 class PluginManager(object):
     """
     this is the parent class for all the plugins
@@ -75,6 +76,7 @@ class PluginManager(object):
 
             if node_type not in self.handler_map:
                 raise LookupError(node_type + " not implemented")
+
             handle_obj = self.handler_map[node_type](self.G, node_id, extra=extra)
             handle_res = handle_obj.process()
             return handle_res

@@ -11,7 +11,7 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     A block is a BlockStatement in JavaScript,
     or an AST_STMT_LIST in PHP.
     """
-    from ..manager_instance import internal_manager
+    from src.plugins.manager_instance import internal_manager
     if branches is None:
         branches = BranchTagContainer()
     returned_objs = set()

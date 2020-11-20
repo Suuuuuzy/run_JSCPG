@@ -1,7 +1,7 @@
 from src.plugins.handler import Handler
 from src.core.utils import NodeHandleResult, ExtraInfo
 from src.core.helpers import to_values
-from ..utils import wildcard, undefined
+from src.plugins.internal.utils import wildcard, undefined
 from ..utils import is_wildcard_obj
 from src.core.logger import loggers, sty
 from ..utils import get_df_callback
@@ -164,7 +164,7 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
         handled property, handled parent
     '''
     # recursively handle both parts
-    from src.plugins.internal.manager_instance import internal_manager
+    from src.plugins.manager_instance import internal_manager
     logger = loggers.main_logger
 
     if extra is None:
