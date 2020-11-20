@@ -376,6 +376,8 @@ class Graph:
 
         # store the really exported nodes
         exported_nodes = []
+        if not os.path.exists("./exports"):
+            os.mkdir("./exports")
         with open(nodes_file_name, 'w') as fp:
             headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment', 'export', 'tainted']
             writer = csv.DictWriter(fp, dialect=self.csv_dialect, fieldnames=headers, extrasaction='ignore')
