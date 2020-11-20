@@ -33,6 +33,7 @@ def parse_args():
                         help="Set the limit of a call statement. "
                         "(Defaults to 3.)")
     parser.add_argument('-e', '--entry-func')
+    parser.add_argument('--export', help="export the graph to csv files, can be light or all")
     parser.add_argument('input_file', action='store', nargs='?',
         help="Source code file (or directory) to generate object graph for. "
         "Use '-' to get source code from stdin. Ignore this argument to "
@@ -45,7 +46,6 @@ def parse_args():
 
 def setup_graph_env(G: Graph):
     #logger = create_logger("main_logger", output_type="file")
-    G = Graph()
 
     if args.print:
         logger = create_logger("main_logger", output_type="console",
@@ -63,6 +63,7 @@ def setup_graph_env(G: Graph):
     G.check_proto_pollution = (args.prototype_pollution or 
                                args.vul_type == 'proto_pollution')
     G.call_limit = args.call_limit
+    return G
 
 
 if __name__ == '__main__':

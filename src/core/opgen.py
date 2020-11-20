@@ -48,7 +48,11 @@ class OPGen:
         generate_obj_graph(self.graph, internal_plugins)
 
         #export to csv
-        self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
+        if args.export is not None:
+            if args.export == 'light':
+                self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
+            else:
+                self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=False)
 
         if args.vul_type is not None:
             self.check_vuls(args.vul_type, self.graph)

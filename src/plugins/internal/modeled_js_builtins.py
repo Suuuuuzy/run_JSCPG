@@ -18,9 +18,11 @@ logger = create_logger("main_logger", output_type="file")
 
 
 def setup_js_builtins(G: Graph):
+
+    # from now on, do not export
+    setup_global_objs(G)
     setup_object_and_function(G)
     setup_global_functions(G)
-    setup_global_objs(G)
     setup_string(G)
     setup_number(G)
     setup_array(G)

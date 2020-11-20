@@ -5,6 +5,7 @@ from ..utils import wildcard, undefined
 from ..utils import is_wildcard_obj
 from src.core.logger import loggers, sty
 from ..utils import get_df_callback
+from itertools import chain
 
 class HandleProp(Handler):
     """
@@ -14,7 +15,6 @@ class HandleProp(Handler):
         side = self.extra.side if self.extra else None
         return handle_prop(self.G, 
                 self.node_id, side, self.extra)[0]
-
 
 def find_prop(G, parent_objs, prop_name, branches=None,
     side=None, parent_name='Unknown', in_proto=False, depth=0,
@@ -165,6 +165,8 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
     '''
     # recursively handle both parts
     from src.plugins.internal.manager_instance import internal_manager
+    logger = loggers.main_logger
+
     if extra is None:
         extra = ExtraInfo()
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)[:2]

@@ -4,6 +4,7 @@ from ..utils import to_obj_nodes, get_df_callback, to_values
 from src.core.logger import loggers
 from . import vars
 from src.plugins.handler import Handler
+import sty
 
 class HandleBinaryOP(Handler):
     """
@@ -192,6 +193,7 @@ class HandleAssign(Handler):
             return do_assign(G, handled_left, handled_right, branches, ast_node)
 
 def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
+    logger = loggers.main_logger
     if branches is None:
         branches = BranchTagContainer()
 

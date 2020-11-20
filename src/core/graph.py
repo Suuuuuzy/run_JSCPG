@@ -377,7 +377,7 @@ class Graph:
         # store the really exported nodes
         exported_nodes = []
         with open(nodes_file_name, 'w') as fp:
-            headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment', 'export']
+            headers = ['id:ID','labels:label','type','flags:string[]','lineno:int','code','childnum:int','funcid:int','classname','namespace','endlineno:int','name','doccomment', 'export', 'tainted']
             writer = csv.DictWriter(fp, dialect=self.csv_dialect, fieldnames=headers, extrasaction='ignore')
             writer.writeheader()
             nodes = list(self.graph.nodes(data = True))
@@ -387,7 +387,6 @@ class Graph:
                 row = dict(attr)
 
                 if light:
-                    print(row)
                     if not row['export']:
                         continue
 
