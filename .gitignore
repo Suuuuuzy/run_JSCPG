@@ -1,5 +1,6 @@
 *.pyc
 *.log
+*.report
 *.dat
 /package-lock.json
 .testDB/
