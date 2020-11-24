@@ -2,6 +2,7 @@ from src.core.logger import *
 from src.core.graph import Graph
 from src.core.utils import BranchTagContainer 
 from src.core.utils import NodeHandleResult, ExtraInfo
+from src.core.esprima import esprima_search
 # function is higher than block
 from .blocks import simurun_block
 # a little bit risky to use handle prop
@@ -587,6 +588,7 @@ def get_module_exports(G, file_path):
         return []
 
 def handle_require(G: Graph, caller_ast, extra, _, module_names):
+    logger = loggers.main_logger
     # handle module name
     module_names, src, _ = to_values(G, module_names, caller_ast)
     if not module_names: return NodeHandleResult(obj_nodes=[])
