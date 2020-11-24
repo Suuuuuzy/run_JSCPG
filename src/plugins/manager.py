@@ -26,6 +26,9 @@ class PluginManager(object):
         from .internal.handlers.expr_list import HandleExprList as HandleExprList
         from .internal.handlers.inc_dec import HandleIncDec as HandleIncDec
         from .internal.handlers.condition import HandleIf as HandleIf
+        from .internal.handlers.switch import HandleSwitch as HandleSwitch
+        from .internal.handlers.switch import HandleSwitchList as HandleSwitchList
+        from .internal.handlers.returns import HandleReturn as HandleReturn 
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -57,6 +60,9 @@ class PluginManager(object):
                     'AST_POST_DEC': self.HandleIncDec,
                     'AST_IF': self.HandleIf,
                     'AST_BINARY_OP': self.HandleBinaryOP,
+                    'AST_SWITCH': self.HandleSwitch,
+                    'AST_SWITCH_LIST': self.HandleSwitchList,
+                    'AST_RETURN': self.HandleReturn,
                     }
 
         def dispatch_node(self, node_id, extra=None):

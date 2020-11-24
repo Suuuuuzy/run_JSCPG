@@ -4,7 +4,7 @@ from src.core.helpers import to_values
 from src.plugins.internal.utils import wildcard, undefined
 from ..utils import is_wildcard_obj
 from src.core.logger import loggers, sty
-from ..utils import get_df_callback
+from ..utils import get_df_callback,add_contributes_to
 from itertools import chain
 
 class HandleProp(Handler):

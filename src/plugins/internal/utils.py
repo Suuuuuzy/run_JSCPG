@@ -644,7 +644,8 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo):
     else:
         flag = False
     if not flag:
-        handled = handle_node(G, ast_node, extra)
+        from ..manager_instance import internal_manager
+        handled = internal_manager.dispatch_node(ast_node, extra)
         build_df_by_def_use(G, ast_node, handled.obj_nodes)
         true_num = 0
         total_num = len(list(filter(lambda x: x != G.undefined_obj, handled.obj_nodes))) + len(handled.values)

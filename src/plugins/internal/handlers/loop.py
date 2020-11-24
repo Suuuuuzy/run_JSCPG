@@ -44,7 +44,7 @@ class HandleFor(Handler):
             if (not deterministic and counter > 3) or check_result == 0:
                 loggers.main_logger.debug('For loop {} finished'.format(node_id))
                 break
-            blocks.simurun_block(G, body, branches=extra.branches) # run the body
+            simurun_block(G, body, branches=extra.branches) # run the body
             result = self.internal_manager.dispatch_node(inc, extra) # do the inc
             counter += 1
         # switch back the scope

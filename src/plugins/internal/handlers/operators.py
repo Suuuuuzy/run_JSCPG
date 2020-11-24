@@ -126,7 +126,7 @@ class HandleAssign(Handler):
             left, right = ast_children
         except ValueError:
             # if only have left side
-            return handle_node(G, ast_children[0], extra)
+            return self.internal_manager.dispatch_node(ast_children[0], extra)
 
         # get branch tags
         branches = extra.branches if extra else BranchTagContainer()

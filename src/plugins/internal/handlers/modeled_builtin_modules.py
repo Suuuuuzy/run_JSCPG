@@ -13,7 +13,7 @@ def get_module(G, name):
         if name in G.builtin_modules:
             return G.builtin_modules[name]
         else:
-            logger.log(ATTENTION, 'Setting up built-in module {}...'
+            loggers.main_logger.log(ATTENTION, 'Setting up built-in module {}...'
                 .format(name))
             module_exports = modeled_modules[name](G)
             G.builtin_modules[name] = module_exports
