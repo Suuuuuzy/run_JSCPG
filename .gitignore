@@ -1,3 +1,13 @@
+*.report
+/package-lock.json
+.testDB/
+testreport/
+/tmp/
+run_tmp/
+
+# package download
+/package_downloader/packages/
+
 # global
 *.pyc
 logs
