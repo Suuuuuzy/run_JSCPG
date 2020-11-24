@@ -27,7 +27,12 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     # simulate statements
     for stmt in stmts:
+        if G.cfg_stmt is not None:
+            G.add_edge_if_not_exist(G.cfg_stmt, stmt, {"type:TYPE": "FLOWS_TO"})
+
         G.cur_stmt = stmt
+        G.cfg_stmt = stmt
+        # add control flow edges here
         handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
 
     returned_objs = G.function_returns[G.find_ancestor_scope()]
