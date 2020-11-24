@@ -1,10 +1,11 @@
 from src.core.graph import Graph
 from src.plugins.handler import Handler
-from src.core.utils import BranchTag, NodeHandleResult
+from src.core.utils import BranchTag, NodeHandleResult, BranchTagContainer
 from src.core.logger import * 
 from . import blocks
 from ..utils import get_random_hex, check_condition
-from ..utils import has_else, merge
+from ..utils import has_else, merge, get_df_callback
+from .blocks import simurun_block
 
 class HandleIf(Handler):
     """
@@ -63,3 +64,26 @@ class HandleIf(Handler):
         if not G.single_branch:
             merge(G, stmt_id, branch_num_counter, parent_branch)
         return NodeHandleResult()
+
+class HandleConditional(Handler):
+    def process(self):
+        node_id = self.node_id
+        G = self.G
+        extra = self.extra
+
+        test, consequent, alternate = G.get_ordered_ast_child_nodes(node_id)
+        loggers.main_logger.debug(f'Ternary operator: {test} ? {consequent} : {alternate}')
+        possibility, deterministic = check_condition(G, test, extra)
+        if deterministic and possibility == 1:
+            return self.internal_manager.dispatch_node(consequent, extra)
+        elif deterministic and possibility == 0:
+            return self.internal_manager.dispatch_node(alternate, extra)
+        else:
+            h1 = self.internal_manager.dispatch_node(consequent, extra)
+            h2 = self.internal_manager.dispatch_node(alternate, extra)
+            return NodeHandleResult(obj_nodes=h1.obj_nodes+h2.obj_nodes,
+                name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id,
+                values=h1.values+h2.values,
+                value_sources=h1.value_sources+h2.value_sources,
+                callback=get_df_callback(G))
+
