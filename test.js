@@ -4,12 +4,15 @@ function expolit(string, input, val){
   var base = {"basekey": inner};
 
   for (var key in base) {
+    var nothing = key + base[key];
     eval(base[key]);
   }
 
   if (inner == "bad") {
+    var nothing = base['basekey'] + "abc";
     eval(base['basekey']);
   } else {
+    var link = inner + "123";
     eval(inner);
   }
 }
