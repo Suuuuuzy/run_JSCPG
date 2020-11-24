@@ -26,6 +26,9 @@ class Graph:
         self.logger = create_logger("graph_logger", output_type="file")
         self.registered_funcs = {}
 
+        # for control flow
+        self.cfg_stmt = None
+
         # for block opt
         self.register = {}
 

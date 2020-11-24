@@ -1,7 +1,4 @@
-*.pyc
-*.log
 *.report
-*.dat
 /package-lock.json
 .testDB/
 testreport/
@@ -11,13 +8,15 @@ run_tmp/
 # package download
 /package_downloader/packages/
 
-
 # global
+*.pyc
 logs
 *.log
 *.csv
+*.dat
+*.out
 
-# esprima-joern
+# esprima-csv
 node_modules/
 /node_modules/
 /esprima-joern/*.csv
@@ -34,6 +33,10 @@ out.dat
 /simurun/log
 /simurun/*.log
 /npmtest/run_tmp/*.js
+
+# depd analysis
+/depd_analysis/*.json
+package-lock.json
 
 # vscode
 .vscode/*

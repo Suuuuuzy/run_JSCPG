@@ -23,6 +23,10 @@ class HandleIf(Handler):
         # if it is sure (deterministic) that "else" needs to run 
         else_is_deterministic = True
         for if_elem in if_elems:
+            # for each if statement, we should make sure cfg starts from the 
+            # if condition stmt
+            G.cfg_stmt = node_id 
+
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
             if G.get_node_attr(condition).get('type') == 'NULL': # else
                 if else_is_deterministic or G.single_branch:
