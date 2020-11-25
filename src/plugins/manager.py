@@ -33,6 +33,7 @@ class PluginManager(object):
         from .internal.handlers.switch import HandleSwitchList as HandleSwitchList
         from .internal.handlers.returns import HandleReturn as HandleReturn 
         from .internal.handlers.null import HandleNULL as HandleNULL
+        from .internal.handlers.try_catch import HandleTry as HandleTry 
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -70,6 +71,7 @@ class PluginManager(object):
                     'AST_SWITCH': self.HandleSwitch,
                     'AST_SWITCH_LIST': self.HandleSwitchList,
                     'AST_RETURN': self.HandleReturn,
+                    'AST_TRY': self.HandleTry,
                     'NULL': self.HandleNULL,
                     }
 

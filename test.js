@@ -15,5 +15,12 @@ function expolit(string, input, val){
     var link = inner + "123";
     eval(inner);
   }
+
+  try {
+    var inner = 123;
+  } catch (error) {
+    console.log(error);
+  }
+
 }
 module.exports = expolit;
