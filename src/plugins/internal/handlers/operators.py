@@ -1,6 +1,6 @@
 from src.core.graph import Graph
 from src.core.utils import *
-from ..utils import to_obj_nodes, get_df_callback, to_values
+from ..utils import to_obj_nodes, get_df_callback, to_values, check_condition
 from src.core.logger import loggers
 from . import vars
 from src.plugins.handler import Handler

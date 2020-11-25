@@ -21,14 +21,19 @@ class PluginManager(object):
         from .internal.handlers.property import HandleProp as HandleProp
         from .internal.handlers.array import HandleArray as HandleArray, \
                 HandleArrayElem as HandleArrayElem
+        from .internal.handlers.array import HandleUnaryOp as HandleUnaryOp 
         from .internal.handlers.loop import HandleFor as HandleFor
         from .internal.handlers.loop import HandleForEach as HandleForEach
+        from .internal.handlers.loop import HandleBreak as HandleBreak
         from .internal.handlers.expr_list import HandleExprList as HandleExprList
         from .internal.handlers.inc_dec import HandleIncDec as HandleIncDec
         from .internal.handlers.condition import HandleIf as HandleIf
+        from .internal.handlers.condition import HandleConditional as HandleConditional
         from .internal.handlers.switch import HandleSwitch as HandleSwitch
         from .internal.handlers.switch import HandleSwitchList as HandleSwitchList
         from .internal.handlers.returns import HandleReturn as HandleReturn 
+        from .internal.handlers.null import HandleNULL as HandleNULL
+        from .internal.handlers.try_catch import HandleTry as HandleTry 
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -51,18 +56,23 @@ class PluginManager(object):
                     'AST_CLOSURE': self.HandleFuncDecl,
                     'AST_ARRAY': self.HandleArray,
                     'AST_ARRAY_ELEM': self.HandleArrayElem,
+                    'AST_UNARY_OP': self.HandleUnaryOp,
                     'AST_FOR': self.HandleFor,
                     'AST_FOREACH': self.HandleForEach,
+                    'AST_BREAK': self.HandleBreak,
                     'AST_EXPR_LIST': self.HandleExprList,
                     'AST_PRE_INC': self.HandleIncDec,
                     'AST_POST_INC': self.HandleIncDec,
                     'AST_PRE_DEC': self.HandleIncDec,
                     'AST_POST_DEC': self.HandleIncDec,
                     'AST_IF': self.HandleIf,
+                    'AST_CONDITIONAL': self.HandleConditional,
                     'AST_BINARY_OP': self.HandleBinaryOP,
                     'AST_SWITCH': self.HandleSwitch,
                     'AST_SWITCH_LIST': self.HandleSwitchList,
                     'AST_RETURN': self.HandleReturn,
+                    'AST_TRY': self.HandleTry,
+                    'NULL': self.HandleNULL,
                     }
 
         def dispatch_node(self, node_id, extra=None):

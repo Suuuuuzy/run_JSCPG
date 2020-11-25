@@ -1,5 +1,6 @@
 from src.plugins.handler import Handler
 from src.core.utils import ExtraInfo
+from src.plugins.internal.utils import to_values, wildcard, val_to_float
 from src.core.logger import loggers
 from ..utils import to_obj_nodes, NodeHandleResult, get_df_callback
 
@@ -62,3 +63,27 @@ class HandleArrayElem(Handler):
                     parent_obj=self.extra.parent_obj, tobe_added_obj=obj)
         return NodeHandleResult(obj_nodes=value_objs, # used_objs=used_objs,
             callback=get_df_callback(self.G))
+
+class HandleUnaryOp(Handler):
+    def process(self):
+        G = self.G
+        node_id = self.node_id
+        extra = self.extra
+
+        child = G.get_ordered_ast_child_nodes(node_id)[0]
+        handled = self.internal_manager.dispatch_node(child, extra)
+        values, sources, _ = to_values(G, handled)
+        new_values = []
+        for v in values:
+            if v == wildcard or v is None:
+                new_values.append(v)
+                continue
+            v = val_to_float(v)
+            if v != float('nan') and G.get_node_attr(node_id).get(
+                    'flags:string[]') == 'UNARY_MINUS':
+                new_values.append(-v)
+            else:
+                new_values.append(v)
+        loggers.main_logger.debug(f'New values: {new_values}')
+        return NodeHandleResult(values=new_values, value_sources=sources)
+

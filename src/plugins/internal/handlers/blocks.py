@@ -1,7 +1,7 @@
 # This module is used to handle all the block level nodes
 from src.core.graph import Graph
 from src.core.logger import *
-from src.core.utils import ExtraInfo
+from src.core.utils import ExtraInfo, BranchTagContainer
 from ..utils import decl_vars_and_funcs
 
 def simurun_block(G, ast_node, parent_scope=None, branches=None,

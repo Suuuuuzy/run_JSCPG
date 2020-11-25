@@ -93,7 +93,7 @@ def add_edges_between_funcs(G):
                     if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
                         ln1 = G.get_node_attr(stmt).get('lineno:int')
                         ln2 = G.get_node_attr(CPG_caller_id).get('lineno:int')
-                        logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(stmt, CPG_caller_id, ln1, ln2))
+                        loggers.main_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(stmt, CPG_caller_id, ln1, ln2))
                         assert stmt != None, "Failed to add CFG edge. Statement ID is None."
                         assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
                         added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))

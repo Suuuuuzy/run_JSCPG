@@ -125,7 +125,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     added_obj))
                 if G.get_node_attr(parent_obj).get('tainted'):
                     G.set_node_attr(added_obj, ('tainted', True))
-                    logger.debug("{} marked as tainted 1".format(added_obj))
+                    loggers.main_logger.debug("{} marked as tainted 1".format(added_obj))
                 for s in prop_name_sources:
                     add_contributes_to(G, [s], added_obj)
                 # if prop_name_for_tags:

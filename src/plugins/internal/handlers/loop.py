@@ -159,3 +159,7 @@ class HandleForEach(Handler):
         # switch back the scope
         G.cur_scope = parent_scope
 
+class HandleBreak(Handler):
+    def process(self):
+        # TODO: implement it
+        pass

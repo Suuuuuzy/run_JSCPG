@@ -3,19 +3,20 @@ from src.core.graph import Graph
 from src.core.utils import BranchTagContainer 
 from src.core.utils import NodeHandleResult, ExtraInfo
 from src.core.esprima import esprima_search
+from src.core.checker import traceback, vul_checking
 # function is higher than block
 from .blocks import simurun_block
 # a little bit risky to use handle prop
 # should be fine
 from . import vars
 from . import property
-from src.core.utils import get_random_hex, wildcard, undefined
+from src.core.utils import get_random_hex, wildcard, undefined, BranchTag
 from src.core.helpers import to_values
 from src.plugins.handler import Handler
 from itertools import chain
 from . import modeled_builtin_modules
 from . import file
-from ..utils import get_df_callback, to_obj_nodes, add_contributes_to
+from ..utils import get_df_callback, to_obj_nodes, add_contributes_to, merge
 import sty
 import traceback as tb
 
