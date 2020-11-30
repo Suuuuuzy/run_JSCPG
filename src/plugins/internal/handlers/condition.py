@@ -3,7 +3,7 @@ from src.plugins.handler import Handler
 from src.core.utils import BranchTag, NodeHandleResult, BranchTagContainer
 from src.core.logger import * 
 from . import blocks
-from ..utils import get_random_hex, check_condition
+from ..utils import get_random_hex, check_condition, decl_vars_and_funcs
 from ..utils import has_else, merge, get_df_callback
 from .blocks import simurun_block
 
@@ -87,3 +87,8 @@ class HandleConditional(Handler):
                 value_sources=h1.value_sources+h2.value_sources,
                 callback=get_df_callback(G))
 
+class HandleIfElem(Handler):
+    def process(self):
+        # maybe wrong, but lets see
+        # TODO: check how to handle if elem
+        decl_vars_and_funcs(self.G, self.node_id)

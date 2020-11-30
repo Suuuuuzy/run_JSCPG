@@ -826,7 +826,8 @@ def object_p_has_own_property(G: Graph, caller_ast, extra, this, *args):
 
 
 def function_p_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
-    r, _ = opgen.call_function(
+    from .handlers.functions import call_function
+    r, _ = call_function(
         G, func.obj_nodes, list(args), this, extra, caller_ast,
         stmt_id=f'Call{caller_ast}')
     return r 

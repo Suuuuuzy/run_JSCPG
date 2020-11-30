@@ -29,6 +29,7 @@ class PluginManager(object):
         from .internal.handlers.inc_dec import HandleIncDec as HandleIncDec
         from .internal.handlers.condition import HandleIf as HandleIf
         from .internal.handlers.condition import HandleConditional as HandleConditional
+        from .internal.handlers.condition import HandleIfElem as HandleIfElem
         from .internal.handlers.switch import HandleSwitch as HandleSwitch
         from .internal.handlers.switch import HandleSwitchList as HandleSwitchList
         from .internal.handlers.returns import HandleReturn as HandleReturn 
@@ -66,6 +67,7 @@ class PluginManager(object):
                     'AST_PRE_DEC': self.HandleIncDec,
                     'AST_POST_DEC': self.HandleIncDec,
                     'AST_IF': self.HandleIf,
+                    'AST_IF_ELEM': self.HandleIfElem,
                     'AST_CONDITIONAL': self.HandleConditional,
                     'AST_BINARY_OP': self.HandleBinaryOP,
                     'AST_SWITCH': self.HandleSwitch,

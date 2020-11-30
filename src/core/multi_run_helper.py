@@ -16,11 +16,6 @@ skip_packages = []
 args = None
 root_path = None
 
-npm_test_logger = create_logger("npmtest", output_type = "file", level=10, file_name="npmtest.log")
-npm_run_logger = create_logger("npmrun", output_type = "file", level=10, file_name="npmrun.log")
-npm_run_time_logger = create_logger("npmruntime", output_type = "file", level=10, file_name="npmrun_time.log")
-npm_code_coveragr_logger = create_logger("npmcc", output_type = "file", level=10, file_name="npm_code_coverage.log")
-
 def validate_package(package_path):
     """
     check whether a package is valid by whether it include package.json

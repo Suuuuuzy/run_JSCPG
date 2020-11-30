@@ -19,6 +19,7 @@ from . import file
 from ..utils import get_df_callback, to_obj_nodes, add_contributes_to, merge
 import sty
 import traceback as tb
+from collections import defaultdict
 
 class HandleASTCall(Handler):
 
@@ -533,7 +534,7 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
 
     if caller_ast is not None:
         if G.call_counter[caller_ast] >= G.call_limit:
-            logger.warning(f'{caller_ast}: Function {func_ast} in call stack '
+            loggers.main_logger.warning(f'{caller_ast}: Function {func_ast} in call stack '
                     f'{G.call_counter[caller_ast]} times, skip simulating')
             return None, None # don't change this to [], []
                               # we need to distinguish skipped functions

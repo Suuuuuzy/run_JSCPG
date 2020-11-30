@@ -25,6 +25,7 @@ class Graph:
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
         self.registered_funcs = {}
+        self.op_cnt = {'add_node': 0, 'add_edge': 0, 'get_node_attr': 0, 'get_edge': 0, 'get_edge_attr': 0}
 
         # for control flow
         self.cfg_stmt = None
@@ -105,6 +106,7 @@ class Graph:
         # return str(uuid.uuid4().int)
 
     def add_node(self, node_for_adding, attr={}):
+        self.op_cnt['add_node'] += 1
         attr['export'] = self.export_node
         self.graph.add_node(node_for_adding, **attr)
         return node_for_adding
@@ -127,6 +129,7 @@ class Graph:
         this function will return a dict with all the attrs and values
         """
         assert node_id is not None
+        self.op_cnt['get_node_attr'] += 1
         return self.graph.nodes[node_id]
 
     def get_all_nodes(self):
@@ -181,6 +184,7 @@ class Graph:
         assert from_ID is not None, "Failed to add an edge, from_ID is None."
         assert to_ID is not None, "Failed to add an edge, to_ID is None."
         assert from_ID != 'string' and to_ID != 'string'
+        self.op_cnt['add_edge'] += 1
         self.graph.add_edge(from_ID, to_ID, None, **attr)
     
     def add_edge_if_not_exist(self, from_ID, to_ID, attr):
@@ -203,6 +207,7 @@ class Graph:
         self.graph[from_ID][to_ID][attr[0]][edge_id] = attr[1]
 
     def get_edge_attr(self, from_ID, to_ID, edge_id = None):
+        self.op_cnt['get_edge_attr'] += 1
         if edge_id == None:
             return self.graph.get_edge_data(from_ID, to_ID)
         return self.graph[from_ID][to_ID][edge_id]
@@ -243,6 +248,7 @@ class Graph:
 
     def get_out_edges(self, node_id, data = True, keys = True, edge_type = None):
         assert node_id is not None
+        self.op_cnt['get_edge'] += 1
         if edge_type is None:
             return self.graph.out_edges(node_id, data = data, keys = keys)
         edges = self.graph.out_edges(node_id, data = data, keys = keys)
@@ -255,6 +261,7 @@ class Graph:
 
     def get_in_edges(self, node_id, data = True, keys = True, edge_type = None):
         assert node_id is not None
+        self.op_cnt['get_edge'] += 1
         if edge_type == None:
             return self.graph.in_edges(node_id, data = data, keys = keys)
         edges = self.graph.in_edges(node_id, data = data, keys = keys)

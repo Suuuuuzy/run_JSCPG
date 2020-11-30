@@ -120,8 +120,7 @@ def decl_vars_and_funcs(G, ast_node, var=True, func=True):
         elif func and node_type == 'AST_FUNC_DECL':
             func_name = G.get_name_from_child(child)
             func_obj = decl_function(G, child, obj_parent_scope=func_scope)
-        # elif node_type == 'AST_STMT_LIST':
-        #     decl_vars_and_funcs(G, child, var=var, func=func)
+
         elif node_type in ['AST_IF', 'AST_IF_ELEM', 'AST_FOR', 'AST_FOREACH',
             'AST_WHILE', 'AST_SWITCH', 'AST_SWITCH_CASE', 'AST_EXPR_LIST']:
             decl_vars_and_funcs(G, child, var=var, func=False)
