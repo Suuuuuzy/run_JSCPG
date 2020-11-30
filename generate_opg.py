@@ -34,6 +34,7 @@ def parse_args():
                         "(Defaults to 3.)")
     parser.add_argument('-e', '--entry-func')
     parser.add_argument('--export', help="export the graph to csv files, can be light or all")
+    parser.add_argument('--nodejs', action='store_true', default=False, help="run a nodejs package")
     parser.add_argument('input_file', action='store', nargs='?',
         help="Source code file (or directory) to generate object graph for. "
         "Use '-' to get source code from stdin. Ignore this argument to "
@@ -54,7 +55,7 @@ def setup_graph_env(G: Graph):
             level=logging.DEBUG)
         G.print = True
 
-    G.run_all = args.run_all or args.module
+    G.run_all = args.run_all or args.module or args.nodejs
     G.function_time_limit = args.function_timeout
     G.exit_when_found = args.exit
     G.single_branch = args.single_branch
@@ -72,3 +73,4 @@ if __name__ == '__main__':
     G = opg.get_graph()
     setup_graph_env(G)
     opg.run(args)
+    print(G.op_cnt)

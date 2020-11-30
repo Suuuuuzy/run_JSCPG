@@ -4,6 +4,7 @@ from .helpers import *
 from ..plugins.manager import PluginManager 
 from ..plugins.internal.setup_env import setup_opg
 from .checker import traceback, vul_checking
+from .multi_run_helper import validate_package, get_entrance_files_of_package 
 
 class OPGen:
     """
@@ -27,30 +28,110 @@ class OPGen:
         Args:
             vul_type: the type of vuls
             G: the graph 
+        Returns:
+            the test result pathes of the module
         """
+        vul_pathes = None
+
         if vul_type == 'os_command':
             pathes = traceback(G, vul_type)
             vul_pathes = vul_checking(G, pathes[0], vul_type)
 
-    def run(self, args):
-        print(args)
-        if args.module:
-            # pretend another file is requiring this module
-            script = "var main_func=require('{}');".format(args.input_file)
-            parse_string(self.graph, script)
-        else:
-            # analyze from JS source code files
-            parse_file(self.graph, args.input_file)
+        return vul_pathes
 
-        setup_opg(self.graph)
-        self.graph.export_node = True 
-        internal_plugins = PluginManager(self.graph)
+    def test_file(self, file_path, vul_type='os_command', G=None):
+        """
+        test a file as a js script
+        Args:
+            file_path (str): the path to the file
+            vul_type (str) [os_command, prototype_pollution, xss]: the type of vul
+            G (Graph): the graph we run top of
+        Returns:
+            list: the test result pathes of the module
+        """
+        if G is None:
+            G = self.graph
+        parse_file(G, file_path)
+        test_res = self._test_graph(G, vul_type=vul_type)
+        return test_res
+
+    def _test_graph(self, G: Graph, vul_type='os_command'):
+        """
+        for a parsed AST graph, generate OPG and test vul
+        Args:
+            G (Graph): the Graph
+            vul_type (str) [os_command, prototype_pollution, xss]: the type of vul
+        Returns:
+            list: the test result pathes of the module
+        """
+
+        setup_opg(G)
+        G.export_node = True 
+        internal_plugins = PluginManager(G)
         entry_id = '0'
 
-        # TODO: add entry func to entry id
-        if args.entry_func is not None:
-            entry_id = args.entry_func
-        generate_obj_graph(self.graph, internal_plugins, entry_nodeid=entry_id)
+        generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
+
+        if vul_type is not None:
+            check_res = self.check_vuls(vul_type, G)
+
+        return check_res
+
+    
+    def test_module(self, module_path, vul_type='os_command', G=None):
+        """
+        test a file as a module
+        Args:
+            module_path: the path to the module
+            vul_type (str) [os_command, prototype_pollution, xss]: the type of vul
+            G (Graph): the graph we run top of
+        Returns:
+            list: the test result pathes of the module
+        """
+        print("Testing {} {}".format(vul_type, module_path))
+        if module_path is None:
+            loggers.main_logger.error("[ERROR] {} not found".format(module_path))
+            return -1
+
+        if G is None:
+            G = self.graph
+
+        # pretend another file is requiring this module
+        js_call_templete = "var main_func=require('{}');".format(module_path)
+        parse_string(G, js_call_templete)
+        test_res = self._test_graph(G, vul_type=vul_type)
+
+        return test_res
+
+    def test_nodejs_package(self, package_path, vul_type='os_command', G=None):
+        """
+        test a nodejs package
+        Args:
+            package_path (str): the path to the package
+        Returns:
+            the result state: 1 for found, 0 for not found, -1 for error
+        """
+        if not validate_package(package_path):
+            return -1
+        if G is None:
+            G = self.graph
+
+        entrance_files = get_entrance_files_of_package(package_path)
+
+        for entrance_file in entrance_files:
+            self.test_module(entrance_file, vul_type, G)
+
+
+    def run(self, args):
+        if args.nodejs:
+            # test a nodejs package, find the entrance first and start
+            self.test_nodejs_package(args.input_file, 
+                    args.vul_type, self.graph)
+        elif args.module:
+            self.test_module(args.input_file, args.vul_type, self.graph)
+        else:
+            # analyze from JS source code files
+            self.test_file(args.input_file, args.vul_type, self.graph)
 
         #export to csv
         if args.export is not None:
@@ -59,8 +140,7 @@ class OPGen:
             else:
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=False)
 
-        if args.vul_type is not None:
-            self.check_vuls(args.vul_type, self.graph)
+
 
 def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     """

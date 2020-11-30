@@ -107,6 +107,9 @@ class HandleBinaryOP(Handler):
                 return NodeHandleResult(obj_nodes=[G.false_obj])
             else:
                 return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj])
+        else:
+            # could be others like '', return true or false
+            return NodeHandleResult(obj_nodes=[G.true_obj, G.false_obj])
 
 class HandleAssign(Handler):
 
