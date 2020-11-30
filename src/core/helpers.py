@@ -44,10 +44,16 @@ def get_argids_from_funcallee(G, node_id):
             params_id = list(G.get_successors(node))
             for i in range(len(params_id)):
                 paras.append(0)
+
             for param_id in params_id:
                 # only on child node
-                para_num = int(G.get_node_attr(param_id)['childnum:int'])
-                paras[para_num] = param_id 
+                try:
+                    para_num = int(G.get_node_attr(param_id)['childnum:int'])
+                    paras[para_num] = param_id 
+                except:
+                    loggers.main_logger.error("ERROR: " + str(G.get_node_attr(param_id)) + \
+                            " AST null type at core.helpers line 53")
+                    return []
 
     return paras
 

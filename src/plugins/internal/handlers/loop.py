@@ -159,6 +159,39 @@ class HandleForEach(Handler):
         # switch back the scope
         G.cur_scope = parent_scope
 
+class HandleWhile(Handler):
+    def process(self):
+        node_id = self.node_id
+        G = self.G
+        extra = self.extra
+
+        try:
+            test, body = G.get_ordered_ast_child_nodes(node_id)[:2]
+        except ValueError as e:
+            for n in G.get_ordered_ast_child_nodes(node_id):
+                logger.error(n, G.get_node_attr(n))
+        # test = G.get_ordered_ast_child_nodes(test)[0] # wrongly influenced by for?
+        # switch scopes
+        parent_scope = G.cur_scope
+        G.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
+                      scope_name=G.scope_counter.gets(f'Block{body}'))
+        counter = 0
+        while True:
+            # check if the condition is met
+            check_result, deterministic = check_condition(G, test, extra)
+            loggers.main_logger.debug('While loop condition {} result: {} {}'.format(
+                sty.ef.i + G.get_node_attr(test).get('code') + sty.rs.all,
+                check_result, deterministic))
+            # avoid infinite loop
+            if (not deterministic and counter > 3) or check_result == 0 or \
+                counter > 10:
+                loggers.main_logger.debug('For loop {} finished'.format(node_id))
+                break
+            simurun_block(G, body, branches=extra.branches) # run the body
+            counter += 1
+        # switch back the scope
+        G.cur_scope = parent_scope
+
 class HandleBreak(Handler):
     def process(self):
         # TODO: implement it
