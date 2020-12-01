@@ -25,6 +25,7 @@ class PluginManager(object):
         from .internal.handlers.loop import HandleFor as HandleFor
         from .internal.handlers.loop import HandleForEach as HandleForEach
         from .internal.handlers.loop import HandleBreak as HandleBreak
+        from .internal.handlers.loop import HandleWhile as HandleWhile
         from .internal.handlers.expr_list import HandleExprList as HandleExprList
         from .internal.handlers.inc_dec import HandleIncDec as HandleIncDec
         from .internal.handlers.condition import HandleIf as HandleIf
@@ -59,6 +60,7 @@ class PluginManager(object):
                     'AST_ARRAY_ELEM': self.HandleArrayElem,
                     'AST_UNARY_OP': self.HandleUnaryOp,
                     'AST_FOR': self.HandleFor,
+                    'AST_WHILE': self.HandleWhile,
                     'AST_FOREACH': self.HandleForEach,
                     'AST_BREAK': self.HandleBreak,
                     'AST_EXPR_LIST': self.HandleExprList,
