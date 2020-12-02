@@ -128,7 +128,7 @@ def ast_call_function(G, ast_node, extra):
                 G.add_obj_to_name_node(name_node, tobe_added_obj=func_decl_obj)
                 func_decl_objs.append(func_decl_obj)
         else:
-            logger.error(f'Function call error: Name node not found for {func_name}!')
+            loggers.error_logger.error(f'Function call error: Name node not found for {func_name}!')
 
     
     is_new = False # if the function call is creating a new object
