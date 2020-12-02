@@ -575,7 +575,7 @@ def get_module_exports(G, file_path):
             saved_module_exports = G.get_node_attr(node).get('module_exports')
             if saved_module_exports != None:
                 module_exports_objs = saved_module_exports
-                logger.log(ATTENTION, 'File has been required, '
+                loggers.main_logger.log(ATTENTION, 'File has been required, '
                     'return saved module.exports {} for {}'
                     .format(module_exports_objs, file_path))
                 break

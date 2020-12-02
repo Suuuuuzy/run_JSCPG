@@ -123,7 +123,13 @@ class OPGen:
 
 
     def run(self, args):
-        if args.nodejs:
+        if args.list is not None:
+            with open(args.list, 'r') as fp:
+                for line in fp.readlines():
+                    package_path = line.strip()
+                    self.test_nodejs_package(package_path, 
+                            args.vul_type, self.graph)
+        elif args.nodejs:
             # test a nodejs package, find the entrance first and start
             self.test_nodejs_package(args.input_file, 
                     args.vul_type, self.graph)
@@ -161,4 +167,4 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     for node in obj_nodes:
         register_func(G, node[0])
     internal_plugins.dispatch_node(entry_nodeid)
-    add_edges_between_funcs(G)
+    #add_edges_between_funcs(G)
