@@ -167,4 +167,4 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     for node in obj_nodes:
         register_func(G, node[0])
     internal_plugins.dispatch_node(entry_nodeid)
-    add_edges_between_funcs(G)
+    #add_edges_between_funcs(G)
