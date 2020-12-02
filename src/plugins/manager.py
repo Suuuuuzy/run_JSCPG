@@ -24,7 +24,6 @@ class PluginManager(object):
         from .internal.handlers.array import HandleUnaryOp as HandleUnaryOp 
         from .internal.handlers.loop import HandleFor as HandleFor
         from .internal.handlers.loop import HandleForEach as HandleForEach
-        from .internal.handlers.loop import HandleBreak as HandleBreak
         from .internal.handlers.loop import HandleWhile as HandleWhile
         from .internal.handlers.expr_list import HandleExprList as HandleExprList
         from .internal.handlers.inc_dec import HandleIncDec as HandleIncDec
@@ -36,6 +35,8 @@ class PluginManager(object):
         from .internal.handlers.returns import HandleReturn as HandleReturn 
         from .internal.handlers.null import HandleNULL as HandleNULL
         from .internal.handlers.try_catch import HandleTry as HandleTry 
+        from .internal.handlers.not_impl import HandleThrow as HandleThrow
+        from .internal.handlers.not_impl import HandleBreak as HandleBreak
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -77,6 +78,7 @@ class PluginManager(object):
                     'AST_RETURN': self.HandleReturn,
                     'AST_TRY': self.HandleTry,
                     'NULL': self.HandleNULL,
+                    'AST_THROW': self.HandleThrow,
                     }
 
         def dispatch_node(self, node_id, extra=None):
