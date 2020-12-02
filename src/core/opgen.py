@@ -123,7 +123,13 @@ class OPGen:
 
 
     def run(self, args):
-        if args.nodejs:
+        if args.list is not None:
+            with open(args.list, 'r') as fp:
+                for line in fp.readlines():
+                    package_path = line.strip()
+                    self.test_nodejs_package(package_path, 
+                            args.vul_type, self.graph)
+        elif args.nodejs:
             # test a nodejs package, find the entrance first and start
             self.test_nodejs_package(args.input_file, 
                     args.vul_type, self.graph)

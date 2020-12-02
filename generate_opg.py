@@ -33,6 +33,7 @@ def parse_args():
                         help="Set the limit of a call statement. "
                         "(Defaults to 3.)")
     parser.add_argument('-e', '--entry-func')
+    parser.add_argument('-l', '--list', action='store')
     parser.add_argument('--export', help="export the graph to csv files, can be light or all")
     parser.add_argument('--nodejs', action='store_true', default=False, help="run a nodejs package")
     parser.add_argument('input_file', action='store', nargs='?',
@@ -55,7 +56,7 @@ def setup_graph_env(G: Graph):
             level=logging.DEBUG)
         G.print = True
 
-    G.run_all = args.run_all or args.module or args.nodejs
+    G.run_all = args.run_all or args.module or args.nodejs or args.list
     G.function_time_limit = args.function_timeout
     G.exit_when_found = args.exit
     G.single_branch = args.single_branch
