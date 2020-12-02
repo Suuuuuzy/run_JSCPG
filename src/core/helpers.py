@@ -37,6 +37,8 @@ def get_argids_from_funcallee(G, node_id):
     """
     given a func node id, return a list of para ids
     """
+    #TODO: check why param may have problems
+
     paras = []
     nodes = G.get_successors(node_id)
     for node in nodes:
