@@ -77,7 +77,6 @@ class OPGen:
 
         return check_res
 
-    
     def test_module(self, module_path, vul_type='os_command', G=None):
         """
         test a file as a module
@@ -121,14 +120,17 @@ class OPGen:
         for entrance_file in entrance_files:
             self.test_module(entrance_file, vul_type, G)
 
-
     def run(self, args):
         if args.list is not None:
+            package_list = []
             with open(args.list, 'r') as fp:
                 for line in fp.readlines():
                     package_path = line.strip()
-                    self.test_nodejs_package(package_path, 
-                            args.vul_type, self.graph)
+                    package_list.append(package_path)
+            for package_path in package_list:
+                self.test_nodejs_package(package_path, 
+                        args.vul_type, self.graph)
+
         elif args.nodejs:
             # test a nodejs package, find the entrance first and start
             self.test_nodejs_package(args.input_file, 

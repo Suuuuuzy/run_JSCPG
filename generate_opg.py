@@ -34,6 +34,7 @@ def parse_args():
                         "(Defaults to 3.)")
     parser.add_argument('-e', '--entry-func')
     parser.add_argument('-l', '--list', action='store')
+    parser.add_argument('--parallel', action='store_true', default=False, help="run multiple package parallelly")
     parser.add_argument('--export', help="export the graph to csv files, can be light or all")
     parser.add_argument('--nodejs', action='store_true', default=False, help="run a nodejs package")
     parser.add_argument('input_file', action='store', nargs='?',
