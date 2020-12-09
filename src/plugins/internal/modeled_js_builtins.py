@@ -968,11 +968,12 @@ def setup_json(G: Graph):
 
 
 def json_parse(G: Graph, caller_ast, extra, _, text=None, reviver=None):
+    from src.core.helpers import analyze_json_python
     json_strings, sources, _ = to_values(G, text, caller_ast)
     returned_objs = []
     used_objs = set()
     for i, json_string in enumerate(json_strings):
-        obj = opgen.analyze_json_python(G, json_string,
+        obj = analyze_json_python(G, json_string,
             extra=extra, caller_ast=caller_ast)
         if obj is None:
             obj = G.add_obj_node(ast_node=caller_ast, js_type=None, value=wildcard)

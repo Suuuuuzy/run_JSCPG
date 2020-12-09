@@ -8,6 +8,7 @@ from src.core.esprima import esprima_parse
 from src.core.logger import loggers
 from src.plugins.internal.utils import register_func
 from .logger import loggers, sty
+import json
 import sty
 
 def get_argnames_from_funcaller(G, node_id):
@@ -456,3 +457,40 @@ def add_contributes_to(G: Graph, sources: Iterable, target,
     if chain_tainted and tainted:
         G.set_node_attr(target, ('tainted', True))
 
+def analyze_json(G, json_str, start_node_id=0, extra=None):
+    # This function is almost the same as analyze_string,
+    # but it is too dirty. I don't want to put them in one function.
+
+    # because esprima cannot directly parse JSON, we add a previx
+    # the real JSON object starts at 8 if the File node is at node 0
+    # so we pass a "start_node_id - 8" to make the JSON object starts
+    # at "start_node_id"
+    json_str = 'var a = ' + json_str.strip()
+    result = esprima_parse('-', ['-n', str(start_node_id - 8), '-o', '-'],
+        input=json_str, print_func=logger.info)
+    G.import_from_string(result)
+    # remove all nodes and edges before the JSON object
+    def filter_func(line):
+        try:
+            if int(line.split('\t')[0]) < start_node_id:
+                return False
+            return True
+        except ValueError:
+            pass
+        return True
+    result = '\n'.join(filter(filter_func, result.split('\n')))
+    G.import_from_string(result)
+    # we need to use handlers to handle the json
+    from src.plugins.manager_instance import internal_manager
+    return internal_manager.dispatch_node(str(start_node_id), extra=extra)
+
+def analyze_json_python(G, json_str, extra=None, caller_ast=None):
+    json_str = str(json_str)
+    if json_str is None:
+        return None
+    try:
+        py_obj = json.loads(json_str)
+        logger.debug('Python JSON parse result: ' + str(py_obj))
+    except json.decoder.JSONDecodeError:
+        return None
+    return G.generate_obj_graph_for_python_obj(py_obj, ast_node=caller_ast)
