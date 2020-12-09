@@ -37,6 +37,7 @@ class PluginManager(object):
         from .internal.handlers.try_catch import HandleTry as HandleTry 
         from .internal.handlers.not_impl import HandleThrow as HandleThrow
         from .internal.handlers.not_impl import HandleBreak as HandleBreak
+        from .internal.handlers.not_impl import HandleCatchList as HandleCatchList
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -79,6 +80,7 @@ class PluginManager(object):
                     'AST_TRY': self.HandleTry,
                     'NULL': self.HandleNULL,
                     'AST_THROW': self.HandleThrow,
+                    'AST_CATCH_LIST': self.HandleCatchList,
                     }
 
         def dispatch_node(self, node_id, extra=None):

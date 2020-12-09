@@ -11,3 +11,8 @@ class HandleBreak(Handler):
     def process(self):
         loggers.error_logger.error("AST_BREAK is not impelmented")
         return NodeHandleResult()
+
+class HandleCatchList(Handler):
+    def process(self):
+        loggers.error_logger.error("AST_CATCH_LIST is not implemented")
+        return NodeHandleResult()
