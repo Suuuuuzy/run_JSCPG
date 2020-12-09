@@ -11,20 +11,20 @@ with open("./fuzzing_nodes.csv", 'w') as fp:
 
 # for edges only keep the OBJ REACHES
 with open("./rels.csv", 'r') as fp:
-    df = []
-    cf = []
-    ast = []
+    df = set()
+    cf = set()
+    ast = set()
     for line in fp.readlines():
         elems = line.split("\t")
         if elems[2] == 'OBJ_REACHES':
-            df.append(line)
+            df.add(line)
         elif elems[2] == 'FLOWS_TO':
-            cf.append(line)
+            cf.add(line)
         elif elems[2] == 'PARENT_OF':
-            ast.append(line)
+            ast.add(line)
 
 with open("./fuzzing_cfast.csv", 'w') as fp:
-    fp.write(''.join(cf + ast))
+    fp.write(''.join(cf.union(ast)))
 
 with open("./fuzzing_df.csv", 'w') as fp:
     fp.write(''.join(df))
