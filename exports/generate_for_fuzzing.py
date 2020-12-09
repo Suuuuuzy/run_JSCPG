@@ -24,7 +24,8 @@ with open("./rels.csv", 'r') as fp:
             ast.add(line)
 
 with open("./fuzzing_cfast.csv", 'w') as fp:
-    fp.write(''.join(cf.union(ast)))
+    fp.write(''.join(ast))
+    fp.write(''.join(cf))
 
 with open("./fuzzing_df.csv", 'w') as fp:
     fp.write(''.join(df))
