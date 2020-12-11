@@ -298,7 +298,7 @@ def array_p_push(G: Graph, caller_ast, extra, arrays: NodeHandleResult, *tobe_ad
         logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
         arrays = copy_objs_for_branch(G, arrays,
             branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
-    for arr in arrays.obj_nodes:
+    for arr in set(arrays.obj_nodes):
         length_objs = G.get_prop_obj_nodes(parent_obj=arr, prop_name='length', branches=extra.branches)
         if len(length_objs) == 0:
             logger.warning('Array {} has no length object nodes'.format(arr))

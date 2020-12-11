@@ -96,6 +96,8 @@ class PluginManager(object):
             Returns:
                 NodeHandleResult: the handle result of the node
             """
+            if self.G.finished:
+                return NodeHandleResult()
             node_attr = self.G.get_node_attr(node_id)
             loggers.debug_logger.info("processing " + str(node_attr));
             node_type = node_attr['type']

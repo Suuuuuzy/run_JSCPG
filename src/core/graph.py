@@ -26,6 +26,7 @@ class Graph:
         self.logger = create_logger("graph_logger", output_type="file")
         self.registered_funcs = {}
         self.op_cnt = {'add_node': 0, 'add_edge': 0, 'get_node_attr': 0, 'get_edge': 0, 'get_edge_attr': 0}
+        self.nearest_upper_CPG_cache = {}
 
         # for control flow
         self.cfg_stmt = None
@@ -568,16 +569,25 @@ class Graph:
         (AST_STMT_LIST).
         """
         # follow the parent_of edge to research the stmt node
+        if node_id in self.nearest_upper_CPG_cache:
+            return self.nearest_upper_CPG_cache[node_id]
+
+        ori_node_id = node_id
+        result = None
         while True:
             assert node_id is not None
             parent_edges = self.get_in_edges(node_id, edge_type = "PARENT_OF")
             if parent_edges is None or len(parent_edges) == 0:
-                return None
+                break
             parent_node = parent_edges[0][0]
             parent_node_attr = self.get_node_attr(parent_node)
             if parent_node_attr.get('type') in ["AST_STMT_LIST"]:
-                return node_id 
+                result = node_id
+                break
             node_id = parent_node
+
+        self.nearest_upper_CPG_cache[ori_node_id] = result 
+        return result
 
     def get_all_child_nodes(self, node_id, max_depth = None):
         """

@@ -465,7 +465,7 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
                         used_objs.append(e2[0])
                         used_obj_set.add(e2[0])
                         # logger.debug("{}-----{}-----{}".format(obj, e1[0], e2[0]))
-    for obj in used_objs:
+    for obj in used_obj_set:
         def_ast_node = G.get_obj_def_ast_node(obj)
         # print("?", cur_stmt, used_objs, def_ast_node)
         if def_ast_node is None: continue

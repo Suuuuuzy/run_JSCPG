@@ -207,7 +207,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         func_name = '{anonymous}'
 
     call_stack_item = '{}'.format(func_name)
-    if G.call_stack.count(call_stack_item) > 20:
+    if G.call_stack.count(call_stack_item) > 10:
         return NodeHandleResult(), []
 
     G.call_stack.append(call_stack_item)
