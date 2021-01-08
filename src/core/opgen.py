@@ -149,7 +149,6 @@ class OPGen:
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=False)
 
 
-
 def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     """
     generate the object graph of a program

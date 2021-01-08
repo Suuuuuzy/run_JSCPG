@@ -16,3 +16,18 @@ class HandleCatchList(Handler):
     def process(self):
         loggers.error_logger.error("AST_CATCH_LIST is not implemented")
         return NodeHandleResult()
+
+class HandleContinue(Handler):
+    def process(self):
+        loggers.error_logger.error("AST_CONTINUE is not implemented")
+        return NodeHandleResult()
+
+class HandleStmtList(Handler):
+    def process(self):
+        loggers.error_logger.error("AST_STMT_LIST is not implemented")
+        return NodeHandleResult()
+
+class HandleAssignOP(Handler):
+    def process(self):
+        loggers.error_logger.error("AST_ASSIGN_OP is not implemented")
+        return NodeHandleResult()

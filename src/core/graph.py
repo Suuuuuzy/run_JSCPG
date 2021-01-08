@@ -33,11 +33,13 @@ class Graph:
 
         # for block opt
         self.register = {}
+        self.num_function_call = {}
+        self.opt_func = True
 
         # for evaluation
         self.covered_num_stat = 0
         self.total_num_stat = 0
-        self.covered_stat = set()
+        self.covered_stat = {} #set()
         self.all_stat = set()
         self.all_func = set()
         self.covered_func = set()

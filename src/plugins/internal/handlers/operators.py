@@ -236,6 +236,11 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
             logger.debug(f'Pollutable objs: {G.pollutable_objs}')
             logger.debug(f'Pollutable NN: {G.pollutable_name_nodes}')
             G.proto_pollution.add(ast_node)
+            loggers.print_logger.warning(sty.fg.li_red + sty.ef.inverse +
+                'Possible prototype pollution at node {} (Line {}), '
+                'trying to assign {} to name node {}'
+                .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'),
+                right_objs, ', '.join(name_node_log)) + sty.rs.all)
             if G.exit_when_found:
                 G.finished = True
             # skip doing the assignment

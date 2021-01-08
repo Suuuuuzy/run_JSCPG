@@ -429,6 +429,7 @@ def to_python_array(G: Graph, array_obj, value=False):
                     .get('code')))
             else:
                 elements[i].append(e[1])
+
             data[i].append(e[3])
     return elements, data
 

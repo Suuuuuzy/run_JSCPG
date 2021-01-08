@@ -1,4 +1,5 @@
 from src.core.logger import loggers
+from src.core.utils import NodeHandleResult
 
 class PluginManager(object):
     """
@@ -38,6 +39,9 @@ class PluginManager(object):
         from .internal.handlers.not_impl import HandleThrow as HandleThrow
         from .internal.handlers.not_impl import HandleBreak as HandleBreak
         from .internal.handlers.not_impl import HandleCatchList as HandleCatchList
+        from .internal.handlers.not_impl import HandleContinue as HandleContinue
+        from .internal.handlers.not_impl import HandleStmtList as HandleStmtList
+        from .internal.handlers.not_impl import HandleAssignOP as HandleAssignOP
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -81,6 +85,9 @@ class PluginManager(object):
                     'NULL': self.HandleNULL,
                     'AST_THROW': self.HandleThrow,
                     'AST_CATCH_LIST': self.HandleCatchList,
+                    'AST_CONTINUE': self.HandleContinue,
+                    'AST_STMT_LIST': self.HandleStmtList,
+                    'AST_ASSIGN_OP': self.HandleAssignOP,
                     }
 
         def dispatch_node(self, node_id, extra=None):
@@ -98,6 +105,16 @@ class PluginManager(object):
             """
             if self.G.finished:
                 return NodeHandleResult()
+
+            if self.G.is_statement(node_id):
+                if node_id not in self.G.covered_stat:
+                    #print("{}% stmt covered.".format(len(self.G.covered_stat) / self.G.get_total_num_statements()))
+                    self.G.covered_stat[node_id] = 0
+                #elif self.G.covered_stat[node_id] > 300:
+                #    return NodeHandleResult()
+                else:
+                    self.G.covered_stat[node_id] += 1
+
             node_attr = self.G.get_node_attr(node_id)
             loggers.debug_logger.info("processing " + str(node_attr));
             node_type = node_attr['type']
@@ -107,6 +124,8 @@ class PluginManager(object):
 
             handle_obj = self.handler_map[node_type](self.G, node_id, extra=extra)
             handle_res = handle_obj.process()
+
+
             return handle_res
 
 

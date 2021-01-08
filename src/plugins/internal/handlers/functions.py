@@ -206,14 +206,31 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
     if not func_name:
         func_name = '{anonymous}'
 
-    call_stack_item = '{}'.format(func_name)
-    if G.call_stack.count(call_stack_item) > 10:
+    # add the function to current call stack
+    try:
+        cur_edge = list(G.get_out_edges(func_objs[0], edge_type="OBJ_TO_AST"))
+        callee_ast = cur_edge[0][1]
+    except:
+        callee_ast = "NotFound"
+
+    call_stack_item = '{}_{}'.format(func_name, callee_ast)
+    if G.call_stack.count(call_stack_item) > 3:
         return NodeHandleResult(), []
 
     G.call_stack.append(call_stack_item)
+    #print(G.call_stack)
+
+    # add the number of function call to graph
+    if call_stack_item not in G.num_function_call:
+        G.num_function_call[call_stack_item] = 0
+    G.num_function_call[call_stack_item] += 1
 
     if stmt_id == 'Unknown' and caller_ast is not None:
         stmt_id = caller_ast
+
+    # opt function run
+    if G.opt_func and G.num_function_call[call_stack_item] > 5: 
+        evaluate_func(callee_ast)
 
     # initiate return values
     returned_objs = set()
@@ -307,6 +324,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             not in ['AST_FUNC_DECL', 'AST_CLOSURE']:
                 G.add_blank_func_with_og_nodes(func_name, func_obj)
                 func_ast = G.get_obj_def_ast_node(func_obj, aim_type='function')
+
             # add to coverage
             func_ast_attr = G.get_node_attr(func_ast)
             if 'labels:label' in func_ast_attr and \
@@ -780,3 +798,10 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     #                             {"type:TYPE": "CALLS"})
 
     return created_obj, returned_objs
+
+def evaluate_func(func_obj):
+    """
+    evalute the function for faster run
+
+    """
+    print("evalute function", func_obj)

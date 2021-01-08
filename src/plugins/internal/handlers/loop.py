@@ -1,6 +1,6 @@
 from src.plugins.handler import Handler
 from src.core.logger import *
-from ..utils import peek_variables, val_to_str
+from ..utils import peek_variables, val_to_str, is_int
 from . import vars
 from ..utils import check_condition, wildcard, is_wildcard_obj, add_contributes_to
 from .blocks import simurun_block
@@ -41,7 +41,7 @@ class HandleFor(Handler):
                 G.get_node_attr(cond).get('code') + sty.rs.all, check_result,
                 deterministic))
             # avoid infinite loop
-            if (not deterministic and counter > 3) or check_result == 0:
+            if (not deterministic and counter > 3) or check_result == 0 or counter > 100:
                 loggers.main_logger.debug('For loop {} finished'.format(node_id))
                 break
             simurun_block(G, body, branches=extra.branches) # run the body

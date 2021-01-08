@@ -23,4 +23,13 @@ function expolit(string, input, val){
   }
 
 }
-module.exports = expolit;
+
+function pp(a, b, val) {
+  var test = {};
+  test[a][b] = val;
+  return test;
+}
+module.exports = {
+  expolit: expolit,
+  pp: pp
+}

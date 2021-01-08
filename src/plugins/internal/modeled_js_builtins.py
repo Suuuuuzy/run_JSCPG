@@ -12,6 +12,7 @@ from src.core.logger import *
 from itertools import chain, product
 from math import isnan
 import math
+from .handlers.functions import call_function
 
 
 logger = create_logger("main_logger", output_type="file")
@@ -207,7 +208,7 @@ def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), call
                     js_type='number', value=float(name))
             obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
             logger.debug(f'Array forEach callback arguments: index={name} ({sty.fg.green}{name_obj_node}{sty.rs.all}), obj_nodes={obj_nodes_log}, array={arr}')
-            opgen.call_function(G, callback.obj_nodes,
+            call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                         obj_nodes=obj_nodes),
                     NodeHandleResult(obj_nodes=[name_obj_node]),
@@ -231,7 +232,7 @@ def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult()
                 index_arg = NodeHandleResult(values=[float(name)])
             obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
             logger.debug(f'Array forEach callback arguments: index={name}, obj_nodes={obj_nodes_log}, array={arr}')
-            opgen.call_function(G, callback.obj_nodes,
+            call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                     obj_nodes=obj_nodes), index_arg, 
                     NodeHandleResult(name=array.name, obj_nodes=[arr])],
@@ -287,7 +288,7 @@ def array_p_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleRe
             array]
     logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
     new_extra = ExtraInfo(extra, branches=extra.branches+[BranchTag(point=f'ForEach{caller_ast}')])
-    opgen.call_function(G, callback.obj_nodes, args=args,
+    call_function(G, callback.obj_nodes, args=args,
         extra=new_extra, caller_ast=caller_ast, func_name=callback.name)
     return NodeHandleResult()
 
@@ -571,7 +572,7 @@ def array_p_reduce(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callba
         returns = None
         if length != wildcard:
             for i in range(start, length):
-                returns = opgen.call_function(G, callback.obj_nodes,
+                returns = call_function(G, callback.obj_nodes,
                     args=[accumulator, NodeHandleResult(
                         obj_nodes=G.get_prop_obj_nodes(arr, str(i), extra.branches)),
                         NodeHandleResult(values=[i], value_sources=[[arr]]),
@@ -585,7 +586,7 @@ def array_p_reduce(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callba
                     continue
                 if start == 1 and str(name) == '0':
                     continue
-                returns = opgen.call_function(G, callback.obj_nodes,
+                returns = call_function(G, callback.obj_nodes,
                     args=[accumulator, NodeHandleResult(
                         obj_nodes=G.get_objs_by_name_node(name_node, extra.branches)),
                         NodeHandleResult(values=[name], value_sources=[[arr]]),
@@ -614,7 +615,7 @@ def array_p_map(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callback:
                 for o in G.get_objs_by_name_node(name_node, extra.branches):
                     G.add_obj_as_prop(name, parent_obj=new_arr, tobe_added_obj=o)
                 continue
-            returned = opgen.call_function(G, callback.obj_nodes,
+            returned = call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(obj_nodes=G.get_objs_by_name_node(name_node, extra.branches)),
                     NodeHandleResult(value=[name], value_sources=[[arr]]),
                     NodeHandleResult(obj_nodes=[arr])],
@@ -1046,7 +1047,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                                 NodeHandleResult(values=[g]) for g in m.groups()
                             ]
                             cb_result, _ = \
-                                opgen.call_function(G, [callback],
+                                call_function(G, [callback],
                                 args=args, extra=extra, caller_ast=caller_ast)
                             cb_returned_values, _, _ = to_values(G, cb_result)
                             cb_returned_values = \
@@ -1084,7 +1085,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         left_s = sv[:start]
                         right_s = sv[start+len(ssv):]
                         cb_result, _ = \
-                            opgen.call_function(G, [callback],
+                            call_function(G, [callback],
                             args=[NodeHandleResult(values=[match_s])],
                             extra=extra, caller_ast=caller_ast)
                         cb_returned_values, _, _ = to_values(G, cb_result)
@@ -1161,7 +1162,7 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                                 NodeHandleResult(values=[g]) for g in m.groups()
                             ]
                             cb_result, _ = \
-                                opgen.call_function(G, [callback],
+                                call_function(G, [callback],
                                 args=args, extra=extra, caller_ast=caller_ast)
                             cb_returned_values, _, _ = to_values(G, cb_result)
                             cb_returned_values = \
@@ -1199,7 +1200,7 @@ def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         left_s = sv[:start]
                         right_s = sv[start+len(ssv):]
                         cb_result, _ = \
-                            opgen.call_function(G, [callback],
+                            call_function(G, [callback],
                             args=[NodeHandleResult(values=[match_s])],
                             extra=extra, caller_ast=caller_ast)
                         cb_returned_values, _, _ = to_values(G, cb_result)
