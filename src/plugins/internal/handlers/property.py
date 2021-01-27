@@ -16,140 +16,6 @@ class HandleProp(Handler):
         return handle_prop(self.G, 
                 self.node_id, side, self.extra)[0]
 
-def find_prop(G, parent_objs, prop_name, branches=None,
-    side=None, parent_name='Unknown', in_proto=False, depth=0,
-    prop_name_for_tags=None, ast_node=None, prop_name_sources=[]):
-    '''
-    Recursively find a property under parent_objs and its __proto__.
-    
-    Args:
-        G (Graph): graph.
-        parent_objs (list): parent objects.
-        prop_name (str): property name.
-        branches (BranchTagContainer, optional): branch information.
-            Defaults to None.
-        side (str, optional): 'left' or 'right', denoting left side or
-            right side of assignment. Defaults to None.
-        parent_name (str, optional): parent object's name, only used to
-            print log. Defaults to ''.
-        in_proto (bool, optional): whether __proto__ is being searched.
-            Defaults to False.
-        prop_name_for_tags (list, optional): Experimental. For-tags
-            related to the property name. Defaults to None.
-    
-    Returns:
-        prop_name_nodes, prop_obj_nodes: two sets containing possible
-            name nodes and object nodes.
-    '''
-    if depth == 5:
-        return [], []
-
-    if in_proto:
-        loggers.main_logger.debug('Cannot find "direct" property, going into __proto__ ' \
-                f'{parent_objs}...')
-        loggers.main_logger.debug(f'  {parent_name}.{prop_name}')
-    prop_name_nodes = set()
-    prop_obj_nodes = set()
-    for parent_obj in parent_objs:
-        if prop_name == wildcard and not is_wildcard_obj(G, parent_obj) and \
-            not G.check_proto_pollution:
-            continue
-
-        # flag of whether any name node with prop_name under this parent
-        # object is found
-        name_node_found = False
-        # search "direct" properties
-        prop_name_node = G.get_prop_name_node(prop_name, parent_obj)
-        if prop_name_node is not None:
-            name_node_found = True
-            prop_name_nodes.add(prop_name_node)
-            prop_objs = G.get_objs_by_name_node(prop_name_node,
-                branches=branches)
-            if prop_objs:
-                prop_obj_nodes.update(prop_objs)
-        elif prop_name != '__proto__' and prop_name != wildcard:
-            # if name node is not found, search the property under __proto__
-            # note that we cannot search "__proto__" under __proto__
-            __proto__name_node = G.get_prop_name_node("__proto__",
-                parent_obj=parent_obj)
-            if __proto__name_node is not None:
-                __proto__obj_nodes = G.get_objs_by_name_node(__proto__name_node,
-                    branches)
-                # if set(__proto__obj_nodes) & set(parent_objs):
-                #     logger.error('__proto__ ' \
-                #         f'{__proto__obj_nodes} and parent {parent_objs} ' \
-                #         'object nodes have intersection')
-                #     __proto__obj_nodes = list(set(__proto__obj_nodes) -
-                #         set(parent_objs))
-                if parent_obj in __proto__obj_nodes:
-                    logger.error('__proto__ ' \
-                        f'{__proto__obj_nodes} and parent {parent_obj} ' \
-                        'have intersection')
-                    __proto__obj_nodes = __proto__obj_nodes.remove(parent_obj)
-                if __proto__obj_nodes:
-                    __name_nodes, __obj_nodes = find_prop(G,
-                        __proto__obj_nodes, prop_name, branches,
-                        parent_name=parent_name + '.__proto__',
-                        in_proto=True, depth=depth+1)
-                    if __name_nodes:
-                        name_node_found = True
-                        prop_name_nodes.update(__name_nodes)
-                        prop_obj_nodes.update(__obj_nodes)
-        if not name_node_found and not in_proto and prop_name != wildcard and \
-            side != 'left':
-            # try wildcard (*)
-            r1, r2 = find_prop(G, [parent_obj], wildcard, branches, side,
-                parent_name, in_proto, depth, prop_name_for_tags)
-            if r2:
-                name_node_found = True
-                prop_name_nodes.update(r1)
-                prop_obj_nodes.update(r2)
-                if is_wildcard_obj(G, parent_obj):
-                    for o in r2:
-                        for s in prop_name_sources:
-                            add_contributes_to(G, [s], o)
-        if not name_node_found and not in_proto:
-            # we cannot create name node under __proto__
-            # name nodes are only created under the original parent objects
-            if is_wildcard_obj(G, parent_obj) and side != 'left':
-                # if this is an wildcard (unknown) object, add another
-                # wildcard object as its property
-                added_name_node = G.add_prop_name_node(prop_name, parent_obj)
-                prop_name_nodes.add(added_name_node)
-                added_obj = G.add_obj_to_name_node(added_name_node,
-                    js_type='object' if G.check_proto_pollution else None,
-                    value=wildcard, ast_node=ast_node)                    
-                prop_obj_nodes.add(added_obj)
-                loggers.main_logger.debug('{} is a wildcard object, creating a wildcard'
-                    ' object {} for its properties'.format(parent_obj,
-                    added_obj))
-                if G.get_node_attr(parent_obj).get('tainted'):
-                    G.set_node_attr(added_obj, ('tainted', True))
-                    loggers.main_logger.debug("{} marked as tainted 1".format(added_obj))
-                for s in prop_name_sources:
-                    add_contributes_to(G, [s], added_obj)
-                # if prop_name_for_tags:
-                #     G.set_node_attr(added_name_node,
-                #         ('for_tags', prop_name_for_tags))
-            elif prop_name != wildcard: # normal (known) object
-                if side == 'right':
-                    continue
-                elif parent_obj in [G.object_prototype, G.string_prototype,
-                    G.function_prototype]: # more to be added
-                    continue
-                else:
-                    # only add a name node
-                    added_name_node = \
-                        G.add_prop_name_node(prop_name, parent_obj)
-                    prop_name_nodes.add(added_name_node)
-                    # if prop_name_for_tags:
-                    #     G.set_node_attr(added_name_node,
-                    #                     ('for_tags', prop_name_for_tags))
-                    loggers.main_logger.debug(f'{sty.ef.b}Add prop name node{sty.rs.all} '
-                    f'{parent_name}.{prop_name} '
-                    f'({parent_obj}->{added_name_node})')
-    return prop_name_nodes, prop_obj_nodes
-
 def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
     -> (NodeHandleResult, NodeHandleResult):
     '''
@@ -169,6 +35,7 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
 
     if extra is None:
         extra = ExtraInfo()
+
     parent, prop = G.get_ordered_ast_child_nodes(ast_node)[:2]
     handled_parent = internal_manager.dispatch_node(parent, extra)
     handled_prop = internal_manager.dispatch_node(prop, extra)
@@ -201,81 +68,243 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
                 parent_is_proto = True
                 break
 
-    # if G.check_proto_pollution and prop_names == [wildcard] * len(prop_names):
-        # conservative: only if all property names are unknown,
-        # we fetch all properties
-        # (including __proto__ for prototype pollution detection)
-        # logger.debug('All property names are unknown, fetching all properties')
-    if G.check_proto_pollution and wildcard in prop_names:
-        # agressive: if any property name is unknown, we fetch all properties
-        logger.debug('One of property names is unknown, fetching all properties')
-        for parent_obj in parent_objs:
-            prop_name_nodes.update(G.get_prop_name_nodes(parent_obj))
-            objs = G.get_prop_obj_nodes(parent_obj, branches=branches,
-                exclude_proto=False)
-            objs = filter(lambda obj: obj in G.builtin_constructors or
-                          G.get_node_attr(obj).get('type') != 'function', objs)
-            prop_obj_nodes.update(objs)
-            if is_wildcard_obj(G, parent_obj) and not G.get_prop_obj_nodes(
-                    parent_obj, wildcard, extra.branches):
-                added_obj = \
-                    G.add_obj_as_prop(wildcard, ast_node,
-                            parent_obj=parent_obj, value=wildcard)
-                add_contributes_to(G, [parent_obj], added_obj)
-                prop_obj_nodes.add(added_obj)
-        name = f'{parent_name}.*'
-
-    else:
-        # create parent object if it doesn't exist
-        parent_objs = list(filter(lambda x: x != G.undefined_obj, parent_objs))
-        if not parent_objs:
-            loggers.main_logger.debug(
-                "PARENT OBJ {} NOT DEFINED, creating object nodes".
-                format(parent_name))
-            # we assume this happens when it's a built-in var name
-            if parent_name_nodes:
-                parent_objs = []
-                for name_node in parent_name_nodes:
-                    obj = G.add_obj_to_name_node(name_node, ast_node,
-                        js_type='object' if G.check_proto_pollution else None,
-                        value=wildcard)
-                    parent_objs.append(obj)
-            else:
-                obj = G.add_obj_to_scope(parent_name, ast_node,
+    # create parent object if it doesn't exist
+    parent_objs = list(filter(lambda x: x != G.undefined_obj, parent_objs))
+    if not parent_objs:
+        loggers.main_logger.debug(
+            "PARENT OBJ {} NOT DEFINED, creating object nodes".
+            format(parent_name))
+        # we assume this happens when it's a built-in var name
+        if parent_name_nodes:
+            parent_objs = []
+            for name_node in parent_name_nodes:
+                obj = G.add_obj_to_name_node(name_node, ast_node,
                     js_type='object' if G.check_proto_pollution else None,
-                    scope=G.BASE_SCOPE, value=wildcard)
-                parent_objs = [obj]
-            # else:
-            #     logger.debug("PARENT OBJ {} NOT DEFINED, return undefined".
-            #         format(parent_name))
-            #     return NodeHandleResult()
-
-        # find property name nodes and object nodes
-        # (filtering is moved to find_prop)
-        for i, prop_name in enumerate(prop_names):
-            # if prop_name == wildcard:
-            #     continue
-            assert prop_name is not None
-            name_nodes, obj_nodes = find_prop(G, parent_objs, 
-                prop_name, branches, side, parent_name,
-                prop_name_for_tags=prop_name_tags[i],
-                ast_node=ast_node, prop_name_sources=prop_name_sources[i])
-            prop_name_nodes.update(name_nodes)
-            prop_obj_nodes.update(obj_nodes)
-
-        # wildcard is now implemented in find_prop
-
-        if len(prop_names) == 1:
-            name = f'{parent_name}.{prop_names[0]}'
+                    value=wildcard)
+                parent_objs.append(obj)
         else:
-            name = f'{parent_name}.{"/".join(map(str, prop_names))}'
+            obj = G.add_obj_to_scope(parent_name, ast_node,
+                js_type='object' if G.check_proto_pollution else None,
+                scope=G.BASE_SCOPE, value=wildcard)
+            parent_objs = [obj]
+        # else:
+        #     logger.debug("PARENT OBJ {} NOT DEFINED, return undefined".
+        #         format(parent_name))
+        #     return NodeHandleResult()
 
-        # tricky fix, we don't really link name nodes to the undefined object
-        if not prop_obj_nodes:
-            prop_obj_nodes = set([G.undefined_obj])
+    multi_assign = False
+    tampered_prop = False
+    # find property name nodes and object nodes
+    # (filtering is moved to find_prop)
+    for i, prop_name in enumerate(prop_names):
+        print(prop_name)
+        assert prop_name is not None
+        name_nodes, obj_nodes, proto_is_tainted = \
+            find_prop(G, parent_objs, 
+            prop_name, branches, side, parent_name,
+            prop_name_for_tags=prop_name_tags[i],
+            ast_node=ast_node, prop_name_sources=prop_name_sources[i])
+        prop_name_nodes.update(name_nodes)
+        prop_obj_nodes.update(obj_nodes)
+
+        if prop_name == wildcard:
+            multi_assign = True
+        if G.check_ipt and side != 'left' and proto_is_tainted:
+            tampered_prop = True
+            logger.warning(sty.fg.li_red + sty.ef.inverse + 'Possible internal'
+                ' property tampering (any use) at node {} (Line {})'
+                .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'))
+                + sty.rs.all)
+
+    if len(prop_names) == 1:
+        name = f'{parent_name}.{prop_names[0]}'
+    else:
+        name = f'{parent_name}.{"/".join(map(str, prop_names))}'
+
+    # tricky fix, we don't really link name nodes to the undefined object
+    if not prop_obj_nodes:
+        prop_obj_nodes = set([G.undefined_obj])
 
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
             name=f'{name}', name_nodes=list(prop_name_nodes),
             ast_node=ast_node, callback=get_df_callback(G),
-            name_tainted=name_tainted, parent_is_proto=parent_is_proto
+            name_tainted=name_tainted, parent_is_proto=parent_is_proto,
+            multi_assign=multi_assign, tampered_prop=tampered_prop
         ), handled_parent
+
+def find_prop(G, parent_objs, prop_name, branches=None,
+    side=None, parent_name='Unknown', in_proto=False, depth=0,
+    prop_name_for_tags=None, ast_node=None, prop_name_sources=[]):
+    '''
+    Recursively find a property under parent_objs and its __proto__.
+    
+    Args:
+        G (Graph): graph.
+        parent_objs (list): parent objects.
+        prop_name (str): property name.
+        branches (BranchTagContainer, optional): branch information.
+            Defaults to None.
+        side (str, optional): 'left' or 'right', denoting left side or
+            right side of assignment. Defaults to None.
+        parent_name (str, optional): parent object's name, only used to
+            print log. Defaults to ''.
+        in_proto (bool, optional): whether __proto__ is being searched.
+            Defaults to False.
+    
+    Returns:
+        prop_name_nodes: set of possible name nodes.
+        prop_obj_nodes: set of possible object nodes.
+        proto_is_tainted: if the property is found in __proto__, and
+            __proto__ is tainted (modified by user input).
+    '''
+    if depth == 5:
+        return [], [], None
+    
+    if in_proto:
+        loggers.main_logger.debug('Cannot find "direct" property, going into __proto__ ' \
+                f'{parent_objs}...')
+        loggers.main_logger.debug(f'  {parent_name}.{prop_name}')
+
+    prop_name_nodes = set()
+    prop_obj_nodes = set()
+    # multi_assign = False
+    proto_is_tainted = False
+
+    for parent_obj in parent_objs:
+        if prop_name == wildcard and not is_wildcard_obj(G, parent_obj) and \
+            not G.check_proto_pollution and not G.check_ipt:
+            continue
+
+        print(in_proto, G.get_node_attr(parent_obj))
+        if in_proto and G.get_node_attr(parent_obj).get('tainted'):
+            proto_is_tainted = True
+            loggers.main_logger.debug(f'__proto__ {parent_obj} is tainted.')
+
+        # Flag of whether any concrete name node is found
+        name_node_found = False
+        # Flag of whether any wildcard name node is found
+        wc_name_node_found = False
+
+        # Search "direct" properties
+        prop_name_node = G.get_prop_name_node(prop_name, parent_obj)
+        if prop_name_node is not None and prop_name != wildcard:
+            name_node_found = True
+            prop_name_nodes.add(prop_name_node)
+            prop_objs = G.get_objs_by_name_node(prop_name_node,
+                branches=branches)
+            if prop_objs:
+                prop_obj_nodes.update(prop_objs)
+
+        # If name node is not found, search the property under __proto__.
+        # Note that we cannot search "__proto__" under __proto__.
+        elif prop_name != '__proto__' and prop_name != wildcard:
+            __proto__name_node = G.get_prop_name_node("__proto__",
+                parent_obj=parent_obj)
+            if __proto__name_node is not None:
+                __proto__obj_nodes = \
+                    G.get_objs_by_name_node(__proto__name_node, branches)
+                if parent_obj in __proto__obj_nodes:
+                    logger.error(f'__proto__ {__proto__obj_nodes} and '
+                        f'parent {parent_obj} have intersection')
+                    __proto__obj_nodes = __proto__obj_nodes.remove(parent_obj)
+                if __proto__obj_nodes:
+                    __name_nodes, __obj_nodes, __t = find_prop(G,
+                        __proto__obj_nodes, prop_name, branches,
+                        parent_name=parent_name + '.__proto__',
+                        in_proto=True, depth=depth+1)
+                    if __name_nodes:
+                        name_node_found = True
+                        prop_name_nodes.update(__name_nodes)
+                        prop_obj_nodes.update(__obj_nodes)
+                        if __t:
+                            proto_is_tainted = True
+
+        # If the property name is wildcard, fetch all properties
+        if not in_proto and prop_name == wildcard:
+            for name_node in G.get_prop_name_nodes(parent_obj):
+                name = G.get_node_attr(name_node).get('name')
+                if name == wildcard:
+                    wc_name_node_found = True
+                else:
+                    name_node_found = True
+                prop_name_nodes.add(name_node)
+                prop_objs = G.get_objs_by_name_node(name_node,
+                    branches=branches)
+                if prop_objs:
+                    prop_obj_nodes.update(prop_objs)
+
+        # If the name node is not found, try wildcard (*).
+        # If checking prototype pollution, add wildcard (*) results.
+        if (not in_proto or G.check_ipt) and prop_name != wildcard and (
+                not name_node_found or G.check_proto_pollution or G.check_ipt):
+            prop_name_node = G.get_prop_name_node(wildcard, parent_obj)
+            if prop_name_node is not None:
+                wc_name_node_found = True
+                prop_name_nodes.add(prop_name_node)
+                prop_objs = G.get_objs_by_name_node(prop_name_node,
+                    branches=branches)
+                if prop_objs:
+                    prop_obj_nodes.update(prop_objs)
+                    if is_wildcard_obj(G, parent_obj):
+                        for obj in prop_objs:
+                            add_contributes_to(G, prop_name_sources, obj)
+
+        # Create a name node if not found.
+        # We cannot create name node under __proto__.
+        # Name nodes are only created under the original parent objects.
+
+        # If this is an wildcard (unknown) object, add another
+        # wildcard object as its property.
+        # Note that if it's on left side and the property name is
+        # known, you need to create it with the concrete property name.
+        if ((not in_proto or G.check_ipt) and is_wildcard_obj(G, parent_obj)
+                and not wc_name_node_found
+                and (side != 'left' or prop_name == wildcard)):
+            added_name_node = G.add_prop_name_node(wildcard, parent_obj)
+            prop_name_nodes.add(added_name_node)
+            added_obj = G.add_obj_to_name_node(added_name_node,
+                js_type='object' if G.check_proto_pollution or G.check_ipt
+                else None, value=wildcard, ast_node=ast_node)                    
+            prop_obj_nodes.add(added_obj)
+            loggers.main_logger.debug('{} is a wildcard object, creating a wildcard'
+                ' object {} for its properties'.format(parent_obj,
+                added_obj))
+            if G.get_node_attr(parent_obj).get('tainted'):
+                G.set_node_attr(added_obj, ('tainted', True))
+                loggers.main_logger.debug("{} marked as tainted 1".format(added_obj))
+            for s in prop_name_sources:
+                add_contributes_to(G, [s], added_obj)
+            # if name_node_found:
+            #     multi_assign = True
+            wc_name_node_found = True
+        # Normal (known) object and concrete (known) property name,
+        # or wildcard property name under normal (known) object
+        elif not in_proto and ((not name_node_found and prop_name != wildcard)
+                or (not wc_name_node_found and prop_name == wildcard)):
+            if side == 'right':
+                # Don't create anything on right side.
+                # If the lookup failed, return empty results.
+                continue
+            elif parent_obj in G.builtin_prototypes:
+                # Modifying internal prototypes are restricted
+                # to avoid object explosion?
+                logger.debug(
+                    f'Trying to add prop name node under {parent_obj}')
+                continue
+            else:
+                # On left side or normal property lookup,
+                # only add a name node.
+                # If there are multi-level property lookups, the object
+                # node will be created on the lower level.
+                added_name_node = \
+                    G.add_prop_name_node(prop_name, parent_obj)
+                prop_name_nodes.add(added_name_node)
+                loggers.main_logger.debug(f'{sty.ef.b}Add prop name node{sty.rs.all} '
+                    f'{parent_name}.{prop_name} '
+                    f'({parent_obj}->{added_name_node})')
+                if prop_name == wildcard:
+                    wc_name_node_found = True
+                else:
+                    name_node_found = True
+    # multi_assign = name_node_found and wc_name_node_found
+    return prop_name_nodes, prop_obj_nodes, proto_is_tainted

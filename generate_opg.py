@@ -76,3 +76,4 @@ if __name__ == '__main__':
     setup_graph_env(G)
     opg.run(args)
     print(G.op_cnt)
+

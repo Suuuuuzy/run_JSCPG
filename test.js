@@ -1,4 +1,9 @@
 //var cp = require("child_process");
+function ipt(str, input, val) {
+  var root = {};
+  root[input] = val;
+  res = root.toString();
+}
 function expolit(string, input, val){
   var inner = string + 123;
   var base = {"basekey": inner};
@@ -23,13 +28,5 @@ function expolit(string, input, val){
   }
 
 }
-
-function pp(a, b, val) {
-  var test = {};
-  test[a][b] = val;
-  return test;
-}
 module.exports = {
-  expolit: expolit,
-  pp: pp
-}
+  expolit, ipt};

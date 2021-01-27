@@ -84,6 +84,9 @@ class Graph:
         self.proto_pollution = set()
         self.func_entry_point = None
 
+        # internal property tampering
+        self.check_ipt = False 
+
         self.run_all = True
         self.function_time_limit = None
         self.single_branch = False
