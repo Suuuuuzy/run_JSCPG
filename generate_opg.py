@@ -65,6 +65,7 @@ def setup_graph_env(G: Graph):
     G.func_entry_point = args.entry_func
     G.check_proto_pollution = (args.prototype_pollution or 
                                args.vul_type == 'proto_pollution')
+    G.check_ipt = (args.vul_type == 'ipt')
     G.call_limit = args.call_limit
     return G
 

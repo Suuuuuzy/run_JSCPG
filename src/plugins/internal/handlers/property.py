@@ -97,7 +97,6 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
     # find property name nodes and object nodes
     # (filtering is moved to find_prop)
     for i, prop_name in enumerate(prop_names):
-        print(prop_name)
         assert prop_name is not None
         name_nodes, obj_nodes, proto_is_tainted = \
             find_prop(G, parent_objs, 
@@ -111,6 +110,10 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
             multi_assign = True
         if G.check_ipt and side != 'left' and proto_is_tainted:
             tampered_prop = True
+            loggers.res_logger.info(\
+                    "Detected Internal Property Tampering at node {}(Line {})"\
+                    .format(ast_node, G.get_node_attr\
+                    (ast_node).get('lineno:int')))
             logger.warning(sty.fg.li_red + sty.ef.inverse + 'Possible internal'
                 ' property tampering (any use) at node {} (Line {})'
                 .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'))
@@ -175,7 +178,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
             not G.check_proto_pollution and not G.check_ipt:
             continue
 
-        print(in_proto, G.get_node_attr(parent_obj))
         if in_proto and G.get_node_attr(parent_obj).get('tainted'):
             proto_is_tainted = True
             loggers.main_logger.debug(f'__proto__ {parent_obj} is tainted.')
