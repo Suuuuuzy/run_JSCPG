@@ -31,3 +31,8 @@ class HandleAssignOP(Handler):
     def process(self):
         loggers.error_logger.error("AST_ASSIGN_OP is not implemented")
         return NodeHandleResult()
+
+class HandleEncapsList(Handler):
+    def process(self):
+        loggers.error_logger.error("AST_ENCAPS_LIST is not implemented")
+        return NodeHandleResult()

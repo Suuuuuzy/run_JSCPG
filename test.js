@@ -2,6 +2,7 @@
 function ipt(str, input, val) {
   var root = {};
   root[input] = val;
+  var res = str;
   res = root.toString();
 }
 function expolit(string, input, val){

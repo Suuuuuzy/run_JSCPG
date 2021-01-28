@@ -178,6 +178,8 @@ def find_prop(G, parent_objs, prop_name, branches=None,
             not G.check_proto_pollution and not G.check_ipt:
             continue
 
+        # do we have to make sure its in proto? 
+        #if in_proto and G.get_node_attr(parent_obj).get('tainted'):
         if in_proto and G.get_node_attr(parent_obj).get('tainted'):
             proto_is_tainted = True
             loggers.main_logger.debug(f'__proto__ {parent_obj} is tainted.')
@@ -290,7 +292,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
             elif parent_obj in G.builtin_prototypes:
                 # Modifying internal prototypes are restricted
                 # to avoid object explosion?
-                logger.debug(
+                loggers.main_logger.debug(
                     f'Trying to add prop name node under {parent_obj}')
                 continue
             else:
