@@ -1,4 +1,4 @@
 func_timeout
 networkx
-sty
+sty==1.0.0b12
 tqdm
