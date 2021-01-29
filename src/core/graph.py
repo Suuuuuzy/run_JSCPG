@@ -51,6 +51,8 @@ class Graph:
         # mark the type of the node, built-in or application
         self.export_node = True
 
+        self.reverse_names = defaultdict(set)
+
         # JS internal values
         self.function_prototype = None
         self.object_prototype = None

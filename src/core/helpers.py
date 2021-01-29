@@ -1,6 +1,6 @@
 from .graph import Graph
 from .utils import NodeHandleResult, ExtraInfo, BranchTag
-from .utils import wildcard, undefined
+from .utils import wildcard, undefined, get_random_hex
 import math
 from typing import Callable, List, Iterable
 from collections import defaultdict
@@ -444,19 +444,53 @@ def to_og_array(G: Graph, array, data, ast_node=None):
         value=len(array), parent_obj=added_array)
     return added_array
 
-def add_contributes_to(G: Graph, sources: Iterable, target,
-    chain_tainted=True):
+def add_contributes_to(G: Graph, sources, target, operation: str=None,
+    index: int=None, rnd: str=None, chain_tainted=True):
+    '''
+    Add CONTRIBUTES_TO edges.
+    Args:
+        G (Graph): Graph.
+        sources (list): List of source objects.
+        target: Target object.
+        operation (str, optional): Operation. Defaults to None.
+        index (int, optional): Index of the operand. When set to None,
+            indices are generated automatically based on their order in
+            the sources list (0, 1, 2, 3..., so multiple
+            possibilities are not supported). Defaults to None.
+        chain_tainted (bool, optional): Whether to chain tainted values.
+            Defaults to True.
+    '''
     assert not isinstance(sources, (str, bytes))
     tainted = False
-    for s in sources:
-        # source_id = str(s)
-        # if G.get_node_attr(s).get('tainted'):
-        #     source_id += ' tainted'
-        # print(f'{source_id} CONTRIBUTES TO {target}')
-        G.add_edge(s, target, {'type:TYPE': 'CONTRIBUTES_TO'})
-        tainted = tainted or G.get_node_attr(s).get('tainted', False)
+    random = get_random_hex()
+    for i, source in enumerate(sources):
+        _source = str(source)
+        if G.get_node_attr(source).get('tainted'):
+            _source += ' tainted'
+        source_name = ', '.join(G.reverse_names[source])
+        if not source_name:
+            source_name = repr(G.get_node_attr(source).get('code'))
+        target_name = ', '.join(G.reverse_names[target])
+        if not target_name:
+            target_name = repr(G.get_node_attr(target).get('code'))
+        loggers.main_logger.debug(f'Object {_source}({source_name}) {sty.fg.li_magenta}'
+            f'CONTRIBUTES TO{sty.rs.all} {target}({target_name}) '
+            f'(Operation: {operation}, Index: {index or i}), tainted: {tainted}')
+        attr = {'type:TYPE': 'CONTRIBUTES_TO'}
+        if operation is not None:
+            # 'opt' means operation tuple
+            if index is not None:
+                if rnd is not None:
+                    attr['opt'] = (operation, rnd, index)
+                else:
+                    attr['opt'] = (operation, random, index)
+            else:
+                attr['opt'] = (operation, random, i)
+        G.add_edge(source, target, attr)
+        tainted = tainted or G.get_node_attr(source).get('tainted', False)
     if chain_tainted and tainted:
         G.set_node_attr(target, ('tainted', True))
+
 
 def analyze_json(G, json_str, start_node_id=0, extra=None):
     # This function is almost the same as analyze_string,

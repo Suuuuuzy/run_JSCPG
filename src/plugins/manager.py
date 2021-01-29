@@ -36,13 +36,13 @@ class PluginManager(object):
         from .internal.handlers.returns import HandleReturn as HandleReturn 
         from .internal.handlers.null import HandleNULL as HandleNULL
         from .internal.handlers.try_catch import HandleTry as HandleTry 
+        from .internal.handlers.encaps_list import HandleEncapsList as HandleEncapsList
         from .internal.handlers.not_impl import HandleThrow as HandleThrow
         from .internal.handlers.not_impl import HandleBreak as HandleBreak
         from .internal.handlers.not_impl import HandleCatchList as HandleCatchList
         from .internal.handlers.not_impl import HandleContinue as HandleContinue
         from .internal.handlers.not_impl import HandleStmtList as HandleStmtList
         from .internal.handlers.not_impl import HandleAssignOP as HandleAssignOP
-        from .internal.handlers.not_impl import HandleEncapsList as HandleEncapsList
         from .internal.handlers.not_impl import HandleClass as HandleClass
         def __init__(self, G):
             self.G = G

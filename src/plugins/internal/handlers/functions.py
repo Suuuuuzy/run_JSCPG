@@ -2,7 +2,7 @@ from src.core.logger import *
 from src.core.graph import Graph
 from src.core.utils import BranchTagContainer 
 from src.core.utils import NodeHandleResult, ExtraInfo
-from src.core.esprima import esprima_search
+from src.core.esprima import esprima_search, esprima_parse
 from src.core.checker import traceback, vul_checking
 # function is higher than block
 from .blocks import simurun_block
@@ -632,6 +632,8 @@ def handle_require(G: Graph, caller_ast, extra, _, module_names):
                 module_exports_objs = \
                     get_module_exports(G, file_path)
             # dynamic require (module name is a variable)
+            loggers.main_logger.info('Trying to require package {}.'\
+                    .format(module_name))
             if module_name is None or module_name == wildcard:
                 logger.error('{} trying to require unknown package.'
                     .format(caller_ast))
@@ -662,7 +664,7 @@ def handle_require(G: Graph, caller_ast, extra, _, module_names):
                 G.import_from_string(result)
                 # start from the AST_TOPLEVEL node instead of the File node
                 module_exports_objs = \
-                        run_toplevel_file(G, str(int(start_id) + 1))
+                        file.run_toplevel_file(G, str(int(start_id) + 1))
                 G.set_node_attr(start_id,
                     ('module_exports', module_exports_objs))
             if module_exports_objs:
