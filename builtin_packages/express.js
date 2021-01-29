@@ -2,6 +2,8 @@ var request_builtin_object = function(){
   var source_hqbpillvul_url = '';
   this.url = source_hqbpillvul_url;
   this.path = source_hqbpillvul_url;
+  this.params = [source_hqbpillvul_url, source_hqbpillvul_url, 
+    source_hqbpillvul_url, source_hqbpillvul_url];
 
   this.on = function(str, cb) {
     // on should be counted as input
@@ -17,6 +19,10 @@ var response_builtin_object = function() {
     return null;
   }
 
+  this.render = function(loc, value) {
+    sink_hqbpillvul_http_write(loc, value);
+  }
+
   this.write = function(value) {
     sink_hqbpillvul_http_write(value);
   }
@@ -30,7 +36,13 @@ var response_builtin_object = function() {
     sink_hqbpillvul_http_write(value);
     return null;
   }
+
+  this.sendFile = function(loc) {
+    sink_hqbpillvul_http_sendFile(loc);
+  }
 }
+
+get_new_express = function() {return new express()};
 
 function express(requestListener) {
   var req = new request_builtin_object();
@@ -50,7 +62,11 @@ function express(requestListener) {
     cb(req, res);
   }
 
+  this.Router = function() {
+    return get_new_express();
+  }
+
 }
 
 
-module.exports = function() {return new express()};
+module.exports = get_new_express();

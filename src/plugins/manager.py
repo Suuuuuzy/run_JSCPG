@@ -43,6 +43,7 @@ class PluginManager(object):
         from .internal.handlers.not_impl import HandleStmtList as HandleStmtList
         from .internal.handlers.not_impl import HandleAssignOP as HandleAssignOP
         from .internal.handlers.not_impl import HandleEncapsList as HandleEncapsList
+        from .internal.handlers.not_impl import HandleClass as HandleClass
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -90,6 +91,7 @@ class PluginManager(object):
                     'AST_STMT_LIST': self.HandleStmtList,
                     'AST_ASSIGN_OP': self.HandleAssignOP,
                     'AST_ENCAPS_LIST': self.HandleEncapsList,
+                    'AST_CLASS': self.HandleClass,
                     }
 
         def dispatch_node(self, node_id, extra=None):

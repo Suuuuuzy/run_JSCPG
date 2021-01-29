@@ -33,7 +33,7 @@ class OPGen:
         """
         vul_pathes = None
 
-        if vul_type == 'os_command':
+        if vul_type == 'os_command' or vul_type == 'path_traversal':
             pathes = traceback(G, vul_type)
             vul_pathes = vul_checking(G, pathes[0], vul_type)
 

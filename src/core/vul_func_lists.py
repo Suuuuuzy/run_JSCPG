@@ -27,7 +27,8 @@ signature_lists = {
             ],
         'path_traversal': [
             'pipe',
-            'sink_hqbpillvul_http_write'
+            'sink_hqbpillvul_http_write',
+            'sink_hqbpillvul_http_sendFile',
             ],
         'depd': [
             'sink_hqbpillvul_pp',

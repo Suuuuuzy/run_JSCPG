@@ -143,6 +143,10 @@ def vul_checking(G, pathes, vul_type):
                 ('not_exist_func', signature_lists['sanitation']), 
                 ('end_with_func', signature_lists['path_traversal']),
                 ('exist_func', ['sink_hqbpillvul_fs_read'])
+            ],
+            [('start_with_var', ['source_hqbpillvul_url']),
+                ('not_exist_func', signature_lists['sanitation']), 
+                ('end_with_func', ['sink_hqbpillvul_http_sendFile'])
             ]
             ]
 

@@ -36,3 +36,8 @@ class HandleEncapsList(Handler):
     def process(self):
         loggers.error_logger.error("AST_ENCAPS_LIST is not implemented")
         return NodeHandleResult()
+
+class HandleClass(Handler):
+    def process(self):
+        loggers.error_logger.error("AST_CLASS is not implemented")
+        return NodeHandleResult()
