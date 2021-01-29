@@ -1,38 +1,38 @@
 from src.core.graph import Graph
-from src.core.utils import *
-from src.core.helpers import to_values, to_obj_nodes, val_to_str, is_int
+from src.core.utils import NodeHandleResult, BranchTag, BranchTagContainer, ExtraInfo, get_random_hex
+from src.core.utils import wildcard
+from .handlers.functions import handle_require, call_function
+from src.core.helpers import val_to_str, is_int
 from src.core.helpers import convert_prop_names_to_wildcard
 from src.core.helpers import copy_objs_for_branch, copy_objs_for_parameters
-from src.core.helpers import to_python_array, to_og_array, add_contributes_to
-from src.core.helpers import val_to_float
-from .handlers.functions import handle_require
+from src.core.helpers import to_python_array, to_og_array
+from src.core.helpers import to_values, to_obj_nodes, add_contributes_to, val_to_float
 import sty
-import re
-from src.core.logger import *
+import re, json
+from src.core.logger import loggers
 from itertools import chain, product
 from math import isnan
 import math
-from .handlers.functions import call_function
+from typing import Tuple
 
 
-logger = create_logger("main_logger", output_type="file")
+logger = loggers.main_logger
 
 
 def setup_js_builtins(G: Graph):
-
-    # from now on, do not export
-    setup_global_objs(G)
     setup_object_and_function(G)
-    setup_global_functions(G)
     setup_string(G)
     setup_number(G)
     setup_array(G)
     setup_boolean(G)
     setup_symbol(G)
     setup_errors(G)
+    setup_global_functions(G)
+    setup_global_objs(G)
     setup_json(G)
     setup_regexp(G)
     setup_math(G)
+    setup_promise(G)
     G.add_blank_func_to_scope('Date', scope=G.BASE_SCOPE, python_func=blank_func)
     G.add_obj_to_name('__opgWildcard', value=wildcard, scope=G.BASE_SCOPE)
 
@@ -87,7 +87,7 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('pop', array_prototype, array_p_pop)
     G.add_blank_func_as_prop('unshift', array_prototype, array_p_push)
     G.add_blank_func_as_prop('shift', array_prototype, array_p_shift) # broken
-    G.add_blank_func_as_prop('join', array_prototype, array_p_join)
+    G.add_blank_func_as_prop('join', array_prototype, array_p_join_3)
     G.add_blank_func_as_prop('forEach', array_prototype, array_p_for_each_value)
     G.add_blank_func_as_prop('keys', array_prototype, array_p_keys)
     G.add_blank_func_as_prop('values', array_prototype, array_p_values)
@@ -97,6 +97,7 @@ def setup_array(G: Graph):
     G.add_blank_func_as_prop('filter', array_prototype, this_returning_func)
     G.add_blank_func_as_prop('map', array_prototype, array_p_map)
     G.add_blank_func_as_prop('reduce', array_prototype, array_p_reduce)
+    G.add_blank_func_as_prop('concat', array_prototype, array_p_concat)
 
 
 def setup_boolean(G: Graph):
@@ -163,8 +164,9 @@ def setup_object_and_function(G: Graph):
     G.add_blank_func_as_prop('entries', object_cons, object_entries)
     G.add_blank_func_as_prop('defineProperty', object_cons, blank_func)
     G.add_blank_func_as_prop('defineProperties', object_cons, blank_func)
+    G.add_blank_func_as_prop('assign', object_cons, object_assign)
+
     G.add_obj_as_prop('getOwnPropertySymbols', parent_obj=object_cons, tobe_added_obj=G.false_obj)
-    G.add_blank_func_as_prop('create', object_cons, object_create)
 
     G.add_blank_func_as_prop('toString', object_prototype, object_p_to_string)
     G.add_blank_func_as_prop('toLocaleString', object_prototype, object_p_to_string)
@@ -186,12 +188,13 @@ def setup_global_functions(G: Graph):
     encode_uri_component = G.add_blank_func_to_scope('encodeURIComponent', G.BASE_SCOPE, string_returning_func)
     escape = G.add_blank_func_to_scope('escape', G.BASE_SCOPE, string_returning_func)
     unescape = G.add_blank_func_to_scope('unescape', G.BASE_SCOPE, string_returning_func)
-    set_timeout = G.add_blank_func_to_scope('setTimeout', G.BASE_SCOPE, blank_func)
+    set_timeout = G.add_blank_func_to_scope('setTimeout', G.BASE_SCOPE, func_calling_func)
     clear_timeout = G.add_blank_func_to_scope('clearTimeout', G.BASE_SCOPE, blank_func)
-    set_interval = G.add_blank_func_to_scope('setInterval', G.BASE_SCOPE, blank_func)
+    set_interval = G.add_blank_func_to_scope('setInterval', G.BASE_SCOPE, func_calling_func)
     clear_interval = G.add_blank_func_to_scope('clearInterval', G.BASE_SCOPE, blank_func)
 
     require = G.add_blank_func_to_scope('require', G.BASE_SCOPE, handle_require)
+    #jseval = G.add_blank_func_to_scope('eval', G.BASE_SCOPE, opgen.handle_eval)
 
 
 def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult(), this=None):
@@ -208,7 +211,7 @@ def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), call
                     js_type='number', value=float(name))
             obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
             logger.debug(f'Array forEach callback arguments: index={name} ({sty.fg.green}{name_obj_node}{sty.rs.all}), obj_nodes={obj_nodes_log}, array={arr}')
-            call_function(G, callback.obj_nodes,
+            opgen.call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                         obj_nodes=obj_nodes),
                     NodeHandleResult(obj_nodes=[name_obj_node]),
@@ -218,9 +221,23 @@ def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), call
 
 
 def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult(), this=None):
+    loop_var_names = []
+    for cb in callback.obj_nodes:
+        try:
+            func_ast = G.get_obj_def_ast_node(cb, 'function')
+            if func_ast:
+                param_list = G.get_child_nodes(func_ast, edge_type='PARENT_OF',
+                    child_type='AST_PARAM_LIST')
+                params = G.get_ordered_ast_child_nodes(param_list)
+                param_name = G.get_name_from_child(params[0])
+                if param_name:
+                    loop_var_names.append(param_name)
+        except IndexError as e:
+            print(e)
+    loop_var_name = ','.join(loop_var_names)
     for arr in array.obj_nodes:
-        name_nodes=G.get_prop_name_nodes(arr)
-        for name_node in G.get_prop_name_nodes(arr):
+        name_nodes = G.get_prop_name_nodes(arr)
+        for name_node in name_nodes:
             name = G.get_node_attr(name_node).get('name')
             if not is_int(name):
                 continue
@@ -232,11 +249,18 @@ def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult()
                 index_arg = NodeHandleResult(values=[float(name)])
             obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
             logger.debug(f'Array forEach callback arguments: index={name}, obj_nodes={obj_nodes_log}, array={arr}')
+            def add_for_stack(G, **kwargs):
+                nonlocal name, name_nodes, array
+                # full functional for-stack
+                # (type, ast node, scope, loop var name, loop var value, loop var value list, loop var origin list)
+                G.for_stack.append(('array for each', caller_ast, G.cur_scope, loop_var_name, name, G.get_prop_obj_nodes(arr, numeric_only=True), array.obj_nodes))
             call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                     obj_nodes=obj_nodes), index_arg, 
                     NodeHandleResult(name=array.name, obj_nodes=[arr])],
-                this=this, extra=extra, caller_ast=caller_ast)
+                this=this, extra=extra, caller_ast=caller_ast,
+                python_callback=add_for_stack)
+            G.for_stack.pop()
     return NodeHandleResult(obj_nodes=[G.undefined_obj])
 
 
@@ -252,7 +276,7 @@ def array_p_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult
         func_decl = G.get_obj_def_ast_node(func)
         func_name = G.get_name_from_child(func_decl)
         func_scope = G.add_scope('FUNC_SCOPE', func, f'Function{func_decl}:{caller_ast}', func, caller_ast, func_name)
-        opgen.call_callback_function(G, caller_ast, func_decl,
+        call_callback_function(G, caller_ast, func_decl,
             func_scope, args=[NodeHandleResult(obj_nodes=objs)],
             branches=extra.branches)
     return NodeHandleResult()
@@ -299,7 +323,7 @@ def array_p_push(G: Graph, caller_ast, extra, arrays: NodeHandleResult, *tobe_ad
         logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
         arrays = copy_objs_for_branch(G, arrays,
             branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
-    for arr in set(arrays.obj_nodes):
+    for arr in arrays.obj_nodes:
         length_objs = G.get_prop_obj_nodes(parent_obj=arr, prop_name='length', branches=extra.branches)
         if len(length_objs) == 0:
             logger.warning('Array {} has no length object nodes'.format(arr))
@@ -547,6 +571,121 @@ def array_p_join(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=Nod
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
 
 
+def array_p_join_2(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=NodeHandleResult(values=[','])):
+    returned_objs = []
+    used_objs = set()
+    sep_values, sep_sources, _ = to_values(G, seps)
+    op_index = 0
+    for arr in arrays.obj_nodes:
+        for i, sep in enumerate(sep_values):
+            if sep == wildcard:
+                sep = ','
+            s = ''
+            result_str_obj = G.add_obj_node(caller_ast, 'string')
+            wildcard_elems = []
+            array_elems = []
+            for index_name_node in G.get_prop_name_nodes(arr):
+                index = G.get_node_attr(index_name_node).get('name')
+                _index = None
+                try:
+                    _index = int(index)
+                except (ValueError, TypeError) as e:
+                    pass
+                if _index is None:
+                    wildcard_elems.extend(G.get_objs_by_name_node(index_name_node))
+                else:
+                    while len(array_elems) <= _index:
+                        array_elems.append([])
+                    array_elems[_index].extend(G.get_objs_by_name_node(index_name_node))
+            array_elems.append(wildcard_elems)
+            random = get_random_hex()
+            for j, content in enumerate(array_elems):
+                if j != 0:
+                    s += sep
+                    add_contributes_to(G, sep_sources[i], result_str_obj, 'string_concat', op_index, random)
+                    op_index += 1
+                s += '/'.join([str(val_to_str(G.get_node_attr(obj).get('code'))) for obj in content])
+                add_contributes_to(G, array_elems[j], result_str_obj, 'string_concat', op_index, random)
+                used_objs.update(array_elems[j])
+                op_index += 1
+            if len(array_elems) == 0:
+            # if G.get_node_attr(arr).get('code') == wildcard:
+                s = wildcard
+                add_contributes_to(G, sep_sources[i], result_str_obj, 'array_join', 1)
+            G.set_node_attr(result_str_obj, ('code', s))
+            add_contributes_to(G, [arr], result_str_obj, 'array_join', 0)
+            returned_objs.append(result_str_obj)
+            used_objs.add(arr)
+            used_objs.update(sep_sources[i])
+            op_index += 1
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
+
+
+def array_p_join_3(G: Graph, caller_ast, extra, arrays: NodeHandleResult, seps=NodeHandleResult(values=[','])):
+    returned_objs = []
+    used_objs = set()
+    set_obj_nodes = to_obj_nodes(G, seps, ast_node=caller_ast)
+    for arr in arrays.obj_nodes:
+        for i, sep_obj in enumerate(set_obj_nodes):
+            sep = val_to_str(G.get_node_attr(sep_obj).get('code'))
+            if sep == wildcard:
+                sep = ','
+            s = ''
+            wildcard_elems = []
+            array_elems = []
+            for index_name_node in G.get_prop_name_nodes(arr):
+                index = G.get_node_attr(index_name_node).get('name')
+                _index = None
+                try:
+                    _index = int(index)
+                except (ValueError, TypeError) as e:
+                    pass
+                if _index is None:
+                    wildcard_elems.extend(G.get_objs_by_name_node(index_name_node))
+                else:
+                    while len(array_elems) <= _index:
+                        array_elems.append([])
+                    array_elems[_index].extend(G.get_objs_by_name_node(index_name_node))
+            # print('array_elems:', array_elems)
+            # print('wildcard_elems:', wildcard_elems)
+            array_elems.append(wildcard_elems)
+            def dfs(j=0, s="", sources=[]):
+                nonlocal G, array_elems, returned_objs
+                if j >= len(array_elems):
+                    result_str_obj = G.add_obj_node(caller_ast, 'string', s)
+                    returned_objs.append(result_str_obj)
+                    add_contributes_to(G, sources, result_str_obj, 'string_concat')
+                    add_contributes_to(G, [arr], result_str_obj, 'array_join', 0)
+                    return
+                _sources = list(sources)
+                _s = str(s)
+                if j != 0:
+                    _s += sep
+                    _sources = _sources + [sep_obj]
+                # the length of current array elems may be 0
+                if len(array_elems[j]) == 0:
+                    dfs(j + 1, _s, _sources)
+
+                for obj in array_elems[j]:
+                    _value = val_to_str(G.get_node_attr(obj).get('code'))
+                    if _value == wildcard or s == wildcard:
+                        dfs(j + 1, wildcard, _sources + [obj])
+                    else:
+                        dfs(j + 1, _s + _value, _sources + [obj])
+            
+            # if G.get_node_attr(arr).get('code') == wildcard:
+            if len(array_elems) == 0:
+                result_str_obj = G.add_obj_node(caller_ast, 'string', wildcard)
+                add_contributes_to(G, sep_obj, result_str_obj, 'array_join', 1)
+            else:
+                dfs()
+                used_objs.update(chain(*array_elems))
+
+            used_objs.add(sep_obj)
+        used_objs.add(arr)
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
+
+
 def array_p_reduce(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callback: NodeHandleResult,
     initial_values=None):
     returned_objs = []
@@ -561,7 +700,7 @@ def array_p_reduce(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callba
             try:
                 length = int(G.get_node_attr(length_objs[0]).get('code'))
             except (ValueError, TypeError) as e:
-                logger.error(e)
+                logger.error(f'Error: Cannot find length of array {arr}: {e}')
                 length = wildcard
         if initial_values is None:
             accumulator = NodeHandleResult(obj_nodes=G.get_prop_obj_nodes(arr, '0', extra.branches))
@@ -654,6 +793,30 @@ def array_constructor(G: Graph, caller_ast, extra, _, length=NodeHandleResult(va
         add_contributes_to(G, length_sources[i], arr)
         returned_objs.append(arr)
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=used_objs)
+
+
+def array_p_concat(G: Graph, caller_ast, extra, *arrays: NodeHandleResult):
+    returned_objs = []
+    parrays = []
+    used_objs = set()
+    for arr in arrays:
+        possibilities = []
+        objs = to_obj_nodes(G, arr, caller_ast)
+        used_objs.update(objs)
+        for obj in objs:
+            possibilities.append(to_python_array(G, obj, value=False))
+        parrays.append(possibilities)
+
+    def dfs(i=0, b_elem=[], b_edge=[]):
+        nonlocal G, parrays
+        if i >= len(parrays):
+            returned_objs.append(to_og_array(G, b_elem, b_edge, caller_ast))
+            return
+        for possibility in parrays[i]:
+            dfs(i+1, b_elem + possibility[0], b_edge + possibility[1])
+    dfs()
+    
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs=list(used_objs))
 
 
 def object_keys(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
@@ -756,6 +919,14 @@ def object_entries(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_ar
     return NodeHandleResult(obj_nodes=returned_objs)
 
 
+def object_assign(G: Graph, caller_ast, extra, _, *objects):
+    obj_nodes = set()
+    for obj in objects:
+        obj_nodes.update(obj.obj_nodes)
+    return NodeHandleResult(
+        obj_nodes=list(obj_nodes), used_objs=list(obj_nodes))
+
+
 def array_p_keys(G: Graph, caller_ast, extra, this: NodeHandleResult, for_array=False):
     return object_keys(G, caller_ast, extra, None, this, for_array=True)
 
@@ -798,12 +969,8 @@ def object_p_to_string(G: Graph, caller_ast, extra, this: NodeHandleResult,
 def object_create(G: Graph, caller_ast, extra, _, proto=NodeHandleResult()):
     returned_objs = []
     for p in proto.obj_nodes:
-        if p == G.undefined_obj:
-            logger.error('Object prototype cannot be undefined')
-            continue
         new_obj = G.add_obj_node(caller_ast, None)
-        if p != G.null_obj:
-            G.add_obj_as_prop(prop_name='__proto__', parent_obj=new_obj, tobe_added_obj=p)
+        G.add_obj_as_prop(prop_name='__proto__', parent_obj=new_obj, tobe_added_obj=p)
         returned_objs.append(new_obj)
     return NodeHandleResult(obj_nodes=returned_objs)
 
@@ -826,12 +993,16 @@ def object_p_has_own_property(G: Graph, caller_ast, extra, this, *args):
     return NodeHandleResult(values=[wildcard], used_objs=used_objs)
 
 
+def object_p_has_own_property_f(G: Graph, caller_ast, extra, this, pn=NodeHandleResult()):
+    pass
+
+
 def function_p_call(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), *args):
-    from .handlers.functions import call_function
     r, _ = call_function(
         G, func.obj_nodes, list(args), this, extra, caller_ast,
         stmt_id=f'Call{caller_ast}')
     return r 
+
 
 def function_p_apply(G: Graph, caller_ast, extra, func: NodeHandleResult, this=NodeHandleResult(), arg_array=None):
     args = []
@@ -889,6 +1060,18 @@ def blank_func(G: Graph, caller_ast, extra, _, *args):
     return NodeHandleResult(used_objs=used_objs)
 
 
+def func_calling_func(G: Graph, caller_ast, extra, _, *args):
+    dummy_return_obj = G.add_obj_node(caller_ast, value=wildcard)
+    used_objs = set()
+    for arg in args:
+        filtered_objs = list(filter(lambda obj:
+            G.get_node_attr(obj).get('type') == 'function', arg.obj_nodes))
+        results, _ = call_function(G, filtered_objs, extra=extra)
+        used_objs.update(results.obj_nodes)
+    add_contributes_to(G, used_objs, dummy_return_obj)
+    return NodeHandleResult(obj_nodes=[dummy_return_obj], used_objs=list(used_objs))
+
+
 def this_returning_func(G: Graph, caller_ast, extra, this=None, *args):
     if this is None:
         if args:
@@ -939,12 +1122,12 @@ def setup_global_objs(G: Graph):
     G.add_blank_func_as_prop('log', console_obj, console_log)
     G.add_blank_func_as_prop('error', console_obj, console_log)
 
-    process_obj = G.add_obj_to_scope(name='process', scope=G.BASE_SCOPE)
-    G.add_obj_as_prop(prop_name='argv', parent_obj=process_obj)
-    version_obj = G.add_obj_as_prop(prop_name='versions', parent_obj=process_obj)
-    G.add_obj_as_prop(prop_name='modules', parent_obj=version_obj, js_type='string')
-    G.add_obj_as_prop(prop_name='platform', parent_obj=process_obj)
-    G.add_obj_as_prop(prop_name='arch', parent_obj=process_obj)
+    process_obj = G.add_obj_to_scope(name='process', scope=G.BASE_SCOPE, js_type='object', value=wildcard)
+    G.add_obj_as_prop(prop_name='argv', parent_obj=process_obj, js_type='array', value=wildcard)
+    version_obj = G.add_obj_as_prop(prop_name='versions', parent_obj=process_obj, js_type='object', value=wildcard)
+    G.add_obj_as_prop(prop_name='modules', parent_obj=version_obj, js_type='string', value=wildcard)
+    G.add_obj_as_prop(prop_name='platform', parent_obj=process_obj, js_type='string', value=wildcard)
+    G.add_obj_as_prop(prop_name='arch', parent_obj=process_obj, js_type='string', value=wildcard)
 
 
 def console_log(G: Graph, caller_ast, extra, _, *args):
@@ -958,18 +1141,28 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
                 value = to_python_array(G, obj, value=True)[0]
             else:
                 value = G.get_node_attr(obj).get('code')
-            values.append(f'{sty.fg.li_black}{obj}{sty.rs.all}: {val_to_str(value)}')
+            values.append(f'{sty.fg.da_grey}{obj}{sty.rs.all}: {val_to_str(value)}')
         logger.debug(f'Argument {i} values: ' + ', '.join(values))
     return NodeHandleResult(obj_nodes=[G.undefined_obj], used_objs=list(used_objs))
+
 
 def setup_json(G: Graph):
     console_obj = G.add_obj_to_scope(name='JSON', scope=G.BASE_SCOPE)
     G.add_blank_func_as_prop('parse', console_obj, json_parse)
     G.add_blank_func_as_prop('stringify', console_obj, string_returning_func)
 
+def analyze_json_python(G, json_str, extra=None, caller_ast=None):
+    json_str = str(json_str)
+    if json_str is None:
+        return None
+    try:
+        py_obj = json.loads(json_str)
+        logger.debug('Python JSON parse result: ' + str(py_obj))
+    except json.decoder.JSONDecodeError:
+        return None
+    return G.generate_obj_graph_for_python_obj(py_obj, ast_node=caller_ast)
 
 def json_parse(G: Graph, caller_ast, extra, _, text=None, reviver=None):
-    from src.core.helpers import analyze_json_python
     json_strings, sources, _ = to_values(G, text, caller_ast)
     returned_objs = []
     used_objs = set()
@@ -1132,6 +1325,7 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
     return NodeHandleResult(obj_nodes=returned_objs,
         used_objs=list(set(strs.obj_nodes + substrs.obj_nodes + new_sub_strs.obj_nodes
         + strs.used_objs + substrs.used_objs + new_sub_strs.used_objs)))
+
 
 
 def string_p_replace_value(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
@@ -1521,7 +1715,7 @@ def string_p_char_at(G: Graph, caller_ast, extra, strs,
         value_sources=returned_sources, used_objs=list(used_objs))
 
 
-def split_regexp(code) -> (str, str):
+def split_regexp(code) -> Tuple[str, str]:
     assert code is not None
     if code == wildcard:
         return wildcard, wildcard
@@ -1532,7 +1726,7 @@ def split_regexp(code) -> (str, str):
         return wildcard, wildcard
 
 
-def convert_to_python_re(code) -> (re.Pattern, bool, bool):
+def convert_to_python_re(code) -> Tuple[re.Pattern, bool, bool]:
     pattern, flags = split_regexp(code)
     glob, sticky = False, False
     if pattern != wildcard:
@@ -1657,3 +1851,44 @@ def math_sqrt(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
     return NodeHandleResult(values=returned_values, value_sources=returned_sources,
         used_objs=used_objs)
     
+
+def setup_promise(G: Graph):
+    promise_cons = G.add_blank_func_to_scope('Promise', scope=G.BASE_SCOPE, python_func=promise_constructor)
+    promise_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=promise_cons)[0]
+    G.promise_cons = promise_cons
+    G.builtin_constructors.append(promise_cons)
+    G.promise_prototype = promise_prototype
+    G.add_blank_func_as_prop('then', promise_prototype, promise_p_then)
+    G.add_blank_func_as_prop('catch', promise_prototype, promise_p_catch)
+    G.add_blank_func_as_prop('finally', promise_prototype, promise_p_finally)
+
+
+def promise_constructor(G: Graph, caller_ast, extra, _, executor=NodeHandleResult()):
+    promise = G.add_obj_node(caller_ast, None, None)
+    executors = to_obj_nodes(G, executor, caller_ast)
+    G.set_node_attr(promise, ('executors', executors))
+    G.add_obj_as_prop('__proto__', parent_obj=promise, tobe_added_obj=G.promise_prototype)
+    G.add_obj_as_prop('constructor', parent_obj=promise, tobe_added_obj=G.promise_cons)
+    return NodeHandleResult(obj_nodes=[promise], used_objs=executors)
+
+
+def promise_p_then(G: Graph, caller_ast, extra, this, on_fulfilled=NodeHandleResult(), on_rejected=NodeHandleResult()):
+    executors = set()
+    for obj in to_obj_nodes(G, this, caller_ast):
+        executors.update(G.get_node_attr(obj).get('executors', []))
+    result, _ = call_function(G, list(executors), args=[on_fulfilled, on_rejected],
+        extra=extra, caller_ast=caller_ast)
+    return result
+
+
+def promise_p_catch(G: Graph, caller_ast, extra, this, on_rejected=NodeHandleResult()):
+    executors = set()
+    for obj in to_obj_nodes(G, this, caller_ast):
+        executors.update(G.get_node_attr(obj).get('executors', []))
+    result, _ = call_function(G, list(executors), args=[NodeHandleResult(), on_rejected],
+        extra=extra, caller_ast=caller_ast)
+    return result
+
+
+def promise_p_finally(G: Graph, caller_ast, extra, this, on_finally=NodeHandleResult()):
+    return promise_p_then(G, caller_ast, extra, this, on_finally, on_finally)
