@@ -13,7 +13,7 @@ const ansicolor = require('ansicolor').nice;
 const Readable = require('stream').Readable;
 const program = require('commander');
 program
-    .version('0.11.1')
+    .version('0.12.2')
     .usage('<filename or package name> [options]')
     .description('A tool that generates JavaScript AST in Joern compatible CSV format.\n\n' +
         'You can choose a filename or package name as input. Use "-" to accept stdin.')
@@ -29,7 +29,8 @@ program
         "Use this option if you give a package name instead of a file name.")
     .option('--style <php/c>', 'Output style. You can choose from "php" and "c".', 'php')
     .option('--delimiter <comma/tab>', 'Delimiter of the output. ' +
-        'You can choose from "comma" and "tab".', 'tab');
+        'You can choose from "comma" and "tab".', 'tab')
+    .option('-e, --expression', 'Indicate that the input is an expression');
 
 function invalidArguments() {
     console.error('Invalid arguments: %s\nSee --help for a list of available commands.', program.args.join(' '));
@@ -174,6 +175,15 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
         if (err) return console.log(err);
     });
     */
+    let comment;
+    if (currentNode.leadingComments){
+        let comments = [];
+        for (let c of currentNode.leadingComments){
+            comments.push(c.value.trim());
+        }
+        comment = comments.join('\n');
+    }
+    comment = (extra ? extra.comment : undefined) || comment;
     switch (currentNode.type) {
         // case 'Script':
         // case 'Module':
@@ -276,7 +286,8 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     nodeIdCounter++;
                     relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                     dfs(child, nodeIdCounter, currentId, childNumberCounter, currentFunctionId, {
-                        kind: currentNode.kind
+                        kind: currentNode.kind,
+                        comment: comment
                     });
                     childNumberCounter++;
                 }
@@ -291,7 +302,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     code: getCode(currentNode, sourceCode),
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             } else if (outputStyle == 'php') {
                 // Make its children its parent's children
@@ -313,7 +326,8 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                                 relsStream.push([parentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                             }
                             dfs(child, flattenedId, parentId, extra.childNumberCounter, currentFunctionId, {
-                                kind: currentNode.kind
+                                kind: currentNode.kind,
+                                comment: comment
                             });
                         }
                         break;
@@ -391,7 +405,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     code: getCode(currentNode, sourceCode),
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
             break;
@@ -418,7 +434,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'UnaryExpression':
@@ -494,7 +512,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     code: getCode(currentNode, sourceCode),
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             } else {
                 switch (currentNode.operator) {
@@ -526,7 +546,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     code: getCode(currentNode, sourceCode),
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
             break;
@@ -561,7 +583,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     phptype: 'NULL',
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: 0,
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
             nodes[currentId] = {
@@ -575,7 +599,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'BinaryExpression':
@@ -702,7 +728,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'Literal':
@@ -742,6 +770,8 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                     childNum: childNum,
                     funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             } else {
                 let code;
@@ -774,6 +804,8 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     childNum: childNum,
                     funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
             break;
@@ -879,7 +911,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     // code: getCode(currentNode, sourceCode),
-                    funcId: prevFunctionId // function itself does not use functionId
+                    funcId: prevFunctionId, // function itself does not use functionId
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             } else if (outputStyle == 'php') {
                 phptype = null;
@@ -919,7 +953,7 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     nodes[nodeIdCounter] = {
                         label: 'AST',
                         type: 'string',
-                        code: (extra && extra.methodName) ? extra.methodName : '{closure}',
+                        code: (extra && extra.methodName) ? extra.methodName : '{anon}',
                         childNum: childNumberCounter,
                         lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                         funcId: currentFunctionId
@@ -950,93 +984,109 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 relsStream.push([currentId, vNodeId, parentOf].join(delimiter) + '\n');
                 vNodeChildNumberCounter = 0;
                 for (param of currentNode.params) {
-                    // rest parameter (variable length arguments)
-                    if (param.type == 'RestElement'){
-                        phpflag = 'PARAM_VARIADIC';
-                    } else if (param.type == 'ObjectPattern' || param.type == 'ArrayPattern'){
-                        console.log(`  Warning: uncompleted support for ${currentNode.type} here, skipped.`);
-                        continue;
-                    } 
-                    // write the Parameter virtual node
-                    nodeIdCounter++;
-                    let vParameterId = nodeIdCounter;
-                    relsStream.push([vNodeId, vParameterId, parentOf].join(delimiter) + '\n');
-                    nodes[vParameterId] = {
-                        label: 'AST_V',
-                        type: 'Parameter',
-                        phptype: 'AST_PARAM',
-                        phpflag: phpflag,
-                        childNum: vNodeChildNumberCounter,
-                        code: param.name || null,
-                        lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                        funcId: currentFunctionId
-                    };
-                    // write the 1st NULL virtual node (childnum = 0)
-                    nodeIdCounter++;
-                    relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    nodes[nodeIdCounter] = {
-                        label: 'AST_V',
-                        type: 'ParameterType',
-                        phptype: 'NULL',
-                        childNum: 0,
-                        code: 'any',
-                        lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                        funcId: currentFunctionId
-                    };
-                    if (param.type == 'Identifier') { // no default value
-                        // go to the parameter Identifier node (childnum = 1)
+                    function addParam(param){
+                        // write the Parameter virtual node
                         nodeIdCounter++;
-                        relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                        dfs(param, nodeIdCounter, vParameterId, 1, currentFunctionId, {
-                            doNotUseVar: true
-                        });
-                        // write the 2nd NULL virtual node (childnum = 2)
+                        let vParameterId = nodeIdCounter;
+                        relsStream.push([vNodeId, vParameterId, parentOf].join(delimiter) + '\n');
+                        nodes[vParameterId] = {
+                            label: 'AST_V',
+                            type: 'Parameter',
+                            phptype: 'AST_PARAM',
+                            phpflag: phpflag,
+                            childNum: vNodeChildNumberCounter,
+                            code: param.name || null,
+                            lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                            funcId: currentFunctionId
+                        };
+                        // write the 1st NULL virtual node (childnum = 0)
                         nodeIdCounter++;
                         relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
                         nodes[nodeIdCounter] = {
                             label: 'AST_V',
-                            // type: 'ParameterType',
+                            type: 'ParameterType',
                             phptype: 'NULL',
-                            childNum: 2,
+                            childNum: 0,
                             code: 'any',
                             lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                             funcId: currentFunctionId
                         };
-                    } else if (param.type == 'AssignmentPattern') { // with default value
-                        // go to the parameter Identifier node (childnum = 1)
-                        nodeIdCounter++;
-                        relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                        dfs(param.left, nodeIdCounter, vParameterId, 1, currentFunctionId, {
-                            doNotUseVar: true
-                        });
-                        // write the 2nd NULL virtual node (childnum = 2)
-                        nodeIdCounter++;
-                        relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                        dfs(param.right, nodeIdCounter, vParameterId, 2, currentFunctionId, {
-                            doNotUseVar: true
-                        });
-                    } else if (param.type == 'RestElement') { // no default value
-                        // go to the parameter Identifier node (childnum = 1)
-                        nodeIdCounter++;
-                        relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                        dfs(param.argument, nodeIdCounter, vParameterId, 1, currentFunctionId, {
-                            doNotUseVar: true
-                        });
-                        // write the 2nd NULL virtual node (childnum = 2)
-                        nodeIdCounter++;
-                        relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                        nodes[nodeIdCounter] = {
-                            label: 'AST_V',
-                            // type: 'ParameterType',
-                            phptype: 'NULL',
-                            childNum: 2,
-                            code: 'any',
-                            lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                            funcId: currentFunctionId
-                        };
+                        if (param.type == 'Identifier') { // no default value
+                            // go to the parameter Identifier node (childnum = 1)
+                            nodeIdCounter++;
+                            relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                            dfs(param, nodeIdCounter, vParameterId, 1, currentFunctionId, {
+                                doNotUseVar: true
+                            });
+                            // write the 2nd NULL virtual node (childnum = 2)
+                            nodeIdCounter++;
+                            relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                            nodes[nodeIdCounter] = {
+                                label: 'AST_V',
+                                // type: 'ParameterType',
+                                phptype: 'NULL',
+                                childNum: 2,
+                                code: 'any',
+                                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                                funcId: currentFunctionId
+                            };
+                        } else if (param.type == 'AssignmentPattern') { // with default value
+                            // go to the parameter Identifier node (childnum = 1)
+                            nodeIdCounter++;
+                            relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                            dfs(param.left, nodeIdCounter, vParameterId, 1, currentFunctionId, {
+                                doNotUseVar: true
+                            });
+                            // write the 2nd NULL virtual node (childnum = 2)
+                            nodeIdCounter++;
+                            relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                            dfs(param.right, nodeIdCounter, vParameterId, 2, currentFunctionId, {
+                                doNotUseVar: true
+                            });
+                        } else if (param.type == 'RestElement') { // no default value
+                            // go to the parameter Identifier node (childnum = 1)
+                            nodeIdCounter++;
+                            relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                            dfs(param.argument, nodeIdCounter, vParameterId, 1, currentFunctionId, {
+                                doNotUseVar: true
+                            });
+                            // write the 2nd NULL virtual node (childnum = 2)
+                            nodeIdCounter++;
+                            relsStream.push([vParameterId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                            nodes[nodeIdCounter] = {
+                                label: 'AST_V',
+                                // type: 'ParameterType',
+                                phptype: 'NULL',
+                                childNum: 2,
+                                code: 'any',
+                                lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
+                                funcId: currentFunctionId
+                            };
+                        }
+                        // finally update the childnum counter
+                        vNodeChildNumberCounter++;
                     }
-                    // finally update the childnum counter
-                    vNodeChildNumberCounter++;
+                    if (param.type == 'RestElement'){
+                        // rest parameter (variable length arguments)
+                        phpflag = 'PARAM_VARIADIC';
+                    } else if (param.type == 'ObjectPattern' || param.type == 'ArrayPattern' || param.type == 'AssignmentPattern'){
+                        console.log(`  Warning: uncompleted support for ${currentNode.type} as a function parameter, may have unexpected errors.`);
+                        let target = param;
+                        if (param.type == 'AssignmentPattern'){
+                            target = param.left;
+                        }
+                        if (target.type == 'ObjectPattern'){
+                            for (let prop of target.properties){
+                                addParam(prop.key);
+                            }
+                        } else if (target.type == 'ArrayPattern'){
+                            for (let elem of target.elements){
+                                addParam(elem);
+                            }
+                        }
+                    } else {
+                        addParam(param);
+                    }
                 }
                 // Write the params virtual node (childnum = 2)
                 nodes[vNodeId] = {
@@ -1142,7 +1192,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     // code: getCode(currentNode, sourceCode),
-                    funcId: prevFunctionId // function itself does not use functionId
+                    funcId: prevFunctionId, // function itself does not use functionId
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
             break;
@@ -1248,7 +1300,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'SequenceExpression':
@@ -1277,7 +1331,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'ReturnStatement':
@@ -1307,7 +1363,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'ArrayPattern':
@@ -1358,7 +1416,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'RestElement':
@@ -1376,7 +1436,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'ObjectPattern':
@@ -1430,7 +1492,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     // code: getCode(currentNode, sourceCode),
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
             break;
@@ -1454,7 +1518,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     // code: getCode(currentNode, sourceCode),
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
             break;
@@ -1474,7 +1540,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     code: code,
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             } else {
                 // receive the kind information passed from VariableDeclaration via VariableDeclarator
@@ -1660,7 +1728,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
             break;
@@ -1819,7 +1889,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: code,
                 funcId: currentFunctionId,
-                name: modulePath
+                name: modulePath,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         }
@@ -1863,7 +1935,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'SwitchCase':
@@ -1926,7 +2000,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'WhileStatement':
@@ -1945,7 +2021,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'WithStatement':
@@ -1968,7 +2046,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'ForStatement':
@@ -2083,7 +2163,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             childNumberCounter++;
             break;
@@ -2265,12 +2347,16 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
         case 'ExpressionStatement':
             if (outputStyle == 'php') { // Ignore this level in PHP
-                dfs(currentNode.expression, nodeIdCounter, parentId, childNum, currentFunctionId, null);
+                dfs(currentNode.expression, nodeIdCounter, parentId, childNum, currentFunctionId, {
+                    comment: comment
+                });
             } else if (outputStyle == 'c') {
                 // expression
                 nodeIdCounter++;
@@ -2327,7 +2413,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                     code: getCode(currentNode, sourceCode),
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
             }
             break;
@@ -2382,20 +2470,34 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     funcId: currentFunctionId
                 };
             } else if (outputStyle == 'php') {
-                // Warning: experimental support in PHP format.
-                // quasis
-                for (q of currentNode.quasis) {
-                    nodeIdCounter++;
-                    relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    dfs(q, nodeIdCounter, vNodeId, childNumberCounter, currentFunctionId, null);
-                    childNumberCounter++;
-                }
-                // expressions
-                for (e of currentNode.expressions) {
-                    nodeIdCounter++;
-                    relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-                    dfs(e, nodeIdCounter, vNodeId, childNumberCounter, currentFunctionId, null);
-                    childNumberCounter++;
+                // // Warning: experimental support in PHP format.
+                // // quasis
+                // for (q of currentNode.quasis) {
+                //     nodeIdCounter++;
+                //     relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                //     dfs(q, nodeIdCounter, vNodeId, childNumberCounter, currentFunctionId, null);
+                //     childNumberCounter++;
+                // }
+                // // expressions
+                // for (e of currentNode.expressions) {
+                //     nodeIdCounter++;
+                //     relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                //     dfs(e, nodeIdCounter, vNodeId, childNumberCounter, currentFunctionId, null);
+                //     childNumberCounter++;
+                // }
+                for (let i = 0; i < currentNode.quasis.length || i < currentNode.expressions.length; i++){
+                    if (i < currentNode.quasis.length){
+                        nodeIdCounter++;
+                        relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                        dfs(currentNode.quasis[i], nodeIdCounter, vNodeId, childNumberCounter, currentFunctionId, null);
+                        childNumberCounter++;
+                    }
+                    if (i < currentNode.expressions.length){
+                        nodeIdCounter++;
+                        relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                        dfs(currentNode.expressions[i], nodeIdCounter, vNodeId, childNumberCounter, currentFunctionId, null);
+                        childNumberCounter++;
+                    }
                 }
             }
             // Finally, write the TemplateLiteral itself
@@ -2409,7 +2511,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'TemplateElement':
@@ -2417,13 +2521,15 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 label: 'AST',
                 type: currentNode.type,
                 phptype: 'string',
-                code: currentNode.value.value,
+                code: currentNode.value.raw,
                 lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
                 childNum: childNum,
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'IfStatement':
@@ -2532,7 +2638,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 // code: getCode(currentNode, sourceCode), // code would be too long
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'ThisExpression':
@@ -2591,7 +2699,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'ContinueStatement':
@@ -2622,7 +2732,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'EmptyStatement':
@@ -2636,7 +2748,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
                 childNum: childNum,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'TryStatement':
@@ -2666,9 +2780,11 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 funcId: currentFunctionId
             };
             // finalizer
-            nodeIdCounter++;
-            relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
-            dfs(currentNode.finalizer, nodeIdCounter, currentId, 2, currentFunctionId, null);
+            if (currentNode.finalizer){
+                nodeIdCounter++;
+                relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
+                dfs(currentNode.finalizer, nodeIdCounter, currentId, 2, currentFunctionId, null);
+            }
             // finally, write the TryStatement node
             nodes[currentId] = {
                 label: 'AST',
@@ -2679,7 +2795,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'CatchClause':
@@ -2745,7 +2863,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'ThrowStatement':
@@ -2774,7 +2894,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 code: getCode(currentNode, sourceCode),
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
         case 'Super':
@@ -2789,7 +2911,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
-                    funcId: currentFunctionId
+                    funcId: currentFunctionId,
+                    comment: comment,
+                    loc: currentNode.loc
                 };
                 nodeIdCounter++;
                 relsStream.push([currentId, nodeIdCounter, parentOf].join(delimiter) + '\n');
@@ -2818,7 +2942,9 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                 colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                 colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
                 childNum: childNum,
-                funcId: currentFunctionId
+                funcId: currentFunctionId,
+                comment: comment,
+                loc: currentNode.loc
             };
             break;
     }
@@ -2893,6 +3019,10 @@ function walkDir(dir, parentNodeId, callback) {
 function analyze(filePath, parentNodeId) {
     // read the file
     filename = filePath || 'stdin';
+    if (analyzedModules.includes(filename)){
+        console.log(("Skipping " + filename).white.inverse);
+        return;
+    }
     console.log(("Analyzing " + filename).green.inverse);
     if (filePath == null){
         // read from stdin
@@ -2902,33 +3032,36 @@ function analyze(filePath, parentNodeId) {
     sourceCode = sourceCode.replace(/^#!.*\n/, '\n');
     sourceCode = sourceCode.replace(/\r\n/g, '\n');
     // initialize
-    let currentId = nodeIdCounter;
-    if (outputStyle == 'php') {
-        if (parentNodeId !== null) {
-            relsStream.push([parentNodeId, currentId, 'DIRECTORY_OF'].join(delimiter) + '\n');
+    if (!program.expression){
+        let currentId = nodeIdCounter;
+        if (outputStyle == 'php') {
+            if (parentNodeId !== null) {
+                relsStream.push([parentNodeId, currentId, 'DIRECTORY_OF'].join(delimiter) + '\n');
+            }
+            nodes[currentId] = {
+                label: 'Filesystem',
+                type: 'File',
+                name: filename
+            };
+        } else if (outputStyle == 'c') {
+            if (parentNodeId !== null) {
+                relsStream.push([parentNodeId, currentId, 'IS_DIRECTORY_OF'].join(delimiter) + '\n');
+            }
+            nodes[currentId] = {
+                label: 'Filesystem',
+                type: 'File',
+                name: filename
+            };
         }
-        nodes[currentId] = {
-            label: 'Filesystem',
-            type: 'File',
-            name: filename
-        };
-    } else if (outputStyle == 'c') {
-        if (parentNodeId !== null) {
-            relsStream.push([parentNodeId, currentId, 'IS_DIRECTORY_OF'].join(delimiter) + '\n');
-        }
-        nodes[currentId] = {
-            label: 'Filesystem',
-            type: 'File',
-            name: filename
-        };
+        nodeIdCounter++;
     }
-    nodeIdCounter++;
     // parse
     try {
         var root = esprima.parseModule(sourceCode, {
             loc: true,
             range: true,
-            tolerant: true
+            tolerant: true,
+            attachComment: true
         });
         if (root.errors && root.errors.length > 0){
             console.log('Errors occurred when generating AST:'.lightRed.inverse);
@@ -2944,6 +3077,9 @@ function analyze(filePath, parentNodeId) {
     }
     // console.log(JSON.stringify(root, null, 2));
     let rootId = nodeIdCounter;
+    if (program.expression){
+        root = root.body[0].expression;
+    }
     dfs(root, rootId, rootId - 1, 0, null, null);
     // output
     for (var i in nodes) {
@@ -2954,19 +3090,30 @@ function analyze(filePath, parentNodeId) {
         if (outputStyle == 'php') {
             // process and quote code
             // let code = u.operator || u.code || null;
-            let code = u.code || null;
-            if (code === undefined || code === null) {
-                code = '';
-            } else {
-                if (code.length > 1024){
-                    code = code.substr(0, 1024);
+            let quote = function(input, mode){
+                let quoted = input || null;
+                if (quoted === undefined || quoted === null) {
+                    quoted = '';
+                } else {
+                    if (quoted.length > 1024){
+                        quoted = quoted.substr(0, 1024);
+                    }
+                    switch(mode){
+                        case 1:
+                            quoted = quoted.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n|\r/g, '\\\\n').replace(/\t/g, '\\t');
+                            break;
+                        default:
+                            quoted = quoted.replace(/\n|\r/g, '').replace(/\t/g, ' ').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                            break;
+                    }
+                    quoted = '"' + quoted + '"';
                 }
-                code = code.replace(/\n|\r/g, '').replace(/\t/g, ' ').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-                code = '"' + code + '"';
+                return quoted;
             }
+            let location = u.lineLocStart ? [u.lineLocStart, u.colLocStart || '', u.lineLocEnd || u.lineLocStart, u.colLocEnd || ''].join(':') : '';
             nodesStream.push([i, label, u.phptype || u.type, u.phpflag || '',
-                u.lineLocStart !== null ? u.lineLocStart : '', code, childNum, u.funcId || '',
-                '', '', u.lineLocEnd !== null ? u.lineLocEnd : '', u.name || '', ''
+                u.lineLocStart !== null ? u.lineLocStart : '', quote(u.code), childNum, u.funcId || '',
+                '', location, u.lineLocEnd !== null ? u.lineLocEnd : '', u.name || '', quote(u.comment, 1)
             ].join(delimiter) + '\n');
         } else if (outputStyle == 'c') {
             if (i == 0) continue;
@@ -2985,14 +3132,18 @@ function analyze(filePath, parentNodeId) {
         }
     }
 
-    if (outputStyle == 'php') {
-        relsStream.push([rootId - 1, rootId, 'FILE_OF'].join(delimiter) + '\n');
-    } else if (outputStyle == 'c') {
-        relsStream.push([rootId - 1, rootId, 'IS_FILE_OF'].join(delimiter) + '\n');
+    if (!program.expression){
+        if (outputStyle == 'php') {
+            relsStream.push([rootId - 1, rootId, 'FILE_OF'].join(delimiter) + '\n');
+        } else if (outputStyle == 'c') {
+            relsStream.push([rootId - 1, rootId, 'IS_FILE_OF'].join(delimiter) + '\n');
+        }
     }
 
     nodeIdCounter++;
     nodes = []; // reset the node array but not the nodeIdCounter
+
+    analyzedModules.push(filePath);
 };
 
 // main
