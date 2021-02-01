@@ -678,7 +678,7 @@ def handle_require(G: Graph, caller_ast, extra, _, module_names):
         run_exported_functions(G, returned_objs, extra)
 
     # for a require call, we need to run traceback immediately
-    if G.exit_when_found:
+    if G.exit_when_found and G.vul_type != 'proto_pollution' and G.vul_type != 'ipt':
         vul_type = G.vul_type
         res_path = traceback(G, vul_type)
         res_path = vul_checking(G, res_path[0], vul_type)

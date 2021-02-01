@@ -6,6 +6,7 @@ from ..plugins.manager import PluginManager
 from ..plugins.internal.setup_env import setup_opg
 from .checker import traceback, vul_checking
 from .multi_run_helper import validate_package, get_entrance_files_of_package 
+from .logger import loggers
 
 class OPGen:
     """
@@ -136,8 +137,8 @@ class OPGen:
             self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
 
     def run(self, args):
-
         timeout_s = args.timeout
+        detected_list = []
         if args.list is not None:
             package_list = []
             with open(args.list, 'r') as fp:
@@ -145,25 +146,41 @@ class OPGen:
                     package_path = line.strip()
                     package_list.append(package_path)
             for package_path in package_list:
+                # init a new graph
+                self.graph = Graph()
                 self.test_nodejs_package(package_path, 
                         args.vul_type, self.graph, timeout_s=timeout_s)
 
-        elif args.nodejs:
+                if len(self.graph.detection_res[args.vul_type]) != 0:
+                    detected_list.append(package_path)
+
+        else:
+            if args.module:
+                self.test_module(args.input_file, args.vul_type, self.graph)
+            else:
+                # analyze from JS source code files
+                self.test_file(args.input_file, args.vul_type, self.graph)
+
+            if len(self.graph.detection_res[args.vul_type]) != 0:
+                detected_list.append(args.input_file)
+
+        if args.nodejs:
             # test a nodejs package, find the entrance first and start
             self.test_nodejs_package(args.input_file, 
                     args.vul_type, self.graph)
-        elif args.module:
-            self.test_module(args.input_file, args.vul_type, self.graph)
-        else:
-            # analyze from JS source code files
-            self.test_file(args.input_file, args.vul_type, self.graph)
 
+        # output detection results
+        for detected in detected_list:
+            loggers.res_logger.info("{} is detected in {}".format(
+                args.vul_type,
+                detected))
         #export to csv
         if args.export is not None:
             if args.export == 'light':
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
             else:
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=False)
+
 
 
 def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):

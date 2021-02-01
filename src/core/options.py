@@ -71,3 +71,4 @@ def setup_graph_env(G: Graph, args):
                                args.vul_type == 'proto_pollution')
     G.check_ipt = (args.vul_type == 'ipt')
     G.call_limit = args.call_limit
+    G.detection_res[args.vul_type] = set()

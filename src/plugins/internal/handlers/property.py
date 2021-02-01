@@ -119,10 +119,18 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
         if G.check_ipt and side != 'left' and (proto_is_tainted or \
                 (found_in_proto and parent_is_tainted)): 
             tampered_prop = True
-            loggers.res_logger.info(\
-                    "Detected Internal Property Tampering at node {}(Line {})"\
-                    .format(ast_node, G.get_node_attr\
-                    (ast_node).get('lineno:int')))
+            if G.exit_when_found:
+                G.finished = True
+            
+            if 'ipt' not in G.detection_res:
+                G.detection_res['ipt'] = set()
+
+            detailed_info = "ipt detected in file {} Line {} node {}".format(\
+                    G.get_node_file_path(ast_node), 
+                    G.get_node_attr(ast_node).get('lineno:int'),
+                    ast_node)
+            G.detection_res['ipt'].add(detailed_info)
+            loggers.detail_logger.info(detailed_info)
             logger.warning(sty.fg.li_red + sty.ef.inverse + 'Possible internal'
                 ' property tampering (any use) at node {} (Line {})'
                 .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'))

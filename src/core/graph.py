@@ -27,6 +27,7 @@ class Graph:
         self.registered_funcs = {}
         self.op_cnt = {'add_node': 0, 'add_edge': 0, 'get_node_attr': 0, 'get_edge': 0, 'get_edge_attr': 0}
         self.nearest_upper_CPG_cache = {}
+        self.detection_res = {}
 
         # for control flow
         self.cfg_stmt = None
@@ -1607,6 +1608,11 @@ class Graph:
         return pathes
 
     def get_node_file_path(self, node_id):
+        """
+        get the file path of an AST node
+        Args:
+            node_id: node id
+        """
         # it's a ast so a node only has one parent
         while True:
             node_attr = self.get_node_attr(node_id)
