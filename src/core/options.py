@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument('-f', '--function-timeout', type=float,
                         help="Time limit when running all exported function, "
                         "in seconds. (Defaults to no limit.)")
+    parser.add_argument('--timeout', type=int, help="Time limit for testing a package. (Defaults to None)")
     parser.add_argument('-c', '--call-limit', default=3, type=int,
                         help="Set the limit of a call statement. "
                         "(Defaults to 3.)")

@@ -1,6 +1,7 @@
 from .graph import Graph
 from .utils import * 
 from .helpers import * 
+from .timeout import timeout, TimeoutError
 from ..plugins.manager import PluginManager 
 from ..plugins.internal.setup_env import setup_opg
 from .checker import traceback, vul_checking
@@ -77,7 +78,8 @@ class OPGen:
 
         return check_res
 
-    def test_module(self, module_path, vul_type='os_command', G=None):
+    def test_module(self, module_path, vul_type='os_command', G=None, 
+            timeout_s=None):
         """
         test a file as a module
         Args:
@@ -95,14 +97,27 @@ class OPGen:
         if G is None:
             G = self.graph
 
+        test_res = None
         # pretend another file is requiring this module
         js_call_templete = "var main_func=require('{}');".format(module_path)
-        parse_string(G, js_call_templete)
-        test_res = self._test_graph(G, vul_type=vul_type)
+        if timeout_s is not None:
+            try:
+                with timeout(seconds=timeout_s, 
+                        error_message="{} timeout after {} seconds".\
+                                format(module_path, timeout_s)):
+                    parse_string(G, js_call_templete)
+                    test_res = self._test_graph(G, vul_type=vul_type)
+            except TimeoutError as err:
+                loggers.error_logger.error(err)
+                loggers.res_logger.error(err)
+        else:
+            parse_string(G, js_call_templete)
+            test_res = self._test_graph(G, vul_type=vul_type)
 
         return test_res
 
-    def test_nodejs_package(self, package_path, vul_type='os_command', G=None):
+    def test_nodejs_package(self, package_path, vul_type='os_command', G=None, 
+            timeout_s=None):
         """
         test a nodejs package
         Args:
@@ -118,9 +133,11 @@ class OPGen:
         entrance_files = get_entrance_files_of_package(package_path)
 
         for entrance_file in entrance_files:
-            self.test_module(entrance_file, vul_type, G)
+            self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
 
     def run(self, args):
+
+        timeout_s = args.timeout
         if args.list is not None:
             package_list = []
             with open(args.list, 'r') as fp:
@@ -129,7 +146,7 @@ class OPGen:
                     package_list.append(package_path)
             for package_path in package_list:
                 self.test_nodejs_package(package_path, 
-                        args.vul_type, self.graph)
+                        args.vul_type, self.graph, timeout_s=timeout_s)
 
         elif args.nodejs:
             # test a nodejs package, find the entrance first and start
