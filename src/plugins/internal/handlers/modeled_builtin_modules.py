@@ -51,7 +51,7 @@ def read_file_sync(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
         abs_path = os.path.normpath(os.path.join(
                             G.get_cur_file_path(), '..', str(path)))
         if not os.path.exists(abs_path):
-            logger.debug(f'Read file {path}, file does not exist')
+            loggers.main_logger.debug(f'Read file {path}, file does not exist')
             continue
         try:
             f = open(abs_path, 'r')
@@ -59,10 +59,10 @@ def read_file_sync(G: Graph, caller_ast, extra, _, path=NodeHandleResult(),
             f.close()
             returned_values.append(content)
             returned_objs.append(G.add_obj_node(js_type='string', value=content))
-            logger.debug(f'Read file {path}, content: ' + re.sub(r'\n|\t', '',
+            loggers.main_logger.debug(f'Read file {path}, content: ' + re.sub(r'\n|\t', '',
                 content))
         except Exception as e:
-            logger.error(f'Read file {path} failed: {str(e)}')
+            loggers.main_logger.error(f'Read file {path} failed: {str(e)}')
     # return NodeHandleResult(values=returned_values) # TODO: move to values
     return NodeHandleResult(obj_nodes=returned_objs)
 
