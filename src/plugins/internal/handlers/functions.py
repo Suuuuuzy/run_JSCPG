@@ -402,7 +402,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         added_obj = G.add_obj_to_scope(name=param_name,
                             scope=func_scope, ast_node=caller_ast or param,
                             # give __proto__ when checking prototype pollution
-                            js_type='object' if G.check_proto_pollution
+                            js_type='object' if (G.check_proto_pollution or G.check_ipt)
                             else None, value=wildcard)
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('tainted', True))
@@ -807,3 +807,5 @@ def evaluate_func(func_obj):
 
     """
     # print("evalute function", func_obj)
+
+

@@ -61,8 +61,9 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
                 name_tainted = True
                 break
 
+
     parent_is_proto = False
-    if G.check_proto_pollution:
+    if G.check_proto_pollution or G.check_ipt:
         for obj in handled_parent.obj_nodes:
             if obj in G.builtin_prototypes:
                 parent_is_proto = True
@@ -79,12 +80,14 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
             parent_objs = []
             for name_node in parent_name_nodes:
                 obj = G.add_obj_to_name_node(name_node, ast_node,
-                    js_type='object' if G.check_proto_pollution else None,
+                    js_type='object' if (G.check_proto_pollution or G.check_ipt)
+                    else None,
                     value=wildcard)
                 parent_objs.append(obj)
         else:
             obj = G.add_obj_to_scope(parent_name, ast_node,
-                js_type='object' if G.check_proto_pollution else None,
+                js_type='object' if (G.check_proto_pollution or G.check_ipt)
+                else None,
                 scope=G.BASE_SCOPE, value=wildcard)
             parent_objs = [obj]
         # else:
@@ -94,11 +97,16 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
 
     multi_assign = False
     tampered_prop = False
+
+    parent_is_tainted = len(list(filter(lambda x: \
+            G.get_node_attr(x).get('tainted') is True, parent_objs))) != 0
+
+    
     # find property name nodes and object nodes
     # (filtering is moved to find_prop)
     for i, prop_name in enumerate(prop_names):
         assert prop_name is not None
-        name_nodes, obj_nodes, proto_is_tainted = \
+        name_nodes, obj_nodes, found_in_proto, proto_is_tainted = \
             find_prop(G, parent_objs, 
             prop_name, branches, side, parent_name,
             prop_name_for_tags=prop_name_tags[i],
@@ -108,7 +116,8 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
 
         if prop_name == wildcard:
             multi_assign = True
-        if G.check_ipt and side != 'left' and proto_is_tainted:
+        if G.check_ipt and side != 'left' and (proto_is_tainted or \
+                (found_in_proto and parent_is_tainted)): 
             tampered_prop = True
             loggers.res_logger.info(\
                     "Detected Internal Property Tampering at node {}(Line {})"\
@@ -157,6 +166,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
     Returns:
         prop_name_nodes: set of possible name nodes.
         prop_obj_nodes: set of possible object nodes.
+        found_in_proto: if the property is found in __proto__ chain
         proto_is_tainted: if the property is found in __proto__, and
             __proto__ is tainted (modified by user input).
     '''
@@ -172,22 +182,25 @@ def find_prop(G, parent_objs, prop_name, branches=None,
     prop_obj_nodes = set()
     # multi_assign = False
     proto_is_tainted = False
+    found_in_proto = False
 
     for parent_obj in parent_objs:
         if prop_name == wildcard and not is_wildcard_obj(G, parent_obj) and \
             not G.check_proto_pollution and not G.check_ipt:
             continue
 
-        # do we have to make sure its in proto? 
-        #if in_proto and G.get_node_attr(parent_obj).get('tainted'):
-        if in_proto and G.get_node_attr(parent_obj).get('tainted'):
-            proto_is_tainted = True
-            loggers.main_logger.debug(f'__proto__ {parent_obj} is tainted.')
+        # if in_proto and G.get_node_attr(parent_obj).get('tainted'):
+        if in_proto:
+            found_in_proto = True
+            if G.get_node_attr(parent_obj).get('tainted'):
+                proto_is_tainted = True
+                loggers.main_logger.debug(f'__proto__ {parent_obj} is tainted.')
 
         # Flag of whether any concrete name node is found
         name_node_found = False
         # Flag of whether any wildcard name node is found
         wc_name_node_found = False
+
 
         # Search "direct" properties
         prop_name_node = G.get_prop_name_node(prop_name, parent_obj)
@@ -212,7 +225,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                         f'parent {parent_obj} have intersection')
                     __proto__obj_nodes = __proto__obj_nodes.remove(parent_obj)
                 if __proto__obj_nodes:
-                    __name_nodes, __obj_nodes, __t = find_prop(G,
+                    __name_nodes, __obj_nodes, __in_proto, __t = find_prop(G,
                         __proto__obj_nodes, prop_name, branches,
                         parent_name=parent_name + '.__proto__',
                         in_proto=True, depth=depth+1)
@@ -222,6 +235,8 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                         prop_obj_nodes.update(__obj_nodes)
                         if __t:
                             proto_is_tainted = True
+                        if __in_proto:
+                            found_in_proto = True
 
         # If the property name is wildcard, fetch all properties
         if not in_proto and prop_name == wildcard:
@@ -311,4 +326,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 else:
                     name_node_found = True
     # multi_assign = name_node_found and wc_name_node_found
-    return prop_name_nodes, prop_obj_nodes, proto_is_tainted
+    found_in_proto = found_in_proto and len(prop_name_nodes) != 0
+    if found_in_proto:
+        loggers.main_logger.info("{} found in prototype chain".format(prop_name))
+    return prop_name_nodes, prop_obj_nodes, found_in_proto, proto_is_tainted

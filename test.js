@@ -1,9 +1,8 @@
 //var cp = require("child_process");
 function ipt(str, input, val) {
   var root = {};
-  root[input] = val;
-  var res = str;
-  res = root.toString();
+  //str[input] = val;
+  res = str.toString();
 }
 function expolit(string, input, val){
   var inner = string + 123;
