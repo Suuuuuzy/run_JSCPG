@@ -4,6 +4,7 @@
 testreport/
 /tmp/
 run_tmp/
+TAJS/
 
 # package download
 /package_downloader/packages/
