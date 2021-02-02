@@ -179,7 +179,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
             __proto__ is tainted (modified by user input).
     '''
     if depth == 5:
-        return [], [], None
+        return [], [], None, None
     
     if in_proto:
         loggers.main_logger.debug('Cannot find "direct" property, going into __proto__ ' \

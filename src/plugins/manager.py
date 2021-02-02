@@ -133,8 +133,8 @@ class PluginManager(object):
             return handle_res
 
 
-    def __init__(self, G=None):
-       if not PluginManager.instance:
+    def __init__(self, G=None, init=False):
+       if not PluginManager.instance or init:
            print("new instance")
            PluginManager.instance = PluginManager.__PluginManager(G)
     def __getattr__(self, val):

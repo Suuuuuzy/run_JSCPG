@@ -1038,7 +1038,7 @@ def function_p_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this=No
         if args:
             G.set_node_attr(new_func, ('bound_args', args))
         returned_objs.append(new_func)
-        logger.log(ATTENTION, 'Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this.obj_nodes, ast_node))
+        logger.log('Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this.obj_nodes, ast_node))
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=func.obj_nodes)
 
 
@@ -1229,7 +1229,8 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         add_contributes_to(G, [s], unknown_return_obj)
                         add_contributes_to(G, [substr], unknown_return_obj)
                         add_contributes_to(G, [new_sub_str], unknown_return_obj)
-                    elif G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
+                    elif G.get_prop_obj_nodes(substr, prop_name='__proto__') and  \
+                            G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
                         sv = str(sv)
                         ssv = str(ssv)
                         r, glob, sticky = convert_to_python_re(ssv)
@@ -1305,7 +1306,8 @@ def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
                         sv = str(sv)
                         ssv = str(ssv)
                         nssv = str(nssv)
-                        if G.get_prop_obj_nodes(substr, prop_name='__proto__')[0] == G.regexp_prototype:
+                        prop_obj_nodes = G.get_prop_obj_nodes(substr, prop_name='__proto__')
+                        if len(prop_obj_nodes) > 0 and prop_obj_nodes[0] == G.regexp_prototype:
                             r, glob, sticky = convert_to_python_re(ssv)
                             if r is None:
                                 output = wildcard

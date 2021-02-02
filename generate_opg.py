@@ -5,9 +5,7 @@ from src.core.options import parse_args, setup_graph_env
 
 if __name__ == '__main__':
     args = parse_args()
-    opg = OPGen()
-    G = opg.get_graph()
-    setup_graph_env(G, args)
+    opg = OPGen(args)
     opg.run(args)
-    print(G.op_cnt)
+    #print(G.op_cnt)
 
