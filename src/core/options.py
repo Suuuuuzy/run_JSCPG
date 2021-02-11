@@ -1,5 +1,4 @@
 import argparse
-#from src.core.graph import Graph 
 
 def parse_args():
     # Parse arguments
