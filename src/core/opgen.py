@@ -7,17 +7,17 @@ from ..plugins.internal.setup_env import setup_opg
 from .checker import traceback, vul_checking
 from .multi_run_helper import validate_package, get_entrance_files_of_package 
 from .logger import loggers
-from .options import setup_graph_env
+from .options import options
 
 class OPGen:
     """
     This is the major class for the whole opgen
     """
 
-    def __init__(self, args=None):
+    def __init__(self, options=None):
         self.graph = Graph()
-        self.args = args
-        setup_graph_env(self.graph, args)
+        self.options = options
+        setup_graph_env(self.graph, options)
 
     def get_graph(self):
         """
@@ -65,7 +65,7 @@ class OPGen:
         for a parsed AST graph, generate OPG and test vul
         Args:
             G (Graph): the Graph
-            vul_type (str) [os_command, prototype_pollution, xss]: the type of vul
+            vul_type (str) [os_command, prototype_pollution, xss, ipt]: the type of vul
         Returns:
             list: the test result pathes of the module
         """
@@ -138,11 +138,11 @@ class OPGen:
         for entrance_file in entrance_files:
             self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
 
-    def run(self, args):
-        timeout_s = args.timeout
-        if args.list is not None:
+    def run(self, options):
+        timeout_s = options.timeout
+        if options.list is not None:
             package_list = []
-            with open(args.list, 'r') as fp:
+            with open(options.list, 'r') as fp:
                 for line in fp.readlines():
                     package_path = line.strip()
                     package_list.append(package_path)
@@ -150,33 +150,33 @@ class OPGen:
             for package_path in package_list:
                 # init a new graph
                 self.graph = Graph()
-                setup_graph_env(self.graph, args)
+                setup_graph_env(self.graph, options)
                 self.test_nodejs_package(package_path, 
-                        args.vul_type, self.graph, timeout_s=timeout_s)
+                        options.vul_type, self.graph, timeout_s=timeout_s)
 
-                if len(self.graph.detection_res[args.vul_type]) != 0:
+                if len(self.graph.detection_res[options.vul_type]) != 0:
                     loggers.res_logger.info("{} is detected in {}".format(
-                        args.vul_type,
+                        options.vul_type,
                         package_path))
 
         else:
-            if args.module:
-                self.test_module(args.input_file, args.vul_type, self.graph, timeout_s=timeout_s)
-            elif args.nodejs:
-                self.test_nodejs_package(args.input_file, 
-                        args.vul_type, self.graph, timeout_s=timeout_s)
+            if options.module:
+                self.test_module(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
+            elif options.nodejs:
+                self.test_nodejs_package(options.input_file, 
+                        options.vul_type, self.graph, timeout_s=timeout_s)
             else:
                 # analyze from JS source code files
-                self.test_file(args.input_file, args.vul_type, self.graph, timeout_s=timeout_s)
+                self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
 
-            if len(self.graph.detection_res[args.vul_type]) != 0:
+            if len(self.graph.detection_res[options.vul_type]) != 0:
                 loggers.res_logger.info("{} is detected in {}".format(
-                    args.vul_type,
-                    args.input_file))
+                    options.vul_type,
+                    options.input_file))
 
         #export to csv
-        if args.export is not None:
-            if args.export == 'light':
+        if options.export is not None:
+            if options.export == 'light':
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
             else:
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=False)
@@ -202,3 +202,25 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
         register_func(G, node[0])
     internal_plugins.dispatch_node(entry_nodeid)
     #add_edges_between_funcs(G)
+
+def setup_graph_env(G: Graph, options):
+    """
+    setup the graph environment based on the user input
+
+    Args:
+        G (Graph): the Graph to setup
+        options (options): the user input options
+    """
+    if options.print:
+        G.print = True
+    G.run_all = options.run_all or options.module or options.nodejs or options.list
+    G.function_time_limit = options.function_timeout
+    G.exit_when_found = options.exit
+    G.single_branch = options.single_branch
+    G.vul_type = options.vul_type
+    G.func_entry_point = options.entry_func
+    G.check_proto_pollution = (options.prototype_pollution or 
+                               options.vul_type == 'proto_pollution')
+    G.check_ipt = (options.vul_type == 'ipt')
+    G.call_limit = options.call_limit
+    G.detection_res[options.vul_type] = set()

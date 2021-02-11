@@ -1,5 +1,5 @@
 import argparse
-from src.core.graph import Graph 
+#from src.core.graph import Graph 
 
 def parse_args():
     # Parse arguments
@@ -45,30 +45,19 @@ def parse_args():
 
     return args
 
-def setup_graph_env(G: Graph, args):
-    """
-    setup the graph environment based on the user input
+class Options:
+    class __Options:
+        def __init__(self):
+            args = parse_args()
+            for key in args.keys():
+                self.key = args.key
+    instance = None
+    def __init__(self):
+        if not Options.instance:
+            Options.instance = Options.__Options()
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
+    def __setattr__(self, name):
+        return setattr(self.instance, name)
 
-    Args:
-        G (Graph): the Graph to setup
-        args (args): the user input args
-    """
-
-    if args.print:
-        logger = create_logger("main_logger", output_type="console",
-            level=logging.DEBUG)
-        create_logger("graph_logger", output_type="console",
-            level=logging.DEBUG)
-        G.print = True
-
-    G.run_all = args.run_all or args.module or args.nodejs or args.list
-    G.function_time_limit = args.function_timeout
-    G.exit_when_found = args.exit
-    G.single_branch = args.single_branch
-    G.vul_type = args.vul_type
-    G.func_entry_point = args.entry_func
-    G.check_proto_pollution = (args.prototype_pollution or 
-                               args.vul_type == 'proto_pollution')
-    G.check_ipt = (args.vul_type == 'ipt')
-    G.call_limit = args.call_limit
-    G.detection_res[args.vul_type] = set()
+options = Options()

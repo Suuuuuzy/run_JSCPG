@@ -2,6 +2,7 @@ import logging
 import re
 import sty
 import os
+from src.core.options import options
 
 ATTENTION = 15
 
@@ -60,7 +61,10 @@ def create_logger(name, output_type="file", level=logging.DEBUG, file_name='run_
 class Loggers:
     class __Loggers:
         def __init__(self):
-            self.print_logger = create_logger("print", output_type='console')
+            if args.print:
+                self.print_logger = create_logger("print", output_type='console')
+            else:
+                self.print_logger = create_logger("print", output_type='file')
             self.main_logger = create_logger("main", file_name='main.log')
             self.debug_logger = create_logger("debug", file_name="debug.log")
             self.error_logger = create_logger("error", file_name="error.log")
