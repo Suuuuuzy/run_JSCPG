@@ -14,10 +14,10 @@ class OPGen:
     This is the major class for the whole opgen
     """
 
-    def __init__(self, options=None):
+    def __init__(self):
         self.graph = Graph()
         self.options = options
-        setup_graph_env(self.graph, options)
+        setup_graph_env(self.graph)
 
     def get_graph(self):
         """
@@ -138,7 +138,7 @@ class OPGen:
         for entrance_file in entrance_files:
             self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
 
-    def run(self, options):
+    def run(self):
         timeout_s = options.timeout
         if options.list is not None:
             package_list = []
@@ -150,7 +150,7 @@ class OPGen:
             for package_path in package_list:
                 # init a new graph
                 self.graph = Graph()
-                setup_graph_env(self.graph, options)
+                setup_graph_env(self.graph)
                 self.test_nodejs_package(package_path, 
                         options.vul_type, self.graph, timeout_s=timeout_s)
 
@@ -203,7 +203,7 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     internal_plugins.dispatch_node(entry_nodeid)
     #add_edges_between_funcs(G)
 
-def setup_graph_env(G: Graph, options):
+def setup_graph_env(G: Graph):
     """
     setup the graph environment based on the user input
 

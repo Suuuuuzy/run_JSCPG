@@ -48,8 +48,8 @@ class Options:
     class __Options:
         def __init__(self):
             args = parse_args()
-            for key in args.keys():
-                self.key = args.key
+            for arg in vars(args):
+                setattr(self,arg,getattr(args,arg))
     instance = None
     def __init__(self):
         if not Options.instance:
