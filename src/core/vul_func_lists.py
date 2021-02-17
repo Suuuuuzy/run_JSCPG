@@ -5,7 +5,8 @@ signature_lists = {
             'sink_hqbpillvul_exec',
             'sink_hqbpillvul_execSync',
             'sink_hqbpillvul_spawn',
-            'sink_hqbpillvul_spawnSync'
+            'sink_hqbpillvul_spawnSync',
+            'sink_hqbpillvul_db'
             ],
         'xss': [
             'sink_hqbpillvul_http_write',

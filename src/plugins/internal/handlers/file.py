@@ -42,6 +42,7 @@ def run_toplevel_file(G: Graph, node_id):
     return a obj and scope
     """
     # switch current file path
+    file_path = None
     if 'name' in G.get_node_attr(node_id):
         file_path = G.get_node_attr(node_id)['name']
     else:

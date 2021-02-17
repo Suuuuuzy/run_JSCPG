@@ -1,7 +1,13 @@
 var request_builtin_object = function(){
   var source_hqbpillvul_url = '';
+  var req_body = {
+    'user': {
+      'name': source_hqbpillvul_url
+    }
+  }
   this.url = source_hqbpillvul_url;
   this.path = source_hqbpillvul_url;
+  this.body = req_body;
   this.params = [source_hqbpillvul_url, source_hqbpillvul_url, 
     source_hqbpillvul_url, source_hqbpillvul_url];
 

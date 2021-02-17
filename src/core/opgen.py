@@ -44,7 +44,7 @@ class OPGen:
 
         return vul_pathes
 
-    def test_file(self, file_path, vul_type='os_command', G=None):
+    def test_file(self, file_path, vul_type='os_command', G=None, timeout_s=None):
         """
         test a file as a js script
         Args:
@@ -54,6 +54,7 @@ class OPGen:
         Returns:
             list: the test result pathes of the module
         """
+        # TODO: add timeout for testing file
         if G is None:
             G = self.graph
         parse_file(G, file_path)
