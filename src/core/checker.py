@@ -1,5 +1,6 @@
 from .trace_rule import TraceRule
 from .vul_func_lists import *
+from .logger import loggers
 
 def get_path_text(G, path, caller):
     """
@@ -125,7 +126,8 @@ def vul_checking(G, pathes, vul_type):
             [('has_user_input', None), ('not_start_with_func', ['sink_hqbpillvul_http_setHeader']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_http_setHeader'])]
             ]
     os_command_rule_lists = [
-            [('has_user_input', None), ('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt'])]
+            [('has_user_input', None), ('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt'])],
+            [('start_with_var', ['source_hqbpillvul_url']), ('not_start_within_file', ['child_process.js']), ('not_exist_func', signature_lists['sanitation'])]
             ]
 
     code_exec_lists = [
@@ -171,10 +173,11 @@ def vul_checking(G, pathes, vul_type):
     print('vul_checking', vul_type)
     """
     print(pathes)
-    for path in pathes:
-        for node in path:
-            print(G.get_node_attr(node))
     """
+    for path in pathes:
+        res_text_path = get_path_text(G, path, path[0])
+        loggers.main_logger.info(res_text_path)
+
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)
     print("success: ", success_pathes)

@@ -2,7 +2,7 @@ var request_builtin_object = function(){
   var source_hqbpillvul_url = '';
   var req_body = {
     'user': {
-      'name': source_hqbpillvul_url
+      'name':source_hqbpillvul_url
     }
   }
   this.url = source_hqbpillvul_url;
@@ -61,6 +61,10 @@ function express(requestListener) {
   }
 
   this.get = function(file_path, cb) {
+    cb(req, res);
+  }
+
+  this.post= function(file_path, url, cb) {
     cb(req, res);
   }
 
