@@ -106,5 +106,8 @@ def run_toplevel_file(G: Graph, node_id):
     G.cur_stmt = backup_stmt
 
     G.file_stack.pop(-1)
+    loggers.main_logger.info("{} exported".format(file_path))
+    for nn in G.get_prop_name_nodes(module_exports_objs[0]):
+        loggers.main_logger.info("\t{}".format(G.get_node_attr(nn)))
 
     return module_exports_objs
