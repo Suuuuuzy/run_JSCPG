@@ -540,7 +540,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         logger.error('Error: No function was run during this function call')
 
     G.call_stack.pop()
-    print(len(G.call_stack), G.call_stack)
+    #print(len(G.call_stack), G.call_stack)
 
     return NodeHandleResult(obj_nodes=list(returned_objs),
             used_objs=list(used_objs),
