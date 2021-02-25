@@ -660,6 +660,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo):
                 true_num += 1
         for obj in handled.obj_nodes:
             if obj in [G.undefined_obj, G.null_obj, G.false_obj]:
+                true_num += 0.1
                 pass
             elif obj in [G.infinity_obj, G.negative_infinity_obj, G.nan_obj,
                 G.true_obj]:

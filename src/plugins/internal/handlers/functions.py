@@ -539,7 +539,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         logger.error('Error: No function was run during this function call')
 
     G.call_stack.pop()
-    # print(len(G.call_stack), G.call_stack)
+    #print(len(G.call_stack), G.call_stack)
 
     return NodeHandleResult(obj_nodes=list(returned_objs),
             used_objs=list(used_objs),
@@ -724,7 +724,7 @@ def run_exported_functions(G, module_exports_objs, extra):
         if G.get_node_attr(obj).get('type') != 'function':
             continue
         # some times they write exports= new foo() eg. libnmap
-        loggers.main_logger.log(ATTENTION, 'Run exported function {}'.format(obj))
+        loggers.main_logger.log(ATTENTION, 'Run exported function {} {}'.format(obj, G.get_node_attr(obj)))
         # if G.function_time_limit:
         if False:
             try:
