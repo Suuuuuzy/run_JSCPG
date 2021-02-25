@@ -192,10 +192,13 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
         entry_nodeid (str) 0: the entry node id,
             by default 0
     """
+    NodeHandleResult.print_callback = print_handle_result
+    """
     if G.print:
         NodeHandleResult.print_callback = lambda x: print_handle_result_tainted(G, x)
     else:
         NodeHandleResult.print_callback = print_handle_result
+    """
     entry_nodeid = str(entry_nodeid)
     loggers.main_logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")

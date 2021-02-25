@@ -214,8 +214,9 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         callee_ast = "NotFound"
 
     call_stack_item = '{}_{}'.format(func_name, callee_ast)
-    if G.call_stack.count(call_stack_item) > 3:
-        return NodeHandleResult(), []
+    for cur_callee in G.call_stack:
+        if G.call_stack.count(cur_callee) > 5:
+            return NodeHandleResult(), []
 
     G.call_stack.append(call_stack_item)
     #print(G.call_stack)
@@ -532,7 +533,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         logger.error('Error: No function was run during this function call')
 
     G.call_stack.pop()
-    #print(len(G.call_stack), G.call_stack)
+    print(len(G.call_stack), G.call_stack)
 
     return NodeHandleResult(obj_nodes=list(returned_objs),
             used_objs=list(used_objs),
