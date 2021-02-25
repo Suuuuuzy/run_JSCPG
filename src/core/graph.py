@@ -816,6 +816,25 @@ class Graph:
 
         return tobe_added_obj
 
+    def get_all_child_name_nodes(self, scope, follow_scope_chain=True, scope_type=None):
+        """
+        return all the name nodes of a under a scope node
+        including only the name nodes that under scopes
+        """
+        res = set()
+        scope_queue = [scope]
+
+        while len(scope_queue) != 0:
+            cur_scope = scope_queue.pop()
+            var_edges = self.get_out_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_TO_VAR")
+            for cur_edge in var_edges:
+                res.add(cur_edge[1])
+            if not follow_scope_chain:
+                break
+            scope_edges = self.get_out_edges(cur_scope, data=False, keys=False, edge_type = "PARENT_SCOPE_OF")
+            scope_queue += [edge[1] for edge in scope_edges]
+        return res 
+
     def get_name_node(self, var_name, scope = None, follow_scope_chain = True):
         """
         Get the name node of a name based on scope.
@@ -1137,6 +1156,12 @@ class Graph:
             for e in self.get_out_edges(obj_node, edge_type='OBJ_TO_AST'):
                 self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_TO_AST'})
         return new_obj_node
+
+    def get_name_nodes_to_obj(self, obj_node):
+        """
+        return a list of name nodes that points to cur obj node
+        """
+        return [edge[0] for edge in self.get_in_edges(obj_node, edge_type='NAME_TO_OBJ')]
 
     # scopes
 

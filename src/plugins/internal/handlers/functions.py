@@ -4,6 +4,7 @@ from src.core.utils import BranchTagContainer
 from src.core.utils import NodeHandleResult, ExtraInfo
 from src.core.esprima import esprima_search, esprima_parse
 from src.core.checker import traceback, vul_checking
+from src.core.garbage_collection import cleanup_scope
 # function is higher than block
 from .blocks import simurun_block
 # a little bit risky to use handle prop
@@ -20,6 +21,7 @@ from ..utils import get_df_callback, to_obj_nodes, add_contributes_to, merge
 import sty
 import traceback as tb
 from collections import defaultdict
+from src.core.options import options
 
 class HandleASTCall(Handler):
 
@@ -429,6 +431,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 else:
                     break
                 j += 1
+
+
             arguments_length_obj = G.add_obj_as_prop(prop_name='length',
                  parent_obj=arguments_obj, value=j, js_type='number')
 
@@ -452,6 +456,9 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 branch_returned_objs, branch_used_objs = simurun_function(
                     G, func_ast, branches=next_branches, caller_ast=caller_ast)
                 G.cur_objs = backup_objs
+            
+            if options.gb: 
+                cleanup_scope(G, G.cur_scope, exceptions=list(branch_used_objs) + branch_returned_objs)
             # switch back scopes
             G.cur_scope = backup_scope
             G.cur_stmt = backup_stmt

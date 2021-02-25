@@ -2,6 +2,7 @@
 from src.core.graph import Graph
 from src.core.logger import *
 from src.core.utils import ExtraInfo, BranchTagContainer
+from src.core.garbage_collection import cleanup_scope
 from ..utils import decl_vars_and_funcs
 
 def simurun_block(G, ast_node, parent_scope=None, branches=None,
@@ -38,6 +39,8 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     returned_objs = G.function_returns[G.find_ancestor_scope()]
     
     if block_scope:
+
         G.cur_scope = parent_scope
+
     
     return list(returned_objs), list(used_objs)
