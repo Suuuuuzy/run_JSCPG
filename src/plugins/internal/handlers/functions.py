@@ -458,7 +458,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     G, func_ast, branches=next_branches, caller_ast=caller_ast)
                 G.cur_objs = backup_objs
             
-            if options.gb: 
+            if options.gc: 
                 cleanup_scope(G, G.cur_scope, exceptions=list(branch_used_objs) + branch_returned_objs)
             # switch back scopes
             G.cur_scope = backup_scope
