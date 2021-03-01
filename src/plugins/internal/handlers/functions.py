@@ -216,8 +216,9 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         callee_ast = "NotFound"
 
     call_stack_item = '{}_{}'.format(func_name, callee_ast)
-    if G.call_stack.count(call_stack_item) > 3:
-        return NodeHandleResult(), []
+    for cur_callee in G.call_stack:
+        if G.call_stack.count(cur_callee) > 5:
+            return NodeHandleResult(), []
 
     G.call_stack.append(call_stack_item)
     #print(G.call_stack)
@@ -457,7 +458,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     G, func_ast, branches=next_branches, caller_ast=caller_ast)
                 G.cur_objs = backup_objs
             
-            if options.gb: 
+            if options.gc: 
                 cleanup_scope(G, G.cur_scope, exceptions=list(branch_used_objs) + branch_returned_objs)
             # switch back scopes
             G.cur_scope = backup_scope

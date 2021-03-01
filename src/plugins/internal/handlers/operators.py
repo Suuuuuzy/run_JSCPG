@@ -228,6 +228,11 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
         if flag2:
             name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)
                 .get('name')))) for x in handled_left.name_nodes]
+            print(sty.fg.li_red + sty.ef.inverse +
+                'Possible prototype pollution at node {} (Line {}), '
+                'trying to assign {} to name node {}'
+                .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'),
+                right_objs, ', '.join(name_node_log)) + sty.rs.all)
             logger.warning(sty.fg.li_red + sty.ef.inverse +
                 'Possible prototype pollution at node {} (Line {}), '
                 'trying to assign {} to name node {}'
