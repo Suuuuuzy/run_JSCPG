@@ -57,7 +57,7 @@ class Options:
             Options.instance = Options.__Options()
     def __getattr__(self, name):
         return getattr(self.instance, name)
-    def __setattr__(self, name):
-        return setattr(self.instance, name)
+    def __setattr__(self, name, val):
+        return setattr(self.instance, name, val)
 
 options = Options()
