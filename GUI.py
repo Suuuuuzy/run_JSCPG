@@ -20,7 +20,7 @@ vul_type_list = [
 file_list_column = [
     [
         sg.Text("Package Path"),
-        sg.In(size=(None, 1), enable_events=True, key="-FOLDER-"),
+        sg.In(size=(50, 1), enable_events=True, key="-FOLDER-"),
         sg.FileBrowse(),
     ],
     [
@@ -34,8 +34,8 @@ file_list_column = [
         sg.Checkbox('module', key='option_module'),
         sg.Checkbox('gc', key='option_gc'),
         sg.Button('start', key='-START-'),
-        sg.Button('clear', key='-CLEAR-')
     ],
+    [sg.HorizontalSeparator()],[sg.Text("Results: "), sg.Button('clear', key='-CLEAR-')],
     [
         sg.Multiline(size=(None, 30), key='result_box', font=("Helvetica", 20))
     ]
@@ -43,6 +43,7 @@ file_list_column = [
 
 # For now will only show the name of the file that was chosen
 image_viewer_column = [
+    [sg.Text("Realtime log: ")],
     [
         sg.Output(size=(None, 40), font=("Helvetica", 12))
     ],
