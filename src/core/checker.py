@@ -1,6 +1,7 @@
 from .trace_rule import TraceRule
 from .vul_func_lists import *
 from .logger import loggers
+import sty
 
 def get_path_text(G, path, caller):
     """
@@ -181,10 +182,14 @@ def vul_checking(G, pathes, vul_type):
 
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)
-    print("success: ", success_pathes)
+    print(sty.fg.li_green + "|Checker| success: ", success_pathes)
+    path_id = 0
     for path in success_pathes:
         res_text_path = get_path_text(G, path, path[0])
+        loggers.tmp_res_logger.info("|checker| success id${}$: ".format(path_id))
+        loggers.tmp_res_logger.info(res_text_path)
+        path_id += 1
         print("Attack Path: ")
-        print(res_text_path)
+        print(res_text_path + sty.rs.all)
     return success_pathes
 

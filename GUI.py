@@ -1,13 +1,15 @@
 # img_viewer.py
 
 import PySimpleGUI as sg
-import os.path
+import os
 import subprocess
 import threading
 import sys
 from src.core.options import options
 from src.core.opgen import OPGen
 
+sg.theme('LightBrown12')
+# remove the result tmp log 
 # First the window layout in 2 columns
 vul_type_list = [
         'os_command',
@@ -18,7 +20,7 @@ vul_type_list = [
 file_list_column = [
     [
         sg.Text("Package Path"),
-        sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+        sg.In(size=(None, 1), enable_events=True, key="-FOLDER-"),
         sg.FileBrowse(),
     ],
     [
@@ -27,12 +29,15 @@ file_list_column = [
         sg.Radio('prototype pollution', 'vul_type', key='proto_pollution'),
         sg.Button('start', key='-START-')
     ],
+    [
+        sg.Multiline(size=(None, 30), key='result_box', font=("Helvetica", 20))
+    ]
 ]
 
 # For now will only show the name of the file that was chosen
 image_viewer_column = [
     [
-        sg.Output(size=(60, 40), key="result_box")
+        sg.Output(size=(None, 40), font=("Helvetica", 12))
     ],
 ]
 
@@ -45,7 +50,7 @@ layout = [
     ]
 ]
 
-window = sg.Window("OPGen", layout)
+window = sg.Window("OPGen", layout, resizable=True)
 OPGen_command = "python generate_opg.py -m -t"
 vul_type = None
 output = []
@@ -63,6 +68,18 @@ def run_cmd(cmd, window):
 
     """
     process = subprocess.run(cmd, stderr=sys.stderr, stdout=sys.stdout, shell=True)
+
+def show_results(window):
+    """
+    show the results from results.log to the window 
+    """
+    result_text = None
+    try:
+        with open("./results_tmp.log", 'r') as fp:
+            result_text = fp.read()
+        window['result_box'].update(result_text, text_color_for_value='Green')
+    except Exception as e:
+        print(e)
 
 
 # Run the Event Loop
@@ -95,4 +112,8 @@ while True:
         except Exception as e:
             print(e)
 
+        show_results(window)
+
+
+os.remove("./results_tmp.log")
 window.close()
