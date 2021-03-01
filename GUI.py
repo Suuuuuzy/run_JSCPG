@@ -24,10 +24,17 @@ file_list_column = [
         sg.FileBrowse(),
     ],
     [
+        sg.Text("Vul Type: "),
         sg.Radio('os command', 'vul_type', key='os_command'),
         sg.Radio('path traversal', 'vul_type', key='path_traversal'),
-        sg.Radio('prototype pollution', 'vul_type', key='proto_pollution'),
-        sg.Button('start', key='-START-')
+        sg.Radio('prototype pollution', 'vul_type', key='proto_pollution')
+    ],
+    [
+        sg.Text("Options: "),
+        sg.Checkbox('module', key='option_module'),
+        sg.Checkbox('gc', key='option_gc'),
+        sg.Button('start', key='-START-'),
+        sg.Button('clear', key='-CLEAR-')
     ],
     [
         sg.Multiline(size=(None, 30), key='result_box', font=("Helvetica", 20))
@@ -50,7 +57,7 @@ layout = [
     ]
 ]
 
-window = sg.Window("OPGen", layout, resizable=True)
+window = sg.Window("OPGen", layout, resizable=True, font='Courier 12')
 OPGen_command = "python generate_opg.py -m -t"
 vul_type = None
 output = []
@@ -79,6 +86,7 @@ def show_results(window):
             result_text = fp.read()
         window['result_box'].update(result_text, text_color_for_value='Green')
     except Exception as e:
+        window['result_box'].update('')
         print(e)
 
 
@@ -104,8 +112,10 @@ while True:
         for vul in vul_type_list:
             if vul in values and values[vul]:
                 options.vul_type = vul
-        #options.module = True
+        options.module = values['option_module'] 
+        options.gc = values['option_gc']
         options.input_file = folder
+
         opg = OPGen()
         try:
             opg.run()
@@ -113,7 +123,14 @@ while True:
             print(e)
 
         show_results(window)
+    elif event == '-CLEAR-':
+        try:
+            with open("./results_tmp.log", 'w') as fp:
+                fp.write("")
+        except Exception as e:
+            print(e)
+
+        show_results(window)
 
 
-os.remove("./results_tmp.log")
 window.close()

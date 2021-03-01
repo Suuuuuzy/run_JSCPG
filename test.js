@@ -27,7 +27,6 @@ function expolit(string, input, val){
   } catch (error) {
     console.log(error);
   }
-
 }
 module.exports = {
   expolit, ipt};
