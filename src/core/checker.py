@@ -22,11 +22,13 @@ def get_path_text(G, path, caller):
         start_lineno = int(cur_node_attr['lineno:int'])
         end_lineno = int(cur_node_attr['endlineno:int']
                         or start_lineno)
+
         content = None
+        cur_path_str2 += "File Path: {}\n".format(G.get_node_file_path(node))
         try:
             content = G.get_node_file_content(node)
-        except:
-            pass
+        except Exception as e:
+            print(e)
         if content is not None:
             cur_path_str2 += "{}\t{}".format(start_lineno,
                     ''.join(content[start_lineno:end_lineno + 1]))
@@ -34,7 +36,6 @@ def get_path_text(G, path, caller):
     G.logger.debug(cur_path_str1)
 
     res_path += "==========================\n"
-    res_path += "{}\n".format(G.get_node_file_path(path[0]))
     res_path += cur_path_str2
     return res_path
 
