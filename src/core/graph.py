@@ -28,6 +28,7 @@ class Graph:
         self.op_cnt = {'add_node': 0, 'add_edge': 0, 'get_node_attr': 0, 'get_edge': 0, 'get_edge_attr': 0}
         self.nearest_upper_CPG_cache = {}
         self.detection_res = {}
+        self.num_removed = 0
 
         # for control flow
         self.cfg_stmt = None
@@ -125,6 +126,12 @@ class Graph:
         print(node_list)
         return self.graph.add_nodes_from(node_list)
     """
+
+    def get_graph_size(self):
+        """
+        return the size of the graph
+        """
+        return self.graph.size()
 
     def set_node_attr(self, node_id, attr):
         """

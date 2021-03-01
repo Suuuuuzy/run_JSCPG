@@ -217,7 +217,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
 
     call_stack_item = '{}_{}'.format(func_name, callee_ast)
     for cur_callee in G.call_stack:
-        if G.call_stack.count(cur_callee) > 5:
+        if G.call_stack.count(cur_callee) > 2:
             return NodeHandleResult(), []
 
     G.call_stack.append(call_stack_item)

@@ -175,6 +175,7 @@ class OPGen:
                     options.vul_type,
                     options.input_file))
 
+        print("Graph size: {}, GC removed {} nodes".format(self.graph.get_graph_size(), self.graph.num_removed))
         #export to csv
         if options.export is not None:
             if options.export == 'light':

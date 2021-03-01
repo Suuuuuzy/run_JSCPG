@@ -64,6 +64,7 @@ def run_cmd(cmd, window):
     """
     process = subprocess.run(cmd, stderr=sys.stderr, stdout=sys.stdout, shell=True)
 
+
 # Run the Event Loop
 while True:
     event, values = window.read()
@@ -86,15 +87,12 @@ while True:
         for vul in vul_type_list:
             if vul in values and values[vul]:
                 options.vul_type = vul
-        options.module = True
+        #options.module = True
         options.input_file = folder
         opg = OPGen()
-        opg.run()
-
-        #cmd = "{} {} {}".format(OPGen_command, vul_type, folder)
-        #print(cmd)
-        #process = subprocess.run(cmd, stderr=sys.stderr, stdout=sys.stdout, shell=True)
-        #threading.Thread(target=run_cmd, args=(cmd, window), daemon=True).start()
-
+        try:
+            opg.run()
+        except Exception as e:
+            print(e)
 
 window.close()
