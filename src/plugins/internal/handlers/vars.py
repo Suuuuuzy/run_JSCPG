@@ -67,6 +67,7 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
     # tricky fix, we don't really link name nodes to the undefined object
     if not now_objs:
         now_objs = [G.undefined_obj]
+    loggers.main_logger.info("Var {} handle result -> {}".format(var_name, now_objs))
 
     return NodeHandleResult(obj_nodes=now_objs, name=var_name,
         name_nodes=name_nodes, # from_branches=[from_branches],
