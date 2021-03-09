@@ -1,4 +1,5 @@
 from src.core.logger import loggers
+from src.core.utils import ExtraInfo
 from src.core.utils import NodeHandleResult
 
 class PluginManager(object):
@@ -125,6 +126,12 @@ class PluginManager(object):
 
             if node_type not in self.handler_map:
                 raise LookupError(node_type + " not implemented")
+
+            # remove side information
+            # we should consider remove it totally, bug fixed on 08/03/2021
+            # takes many hours to debug this one
+            side = extra.side if extra else None
+            extra = ExtraInfo(extra, side=None)
 
             handle_obj = self.handler_map[node_type](self.G, node_id, extra=extra)
             handle_res = handle_obj.process()
