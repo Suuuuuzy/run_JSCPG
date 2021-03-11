@@ -14,7 +14,7 @@ class HandleFuncDecl(Handler):
         return NodeHandleResult(obj_nodes=obj_nodes)
 
 def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
-    scope_parent_scope=None):
+    scope_parent_scope=None, add_to_scope=True):
     '''
     Declare a function as an object node.
     
@@ -42,7 +42,6 @@ def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
         scope_parent_scope = G.cur_scope
     if func_name is None:
         func_name = G.get_name_from_child(node_id)
-
     # add function declaration object
     added_obj = G.add_obj_node(node_id, "function")
     G.set_node_attr(added_obj, ('name', func_name))
@@ -53,12 +52,12 @@ def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
     # scope should be put under where it is defined, we need to memorize
     # its original parent scope.
     G.set_node_attr(added_obj, ('parent_scope', scope_parent_scope))
+    G.set_node_attr(added_obj, ('parent_scope_this', G.cur_objs))
 
-    if func_name is not None and func_name != '{closure}':
+    if func_name is not None and func_name != '{anon}' and add_to_scope:
         G.add_obj_to_scope(name=func_name, scope=obj_parent_scope,
             tobe_added_obj=added_obj)
         G.add_obj_as_prop('name', node_id, 'string', func_name, added_obj)
-
     param_list = G.get_child_nodes(node_id, edge_type='PARENT_OF',
         child_type='AST_PARAM_LIST')
     params = G.get_ordered_ast_child_nodes(param_list)
@@ -68,8 +67,6 @@ def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
             == 'PARAM_VARIADIC':
             length -= 1
     G.add_obj_as_prop('length', node_id, 'number', length, added_obj)
-
     # G.set_node_attr(node_id, ("VISITED", "1"))
     loggers.main_logger.debug(f'{sty.ef.b}Declare function{sty.rs.all} {func_name} as {added_obj}')
-
     return added_obj

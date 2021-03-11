@@ -4,12 +4,17 @@ class foo {
     this.src = input;
   }
 
-  vul (input) {
-    var src = input + '/cmd';
-    cp.exec(src);
+  vul () {
+    cp.exec(this.src);
   }
 }
 
+function expolit(input) {
+  var f = new foo(input);
+  f.vul();
+}
+
 module.exports = {
-  foo: foo
+  foo: foo,
+  expolit: expolit
 }

@@ -29,6 +29,8 @@ class Graph:
         self.nearest_upper_CPG_cache = {}
         self.detection_res = {}
         self.num_removed = 0
+        self.dont_quit = None
+        self.last_stmts = []
 
         # for control flow
         self.cfg_stmt = None
@@ -1092,7 +1094,7 @@ class Graph:
         OBJ_TO_AST edge.
         """
         aim_map = {
-                'function': ['AST_FUNC_DECL', 'AST_CLOSURE'],
+                'function': ['AST_FUNC_DECL', 'AST_CLOSURE', 'AST_METHOD'],
                 }
         tmp_edge = self.get_out_edges(obj_node, data = True, keys = True,
             edge_type = "OBJ_TO_AST")

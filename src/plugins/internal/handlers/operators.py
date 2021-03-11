@@ -187,7 +187,7 @@ class HandleAssign(Handler):
             # set function name
             name = handled_left.name
             if name and G.get_node_attr(right).get('type') in \
-                ['AST_FUNC_DECL', 'AST_CLOSURE']:
+                ['AST_FUNC_DECL', 'AST_CLOSURE', 'AST_METHOD']:
                 for func_obj in handled_right.obj_nodes:
                     old_name = G.get_node_attr(func_obj).get('name')
                     if not old_name or old_name == '{closure}':

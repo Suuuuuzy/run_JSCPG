@@ -1257,12 +1257,13 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     */
                 }
                 // finally, write the ClassBody node
+                relsStream.push([vAstToplevelClass, classBodyId, 'PARENT_OF'].join(delimiter) + '\n');
                 nodes[classBodyId] = {
                     label: 'AST',
                     type: currentNode.type,
                     phptype: 'AST_STMT_LIST',
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                    childNum: childNum,
+                    childNum: 0,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
