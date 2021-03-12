@@ -29,6 +29,8 @@ generate_graph.py [-h] [-p] [-t VUL_TYPE] [-P] [-m] [-q] [-s] [-a]
 | `-q, --exit` | Exit the analysis immediately when vulnerability is found. Do not use this if you need a complete graph. |
 | `-s, --single-branch` | Single branch mode (or single execution). Do not execute multiple branches in parallel. |
 | `-f SEC, --function-timeout SEC` | Set the time limit when running all exported function, in seconds. (Defaults to no limit.) Do NOT use this parameter as it is very unstable.
+| `--run-env ENV_DIR' | set the running env location.|
+| `--babel CONVERT_DIR' | set the dir to convert using babel.|
 | `-c CALL_LIMIT, --call-limit CALL_LIMIT` | Set the how many times at most the same call statement can appear in the caller stack. (Defaults to 3.) |
 | `-e ENTRY_FUNC, --entry-func ENTRY_FUNC` | Mannualy set the entry point function. Use this parameter only if you know which function to start the analysis with. This only affects the input module, i.e., dependent packages will not be affected. |
 
