@@ -8,6 +8,7 @@ from .checker import traceback, vul_checking
 from .multi_run_helper import validate_package, get_entrance_files_of_package 
 from .logger import loggers
 from .options import options
+import os
 
 class OPGen:
     """
@@ -141,6 +142,8 @@ class OPGen:
 
     def run(self):
         timeout_s = options.timeout
+        if options.babel:
+            babel_convert()
         if options.list is not None:
             package_list = []
             with open(options.list, 'r') as fp:
@@ -176,13 +179,15 @@ class OPGen:
                     options.input_file))
 
         print("Graph size: {}, GC removed {} nodes".format(self.graph.get_graph_size(), self.graph.num_removed))
+        print("Cleaning up tmp dirs")
+        import shutil
+        shutil.rmtree(options.run_env)
         #export to csv
         if options.export is not None:
             if options.export == 'light':
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
             else:
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=False)
-
 
 def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     """
@@ -229,3 +234,21 @@ def setup_graph_env(G: Graph):
     G.check_ipt = (options.vul_type == 'ipt')
     G.call_limit = options.call_limit
     G.detection_res[options.vul_type] = set()
+
+def babel_convert():
+    """
+    use babel to convert the input files to ES5
+    for now, we use system commands
+    """
+    babel_location = "./node_modules/@babel/cli/bin/babel.js" 
+    babel_cp_dir = os.path.join(options.run_env, 'babel_cp')
+    babel_env_dir = os.path.join(options.run_env, 'babel_env')
+
+    relative_path = os.path.relpath(options.input_file, options.babel)
+    options.input_file = os.path.join(babel_env_dir, relative_path)
+    os.system(f"mkdir {options.run_env} {babel_cp_dir} {babel_env_dir}")
+    os.system(f"cp -rf {options.babel}/* ./{babel_cp_dir}/")
+    os.system("{} {} --out-dir {}".format(babel_location, babel_cp_dir, babel_env_dir))
+    print("New entray point {}".format(options.input_file))
+
+

@@ -31,10 +31,12 @@ def parse_args():
                         "(Defaults to 3.)")
     parser.add_argument('-e', '--entry-func')
     parser.add_argument('-l', '--list', action='store')
+    parser.add_argument('--run-env', default='./tmp_env/', help="set the running env location")
     parser.add_argument('--parallel', action='store_true', default=False, help="run multiple package parallelly")
     parser.add_argument('--export', help="export the graph to csv files, can be light or all")
     parser.add_argument('--nodejs', action='store_true', default=False, help="run a nodejs package")
     parser.add_argument('--gc', action='store_true', default=False, help="run a garbage collection after every function run")
+    parser.add_argument('--babel', help="use babel to convert the files first, need to input the path to the files to be converted")
     parser.add_argument('input_file', action='store', nargs='?',
         help="Source code file (or directory) to generate object graph for. "
         "Use '-' to get source code from stdin. Ignore this argument to "
