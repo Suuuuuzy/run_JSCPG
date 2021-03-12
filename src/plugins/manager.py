@@ -123,7 +123,7 @@ class PluginManager(object):
                     self.G.covered_stat[node_id] += 1
 
             node_attr = self.G.get_node_attr(node_id)
-            loggers.debug_logger.info("processing " + str(node_attr));
+            loggers.debug_logger.info("processing {}".format(node_id) + str(node_attr));
             node_type = node_attr['type']
 
             if node_type not in self.handler_map:
