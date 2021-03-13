@@ -229,7 +229,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 __proto__obj_nodes = \
                     G.get_objs_by_name_node(__proto__name_node, branches)
                 if parent_obj in __proto__obj_nodes:
-                    logger.error(f'__proto__ {__proto__obj_nodes} and '
+                    loggers.main_logger.info(f'__proto__ {__proto__obj_nodes} and '
                         f'parent {parent_obj} have intersection')
                     __proto__obj_nodes = __proto__obj_nodes.remove(parent_obj)
                 if __proto__obj_nodes:
