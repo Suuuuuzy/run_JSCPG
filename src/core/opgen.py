@@ -9,6 +9,7 @@ from .multi_run_helper import validate_package, get_entrance_files_of_package
 from .logger import loggers
 from .options import options
 import os
+import shutil
 
 class OPGen:
     """
@@ -180,8 +181,7 @@ class OPGen:
 
         print("Graph size: {}, GC removed {} nodes".format(self.graph.get_graph_size(), self.graph.num_removed))
         print("Cleaning up tmp dirs")
-        import shutil
-        shutil.rmtree(options.run_env)
+        #shutil.rmtree(options.run_env)
         #export to csv
         if options.export is not None:
             if options.export == 'light':
@@ -240,6 +240,11 @@ def babel_convert():
     use babel to convert the input files to ES5
     for now, we use system commands
     """
+    try:
+        shutil.rmtree(options.run_env)
+    except:
+        # sames the run_env does not exsit
+        pass
     babel_location = "./node_modules/@babel/cli/bin/babel.js" 
     babel_cp_dir = os.path.join(options.run_env, 'babel_cp')
     babel_env_dir = os.path.join(options.run_env, 'babel_env')
@@ -250,5 +255,3 @@ def babel_convert():
     os.system(f"cp -rf {options.babel}/* ./{babel_cp_dir}/")
     os.system("{} {} --out-dir {}".format(babel_location, babel_cp_dir, babel_env_dir))
     print("New entray point {}".format(options.input_file))
-
-

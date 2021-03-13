@@ -34,16 +34,27 @@ generate_graph.py [-h] [-p] [-t VUL_TYPE] [-P] [-m] [-q] [-s] [-a]
 | `-c CALL_LIMIT, --call-limit CALL_LIMIT` | Set the how many times at most the same call statement can appear in the caller stack. (Defaults to 3.) |
 | `-e ENTRY_FUNC, --entry-func ENTRY_FUNC` | Mannualy set the entry point function. Use this parameter only if you know which function to start the analysis with. This only affects the input module, i.e., dependent packages will not be affected. |
 
-## Input
+## Attention
+Currently, for the packages that use CLASS, we need to use babel to convert them into ES5 format. To use babel, the prefix of babel path should be same to the prefix of input file. For example, if the babel path is /a/b/c, the input file should be under /a/b/c/. As for the input file, /a/b/c/index.js works for the input file, but ~/c/index.js does not.
 
-The tool accepts any of the three input types.
+For example:
+```shell
+$ ./generate_opg.py -t os_command ./chas_class/main.js --babel ./chas_class/
+```
 
-1. Use `-` to get source code from stdin.
-2. Use a path to specify a source code file (or directory).
-3. Ignore the argument to analyze AST CSV files (`./nodes.csv` and `./rels.csv`).
 
 ## Examples
 
 ```shell
 $ ./generate_opg.py ./tests/test.js -m -t os_command
+```
+
+For the modified version of challenge example, you can simply run 
+```shell
+$ ./generate_opg.py -t os_command ./chas/main.js
+```
+
+For the original version of challenge example, you can simply run 
+```shell
+$ ./generate_opg.py -t os_command ./chas_class/main.js --babel ./chas_class/
 ```
