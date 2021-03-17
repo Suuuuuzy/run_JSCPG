@@ -7,7 +7,7 @@ const Logger = require("../logger")
 
 const extend = require("../extend").mutable
 
-let collection = new Db().getCollection("users");
+let collection = new Db().getCollection("users")
 
 class User {
   constructor(options) {

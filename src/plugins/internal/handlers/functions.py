@@ -624,8 +624,11 @@ def handle_require(G: Graph, caller_ast, extra, _, module_names):
 
     returned_objs = set()
     for module_name in module_names:
-        if module_name in modeled_builtin_modules.modeled_modules \
+        if False and module_name in modeled_builtin_modules.modeled_modules \
             and G.vul_type != "path_traversal":
+            # for some reason, docker seems will run the if statement
+            # even the vul type is path traversal
+            # disable the built in for fs
             # Python-modeled built-in modules
             # for now mostly fs
             # if it's path_traversal, do not do this
