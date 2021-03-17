@@ -141,7 +141,16 @@ class OPGen:
         for entrance_file in entrance_files:
             self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
 
+    def output_args(self):
+        loggers.main_logger.info("All args:")
+        keys = [i for i in options.instance.__dict__.keys() if i[:1] != '_']
+        for key in keys:
+            loggers.main_logger.info("{}: {}".format(key, 
+                options.instance.__dict__[key]))
+
     def run(self):
+        self.output_args()
+
         timeout_s = options.timeout
         if options.babel:
             babel_convert()
