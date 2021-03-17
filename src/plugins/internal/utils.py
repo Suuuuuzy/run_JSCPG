@@ -254,8 +254,7 @@ def combine_values(values, sources, *arg):
         d[v].extend(sources[i])
     return (list(d.keys()), list(d.values()), *arg)
 
-def peek_variables(G: Graph, ast_node, handling_func: Callable,
-    extra: ExtraInfo):
+def peek_variables(G: Graph, ast_node, extra: ExtraInfo):
     '''
     Experimental. Peek what variable is used in the statement and get
     their object nodes. Currently, you must ensure the statement you
@@ -269,14 +268,15 @@ def peek_variables(G: Graph, ast_node, handling_func: Callable,
         extra (ExtraInfo): Extra info.
     '''
     returned_dict = {}
+    from src.plugins.manager_instance import internal_manager
     if G.get_node_attr(ast_node).get('type') == 'AST_VAR' or \
         G.get_node_attr(ast_node).get('type') == 'AST_NAME':
-        handle_result = handling_func(G, ast_node, extra=extra)
+        handle_result = internal_manager.dispatch_node(ast_node, extra=extra)
         if handle_result.name:
             returned_dict[handle_result.name] = handle_result.obj_nodes
     else:
         for child in G.get_ordered_ast_child_nodes(ast_node):
-            d = peek_variables(G, child, handling_func, extra)
+            d = peek_variables(G, child, extra)
             for name, nodes in d.items():
                 if name in returned_dict:
                     returned_dict[name].extend(d[name])

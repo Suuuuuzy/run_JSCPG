@@ -25,10 +25,11 @@ class HandleFor(Handler):
         G.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
                       scope_name=G.scope_counter.gets(f'Block{body}'))
         result = self.internal_manager.dispatch_node(init, extra) # init loop variables
-        d = peek_variables(G, ast_node=inc, handling_func=vars.handle_var,
-            extra=extra) # check increment to determine loop variables
+
         counter = 0
         while True:
+            # check increment to determine loop variables
+            d = peek_variables(G, ast_node=inc, extra=extra) 
             loggers.main_logger.debug('For loop variables:')
             for name, obj_nodes in d.items():
                 loggers.main_logger.debug(sty.ef.i + name + sty.rs.all + ': ' +
