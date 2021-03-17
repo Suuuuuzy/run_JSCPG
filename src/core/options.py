@@ -31,6 +31,7 @@ def parse_args():
                         "(Defaults to 3.)")
     parser.add_argument('-e', '--entry-func')
     parser.add_argument('-l', '--list', action='store')
+    parser.add_argument('--install', action='store_true', default=False, help="If set, we will install the packages to the run env")
     parser.add_argument('--run-env', default='./tmp_env/', help="set the running env location")
     parser.add_argument('--parallel', help="run multiple package parallelly")
     parser.add_argument('--export', help="export the graph to csv files, can be light or all")

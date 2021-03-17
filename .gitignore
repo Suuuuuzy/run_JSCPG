@@ -2,6 +2,7 @@
 /package-lock.json
 .testDB/
 .vscode/
+tmp_env/
 testreport/
 /tmp/
 run_tmp/

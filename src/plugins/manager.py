@@ -1,6 +1,7 @@
 from src.core.logger import loggers
 from src.core.utils import ExtraInfo
 from src.core.utils import NodeHandleResult
+from src.core.options import options
 
 class PluginManager(object):
     """
@@ -127,7 +128,9 @@ class PluginManager(object):
             node_type = node_attr['type']
 
             if node_type not in self.handler_map:
-                raise LookupError(node_type + " not implemented")
+                loggers.error_logger.info(node_type + " not implemented")
+                return NodeHandleResult()
+                #raise LookupError(node_type + " not implemented")
 
             # remove side information
             # we should consider remove it totally, bug fixed on 08/03/2021

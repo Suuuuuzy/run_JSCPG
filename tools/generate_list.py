@@ -11,7 +11,7 @@ def generate_list(dir_path):
     res = []
     for d in dir_list:
         if os.path.isdir(d):
-            res.append(d)
+            res.append(os.path.abspath(d))
     return res
 
 input_dir = sys.argv[1]

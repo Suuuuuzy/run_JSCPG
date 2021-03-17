@@ -135,6 +135,7 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
                 ' property tampering (any use) at node {} (Line {})'
                 .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'))
                 + sty.rs.all)
+            loggers.res_logger.info(f"Internal property tampering detected in {G.package_name}")
 
     if len(prop_names) == 1:
         name = f'{parent_name}.{prop_names[0]}'

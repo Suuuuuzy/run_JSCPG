@@ -31,6 +31,7 @@ class Graph:
         self.num_removed = 0
         self.dont_quit = None
         self.last_stmts = []
+        self.package_name = None
 
         # for control flow
         self.cfg_stmt = None

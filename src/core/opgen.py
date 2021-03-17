@@ -11,6 +11,7 @@ from .options import options
 import os
 import shutil
 import sys
+from tqdm import tqdm
 
 class OPGen:
     """
@@ -151,8 +152,19 @@ class OPGen:
     
     def run(self):
         self.output_args()
+        if not os.path.exists(options.run_env):
+            os.mkdir(options.run_env)
 
         timeout_s = options.timeout
+        if options.install:
+            # we have to provide the list if we want to install
+            package_list = []
+            with open(options.list, 'r') as fp:
+                for line in fp.readlines():
+                    package_path = line.strip()
+                    package_list.append(package_path)
+            install_list_of_packages(package_list)
+
         if options.parallel is not None:
             prepare_split_list()
             num_thread = int(options.parallel)
@@ -180,6 +192,7 @@ class OPGen:
                 # init a new graph
                 self.graph = Graph()
                 setup_graph_env(self.graph)
+                self.graph.package_name = package_path
                 self.test_nodejs_package(package_path, 
                         options.vul_type, self.graph, timeout_s=timeout_s)
 
@@ -236,6 +249,18 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
         register_func(G, node[0])
     internal_plugins.dispatch_node(entry_nodeid)
     #add_edges_between_funcs(G)
+
+def install_list_of_packages(package_list):
+    """
+    install a list of packages into environment/packages/
+    """
+    package_root_path = os.path.join(options.run_env, "packages")
+    package_root_path = os.path.abspath(package_root_path)
+    if not os.path.exists(package_root_path):
+        os.mkdir(package_root_path)
+    print("Installing packages")
+    for package in tqdm(package_list):
+        os.system(f"cd tools;./npm_download.sh {package} {package_root_path}")
 
 def setup_graph_env(G: Graph):
     """

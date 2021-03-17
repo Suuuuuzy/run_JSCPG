@@ -4,6 +4,7 @@ from ..utils import to_obj_nodes, get_df_callback, to_values, check_condition
 from src.core.logger import loggers
 from . import vars
 from src.plugins.handler import Handler
+from src.plugins.internal.handlers.vars import handle_var
 import sty
 
 class HandleBinaryOP(Handler):
@@ -226,6 +227,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
                 flag2 = True
                 break
         if flag2:
+            loggers.res_logger.info(f"Prototype pollution detected in {G.package_name}")
             name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)
                 .get('name')))) for x in handled_left.name_nodes]
             print(sty.fg.li_red + sty.ef.inverse +
