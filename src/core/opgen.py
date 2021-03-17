@@ -21,6 +21,7 @@ class OPGen:
     def __init__(self):
         self.graph = Graph()
         self.options = options
+        self.graph.package_name = options.input_file
         setup_graph_env(self.graph)
 
     def get_graph(self):
@@ -83,6 +84,8 @@ class OPGen:
 
         if vul_type is not None:
             check_res = self.check_vuls(vul_type, G)
+            if len(check_res) != 0:
+                self.graph.detection_res[vul_type].add(G.package_name)
 
         return check_res
 
@@ -141,7 +144,9 @@ class OPGen:
         entrance_files = get_entrance_files_of_package(package_path)
 
         for entrance_file in entrance_files:
-            self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
+            test_res = self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
+            if len(test_res) != 0:
+                break
 
     def output_args(self):
         loggers.main_logger.info("All args:")
@@ -199,6 +204,9 @@ class OPGen:
                 if len(self.graph.detection_res[options.vul_type]) != 0:
                     loggers.res_logger.info("{} is detected in {}".format(
                         options.vul_type,
+                        package_path))
+                else:
+                    loggers.res_logger.info("Not detected in {}".format(
                         package_path))
 
         else:
