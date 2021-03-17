@@ -10,6 +10,7 @@ from .logger import loggers
 from .options import options
 import os
 import shutil
+import sys
 
 class OPGen:
     """
@@ -147,11 +148,27 @@ class OPGen:
         for key in keys:
             loggers.main_logger.info("{}: {}".format(key, 
                 options.instance.__dict__[key]))
-
+    
     def run(self):
         self.output_args()
 
         timeout_s = options.timeout
+        if options.parallel is not None:
+            prepare_split_list()
+            num_thread = int(options.parallel)
+            tmp_args = sys.argv[:]
+            parallel_idx = tmp_args.index("--parallel")
+            tmp_args[parallel_idx] = tmp_args[parallel_idx + 1] = ''
+            list_idx = tmp_args.index("-l")
+            print(parallel_idx)
+            for i in range(num_thread):
+                cur_list_path = os.path.join(options.run_env, "tmp_split_list", str(i))
+                tmp_args[list_idx + 1] = cur_list_path
+                cur_cmd = ' '.join(tmp_args)
+                print(f"screen -S runscreen_{i} -dm {cur_cmd}")
+                os.system(f"screen -S runscreen_{i} -dm {cur_cmd}")
+            return 
+
         if options.babel:
             babel_convert()
         if options.list is not None:
@@ -264,3 +281,32 @@ def babel_convert():
     os.system(f"cp -rf {options.babel}/* ./{babel_cp_dir}/")
     os.system("{} {} --out-dir {}".format(babel_location, babel_cp_dir, babel_env_dir))
     print("New entray point {}".format(options.input_file))
+
+def prepare_split_list():
+    """
+    split the list into multiple sub lists
+    """
+    # if the parallel is true, we will start a list of screens
+    # each of the screen will include another run
+    num_thread = int(options.parallel)
+    # make a tmp dir to store the 
+    tmp_list_dir = "tmp_split_list"
+    os.system("mkdir {}".format(os.path.join(options.run_env, tmp_list_dir)))
+    package_list = None
+    with open(options.list, 'r') as fp:
+        package_list = fp.readlines()
+
+    num_packages = len(package_list) 
+    chunk_size = math.floor(num_packages / num_thread)
+    sub_package_lists = [[] for i in range(num_thread)]
+    file_pointer = 0
+    for package in package_list:
+        sub_package_lists[file_pointer % num_thread].append(package)
+        file_pointer += 1
+
+    cnt = 0
+    for sub_packages in sub_package_lists:
+        with open(os.path.join(options.run_env, tmp_list_dir, str(cnt)), 'w') as fp:
+            fp.writelines(sub_packages)
+        cnt += 1
+    
