@@ -37,7 +37,7 @@ out.dat
 
 # depd analysis
 /depd_analysis/*.json
-package-lock.json
+# package-lock.json
 
 # vscode
 .vscode/*
