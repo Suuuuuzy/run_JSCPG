@@ -307,9 +307,17 @@ def vul_checking(G, pathes, vul_type):
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)
     print("success: ", success_pathes)
+    if success_pathes!=[]:
+        content = "success: " +  str(success_pathes) + '\n'
+    else:
+        content = ''
     for path in success_pathes:
         res_text_path = get_path_text(G, path, path[0])
         print("Attack Path: ")
         print(res_text_path)
+        content += "Attack Path: " + '\n'
+        content += res_text_path + '\n'
+    with open('run_results.txt', 'a') as f:
+        f.write(content)
     return success_pathes
 
