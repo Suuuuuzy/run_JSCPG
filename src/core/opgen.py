@@ -144,9 +144,19 @@ class OPGen:
         entrance_files = get_entrance_files_of_package(package_path)
 
         for entrance_file in entrance_files:
+            G = self.get_new_graph()
             test_res = self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
             if len(test_res) != 0:
                 break
+    
+    def get_new_graph(self):
+        """
+        set up a new graph
+        """
+        self.graph = Graph()
+        self.graph.package_name = options.input_file
+        setup_graph_env(self.graph)
+        return self.graph
 
     def output_args(self):
         loggers.main_logger.info("All args:")
@@ -195,9 +205,7 @@ class OPGen:
 
             for package_path in package_list:
                 # init a new graph
-                self.graph = Graph()
-                setup_graph_env(self.graph)
-                self.graph.package_name = package_path
+                self.get_new_graph()
                 self.test_nodejs_package(package_path, 
                         options.vul_type, self.graph, timeout_s=timeout_s)
 
@@ -214,7 +222,7 @@ class OPGen:
                 self.test_module(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
             elif options.nodejs:
                 self.test_nodejs_package(options.input_file, 
-                        options.vul_type, self.graph, timeout_s=timeout_s)
+                        options.vul_type, G=self.graph, timeout_s=timeout_s)
             else:
                 # analyze from JS source code files
                 self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
