@@ -1107,7 +1107,7 @@ def string_returning_func(G: Graph, caller_ast, extra, _, *args):
         # TODO: update all the childern
         for obj in arg.obj_nodes:
             offspring = get_off_spring(G, obj)
-        used_objs.update(offspring)
+            used_objs.update(offspring)
         used_objs = list(used_objs)
         # print('used_objs of json_stringfy', used_objs)
         for used in used_objs:
