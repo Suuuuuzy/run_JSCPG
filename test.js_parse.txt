@@ -1,0 +1,65 @@
+id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	classname	namespace	endlineno:int	name	doccomment
+0	Filesystem	File									test.js	
+1	AST	AST_TOPLEVEL	TOPLEVEL_FILE	1					1::5:26	5	test.js	
+2	Artificial	CFG_FUNC_ENTRY					1				test.js	
+3	Artificial	CFG_FUNC_EXIT					1				test.js	
+4	AST	AST_STMT_LIST		1		0	1		1::5:26	5		
+5	AST	AST_ASSIGN		1	"global.gvar = 5"	0	1		1::1:15	1		
+6	AST	AST_PROP		1	"global.gvar"	0	1		1::1:11	1		
+7	AST	AST_VAR		1		0	1		1::1:6	1		
+8	AST	string		1	"global"	0	1		1::1:6	1	global	
+9	AST	string		1	"gvar"	1	1		1:7:1:11	1		
+10	AST	integer		1	"5"	1	1		1:14:1:15	1		
+11	AST	AST_METHOD_CALL		2	"console.log(gvar)"	1	1		2::2:17	2		
+12	AST	AST_VAR		2		0	1		2::2:7	2		
+13	AST	string		2	"console"	0	1		2::2:7	2	console	
+14	AST	string		2	"log"	1	1		2:8:2:11	2		
+15	AST	AST_ARG_LIST		2	"(gvar)"	2	1		2::2:17	2		
+16	AST	AST_VAR		2		0	1		2:12:2:16	2		
+17	AST	string		2	"gvar"	0	1		2:12:2:16	2	gvar	
+18	AST	AST_ASSIGN		4	"gvar2 = 6"	2	1		4:4:4:13	4		
+19	AST	AST_VAR	JS_DECL_VAR	4		0	1		4:4:4:9	4		
+20	AST	string		4	"gvar2"	0	1		4:4:4:9	4	gvar2	
+21	AST	integer		4	"6"	1	1		4:12:4:13	4		
+22	AST	AST_METHOD_CALL		5	"console.log(global.gvar2)"	3	1		5::5:25	5		
+23	AST	AST_VAR		5		0	1		5::5:7	5		
+24	AST	string		5	"console"	0	1		5::5:7	5	console	
+25	AST	string		5	"log"	1	1		5:8:5:11	5		
+26	AST	AST_ARG_LIST		5	"(global.gvar2)"	2	1		5::5:25	5		
+27	AST	AST_PROP		5	"global.gvar2"	0	1		5:12:5:24	5		
+28	AST	AST_VAR		5		0	1		5:12:5:18	5		
+29	AST	string		5	"global"	0	1		5:12:5:18	5	global	
+30	AST	string		5	"gvar2"	1	1		5:19:5:24	5		
+
+start:START_ID	end:END_ID	type:TYPE
+1	2	ENTRY
+1	3	EXIT
+1	4	PARENT_OF
+4	5	PARENT_OF
+5	6	PARENT_OF
+6	7	PARENT_OF
+7	8	PARENT_OF
+6	9	PARENT_OF
+5	10	PARENT_OF
+4	11	PARENT_OF
+11	12	PARENT_OF
+12	13	PARENT_OF
+11	14	PARENT_OF
+11	15	PARENT_OF
+15	16	PARENT_OF
+16	17	PARENT_OF
+4	18	PARENT_OF
+18	19	PARENT_OF
+19	20	PARENT_OF
+18	21	PARENT_OF
+4	22	PARENT_OF
+22	23	PARENT_OF
+23	24	PARENT_OF
+22	25	PARENT_OF
+22	26	PARENT_OF
+26	27	PARENT_OF
+27	28	PARENT_OF
+28	29	PARENT_OF
+27	30	PARENT_OF
+0	1	FILE_OF
+

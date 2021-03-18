@@ -1,0 +1,1754 @@
+sendResponse obj 5130 624 {'export': True, 'labels:label': 'Object', 'type': 'function', 'name': 'sendResponse', 'parent_scope': '5097'}
+processing eventName: bg_chrome_tabs_sendMessage
+info:  16858
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+MessageSender obj 44359 {'export': True, 'labels:label': 'Object', 'type': 'object'}
+sendResponse obj 5130 624 {'export': True, 'labels:label': 'Object', 'type': 'function', 'name': 'sendResponse', 'parent_scope': '5097'}
+processing eventName: bg_chrome_tabs_sendMessage
+info:  17039
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+MessageSender obj 45002 {'export': True, 'labels:label': 'Object', 'type': 'object'}
+sendResponse obj 5130 624 {'export': True, 'labels:label': 'Object', 'type': 'function', 'name': 'sendResponse', 'parent_scope': '5097'}
+processing eventName: bg_chrome_tabs_sendMessage
+info:  17173
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+MessageSender obj 45645 {'export': True, 'labels:label': 'Object', 'type': 'object'}
+sendResponse obj 5130 624 {'export': True, 'labels:label': 'Object', 'type': 'function', 'name': 'sendResponse', 'parent_scope': '5097'}
+processing eventName: bg_chrome_tabs_sendMessage
+info:  17987
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+MessageSender obj 46288 {'export': True, 'labels:label': 'Object', 'type': 'object'}
+sendResponse obj 5130 624 {'export': True, 'labels:label': 'Object', 'type': 'function', 'name': 'sendResponse', 'parent_scope': '5097'}
+processing eventName: bg_chrome_tabs_sendMessage
+info:  18168
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+MessageSender obj 46931 {'export': True, 'labels:label': 'Object', 'type': 'object'}
+sendResponse obj 5130 624 {'export': True, 'labels:label': 'Object', 'type': 'function', 'name': 'sendResponse', 'parent_scope': '5097'}
+processing eventName: bg_chrome_tabs_sendMessage
+info:  18302
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+MessageSender obj 47574 {'export': True, 'labels:label': 'Object', 'type': 'object'}
+sendResponse obj 5130 624 {'export': True, 'labels:label': 'Object', 'type': 'function', 'name': 'sendResponse', 'parent_scope': '5097'}
+processing eventName: bg_runtime_onMessage_response
+info:  19711
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  20382
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  21042
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  21700
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  22358
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  23016
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  23674
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  24317
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  24960
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  25603
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  26246
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  26889
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  27532
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  28175
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  28818
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  29461
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  30104
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  30747
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  31390
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  32033
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  32676
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  33319
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  33962
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  34620
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  35278
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  35936
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  36594
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  37252
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  37910
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  38553
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  39196
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  39839
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  40482
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  41125
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  41768
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  42411
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  43054
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  43697
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  44340
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  44983
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  45626
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  46269
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  46912
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  47555
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+processing eventName: bg_runtime_onMessage_response
+info:  48198
+{'export': True, 'labels:label': 'Object', 'type': 'object'}
+####SEE sensitiveSource:
+OBJ:  10560
+AST:  415
+OBJ:  14412
+AST:  415
+####SEE sinks:
+OBJ:  6006
+AST:  2978
+OBJ:  6731
+AST:  3359
+OBJ:  6724
+AST:  3359
+OBJ:  7297
+AST:  3367
+OBJ:  7290
+AST:  3367
+OBJ:  7283
+AST:  3367
+OBJ:  8644
+AST:  3545
+OBJ:  9417
+AST:  3089
+OBJ:  19787
+AST:  3194
+OBJ:  10407
+AST:  13660
+OBJ:  10407
+AST:  13660
+OBJ:  20460
+AST:  3194
+OBJ:  4999
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  21118
+AST:  3194
+OBJ:  4999
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  21776
+AST:  3194
+OBJ:  4999
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  22434
+AST:  3194
+OBJ:  4999
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  10407
+AST:  13660
+OBJ:  10407
+AST:  13660
+OBJ:  10407
+AST:  13660
+OBJ:  23750
+AST:  3194
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  24393
+AST:  3194
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  11034
+AST:  None
+OBJ:  11034
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  11170
+AST:  None
+OBJ:  11170
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  11306
+AST:  None
+OBJ:  11306
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  11306
+AST:  None
+OBJ:  11306
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  11306
+AST:  None
+OBJ:  11306
+AST:  None
+OBJ:  28251
+AST:  3194
+OBJ:  11170
+AST:  None
+OBJ:  11170
+AST:  None
+OBJ:  28894
+AST:  3194
+OBJ:  11170
+AST:  None
+OBJ:  11170
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  11170
+AST:  None
+OBJ:  11170
+AST:  None
+OBJ:  30180
+AST:  3194
+OBJ:  11034
+AST:  None
+OBJ:  11034
+AST:  None
+OBJ:  12609
+AST:  1505
+OBJ:  11034
+AST:  None
+OBJ:  11034
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  11034
+AST:  None
+OBJ:  11034
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  34038
+AST:  3194
+OBJ:  4999
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  34696
+AST:  3194
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  37328
+AST:  3194
+OBJ:  4999
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  37986
+AST:  3194
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  17112
+AST:  1505
+OBJ:  15057
+AST:  None
+OBJ:  15057
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  15193
+AST:  None
+OBJ:  15193
+AST:  None
+OBJ:  15718
+AST:  1505
+OBJ:  15329
+AST:  None
+OBJ:  15329
+AST:  None
+OBJ:  15718
+AST:  1505
+OBJ:  15329
+AST:  None
+OBJ:  15329
+AST:  None
+OBJ:  41844
+AST:  3194
+OBJ:  15329
+AST:  None
+OBJ:  15329
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  15193
+AST:  None
+OBJ:  15193
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  15193
+AST:  None
+OBJ:  15193
+AST:  None
+OBJ:  43773
+AST:  3194
+OBJ:  15193
+AST:  None
+OBJ:  15193
+AST:  None
+OBJ:  17112
+AST:  1505
+OBJ:  15057
+AST:  None
+OBJ:  15057
+AST:  None
+OBJ:  17112
+AST:  1505
+OBJ:  15057
+AST:  None
+OBJ:  15057
+AST:  None
+OBJ:  17112
+AST:  1505
+OBJ:  15057
+AST:  None
+OBJ:  15057
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  4999
+AST:  None
+OBJ:  9231
+AST:  None
+OBJ:  9231
+AST:  None
+try to trackback to see
+2978
+2978
+3359
+3359
+3359
+3359
+3367
+3367
+3367
+3367
+3367
+3367
+3545
+3537
+3089
+3089
+3194
+3167
+13660
+None
+Traceback (most recent call last):
+  File "generate_opg.py", line 79, in <module>
+    opg.run(args)
+  File "/Users/jia/Desktop/tmp/EOPG/JSCPG/src/core/opgen.py", line 182, in run
+    self.test_chrome_extension(args.input_file, args.vul_type, self.graph)
+  File "/Users/jia/Desktop/tmp/EOPG/JSCPG/src/core/opgen.py", line 90, in test_chrome_extension
+    test_res = self._test_graph(G, vul_type=vul_type)
+  File "/Users/jia/Desktop/tmp/EOPG/JSCPG/src/core/opgen.py", line 112, in _test_graph
+    event_loop(G, vul_type='chrome_API_execution')
+  File "/Users/jia/Desktop/tmp/EOPG/JSCPG/src/plugins/internal/handlers/event_loop.py", line 181, in event_loop
+    res_path += get_path_text(G, path, sink)
+  File "/Users/jia/Desktop/tmp/EOPG/JSCPG/src/core/checker.py", line 37, in get_path_text
+    cur_path_str1 += G.get_node_attr(caller)['lineno:int']
+  File "/Users/jia/Desktop/tmp/EOPG/JSCPG/src/core/graph.py", line 169, in get_node_attr
+    assert node_id is not None
+AssertionError
+
+
+
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+307             if (this.value.length == 5) {
+                $("input.loginCaptcha").val(this.value.toUpperCase());
+                $("#loginbutton").click()
+            }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+308                 $("input.loginCaptcha").val(this.value.toUpperCase());
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+264     chrome.tabs.sendMessage(c, {
+        Action: a,
+        Data: b
+    }, function() {
+        plugdata = null
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+218     chrome.cookies.getAll({
+        domain: plugdata.URL
+    }, function(c) {
+        var d = [];
+        $(c).each(function() {
+            d.push({
+                name: this.name,
+                value: this.value,
+                domain: this.domain,
+                secure: this.secure,
+                path: this.path
+            })
+        });
+        a.Data = JSON.stringify(d);
+        SendMessage("ONRESULT", a, b)
+    })
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+126     var info = {message: message_back};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+249     if (a.data != undefined) {
+        plugdata = a.data;
+        if (plugdata.Action != undefined) switch (plugdata.Action) {
+            case "GETCOOKIE":
+                chrome.runtime.sendMessage(plugdata, function() {});
+                break;
+            default:
+                if (plugdata.background == undefined || plugdata.background == false) $("#divDetail").html("<br/><center><img src='https://erail.in/images/progress.gif' /> Please wait....<br/>Please click on link again if you do not get status in 1 min.<br/><div id='divAvlCtr'></div></center>");
+                chrome.runtime.sendMessage(plugdata,
+                    function() {})
+        }
+    }
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+196     var info = {message: arguments[0],responseCallback: arguments[1]};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+165     window.plugdata = a;
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+238 location.href = 'http://www.example.com/';
+../demos/eRail_in/eopg_generated_files/cs_0.js
+282         var a = location.href.split("?")[1].split("&");
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/cs_0.js
+16  function $(a){
+    // find element a in document
+    var document_element = null;
+    // if a is an Array
+    if (Array.isArray(a)){
+        array_in = a;
+        a = undefined;
+    }
+    else{
+        // $("#test")
+        if (a[0] == '#'){
+            document_element = new Document_element(a.substring(1,));
+            // document[a] = document_element;
+        }
+        // $(".test")
+        else if(a[0] == '.'){
+            document_element = new Document_element(undefined, a.substring(1,));
+            // document[a] = document_element;
+        }
+        // document
+        else if (a == document){
+            document_element = document;
+        }
+        // $("p")
+        else{
+            document_element = new Document_element(undefined, undefined,a.substring(1,));
+            // document[a] = document_element;
+        }
+        array_in = [document_element]
+    }
+    return new JQ_obj(a, array_in);
+};
+../demos/eRail_in/eopg_generated_files/cs_0.js
+41              document_element = new Document_element(undefined, undefined,a.substring(1,));
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));
+==========================
+../demos/eRail_in/eopg_generated_files/bg.js
+254             a.Data =
+                "Error";
+../demos/eRail_in/eopg_generated_files/cs_0.js
+267             SendMessageToMainPage(a.Action, a.Message, typeof a.Data === "string" ? a.Data : JSON.stringify(a.Data));

@@ -1,0 +1,101 @@
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+183	function Port(info){
+    if (info.includeTlsChannelId){
+        this.includeTlsChannelId = info.includeTlsChannelId;
+    }
+    if (info.name){
+        this.name = info.name;
+    }
+}
+337	port.onMessage.addListener(onConnectMessage);
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+204	function Chrome(){}
+336	var port = chrome.runtime.connect({ name: "knockknock"});
+337	port.onMessage.addListener(onConnectMessage);
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+206	Chrome.prototype.runtime.connect = function(extensionId, connectInfo){
+    var eventName = 'cs_chrome_runtime_connect';
+    if (connectInfo===undefined){
+        var connectInfo = extensionId;
+        var extensionId = undefined;
+    }
+    var info = {extensionId:extensionId, connectInfo:connectInfo};
+    TriggerEvent(eventName, info);    
+    return new Port(connectInfo);
+};
+336	var port = chrome.runtime.connect({ name: "knockknock"});
+337	port.onMessage.addListener(onConnectMessage);
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+341	function onConnectMessage(response){
+    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+}
+337	port.onMessage.addListener(onConnectMessage);
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+192	Port.prototype.onMessage.addListener = function(myCallback){
+        RegisterFunc("cs_port_onMessage", myCallback);
+};
+337	port.onMessage.addListener(onConnectMessage);
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/bg.js
+58	    var mostVisitedUrls = {title:'title', url:'url'};
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/bg.js
+58	    var mostVisitedUrls = {title:'title', url:'url'};
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/bg.js
+58	    var mostVisitedUrls = {title:'title', url:'url'};
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/bg.js
+58	    var mostVisitedUrls = {title:'title', url:'url'};
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/bg.js
+58	    var mostVisitedUrls = {title:'title', url:'url'};
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+==========================
+demos/demo_FromDocToPDF/eopg_generated_files/bg.js
+58	    var mostVisitedUrls = {title:'title', url:'url'};
+demos/demo_FromDocToPDF/eopg_generated_files/cs_0.js
+342	    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
