@@ -1038,7 +1038,7 @@ def function_p_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this=No
         if args:
             G.set_node_attr(new_func, ('bound_args', args))
         returned_objs.append(new_func)
-        logger.log('Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this.obj_nodes, ast_node))
+        logger.info('Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this.obj_nodes, ast_node))
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=func.obj_nodes)
 
 
