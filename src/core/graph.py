@@ -1055,7 +1055,7 @@ class Graph:
         branch = branches.get_last_choice_tag()
         # remove previous objects
         pre_objs = self.get_objs_by_name_node(name_node, branches)
-        self.logger.debug(f'Assigning {obj_nodes} to {name_node}, ' \
+        self.logger.debug(f'Assigning {obj_nodes} to {name_node}, ' + \
             f'pre_objs={pre_objs}, branches={branches}')
         if pre_objs and not multi:
             for obj in pre_objs:

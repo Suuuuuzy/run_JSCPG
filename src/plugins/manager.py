@@ -45,8 +45,8 @@ class PluginManager(object):
         from .internal.handlers.not_impl import HandleContinue as HandleContinue
         from .internal.handlers.not_impl import HandleStmtList as HandleStmtList
         from .internal.handlers.not_impl import HandleAssignOP as HandleAssignOP
-        from .internal.handlers.class_ import HandleClass as HandleClass
-        from .internal.handlers.class_ import HandleMethod as HandleMethod 
+        from .internal.handlers.not_impl import HandleClass as HandleClass
+        from .internal.handlers.not_impl import HandleMethod as HandleMethod 
         def __init__(self, G):
             self.G = G
             self.handler_map = {

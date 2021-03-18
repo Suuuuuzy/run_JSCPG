@@ -143,18 +143,22 @@ class OPGen:
 
         entrance_files = get_entrance_files_of_package(package_path)
 
+        loggers.detail_logger.info(f"{G.package_name} started")
         for entrance_file in entrance_files:
-            G = self.get_new_graph()
+            G = self.get_new_graph(package_name=package_path)
             test_res = self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
             if len(test_res) != 0:
                 break
     
-    def get_new_graph(self):
+    def get_new_graph(self, package_name=None):
         """
         set up a new graph
         """
         self.graph = Graph()
-        self.graph.package_name = options.input_file
+        if not package_name:
+            self.graph.package_name = options.input_file
+        else:
+            self.graph.package_name = package_name
         setup_graph_env(self.graph)
         return self.graph
 
@@ -205,7 +209,7 @@ class OPGen:
 
             for package_path in package_list:
                 # init a new graph
-                self.get_new_graph()
+                self.get_new_graph(package_name=package_path)
                 self.test_nodejs_package(package_path, 
                         options.vul_type, self.graph, timeout_s=timeout_s)
 
