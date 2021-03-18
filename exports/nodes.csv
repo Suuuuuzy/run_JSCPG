@@ -1,0 +1,149 @@
+id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	classname	namespace	endlineno:int	name	doccomment	export	tainted
+0	Filesystem	File									test.js		True	
+1	AST	AST_TOPLEVEL	TOPLEVEL_FILE	1					1::5:26	5	test.js		True	
+2	Artificial	CFG_FUNC_ENTRY					1				test.js		True	
+3	Artificial	CFG_FUNC_EXIT					1				test.js		True	
+4	AST	AST_STMT_LIST		1		0	1		1::5:26	5			True	
+5	AST	AST_ASSIGN		1	window.gvar = 5	0	1		1::1:15	1			True	
+6	AST	AST_PROP		1	window.gvar	0	1		1::1:11	1			True	
+7	AST	AST_VAR		1		0	1		1::1:6	1			True	
+8	AST	string		1	window	0	1		1::1:6	1	window		True	
+9	AST	string		1	gvar	1	1		1:7:1:11	1			True	
+10	AST	integer		1	5	1	1		1:14:1:15	1			True	
+11	AST	AST_METHOD_CALL		2	console.log(gvar)	1	1		2::2:17	2			True	
+12	AST	AST_VAR		2		0	1		2::2:7	2			True	
+13	AST	string		2	console	0	1		2::2:7	2	console		True	
+14	AST	string		2	log	1	1		2:8:2:11	2			True	
+15	AST	AST_ARG_LIST		2	(gvar)	2	1		2::2:17	2			True	
+16	AST	AST_VAR		2		0	1		2:12:2:16	2			True	
+17	AST	string		2	gvar	0	1		2:12:2:16	2	gvar		True	
+18	AST	AST_ASSIGN		4	gvar2 = 6	2	1		4:4:4:13	4			True	
+19	AST	AST_VAR	JS_DECL_VAR	4		0	1		4:4:4:9	4			True	
+20	AST	string		4	gvar2	0	1		4:4:4:9	4	gvar2		True	
+21	AST	integer		4	6	1	1		4:12:4:13	4			True	
+22	AST	AST_METHOD_CALL		5	console.log(window.gvar2)	3	1		5::5:25	5			True	
+23	AST	AST_VAR		5		0	1		5::5:7	5			True	
+24	AST	string		5	console	0	1		5::5:7	5	console		True	
+25	AST	string		5	log	1	1		5:8:5:11	5			True	
+26	AST	AST_ARG_LIST		5	(window.gvar2)	2	1		5::5:25	5			True	
+27	AST	AST_PROP		5	window.gvar2	0	1		5:12:5:24	5			True	
+28	AST	AST_VAR		5		0	1		5:12:5:18	5			True	
+29	AST	string		5	window	0	1		5:12:5:18	5	window		True	
+30	AST	string		5	gvar2	1	1		5:19:5:24	5			True	
+31	Scope	BASE_SCOPE									Base		True	
+32	Name										window		True	
+33	Object	object											True	
+34	Name										null		True	
+35	Object	object			null								True	
+36	Name										null		True	
+37	Object	boolean			true								True	
+38	Name										true		True	
+39	Name										true		True	
+40	Object	boolean			false								True	
+41	Name										false		True	
+42	Name										false		True	
+1168	Object	undefined			undefined								True	
+1169	Name										undefined		True	
+1170	Name										undefined		True	
+1171	Object	number			Infinity								True	
+1172	Name										Infinity		True	
+1173	Name										Infinity		True	
+1174	Object	number			-Infinity								True	
+1175	Object	number			nan								True	
+1176	Name										NaN		True	
+1177	Name										NaN		True	
+1178	Artificial_AST	AST_CLOSURE											True	
+1179	Artificial_AST	string				0					RegisterFunc		True	
+1180	Artificial	CFG_FUNC_ENTRY											True	
+1181	Artificial	CFG_FUNC_EXIT											True	
+1182	Artificial_AST	AST_PARAM_LIST				1							True	
+1183	Object	function											True	
+1184	Name										prototype		True	
+1185	Object	object											True	
+1186	Name										__proto__		True	
+1187	Name										constructor		True	
+1188	Name										__proto__		True	
+1189	Name										constructor		True	
+1190	Name										RegisterFunc		True	
+1191	Name										RegisterFunc		True	
+1192	Artificial_AST	AST_CLOSURE											True	
+1193	Artificial_AST	string				0					TriggerEvent		True	
+1194	Artificial	CFG_FUNC_ENTRY											True	
+1195	Artificial	CFG_FUNC_EXIT											True	
+1196	Artificial_AST	AST_PARAM_LIST				1							True	
+1197	Object	function											True	
+1198	Name										prototype		True	
+1199	Object	object											True	
+1200	Name										__proto__		True	
+1201	Name										constructor		True	
+1202	Name										__proto__		True	
+1203	Name										constructor		True	
+1204	Name										TriggerEvent		True	
+1205	Name										TriggerEvent		True	
+1206	Artificial_AST	AST_CLOSURE											True	
+1207	Artificial_AST	string				0					MarkSource		True	
+1208	Artificial	CFG_FUNC_ENTRY											True	
+1209	Artificial	CFG_FUNC_EXIT											True	
+1210	Artificial_AST	AST_PARAM_LIST				1							True	
+1211	Object	function											True	
+1212	Name										prototype		True	
+1213	Object	object											True	
+1214	Name										__proto__		True	
+1215	Name										constructor		True	
+1216	Name										__proto__		True	
+1217	Name										constructor		True	
+1218	Name										MarkSource		True	
+1219	Name										MarkSource		True	
+1220	Artificial_AST	AST_CLOSURE											True	
+1221	Artificial_AST	string				0					MarkSink		True	
+1222	Artificial	CFG_FUNC_ENTRY											True	
+1223	Artificial	CFG_FUNC_EXIT											True	
+1224	Artificial_AST	AST_PARAM_LIST				1							True	
+1225	Object	function											True	
+1226	Name										prototype		True	
+1227	Object	object											True	
+1228	Name										__proto__		True	
+1229	Name										constructor		True	
+1230	Name										__proto__		True	
+1231	Name										constructor		True	
+1232	Name										MarkSink		True	
+1233	Name										MarkSink		True	
+1234	Artificial_AST	AST_CLOSURE											True	
+1235	Artificial_AST	string				0					MarkAttackEntry		True	
+1236	Artificial	CFG_FUNC_ENTRY											True	
+1237	Artificial	CFG_FUNC_EXIT											True	
+1238	Artificial_AST	AST_PARAM_LIST				1							True	
+1239	Object	function											True	
+1240	Name										prototype		True	
+1241	Object	object											True	
+1242	Name										__proto__		True	
+1243	Name										constructor		True	
+1244	Name										__proto__		True	
+1245	Name										constructor		True	
+1246	Name										MarkAttackEntry		True	
+1247	Name										MarkAttackEntry		True	
+1248	Object	function									test.js		True	
+1249	Name										prototype		True	
+1250	Object	object											True	
+1251	Name										__proto__		True	
+1252	Name										constructor		True	
+1253	Name										__proto__		True	
+1254	Name										constructor		True	
+1255	Name										test.js		True	
+1256	Name										test.js		True	
+1257	Name										name		True	
+1258	Object	string			test.js								True	
+1259	Name										__proto__		True	
+1260	Name										constructor		True	
+1261	Name										length		True	
+1262	Object	number			7								True	
+1263	Name										length		True	
+1264	Object	number			0								True	
+1265	Scope	FILE_SCOPE									File1:0		True	
+1266	Scope	BLOCK_SCOPE									Block4:0		True	
+1267	Name										gvar2		True	
+1268	Name										gvar		True	
+1269	Object	number			5.0								True	
+1270	Name										gvar		True	
+1271	Object	number			6.0								True	
+1272	Name										gvar2		True	
