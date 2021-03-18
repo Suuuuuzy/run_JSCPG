@@ -32,6 +32,7 @@ class Graph:
         self.dont_quit = None
         self.last_stmts = []
         self.package_name = None
+        self.no_file_based = False
 
         # for control flow
         self.cfg_stmt = None
@@ -262,8 +263,6 @@ class Graph:
             except nx.NetworkXError:
                 break
 
-    def get_successors(self, node_id):
-        return self.graph.successors(node_id)
 
     def get_out_edges(self, node_id, data = True, keys = True, edge_type = None):
         assert node_id is not None
@@ -506,12 +505,14 @@ class Graph:
 
         return children
 
-    def get_child_nodes(self, node_id, edge_type=None, child_name=None, child_type=None):
+    def get_child_nodes(self, node_id, edge_type=None, child_name=None, child_type=None, 
+        child_label=None):
         """
         return the children of node (with a specific edge type, name, or node type)
         """
-        if edge_type is None and child_name is None and child_type is None:
-            return self.get_successors(node_id)
+        if edge_type is None and child_name is None and child_type is None \
+            and child_label is None:
+            return self.graph.successors(node_id)
         res = set()
         edges = self.get_out_edges(node_id, edge_type=edge_type)
         for edge in edges:
@@ -524,6 +525,8 @@ class Graph:
             if flag:
                 res.add(edge[1])
         return list(res)
+
+    get_successors = get_child_nodes
 
     def get_name_from_child(self, nodeid, max_depth = None):
         """

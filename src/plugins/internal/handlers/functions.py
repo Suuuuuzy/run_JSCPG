@@ -748,75 +748,204 @@ def evaluate_func(func_obj):
     # print("evalute function", func_obj)
 
 def run_exported_functions(G, module_exports_objs, extra):
-    exported_objs = G.get_prop_obj_nodes(module_exports_objs[0])
-    exported_objs += module_exports_objs
+    if G.no_file_based and len(G.file_stack) > 1: # ignore file-based
+        return
 
-    while(len(exported_objs) != 0):
-        obj = exported_objs.pop()
+    exported_objs = list(module_exports_objs)
+    # object names (or expressions to get the objects)
+    exported_obj_names = ['module.exports'] * len(exported_objs)
+    # Roots are the first functions that needs to be call to reach the
+    # current function, used to build control flow paths from it to the
+    # source function that can reach the sink function.
+    roots = [None] * len(exported_objs)
+    # EXIT nodes of the previous function in CF paths described above
+    prev_exit_nodes = [None] * len(exported_objs)
+
+    tried = set(exported_objs) # objects that have been tried
+
+    def _find_props(parent_obj, parent_obj_name):
+        '''
+        Find properties under an object.
+        '''
+        nonlocal G, tried
+        proto_objs = \
+            G.get_prop_obj_nodes(parent_obj=parent_obj, prop_name='__proto__')
+        result_objs = []
+        result_obj_names = []
+        for name_node in G.get_prop_name_nodes(parent_obj):
+            name = G.get_node_attr(name_node).get('name') or '?'
+            if name in ['__proto__', 'prototype', 'constructor']: continue
+            obj_nodes = G.get_obj_nodes(name_node)
+            for obj in obj_nodes:
+                if obj in tried: continue
+                result_objs.append(obj)
+                result_obj_names.append(f'{parent_obj_name}.{name}')
+        for proto_obj in proto_objs:
+            if proto_obj not in G.builtin_prototypes:
+                for name_node in G.get_prop_name_nodes(proto_obj):
+                    name = G.get_node_attr(name_node).get('name') or '?'
+                    if name in ['__proto__', 'prototype', 'constructor']:
+                        continue
+                    obj_nodes = G.get_obj_nodes(name_node)
+                    for obj in obj_nodes:
+                        if obj in tried: continue
+                        result_objs.append((parent_obj, obj))
+                        # result_obj_names.append(f'{cur_obj_name}.{name}')
+                        result_obj_names.append(
+                            f'{parent_obj_name}.__proto__.{name}')
+            # Promises
+            if proto_obj == G.promise_prototype:
+                executors = G.get_node_attr(parent_obj).get('executors')
+                if executors:
+                    for executor in executors:
+                        if executor in tried: continue
+                        result_objs.append((parent_obj, executor))
+                        result_obj_names.append(
+                            f'{parent_obj_name}.then()')
+        return result_objs, result_obj_names
+
+    while(len(exported_objs) != 0): # BFS
+        obj = exported_objs.pop(0) # head object
+        cur_obj_name = exported_obj_names.pop(0) # head object name
+        prev_exit_node = prev_exit_nodes.pop(0) # previous EXIT node of head
+        cur_root = roots.pop(0) # root of head
         parent_obj = None
-        if type(obj) == type((1,2)):
+        if type(obj) == type((1,2)): # if head is a tuple, extract parent obj
             parent_obj = obj[0]
             obj = obj[1]
-        if not parent_obj:
-            parent_obj = obj
 
+        # ignore built-in functions
         if 'pythonfunc' in G.get_node_attr(obj):
             continue
+        # limit entry function by name (if set by command line arguments)
         if G.func_entry_point is not None and not (
-            G.get_node_attr(obj).get('type') == 'function' and
-            G.get_node_attr(obj).get('name') == G.func_entry_point):
+            G.get_node_attr(obj).get('type') == 'function' and (
+            G.get_node_attr(obj).get('name') == G.func_entry_point
+            or cur_obj_name == G.func_entry_point)):
             continue
+
+        _objs, _names = _find_props(obj, cur_obj_name)
+        exported_objs.extend(_objs)
+        exported_obj_names.extend(_names)
+        prev_exit_nodes.extend([prev_exit_node] * len(_objs))
+        roots.extend([cur_root] * len(_objs))
+        tried.update(_objs)
+
+        # save current IPT & PP sets before running the function
+        #old_ipt_use = set(G.ipt_use)
+        # ↓ not used becase now we use offline detection
+        # old_pp = set(G.proto_pollution)
 
         if obj in G.require_obj_stack:
             continue
         G.require_obj_stack.append(obj)
         newed_objs = None
-        returned_objs = None
+        newed_obj_names = None
         if G.get_node_attr(obj).get("init_run") is not None:
             continue
         if G.get_node_attr(obj).get('type') != 'function':
             continue
-        # some times they write exports= new foo() eg. libnmap
-        loggers.main_logger.log(ATTENTION, 'Run exported function {} {}'.format(obj, G.get_node_attr(obj)))
-        # if G.function_time_limit:
-        if False:
-            try:
-                returned_result, newed_objs = func_timeout(
-                    G.function_time_limit, call_function,
-                    args=(G, [obj]),
-                    kwargs={
-                        'this':
-                            NodeHandleResult(obj_nodes=[parent_obj]),
-                        'extra': extra, 'is_new': True,
-                        'mark_fake_args': True
-                    })
-            except FunctionTimedOut:
-                continue
+        loggers.main_logger.info('Run exported function {} {}'.format(obj, cur_obj_name))
+        G.cur_source_name = cur_obj_name
+        # func_timeout may cause threading problems
+        G.time_limit_reached = False
+        G.func_start_time = time.time()
+        # G.cur_fake_args = set() # don't clear the fake arg set
+        if parent_obj is None:
+            # if the function is not a method, try it as a constructor
+            # (both instantiated object and return values will be returned)
+            returned_result, newed_objs = call_function(G, [obj],
+                extra=extra, is_new=True, mark_fake_args=True)
         else:
-            # func_timeout may cause threading problems
+            # if the function is a method, run it with "this" set to its
+            # parent object
             returned_result, newed_objs = call_function(G, [obj],
                 this=NodeHandleResult(obj_nodes=[parent_obj]),
-                extra=extra, is_new=True, mark_fake_args=True
-            )
-
-        if newed_objs is None:
-            newed_objs = [obj] 
-
+                extra=extra, mark_fake_args=True)
         G.set_node_attr(obj, ('init_run', "True"))
-        # include newed objects and return objects
+
+        # bound functions (bind)
+        target_func = G.get_node_attr(obj).get('target_func')
+        if target_func is not None:
+            obj = target_func
+
+        cur_func_ast = G.get_obj_def_ast_node(obj, aim_type='function')
+        cur_entry_node = G.get_successors(cur_func_ast, edge_type='ENTRY')[0]
+        cur_exit_node = G.get_successors(cur_func_ast, edge_type='EXIT')[0]
+        if prev_exit_node is not None:
+            G.add_edge_if_not_exist(
+                prev_exit_node, cur_entry_node, {"type:TYPE": "FLOWS_TO"})
+
+        # include instantiated objects
+        if newed_objs is None:
+            newed_objs = [obj]
+            newed_obj_names = [cur_obj_name]
+        else:
+            newed_obj_names = [f'(new {cur_obj_name}())'] * len(newed_objs)
+        exported_objs.extend(newed_objs)
+        exported_obj_names.extend(newed_obj_names)
+        prev_exit_nodes.extend([cur_exit_node] * len(newed_objs))
+        roots.extend([cur_root or cur_func_ast] * len(newed_objs))
+
+        # also include returned objects
         if returned_result is not None:
-            newed_objs.extend(returned_result.obj_nodes)
-        # we may have prototype functions:
-        for newed_obj in newed_objs:
-            proto_obj = G.get_prop_obj_nodes(parent_obj=newed_obj, 
-                    prop_name='__proto__')
-            generated_objs = \
-                G.get_prop_obj_nodes(parent_obj=newed_obj)
-            generated_objs += \
-                G.get_prop_obj_nodes(parent_obj=proto_obj)
-            # newed obj haven't been run
-            generated_objs.append(newed_obj)
-            for obj in generated_objs:
-                if G.get_node_attr(obj).get('type') == 'function':
-                    exported_objs.append((newed_obj, obj))
+            exported_objs.extend(returned_result.obj_nodes)
+            exported_obj_names.extend(
+                [f'{cur_obj_name}()'] * len(returned_result.obj_nodes))
+            prev_exit_nodes.extend(
+                [cur_exit_node] * len(returned_result.obj_nodes))
+            roots.extend(
+                [cur_root or cur_func_ast] * len(returned_result.obj_nodes))
+
+        # prepare some strings for vulnerability log
+        func_ast = G.get_obj_def_ast_node(obj, aim_type='function')
+        param_list = G.get_child_nodes(func_ast, edge_type='PARENT_OF',
+            child_type='AST_PARAM_LIST')
+        params = G.get_ordered_ast_child_nodes(param_list)
+        arg_names = filter(lambda x: x is not None,
+            (G.get_name_from_child(param) for param in params))
+        args = ','.join(arg_names)
+
+        # detect vulnerabilities
+        vul_type = G.vul_type
+
+        if vul_type not in ['proto_pollution', 'int_prop_tampering']:
+            res_path = traceback(G, vul_type)
+            res_path = vul_checking(G, res_path[0], vul_type)
+            if len(res_path) != 0:
+                with open('vul_func_names.csv', 'a') as fp:
+                    loggers.main_logger.info(f'{vul_type} successfully found in '
+                               f'{G.entry_file_path} at {cur_obj_name}({args})')
+                    fp.write(f'{vul_type},"{G.entry_file_path}","{cur_obj_name}","{args}"\n')
+                G.success_detect = True
+                if G.exit_when_found:
+                    G.finished = True
+                    break
+
+        if G.check_proto_pollution:
+            # set subtraction, only keep new results
+            pps = check_pp(G) - G.proto_pollution
+            if pps: # if there are new results
+                with open('vul_func_names.csv', 'a') as fp:
+                    logger.log(ATTENTION, f'proto_pollution found in {G.entry_file_path} at {cur_obj_name}({args})')
+                    fp.write(f'proto_pollution,"{G.entry_file_path}","{cur_obj_name}","{args}"\n')
+                G.proto_pollution.update(pps)
+                G.success_detect = True
+                if G.vul_type == 'proto_pollution' and G.exit_when_found:
+                    G.finished = True
+                    break
+                else:
+                    G.finished = False
+            else:
+                G.finished = False
+
+        if G.check_ipt:
+            if G.ipt_use:# - old_ipt_use: # if there are new results
+                with open('vul_func_names.csv', 'a') as fp:
+                    logger.log(ATTENTION, f'int_prop_tampering found in {G.entry_file_path} at {cur_obj_name}({args})')
+                    fp.write(f'int_prop_tampering,"{G.entry_file_path}","{cur_obj_name}","{args}"\n')
+                G.success_detect = True
+                if G.vul_type == 'int_prop_tampering' and G.exit_when_found:
+                    G.finished = True
+                    break
 
