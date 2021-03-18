@@ -262,13 +262,20 @@ def install_list_of_packages(package_list):
     """
     install a list of packages into environment/packages/
     """
+    from tools.package_downloader import download_package
     package_root_path = os.path.join(options.run_env, "packages")
     package_root_path = os.path.abspath(package_root_path)
     if not os.path.exists(package_root_path):
         os.mkdir(package_root_path)
     print("Installing packages")
+    version_number = None
     for package in tqdm(package_list):
-        os.system(f"cd tools;./npm_download.sh {package} {package_root_path}")
+        if '@' in package and package[0] != '@':
+            version_number = package.split('@')[1]
+            package = package.split('@')[0]
+
+        download_package(package, version_number, target_path=package_root_path)
+
 
 def setup_graph_env(G: Graph):
     """
