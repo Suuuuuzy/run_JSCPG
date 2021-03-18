@@ -41,7 +41,7 @@ class OPGen:
         Returns:
             the test result pathes of the module
         """
-        vul_pathes = None
+        vul_pathes = []
 
         if vul_type == 'os_command' or vul_type == 'path_traversal':
             pathes = traceback(G, vul_type)
@@ -103,12 +103,12 @@ class OPGen:
         print("Testing {} {}".format(vul_type, module_path))
         if module_path is None:
             loggers.error_logger.error("[ERROR] {} not found".format(module_path))
-            return -1
+            return []
 
         if G is None:
             G = self.graph
 
-        test_res = None
+        test_res = []
         # pretend another file is requiring this module
         js_call_templete = "var main_func=require('{}');".format(module_path)
         if timeout_s is not None:

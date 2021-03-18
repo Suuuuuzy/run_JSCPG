@@ -209,8 +209,8 @@ def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), call
             else:
                 name_obj_node = G.add_obj_node(ast_node=caller_ast,
                     js_type='number', value=float(name))
-            obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
-            logger.debug(f'Array forEach callback arguments: index={name} ({sty.fg.green}{name_obj_node}{sty.rs.all}), obj_nodes={obj_nodes_log}, array={arr}')
+            obj_nodes_log = ', '.join([f'{obj}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
+            logger.debug(f'Array forEach callback arguments: index={name} ({name_obj_node}), obj_nodes={obj_nodes_log}, array={arr}')
             opgen.call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                         obj_nodes=obj_nodes),
@@ -247,7 +247,7 @@ def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult()
                 index_arg = NodeHandleResult(obj_nodes=[name_obj_node])
             else:
                 index_arg = NodeHandleResult(values=[float(name)])
-            obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
+            obj_nodes_log = ', '.join([f'{obj}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
             logger.debug(f'Array forEach callback arguments: index={name}, obj_nodes={obj_nodes_log}, array={arr}')
             def add_for_stack(G, **kwargs):
                 nonlocal name, name_nodes, array
@@ -271,7 +271,7 @@ def array_p_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult
         elements = G.get_prop_obj_nodes(arr, branches=branches)
         for elem in elements:
             objs.add(elem)
-    logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
+    logger.debug(f'Calling callback functions {callback.obj_nodes} with elements {objs}.')
     for func in callback.obj_nodes:
         func_decl = G.get_obj_def_ast_node(func)
         func_name = G.get_name_from_child(func_decl)
@@ -310,7 +310,7 @@ def array_p_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleRe
     args = [NodeHandleResult(obj_nodes=objs),
             NodeHandleResult(values=names, value_tags=name_tags),
             array]
-    logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
+    logger.debug(f'Calling callback functions {callback.obj_nodes} with elements {objs}.')
     new_extra = ExtraInfo(extra, branches=extra.branches+[BranchTag(point=f'ForEach{caller_ast}')])
     call_function(G, callback.obj_nodes, args=args,
         extra=new_extra, caller_ast=caller_ast, func_name=callback.name)
@@ -1141,7 +1141,7 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
                 value = to_python_array(G, obj, value=True)[0]
             else:
                 value = G.get_node_attr(obj).get('code')
-            values.append(f'{sty.fg.da_grey}{obj}{sty.rs.all}: {val_to_str(value)}')
+            values.append(f'{obj}: {val_to_str(value)}')
         logger.debug(f'Argument {i} values: ' + ', '.join(values))
     return NodeHandleResult(obj_nodes=[G.undefined_obj], used_objs=list(used_objs))
 
