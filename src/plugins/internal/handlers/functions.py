@@ -922,23 +922,6 @@ def run_exported_functions(G, module_exports_objs, extra):
                     G.finished = True
                     break
 
-        if G.check_proto_pollution:
-            # set subtraction, only keep new results
-            pps = check_pp(G) - G.proto_pollution
-            if pps: # if there are new results
-                with open('vul_func_names.csv', 'a') as fp:
-                    logger.log(ATTENTION, f'proto_pollution found in {G.entry_file_path} at {cur_obj_name}({args})')
-                    fp.write(f'proto_pollution,"{G.entry_file_path}","{cur_obj_name}","{args}"\n')
-                G.proto_pollution.update(pps)
-                G.success_detect = True
-                if G.vul_type == 'proto_pollution' and G.exit_when_found:
-                    G.finished = True
-                    break
-                else:
-                    G.finished = False
-            else:
-                G.finished = False
-
         if G.check_ipt:
             if G.ipt_use:# - old_ipt_use: # if there are new results
                 with open('vul_func_names.csv', 'a') as fp:

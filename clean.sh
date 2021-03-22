@@ -1,2 +1,4 @@
 rm ./*.log;
-rm testnodes.csv testrels.csv
+rm testnodes.csv testrels.csv;
+rm package-lock.json
+

@@ -53,12 +53,26 @@ def traceback(G, vul_type, start_node=None):
         the list of callers,
     """
     res_path = ""
+    ret_pathes = []
+    caller_list = []
+    if vul_type == "proto_pollution":
+        # in this case, we have to specify the start_node
+        if start_node is not None:
+            start_cpg = G.find_nearest_upper_CPG_node(start_node)
+            pathes = G._dfs_upper_by_edge_type(start_cpg, "OBJ_REACHES")
+
+            for path in pathes:
+                ret_pathes.append(path)
+                path.reverse()
+                res_path += get_path_text(G, path, caller)
+            
+            return ret_pathes, res_path, caller_list
+
     expoit_func_list = signature_lists[vul_type]
 
     func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
     func_nodes += G.get_node_by_attr('type', 'AST_CALL')
-    ret_pathes = []
-    caller_list = []
+
     for func_node in func_nodes:
         # we assume only one obj_decl edge
         func_name = G.get_name_from_child(func_node)
@@ -68,19 +82,6 @@ def traceback(G, vul_type, start_node=None):
             caller_list.append("{} called {}".format(caller, func_name))
             pathes = G._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
 
-            # here we treat the single calling as a possible path
-            # pathes.append([caller])
-
-            # give the end node one more chance, find the parent obj of the ending point
-            """
-            for path in pathes:
-                last_node = path[-1]
-                upper_nodes = G._dfs_upper_by_edge_type(last_node, 
-                        "OBJ_TO_PROP")
-                for uppernode in upper_nodes:
-                    path.append(uppernode)
-                #print('--', upper_nodes)
-            """
             for path in pathes:
                 ret_pathes.append(path)
                 path.reverse()
@@ -182,6 +183,10 @@ def vul_checking(G, pathes, vul_type):
 
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)
+    print_success_pathes(G, success_pathes)
+    return success_pathes
+
+def print_success_pathes(G, success_pathes):
     print(sty.fg.li_green + "|Checker| success: ", success_pathes)
     path_id = 0
     for path in success_pathes:
@@ -191,5 +196,4 @@ def vul_checking(G, pathes, vul_type):
         path_id += 1
         print("Attack Path: ")
         print(res_text_path + sty.rs.all)
-    return success_pathes
 

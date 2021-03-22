@@ -6,6 +6,7 @@ from . import vars
 from src.plugins.handler import Handler
 from src.plugins.internal.handlers.vars import handle_var
 import sty
+from src.core.checker import traceback, print_success_pathes
 
 class HandleBinaryOP(Handler):
     """
@@ -231,9 +232,13 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
             name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)
                 .get('name')))) for x in handled_left.name_nodes]
             print(sty.fg.li_green + sty.ef.inverse +
-                'Prototype pollution at node {} (Line {}), '
-                .format(ast_node, G.get_node_attr(ast_node).get('lineno:int')),
+                'Prototype pollution detected at node {} (Line {})'
+                .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'))
                  + sty.rs.all)
+
+            pathes = traceback(G, "proto_pollution", ast_node)
+            #print_success_pathes(pathes)
+
             logger.warning(sty.fg.li_red + sty.ef.inverse +
                 'Possible prototype pollution at node {} (Line {}), '
                 'trying to assign {} to name node {}'
