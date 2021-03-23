@@ -141,7 +141,6 @@ class PluginManager(object):
             handle_obj = self.handler_map[node_type](self.G, node_id, extra=extra)
             handle_res = handle_obj.process()
 
-
             return handle_res
 
 

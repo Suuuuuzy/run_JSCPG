@@ -68,6 +68,8 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
     if not now_objs:
         now_objs = [G.undefined_obj]
     loggers.main_logger.info("Var {} handle result -> {}".format(var_name, now_objs))
+    for now_obj in now_objs:
+        loggers.main_logger.info(f"\t{now_obj}: {G.get_node_attr(now_obj)}")
 
     return NodeHandleResult(obj_nodes=now_objs, name=var_name,
         name_nodes=name_nodes, # from_branches=[from_branches],

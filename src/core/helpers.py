@@ -8,7 +8,9 @@ from src.core.esprima import esprima_parse
 from src.core.logger import loggers
 from src.plugins.internal.utils import register_func
 from .logger import loggers, sty
+
 import json
+from functools import reduce
 
 def get_argnames_from_funcaller(G, node_id):
     """
