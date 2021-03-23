@@ -7,6 +7,7 @@ from src.plugins.handler import Handler
 from src.plugins.internal.handlers.vars import handle_var
 import sty
 from src.core.checker import traceback, print_success_pathes
+from src.core.options import options
 
 class HandleBinaryOP(Handler):
     """
@@ -228,7 +229,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
                 flag2 = True
                 break
         if flag2:
-            loggers.res_logger.info(f"Prototype pollution detected in {G.package_name}")
+            #loggers.res_logger.info(f"Prototype pollution detected in {G.package_name}")
             name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)
                 .get('name')))) for x in handled_left.name_nodes]
             print(sty.fg.li_green + sty.ef.inverse +
@@ -248,6 +249,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
             logger.debug(f'Pollutable objs: {G.pollutable_objs}')
             logger.debug(f'Pollutable NN: {G.pollutable_name_nodes}')
             G.proto_pollution.add(ast_node)
+            G.detection_res[options.vul_type].add(G.package_name)
             if G.exit_when_found:
                 G.finished = True
             # skip doing the assignment
