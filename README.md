@@ -39,7 +39,7 @@ Currently, for the packages that use CLASS, we need to use babel to convert them
 
 For example:
 ```shell
-$ ./generate_opg.py -t os_command ./chas_class/main.js --babel ./chas_class/
+$ ./generate_opg.py -t os_command ./tests/chas_class/main.js --babel ./tests/chas_class/
 ```
 
 
@@ -51,10 +51,10 @@ $ ./generate_opg.py ./tests/test.js -m -t os_command
 
 For the modified version of challenge example, you can simply run 
 ```shell
-$ ./generate_opg.py -t os_command ./chas/main.js
+$ ./generate_opg.py -t os_command ./tests/chas/main.js
 ```
 
 For the original version of challenge example, you can simply run 
 ```shell
-$ ./generate_opg.py -t os_command ./chas_class/main.js --babel ./chas_class/
+$ ./generate_opg.py -t os_command ./tests/chas_class/main.js --babel ./tests/chas_class/
 ```
