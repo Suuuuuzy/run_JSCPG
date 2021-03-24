@@ -711,7 +711,6 @@ def array_p_reduce(G: Graph, caller_ast, extra, arrays: NodeHandleResult, callba
         returns = None
         if length != wildcard:
             for i in range(start, length):
-                print(i, G.get_node_attr(G.get_prop_obj_nodes(arr, str(i), extra.branches)[0]), accumulator, accumulator.name_tainted)
                 returns = call_function(G, callback.obj_nodes,
                     args=[accumulator, NodeHandleResult(
                         obj_nodes=G.get_prop_obj_nodes(arr, str(i), extra.branches)),
