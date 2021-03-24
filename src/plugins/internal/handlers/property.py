@@ -6,6 +6,7 @@ from ..utils import is_wildcard_obj
 from src.core.logger import loggers, sty
 from ..utils import get_df_callback,add_contributes_to
 from itertools import chain
+from src.plugins.internal.modeled_js_builtins_list import modeled_builtin_lists
 
 class HandleProp(Handler):
     """
@@ -277,6 +278,19 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                         for obj in prop_objs:
                             add_contributes_to(G, prop_name_sources, obj)
 
+        # it happens that the not found is because of type problem
+        if (not in_proto and not name_node_found) and is_wildcard_obj(G, parent_obj):
+            # try to convert the object to a type of node
+            for t in modeled_builtin_lists:
+                cur_methods = modeled_builtin_lists[t]
+                if prop_name in cur_methods:
+                    G.convert_wildcard_obj_type(parent_obj, t)
+                    # re-run the find_prop after convert the obj type
+                    return find_prop(G, parent_objs, prop_name, branches=branches,
+                        side=side, parent_name=parent_name, in_proto=in_proto, depth=depth,
+                        prop_name_for_tags=prop_name_for_tags, ast_node=ast_node, 
+                        prop_name_sources=prop_name_sources)
+
         # Create a name node if not found.
         # We cannot create name node under __proto__.
         # Name nodes are only created under the original parent objects.
@@ -286,7 +300,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         # Note that if it's on left side and the property name is
         # known, you need to create it with the concrete property name.
         if ((not in_proto or G.check_ipt) and is_wildcard_obj(G, parent_obj)
-                and not wc_name_node_found
+                and not wc_name_node_found and G.get_node_attr(parent_obj)['type'] == 'object' 
                 and (side != 'left' or prop_name == wildcard)):
             added_name_node = G.add_prop_name_node(wildcard, parent_obj)
             prop_name_nodes.add(added_name_node)

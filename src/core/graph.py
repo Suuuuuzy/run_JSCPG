@@ -724,6 +724,55 @@ class Graph:
             self.set_node_attr(obj_node, ('code', value))
 
         return obj_node
+    
+    def convert_wildcard_obj_type(self, obj_node, to_type='array'):
+        """
+        the wildcard obj maybe every type. If we found a wildcard obj is a special type
+        we need to convert the obj into the specified type. 
+        supported type: array
+        """
+        loggers.main_logger.info(f"convert obj {obj_node} type to {to_type}")
+        self.set_node_attr(obj_node, ('type', to_type))
+
+        if to_type == 'array':
+            type_prototype = self.array_prototype
+            type_constructor = self.array_cons
+
+        proto_name_node = self.get_child_nodes(obj_node, child_name='__proto__')
+        cons_name_node = self.get_child_nodes(obj_node, child_name='constructor')
+
+        if len(proto_name_node) != 0:
+            proto_name_node = proto_name_node[0]
+            cur_proto_target = self.get_child_nodes(proto_name_node, 'NAME_TO_OBJ')
+            if len(cur_proto_target) != 0:
+                self.remove_all_edges_between(proto_name_node, cur_proto_target[0])
+            self.add_edge_if_not_exist(proto_name_node, type_prototype,
+                {'type:TYPE': "NAME_TO_OBJ"})
+        else:
+            self.add_obj_as_prop(prop_name="__proto__", parent_obj=
+            obj_node, tobe_added_obj=type_prototype)
+        
+        if len(cons_name_node) != 0:
+            cons_name_node = cons_name_node[0]
+            cur_proto_target = self.get_child_nodes(cons_name_node, 'NAME_TO_OBJ')
+            if len(cur_proto_target) != 0:
+                self.remove_all_edges_between(proto_name_node, cur_proto_target[0])
+            self.add_edge_if_not_exist(cons_name_node, type_constructor,
+                {'type:TYPE': "NAME_TO_OBJ"})
+        else:
+            self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                obj_node, tobe_added_obj=type_constructor)
+        
+        if to_type == 'array':
+            # if the type is array, we should add 
+            num_added_sub = 3
+            if len(self.get_prop_obj_nodes(obj_node, prop_name='0')) == 0:
+                # no child under this array node
+                for i in range(num_added_sub):
+                    added_sub_obj = self.add_obj_as_prop(prop_name=str(i), parent_obj=obj_node)
+                    self.set_node_attr(added_sub_obj, ('tainted', True))
+                    loggers.main_logger.info(f"Adding sub obj {added_sub_obj} {self.get_node_attr(added_sub_obj)} to array {obj_node}")
+            self.add_obj_as_prop(prop_name='length', parent_obj=obj_node, value=str(num_added_sub))
 
     def add_name_node(self, name, scope=None):
         """
