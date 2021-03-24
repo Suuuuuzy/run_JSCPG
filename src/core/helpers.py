@@ -125,7 +125,7 @@ def parse_chrome_extension(G, path, start_node_id=0):
     generated_extension_dir = generate_extension_files(path)
     # TODO: popup files
     if generated_extension_dir:
-        parse_result_file = os.path.join(path, 'parse_result.txt')
+        parse_result_file = os.path.join('crx_tmp', 'parse_result.txt')
         if os.path.exists(parse_result_file) and 1==2:
             parse_result = open(parse_result_file)
             result = parse_result.read()
@@ -143,7 +143,7 @@ def parse_chrome_extension(G, path, start_node_id=0):
 
 
 def generate_extension_files(extension_path):
-    generated_extension_dir = os.path.join(extension_path, "eopg_generated_files")
+    generated_extension_dir = os.path.join('crx_tmp', "eopg_generated_files")
     if(preprocess_cs_bg_war(extension_path, generated_extension_dir)):
         return generated_extension_dir
     else:

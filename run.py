@@ -11,7 +11,7 @@ for file in files:
         count+=1
         print('run extension ' + file + ' starts')
         os.system('python3 generate_opg.py -t chrome_data_exfiltration -crx --timeout 10 ' + datapath + '/' + file)
-        with open('run_results.txt', 'a') as f:
+        with open('crx_run_results.txt', 'a') as f:
             f.write('run extension: ' + file + '\n')
         # 
         

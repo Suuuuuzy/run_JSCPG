@@ -1,5 +1,7 @@
 from .trace_rule import TraceRule
 from .vul_func_lists import *
+from src.core.logger import loggers, sty
+
 
 def get_path_text(G, path, caller):
     """
@@ -317,7 +319,9 @@ def vul_checking(G, pathes, vul_type):
         print(res_text_path)
         content += "Attack Path: " + '\n'
         content += res_text_path + '\n'
-    with open('run_results.txt', 'a') as f:
+    loggers.crx_logger.info(
+        sty.ef.inverse + sty.fg.li_magenta + content)
+    with open('crx_run_results.txt', 'a') as f:
         f.write(content)
     return success_pathes
 
