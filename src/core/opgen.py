@@ -86,12 +86,8 @@ class OPGen:
         if G is None:
             G = self.graph
         parse_chrome_extension(G, extension_path)
-        # for entrance_file in entrance_files:
-        #     if 'content' in entrance_file:
-        #         parse_file(G, entrance_file)
-        #         print('entrance_file', entrance_file)
-        #         print(G.graph.number_of_nodes())
-            # parse_file(G, entrance_file)
+        loggers.crx_logger.info(
+            sty.ef.inverse + sty.fg.li_magenta + 'run extension' + extension_path)
         test_res = self._test_graph(G, vul_type=vul_type)
         # test_res = None
         return test_res

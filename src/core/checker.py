@@ -321,7 +321,7 @@ def vul_checking(G, pathes, vul_type):
         content += res_text_path + '\n'
     loggers.crx_logger.info(
         sty.ef.inverse + sty.fg.li_magenta + content)
-    with open('crx_run_results.txt', 'a') as f:
-        f.write(content)
+    # with open('crx_run_results.txt', 'a') as f:
+    #     f.write(content)
     return success_pathes
 
