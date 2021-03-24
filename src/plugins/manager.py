@@ -112,7 +112,7 @@ class PluginManager(object):
 
             if self.G.is_statement(node_id):
                 if node_id not in self.G.covered_stat:
-                    #print("{}% stmt covered.".format(len(self.G.covered_stat) / self.G.get_total_num_statements()))
+                    # print("{}% stmt covered.".format(len(self.G.covered_stat) / self.G.get_total_num_statements()))
                     self.G.covered_stat[node_id] = 0
                 #elif self.G.covered_stat[node_id] > 300:
                 #    return NodeHandleResult()

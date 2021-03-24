@@ -1,5 +1,5 @@
 import json
-
+import time
 from .graph import Graph
 from .utils import * 
 from .helpers import *
@@ -11,6 +11,7 @@ from .checker import traceback, traceback_crx, vul_checking
 from .multi_run_helper import validate_package, get_entrance_files_of_package, validate_chrome_extension
 from .logger import loggers
 from .options import setup_graph_env
+
 
 class OPGen:
     """
@@ -85,10 +86,30 @@ class OPGen:
             return -1
         if G is None:
             G = self.graph
-        parse_chrome_extension(G, extension_path)
-        loggers.crx_logger.info(
-            sty.ef.inverse + sty.fg.li_magenta + 'run extension' + extension_path)
-        test_res = self._test_graph(G, vul_type=vul_type)
+        test_res = None
+        loggers.crx_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'run extension' + extension_path)
+        if timeout_s is not None:
+            try:
+                with timeout(seconds=timeout_s,
+                             error_message="{} timeout after {} seconds". \
+                                     format(extension_path, timeout_s)):
+                    start_time = time.time()
+                    parse_chrome_extension(G, extension_path)
+                    test_res = self._test_graph(G, vul_type=vul_type)
+                    end_time = time.time()
+                    loggers.crx_logger.info(str(end_time-start_time) + ' spent####')
+            except TimeoutError as err:
+                loggers.error_logger.error(err)
+                loggers.res_logger.error(err)
+                loggers.crx_logger.error(err)
+                if self.graph.get_total_num_statements()!=0:
+                    covered_stat_rate = 100*len(self.graph.covered_stat) / self.graph.get_total_num_statements()
+                else:
+                    covered_stat_rate = 0
+                loggers.crx_logger.info("{}% stmt covered####".format(covered_stat_rate))
+        else:
+            parse_chrome_extension(G, extension_path)
+            test_res = self._test_graph(G, vul_type=vul_type)
         # test_res = None
         return test_res
 

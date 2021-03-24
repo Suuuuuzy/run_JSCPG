@@ -1,7 +1,7 @@
 import os
 # datapath = "/Volumes/Files/extension_research/data/unzipped_extensions"
 # datapath = '/media/data2/song/extensions/unzipped_extensions'
-datapath = '/Users/jia/Desktop/tmp/EOPG/JSCPG/demos'
+datapath = '/Users/jia/Desktop/tmp/EOPG/run_JSCPG/demos'
 files = os.listdir(datapath)
 files = files[0:10]
 count = 0

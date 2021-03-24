@@ -312,7 +312,7 @@ def vul_checking(G, pathes, vul_type):
     if success_pathes!=[]:
         content = "success: " +  str(success_pathes) + '\n'
     else:
-        content = ''
+        content = 'no vulnerability discovered'
     for path in success_pathes:
         res_text_path = get_path_text(G, path, path[0])
         print("Attack Path: ")
