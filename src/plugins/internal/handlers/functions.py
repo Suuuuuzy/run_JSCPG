@@ -846,7 +846,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 
                 G.cur_objs = backup_objs
             
-            func_return_handle_res = G.function_returns[G.find_ancestor_scope()]
+            func_return_handle_res = G.function_returns[G.find_ancestor_scope()][0]
             # switch back scopes
             G.cur_scope = backup_scope
             G.cur_stmt = backup_stmt

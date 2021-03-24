@@ -36,8 +36,7 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         # add control flow edges here
         handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
 
-    for handleres in G.function_returns[G.find_ancestor_scope()]:
-        returned_objs.update(to_obj_nodes(G, handleres))
+    returned_objs = G.function_returns[G.find_ancestor_scope()][1]
     
     if block_scope:
 

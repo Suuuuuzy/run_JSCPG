@@ -82,7 +82,7 @@ class Graph:
         self.file_stack = []
         self.require_obj_stack = []
         self.cur_stmt = None # for building data flows
-        self.function_returns = defaultdict(lambda: [])
+        self.function_returns = defaultdict(lambda: [[], []])
 
         # Python-modeled built-in modules
         self.builtin_modules = {}
