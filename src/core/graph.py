@@ -771,6 +771,7 @@ class Graph:
                 for i in range(num_added_sub):
                     added_sub_obj = self.add_obj_as_prop(prop_name=str(i), parent_obj=obj_node)
                     self.set_node_attr(added_sub_obj, ('tainted', True))
+                    self.set_node_attr(added_sub_obj, ('code', wildcard))
                     loggers.main_logger.info(f"Adding sub obj {added_sub_obj} {self.get_node_attr(added_sub_obj)} to array {obj_node}")
             self.add_obj_as_prop(prop_name='length', parent_obj=obj_node, value=str(num_added_sub))
 

@@ -566,6 +566,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         return NodeHandleResult(), []
 
     logger = loggers.main_logger
+    func_return_handle_res = None
 
     # No function objects found, return immediately
     if not func_objs:
@@ -844,6 +845,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     G, func_ast, branches=next_branches, caller_ast=caller_ast)
                 
                 G.cur_objs = backup_objs
+            
+            func_return_handle_res = G.function_returns[G.find_ancestor_scope()]
             # switch back scopes
             G.cur_scope = backup_scope
             G.cur_stmt = backup_stmt
@@ -963,10 +966,18 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         G.last_stmts = [caller_cpg]
     else:
         G.last_stmts = []
+    
+    name_tainted = False
+    parent_is_proto = False
+    if func_return_handle_res is not None:
+        for hr in func_return_handle_res:
+            name_tainted = name_tainted or hr.name_tainted
+            parent_is_proto = parent_is_proto or hr.parent_is_proto
 
     return NodeHandleResult(obj_nodes=list(returned_objs),
             used_objs=list(used_objs),
             values=returned_values, value_sources=returned_value_sources,
+            name_tainted=name_tainted, parent_is_proto=parent_is_proto,
             terminated=any_func_skipped
         ), created_objs
 

@@ -220,6 +220,10 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
 
+
+    if G.check_proto_pollution:
+        loggers.main_logger.info(f"Checking proto pollution, name tainted: {handled_left.name_tainted}"\
+            f" parent is proto: {handled_left.parent_is_proto}")
     if G.check_proto_pollution and (handled_left.name_tainted and handled_left.parent_is_proto):
         flag1 = False
         flag2 = False
@@ -228,6 +232,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
             if G.get_node_attr(obj).get('tainted'):
                 flag2 = True
                 break
+        loggers.main_logger.info(f"right tainted: {flag2}")               
         if flag2:
             #loggers.res_logger.info(f"Prototype pollution detected in {G.package_name}")
             name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)

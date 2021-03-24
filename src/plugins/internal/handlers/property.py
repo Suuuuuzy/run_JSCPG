@@ -250,6 +250,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
 
         # If the property name is wildcard, fetch all properties
         if not in_proto and prop_name == wildcard:
+            loggers.main_logger.info(f"prop name is wildcard, fetch all the name nodes")
             for name_node in G.get_prop_name_nodes(parent_obj):
                 name = G.get_node_attr(name_node).get('name')
                 if name == wildcard:
@@ -261,6 +262,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     branches=branches)
                 if prop_objs:
                     prop_obj_nodes.update(prop_objs)
+            loggers.main_logger.info(f"fetch res {prop_name_nodes}")
 
         # If the name node is not found, try wildcard (*).
         # If checking prototype pollution, add wildcard (*) results.

@@ -115,6 +115,8 @@ class PluginManager(object):
                 return NodeHandleResult()
 
             if self.G.is_statement(node_id):
+                line_mark = self.G.get_node_attr(node_id)['namespace'].split(":")
+                loggers.main_logger.info(f"Running Line {line_mark[0]} to {line_mark[2]}")
                 if node_id not in self.G.covered_stat:
                     #print("{}% stmt covered.".format(len(self.G.covered_stat) / self.G.get_total_num_statements()))
                     self.G.covered_stat[node_id] = 0
