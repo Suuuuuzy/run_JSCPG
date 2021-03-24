@@ -474,8 +474,8 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
         target_name = ', '.join(G.reverse_names[target])
         if not target_name:
             target_name = repr(G.get_node_attr(target).get('code'))
-        loggers.main_logger.debug(f'Object {_source}({source_name}) '
-            f'CONTRIBUTES TO {target}({target_name}) '
+        loggers.main_logger.debug(f'Object {_source}({source_name}) '\
+            f'CONTRIBUTES TO {target}({target_name}) '\
             f'(Operation: {operation}, Index: {index or i}), tainted: {tainted}')
         attr = {'type:TYPE': 'CONTRIBUTES_TO'}
         if operation is not None:

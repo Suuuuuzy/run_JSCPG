@@ -685,6 +685,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             else:
                 logger.log(ATTENTION, f'Running Python function {func_obj} {python_func}...')
                 try:
+                    logger.info(_args)
                     h = python_func(G, caller_ast,
                         ExtraInfo(extra, branches=next_branches), _this, *_args)
                     branch_returned_objs = h.obj_nodes

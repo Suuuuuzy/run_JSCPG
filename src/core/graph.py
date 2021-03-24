@@ -1761,6 +1761,12 @@ class Graph:
             if func_name in func_names:
                 return True
         return False
+    
+    def get_covered_statements(self):
+        """
+        return the covered statements
+        """
+        return self.covered_stat
 
     def get_total_num_statements(self):
         """

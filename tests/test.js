@@ -1,6 +1,8 @@
 var cp = require("child_process");
 function ipt(str, input, val) {
   var root = {};
+  var ary = [];
+  ary.join(" ");
   //str[input] = val;
   res = str.toString();
 }
