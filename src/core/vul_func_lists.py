@@ -46,11 +46,12 @@ signature_lists = {
 crx_source_var_name = ['mostVisitedUrls_source',
                        'cookie_source',
                        'cookies_source',
-                       'CookieStore_source',
                        'CookieStores_source',
                        'storage_sync_get_source',
                        'storage_local_get_source',
-
+                       'results_source',
+                        'jQuery_get_source',
+                        'jQuery_post_source'
                        ]
 
 crx_source = [
@@ -64,7 +65,7 @@ crx_source = [
         'chrome_storage_local_get_source'
         'chrome_history_search_source',
         'chrome_history_getVisits_source',
-        'chrome_downloads_search_souece',
+        'chrome_downloads_search_source',
         'chrome_downloads_getFileIcon_source'
         # jQuery source
         'jQuery_get_source',

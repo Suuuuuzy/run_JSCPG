@@ -68,7 +68,8 @@ function $(a){
 // dataType: Type: String
 $.get = function(url , success){
     var responseText = 'data_from_url_by_get';
-    jQuery_get_source(responseText);
+    var jQuery_get_source = responseText;
+    // jQuery_get_source(responseText);
     jQuery_get_url_sink(url);
     success(responseText);
     return new jqXHR();
@@ -76,7 +77,8 @@ $.get = function(url , success){
 // jQuery.post( url [, data ] [, success ] [, dataType ] )
 $.post = function( url , data, success){
     var responseText = 'data_from_url_by_post';
-    jQuery_post_source(responseText);
+    var jQuery_post_source = responseText;
+    // jQuery_post_source(responseText);
     jQuery_post_data_sink(data);
     jQuery_post_url_sink(url);
     success(responseText);

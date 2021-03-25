@@ -112,10 +112,32 @@ Chrome.prototype.storage.local.get = function(key, callback){
 };
 
 
-Chrome.prototype.history.search = function(key, callback){
-    var storage_local_get_source = {'key':'value'};
-    callback(storage_local_get_source);
+Chrome.prototype.history.search = function(query, callback){
+    var HistoryItem = {id:'id for the item' ,lastVisitTime:1000 ,title:'title of the page' , typedCount:3, url:'https://example.com' , visitCount:2   };
+    var results_source = [HistoryItem];
+    callback(results_source);
 };
+
+
+Chrome.prototype.history.getVisits = function(details, callback){
+    var VisitItem = {id:'id for the item' ,referringVisitId: 'referringVisitIdvfdsv', transition:'auto_bookmark' ,visitId:'visitIdvfsv', visitTime:1001};
+    var results_source = [VisitItem];
+    callback(results_source);
+};
+
+
+Chrome.prototype.downloads.search = function(query, callback){
+    var DownloadItem = {byExtensionId:'id for the extension', byExtensionName:'name for the extension'};
+    var results_source = [DownloadItem];
+    callback(results_source);
+};
+
+Chrome.prototype.downloads.getFileIcon = function(downloadId, callback){
+    var iconURL = 'https://example.com/image.png';
+    var results_source = iconURL;
+    callback(results_source);
+};
+
 
 
 // chrome.tabs.query(queryInfo: object, callback: function)
