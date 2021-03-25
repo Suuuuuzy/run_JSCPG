@@ -1,5 +1,4 @@
 run_results.txt
 *.log
 *.pyc
-run.py
 crx_tmp/

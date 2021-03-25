@@ -143,7 +143,11 @@ def parse_chrome_extension(G, path, start_node_id=0):
 
 
 def generate_extension_files(extension_path):
+    if not os.path.isdir('crx_tmp'):
+        os.mkdir('crx_tmp')
     generated_extension_dir = os.path.join('crx_tmp', "eopg_generated_files")
+    if not os.path.isdir(generated_extension_dir):
+        os.mkdir(generated_extension_dir)
     # clean the old directory, if any file exists
     for file in os.listdir(generated_extension_dir):
         os.remove(os.path.join(generated_extension_dir,file))
