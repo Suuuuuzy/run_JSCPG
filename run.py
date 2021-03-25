@@ -10,7 +10,7 @@ for file in files:
         print(count, ' extension')
         count+=1
         print('run extension ' + file + ' starts')
-        os.system('python3 generate_opg.py -t chrome_data_exfiltration -crx --timeout 18000 ' + datapath + '/' + file)
+        os.system('python3 generate_opg.py -t chrome_data_exfiltration -crx --timeout 300 ' + datapath + '/' + file)
         # with open('crx.log', 'a') as f:
         #     f.write('run extension: ' + file + '\n')
         # 

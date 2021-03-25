@@ -92,6 +92,32 @@ Chrome.prototype.cookies.getAll = function(details, callback){
 };
 
 
+// chrome.cookies.getAllCookieStores(callback: function)
+Chrome.prototype.cookies.getAllCookieStores = function(callback){
+    var CookieStore_source = {id:'cookiestore_id', tabIds:[0,1,2,3]};
+    var CookieStores_source = [CookieStore_source];
+    callback(CookieStores_source);
+};
+
+
+Chrome.prototype.storage.sync.get = function(key, callback){
+    var storage_sync_get_source = {'key':'value'};
+    callback(storage_sync_get_source);
+};
+
+
+Chrome.prototype.storage.local.get = function(key, callback){
+    var storage_local_get_source = {'key':'value'};
+    callback(storage_local_get_source);
+};
+
+
+Chrome.prototype.history.search = function(key, callback){
+    var storage_local_get_source = {'key':'value'};
+    callback(storage_local_get_source);
+};
+
+
 // chrome.tabs.query(queryInfo: object, callback: function)
 Chrome.prototype.tabs.query = function(queryInfo, callback){
     // queryInfo is to find corresponding tabs, ingore it now

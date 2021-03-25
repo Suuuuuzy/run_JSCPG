@@ -16,11 +16,11 @@ def setup_opg(G, vul_type):
     G.BASE_SCOPE = G.add_scope("BASE_SCOPE", scope_name='Base')
 
     # add window.variable
-    if vul_type == 'chrome_data_exfiltration' or vul_type == 'chrome_API_execution':
-        G.BASE_OBJ = G.add_obj_to_scope(name='window',
-                        scope=G.BASE_SCOPE, combined=False)
-    else:
-        G.BASE_OBJ = G.add_obj_to_scope(name='global',
+    # if vul_type == 'chrome_data_exfiltration' or vul_type == 'chrome_API_execution':
+    #     G.BASE_OBJ = G.add_obj_to_scope(name='window',
+    #                     scope=G.BASE_SCOPE, combined=False)
+    # else:
+    G.BASE_OBJ = G.add_obj_to_scope(name='global',
                         scope=G.BASE_SCOPE, combined=False)
 
     G.cur_objs = [G.BASE_OBJ]

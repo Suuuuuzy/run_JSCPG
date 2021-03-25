@@ -43,9 +43,14 @@ signature_lists = {
         ]
 }
 
-crx_source_var_name = ['cookie_source',
+crx_source_var_name = ['mostVisitedUrls_source',
+                       'cookie_source',
                        'cookies_source',
-                       'mostVisitedUrls_source'
+                       'CookieStore_source',
+                       'CookieStores_source',
+                       'storage_sync_get_source',
+                       'storage_local_get_source',
+
                        ]
 
 crx_source = [
@@ -54,7 +59,7 @@ crx_source = [
         'chrome_cookies_get_source',
         'chrome_cookies_getAll_source',
         'chrome_cookies_getAllCookieStores_source',
-        'chrome_cookies_onChanged_addListener_source'
+        # 'chrome_cookies_onChanged_addListener_source'
         'chrome_storage_sync_get_source',
         'chrome_storage_local_get_source'
         'chrome_history_search_source',
