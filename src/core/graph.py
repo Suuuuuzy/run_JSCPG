@@ -33,6 +33,7 @@ class Graph:
         self.last_stmts = []
         self.package_name = None
         self.no_file_based = False
+        self.ipt_use = set()
 
         # for control flow
         self.cfg_stmt = None

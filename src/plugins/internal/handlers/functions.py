@@ -512,7 +512,7 @@ def run_exported_functions(G, module_exports_objs, extra):
         # detect vulnerabilities
         vul_type = G.vul_type
 
-        if vul_type not in ['proto_pollution', 'int_prop_tampering']:
+        if vul_type not in ['proto_pollution', 'ipt']:
             res_path = traceback(G, vul_type)
             res_path = vul_checking(G, res_path[0], vul_type)
             if len(res_path) != 0:
@@ -531,7 +531,7 @@ def run_exported_functions(G, module_exports_objs, extra):
                     logger.log(ATTENTION, f'int_prop_tampering found in {G.entry_file_path} at {cur_obj_name}({args})')
                     fp.write(f'int_prop_tampering,"{G.entry_file_path}","{cur_obj_name}","{args}"\n')
                 G.success_detect = True
-                if G.vul_type == 'int_prop_tampering' and G.exit_when_found:
+                if G.vul_type == 'ipt' and G.exit_when_found:
                     G.finished = True
                     break
 

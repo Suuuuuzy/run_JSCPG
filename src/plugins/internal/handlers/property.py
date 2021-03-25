@@ -120,6 +120,7 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
         if G.check_ipt and side != 'left' and (proto_is_tainted or \
                 (found_in_proto and parent_is_tainted)): 
             tampered_prop = True
+            G.ipt_use.add(ast_node)
             if G.exit_when_found:
                 G.finished = True
             
