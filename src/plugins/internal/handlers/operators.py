@@ -219,7 +219,17 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
 
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
+    right_tainted = len(list(filter(lambda x: \
+            G.get_node_attr(x).get('tainted') is True, right_objs))) != 0
 
+    if G.check_ipt:
+        if handled_left.parent_objs is not None:
+            # the left part is property
+            if handled_left.name_tainted and right_tainted:
+                # name node tainted and it's a property assign
+                # mark the parent object as prop_tainted
+                for parent_obj in handled_left.parent_objs:
+                    G.set_node_attr(parent_obj, ('prop_tainted', True))
 
     if G.check_proto_pollution:
         loggers.main_logger.info(f"Checking proto pollution, name tainted: {handled_left.name_tainted}"\

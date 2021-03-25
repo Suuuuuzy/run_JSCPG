@@ -528,9 +528,10 @@ def run_exported_functions(G, module_exports_objs, extra):
         if G.check_ipt:
             if G.ipt_use:# - old_ipt_use: # if there are new results
                 with open('vul_func_names.csv', 'a') as fp:
-                    logger.log(ATTENTION, f'int_prop_tampering found in {G.entry_file_path} at {cur_obj_name}({args})')
+                    loggers.main_logger.log(ATTENTION, f'int_prop_tampering found in {G.entry_file_path} at {cur_obj_name}({args})')
                     fp.write(f'int_prop_tampering,"{G.entry_file_path}","{cur_obj_name}","{args}"\n')
                 G.success_detect = True
+                G.detection_res[G.vul_type].add(G.package_name)
                 if G.vul_type == 'ipt' and G.exit_when_found:
                     G.finished = True
                     break

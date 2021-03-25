@@ -46,6 +46,7 @@ class NodeHandleResult:
         self.ast_node = kwargs.get('ast_node')
         self.name_tainted = kwargs.get('name_tainted')
         self.parent_is_proto = kwargs.get('parent_is_proto')
+        self.parent_objs = kwargs.get('parent_objs')
         self.terminated = kwargs.get('terminated')
         assert type(self.obj_nodes) == list
         assert type(self.used_objs) == list

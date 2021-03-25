@@ -56,7 +56,7 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
     prop_names, prop_name_sources, prop_name_tags = \
                             to_values(G, handled_prop, for_prop=True)
     name_tainted = False
-    if G.check_proto_pollution:
+    if G.check_proto_pollution or G.check_ipt:
         for source in chain(*prop_name_sources):
             if G.get_node_attr(source).get('tainted'):
                 name_tainted = True
@@ -102,6 +102,9 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
     parent_is_tainted = len(list(filter(lambda x: \
             G.get_node_attr(x).get('tainted') is True, parent_objs))) != 0
 
+    parent_is_prop_tainted = len(list(filter(lambda x: \
+            G.get_node_attr(x).get('prop_tainted') is True, parent_objs))) != 0
+
     
     # find property name nodes and object nodes
     # (filtering is moved to find_prop)
@@ -118,7 +121,9 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
         if prop_name == wildcard:
             multi_assign = True
         if G.check_ipt and side != 'left' and (proto_is_tainted or \
-                (found_in_proto and parent_is_tainted)): 
+                (found_in_proto and parent_is_tainted) or \
+                parent_is_prop_tainted):
+                # second possibility, parent is prop_tainted
             tampered_prop = True
             G.ipt_use.add(ast_node)
             if G.exit_when_found:
@@ -137,7 +142,7 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
                 ' property tampering (any use) at node {} (Line {})'
                 .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'))
                 + sty.rs.all)
-            loggers.res_logger.info(f"Internal property tampering detected in {G.package_name}")
+            #loggers.res_logger.info(f"Internal property tampering detected in {G.package_name}")
 
     if len(prop_names) == 1:
         name = f'{parent_name}.{prop_names[0]}'
@@ -152,7 +157,8 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
             name=f'{name}', name_nodes=list(prop_name_nodes),
             ast_node=ast_node, callback=get_df_callback(G),
             name_tainted=name_tainted, parent_is_proto=parent_is_proto,
-            multi_assign=multi_assign, tampered_prop=tampered_prop
+            multi_assign=multi_assign, tampered_prop=tampered_prop,
+            parent_objs = parent_objs
         ), handled_parent
 
 def find_prop(G, parent_objs, prop_name, branches=None,

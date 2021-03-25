@@ -232,6 +232,9 @@ class OPGen:
                 self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
 
             if len(self.graph.detection_res[options.vul_type]) != 0:
+                print(sty.fg.li_green + sty.ef.inverse +
+                    f'{options.vul_type} detected at {options.input_file}'
+                    + sty.rs.all)
                 loggers.res_logger.info("{} is detected in {}".format(
                     options.vul_type,
                     options.input_file))
