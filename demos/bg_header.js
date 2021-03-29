@@ -46,6 +46,11 @@ function Tab(){
 // chrome
 function Chrome(){}
 
+// this function be called righrt after all the 
+Chrome.prototype.runtime.onInstalled.addListener = function(myCallback) {
+  RegisterFunc("bg_chrome_runtime_onInstalled", myCallback);
+};
+
 
 Chrome.prototype.runtime.onConnect.addListener = function(myCallback) {
   RegisterFunc("bg_chrome_runtime_onConnect", myCallback);
