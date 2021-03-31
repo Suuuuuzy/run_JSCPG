@@ -1,3 +1,4 @@
+#! python
 from src.ui.network_apis import app
 
 if __name__ == "__main__":
