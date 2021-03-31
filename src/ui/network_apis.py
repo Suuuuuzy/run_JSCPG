@@ -17,9 +17,10 @@ def index():
 def check():
     pass
 
-@app.route('/upload')
+@app.route('/upload', methods=['POST'])
 def upload():
-    if request.method == 'POST':
-        f = request.files['clientapp.zip']
-
-
+    if flask.request.method == 'POST':
+        print(flask.request.files)
+        files = flask.request.files
+        f = files[1]
+        f.save(os.path.join(env_dir, str(uuid())))
