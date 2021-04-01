@@ -13,7 +13,7 @@ var cy = window.cy = cytoscape({
         'width': "data(width)",
         'font-size': 8,
         'text-valign': 'center',
-        'text-halign': 'center'
+        'text-halign': 'left'
       }
     },
     {
@@ -35,7 +35,7 @@ var cy = window.cy = cytoscape({
 
   elements: {
     nodes: [
-      { data: { "id": 'a', parent: 'b', "content": "a\nb" }, position: { x: 100, y: 0 } },
+      { data: { "id": 'a', parent: 'b', "content": "aasdfsssssssssssssssss\nb" }, position: { x: 100, y: 0 } },
       { data: { id: 'b' } },
       { data: { id: 'c', parent: 'b' }, position: { x: 100, y: 200} },
       { data: { id: 'd' }, position: { x: 215, y: 175 } },

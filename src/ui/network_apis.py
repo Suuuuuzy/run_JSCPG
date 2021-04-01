@@ -38,8 +38,10 @@ def check():
         options.exit = True
 
     options.input_file = os.path.join(os.path.abspath(env_dir), 'index.js')
-    print(options.input_file)
-    #options.babel = os.path.abspath(env_dir)
+
+    # we need to clear the results tmp
+    with open("./results_tmp.log", 'w') as fp:
+        fp.write("")
 
     opg = OPGen()
     try:
@@ -55,43 +57,54 @@ def check():
     print(first_path)
 
     # generate json for graph
-    idx = 0
     nodes = []
     edges = []
-    titles = []
-    blocks = first_path.split("File Path")[1:]
+    file_map = {}
+    node_blocks = []
+    height = 0
+    idx = 0
+    blocks = first_path.split("$FilePath$")[1:]
     for block in blocks:
         lines = block.split('\n')
-        title = lines[0]
-        nodes.append({"data": {"id": title}})
-        titles.append(title)
-        for line in lines[1:]:
-            print(title)
-            nodes.append({
-                "data": {
-                    "id": idx, 
-                    "parent": title, 
-                    "content": line,
-                    "width": len(line) * 10
-                    },
-                'position': {
-                    "x": 0,
-                    "y": idx * 30
-                    }})
-            idx += 1
+        max_len = max(len(line) for line in lines)
 
-    for idx in range(len(titles) - 1):
+        title = lines[0]
+        if title not in file_map:
+            file_map[title] = len(file_map)
+
+        nodes.append({"data": {"id": file_map[title], "content": title}})
+        idx += 1
+        block = '\n'.join(block.split('\n')[1:])
+        block_height = len(lines) * 15
+        node_blocks.append(idx)
+        nodes.append({
+            "data": {
+                "id": idx, 
+                "parent": file_map[title], 
+                "content": block,
+                "width": max_len * 8,
+                'height': block_height
+                },
+            'position': {
+                "x": 0,
+                "y": height 
+                }})
+        height += 50 + block_height
+        idx += 1
+
+    for idx in range(len(node_blocks) - 1):
         edges.append({
             "data":{
                 "id": str(idx) + "-" + str(idx + 1),
-                "source": titles[idx],
-                "target": titles[idx + 1]
+                "source": node_blocks[idx],
+                "target": node_blocks[idx + 1]
                 }
             })
 
     nodes = json.dumps(nodes)
     edges = json.dumps(edges)
     render_res = flask.render_template("graph.js", NODES=nodes, EDGES=edges)
+
     return render_res
 
 

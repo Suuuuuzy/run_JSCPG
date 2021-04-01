@@ -8,10 +8,14 @@ var cy = window.cy = cytoscape({
       selector: 'node',
       css: {
         'content': 'data(content)',
+        'text-wrap': 'wrap',
         'shape': 'rectangle', 
         'width': 'data(width)',
+        'height': 'data(height)',
         'text-valign': 'center',
-        'text-halign': 'center'
+        'text-halign': 'center',
+//        'line-height': 1,
+        'text-justification': 'left'
       }
     },
     {
@@ -32,12 +36,12 @@ var cy = window.cy = cytoscape({
 
   elements: {
     nodes: {{NODES}},
-    edges: {{EDGES}},
+    edges: {{EDGES}}
   },
 
   layout: {
     name: 'preset',
-    padding: 5
+    padding: 2
   }
 });
 

@@ -25,7 +25,7 @@ def get_path_text(G, path, caller):
                         or start_lineno)
 
         content = None
-        cur_path_str2 += "File Path: {}\n".format(G.get_node_file_path(node))
+        cur_path_str2 += "$FilePath${}\n".format(G.get_node_file_path(node))
         try:
             content = G.get_node_file_content(node)
         except Exception as e:
