@@ -9,16 +9,21 @@ from src.core.options import options
 from src.core.opgen import OPGen
 
 app = flask.Flask(__name__)
+options.env_dir = None
 
-env_dir = os.path.join('./net_env_dir/', str(uuid.uuid4()))
-if not os.path.exists(env_dir):
-    os.makedirs(env_dir, exist_ok=True)
+def update_env():
+    options.env_dir = os.path.join('./net_env_dir/', str(uuid.uuid4()))
+    env_dir = options.env_dir
+    if not os.path.exists(env_dir):
+        os.makedirs(env_dir, exist_ok=True)
+    return env_dir
+
+#update_env()
 
 @app.route('/')
 @app.route('/js/<path:jsname>')
 @app.route('/css/<path:cssname>')
 def index(jsname=None, cssname=None):
-    print(app.static_folder)
     if not jsname and not cssname:
         return flask.send_from_directory(app.static_folder, 'index.html')
     elif jsname:
@@ -28,6 +33,7 @@ def index(jsname=None, cssname=None):
 
 @app.route('/check', methods=['POST'])
 def check():
+    env_dir = options.env_dir
     form = flask.request.form
     options.vul_type = form['vul_type']
     if 'module' in form:
@@ -120,6 +126,8 @@ def check():
 
 @app.route('/upload', methods=['POST'])
 def upload():
+    options.env_dir = update_env()
+    env_dir = options.env_dir
     file_cnt = 0
     file_path = None
     try:
