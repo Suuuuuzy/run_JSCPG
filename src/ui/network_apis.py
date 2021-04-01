@@ -10,7 +10,7 @@ from src.core.opgen import OPGen
 
 app = flask.Flask(__name__)
 
-env_dir = os.path.join('./net_env_dir/')#, str(uuid.uuid4()))
+env_dir = os.path.join('./net_env_dir/', str(uuid.uuid4()))
 if not os.path.exists(env_dir):
     os.makedirs(env_dir, exist_ok=True)
 
@@ -76,6 +76,7 @@ def check():
     blocks = first_path.split("$FilePath$")[1:]
     for block in blocks:
         lines = block.split('\n')
+        lines[0] = os.path.relpath(lines[0], env_dir)
         max_len = max(len(line) for line in lines)
 
         title = lines[0]
