@@ -125,7 +125,8 @@ class PluginManager(object):
             node_type = node_attr['type']
 
             if node_type not in self.handler_map:
-                raise LookupError(node_type + " not implemented")
+                # raise LookupError(node_type + " not implemented")
+                return NodeHandleResult()
 
             handle_obj = self.handler_map[node_type](self.G, node_id, extra=extra)
             handle_res = handle_obj.process()

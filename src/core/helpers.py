@@ -183,11 +183,11 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir):
         files = js_file_filter(files)
         files = [os.path.join(extension_path, i) for i in files]
         if 'cs' in newname:
-            files.insert(0, 'demos/cs_header.js')
-            files.insert(0, 'demos/jquery_header.js')
+            files.insert(0, 'crx_headers/cs_header.js')
+            files.insert(0, 'crx_headers/jquery_header.js')
         elif 'bg' in newname:
-            files.insert(0, 'demos/jquery_header.js')
-            files.insert(0,'demos/bg_header.js')
+            files.insert(0, 'crx_headers/jquery_header.js')
+            files.insert(0,'crx_headers/bg_header.js')
         # print(newname, ': \n', files)
         combine_files(os.path.join(generated_extension_dir, newname), files)
     if not os.path.isdir(generated_extension_dir):

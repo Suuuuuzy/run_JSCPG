@@ -26,8 +26,7 @@ def validate_chrome_extension(extension_path):
         True or False
     """
     manifest_json_path = '{}/manifest.json'.format(extension_path)
-    index_path = os.path.join(extension_path, 'index.js')
-    return os.path.exists(manifest_json_path) or os.path.exists(index_path)
+    return os.path.exists(manifest_json_path)
 
 
 def validate_package(package_path):
