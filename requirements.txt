@@ -3,3 +3,4 @@ networkx
 sty==1.0.0rc0
 tqdm
 pysimplegui
+flask
