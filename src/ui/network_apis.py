@@ -32,10 +32,18 @@ def check():
     options.vul_type = form['vul_type']
     if 'module' in form:
         options.module = True
-    if 'gc' in form:
-        options.gc = True
+    else:
+        options.module = False
+
+    if 'no_file_based' in form:
+        options.no_file_based = True
+    else:
+        options.no_file_based = False
+        
     if 'exit_when_found' in form:
         options.exit = True
+    else:
+        options.exit = False
 
     options.input_file = os.path.join(os.path.abspath(env_dir), 'index.js')
 
@@ -53,6 +61,8 @@ def check():
         res = fp.read()
 
     # handle the result
+    if 'FilePath' not in res:
+        return "Not detected"
     first_path = res.split("|checker|")[1]
     print(first_path)
 
@@ -70,10 +80,9 @@ def check():
 
         title = lines[0]
         if title not in file_map:
-            file_map[title] = len(file_map)
-
-        nodes.append({"data": {"id": file_map[title], "content": title}})
-        idx += 1
+            file_map[title] = idx
+            nodes.append({"data": {"id": idx, "content": title}})
+            idx += 1
         block = '\n'.join(block.split('\n')[1:])
         block_height = len(lines) * 15
         node_blocks.append(idx)
@@ -89,7 +98,7 @@ def check():
                 "x": 0,
                 "y": height 
                 }})
-        height += 50 + block_height
+        height += 100 + block_height
         idx += 1
 
     for idx in range(len(node_blocks) - 1):

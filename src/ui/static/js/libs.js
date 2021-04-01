@@ -19,8 +19,11 @@ function start_check() {
     type: 'POST',
     data: $('#options').serialize(),
     success: function(data){
-      console.log(data);
-      eval(data);
+      if (data == "Not detected") {
+        $("#cy").html(data);
+      } else {
+        eval(data);
+      }
       //$("#result-display").html(data);
     }
   });

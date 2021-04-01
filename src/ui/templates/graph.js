@@ -14,7 +14,6 @@ var cy = window.cy = cytoscape({
         'height': 'data(height)',
         'text-valign': 'center',
         'text-halign': 'center',
-//        'line-height': 1,
         'text-justification': 'left'
       }
     },

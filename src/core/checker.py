@@ -31,7 +31,7 @@ def get_path_text(G, path, caller):
         except Exception as e:
             print(e)
         if content is not None:
-            cur_path_str2 += "{}\t{}".format(start_lineno,
+            cur_path_str2 += "Line {}\t{}".format(start_lineno,
                     ''.join(content[start_lineno:end_lineno + 1]))
     cur_path_str1 += G.get_node_attr(caller)['lineno:int']
     G.logger.debug(cur_path_str1)

@@ -303,6 +303,7 @@ def setup_graph_env(G: Graph):
     G.single_branch = options.single_branch
     G.vul_type = options.vul_type
     G.func_entry_point = options.entry_func
+    G.no_file_based = options.no_file_based
     G.check_proto_pollution = (options.prototype_pollution or 
                                options.vul_type == 'proto_pollution')
     G.check_ipt = (options.vul_type == 'ipt')
