@@ -52,8 +52,47 @@ def check():
 
     # handle the result
     first_path = res.split("|checker|")[1]
-    first_path = first_path.replace("\n", "<br>")
-    return first_path
+    print(first_path)
+
+    # generate json for graph
+    idx = 0
+    nodes = []
+    edges = []
+    titles = []
+    blocks = first_path.split("File Path")[1:]
+    for block in blocks:
+        lines = block.split('\n')
+        title = lines[0]
+        nodes.append({"data": {"id": title}})
+        titles.append(title)
+        for line in lines[1:]:
+            print(title)
+            nodes.append({
+                "data": {
+                    "id": idx, 
+                    "parent": title, 
+                    "content": line,
+                    "width": len(line) * 10
+                    },
+                'position': {
+                    "x": 0,
+                    "y": idx * 30
+                    }})
+            idx += 1
+
+    for idx in range(len(titles) - 1):
+        edges.append({
+            "data":{
+                "id": str(idx) + "-" + str(idx + 1),
+                "source": titles[idx],
+                "target": titles[idx + 1]
+                }
+            })
+
+    nodes = json.dumps(nodes)
+    edges = json.dumps(edges)
+    render_res = flask.render_template("graph.js", NODES=nodes, EDGES=edges)
+    return render_res
 
 
 @app.route('/upload', methods=['POST'])

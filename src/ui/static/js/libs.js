@@ -19,7 +19,9 @@ function start_check() {
     type: 'POST',
     data: $('#options').serialize(),
     success: function(data){
-      $("#result-display").html(data);
+      console.log(data);
+      eval(data);
+      //$("#result-display").html(data);
     }
   });
 }
