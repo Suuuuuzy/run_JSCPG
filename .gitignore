@@ -3,3 +3,5 @@ myout.txt
 *.log
 *.pyc
 crx_tmp/
+crx_record/
+demos/
