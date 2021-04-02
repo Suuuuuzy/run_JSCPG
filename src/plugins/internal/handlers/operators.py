@@ -222,6 +222,12 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     right_tainted = len(list(filter(lambda x: \
             G.get_node_attr(x).get('tainted') is True, right_objs))) != 0
 
+    if 'OPG_TAINTED' in handled_right.values:
+        # mark the obj as tainted
+        for obj in right_objs:
+            loggers.main_logger.info(f"Set obj {obj} name {handled_left.name} as tainted cause {obj} value OPG_TAINTED")
+            G.set_node_attr(obj, ('tainted', True))
+
     if G.check_ipt:
         if handled_left.parent_objs is not None:
             # the left part is property

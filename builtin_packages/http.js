@@ -1,5 +1,5 @@
 var request_builtin_object = function(){
-  var source_hqbpillvul_url = '';
+  var source_hqbpillvul_url = 'OPG_TAINTED';
   this.url = source_hqbpillvul_url;
   this.path = source_hqbpillvul_url;
 
