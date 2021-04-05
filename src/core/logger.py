@@ -68,6 +68,7 @@ class Loggers:
 
             self.print_logger = create_logger("print", output_type='console')
             self.debug_logger = create_logger("debug", file_name="debug.log")
+            self.progress_logger = create_logger("progress", file_name="progress.log")
             self.error_logger = create_logger("error", file_name="error.log")
             self.res_logger = create_logger("result", file_name="results.log")
             self.detail_logger = create_logger("details", file_name="details.log")

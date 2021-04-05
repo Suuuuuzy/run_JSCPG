@@ -31,6 +31,82 @@ def index(jsname=None, cssname=None):
     elif cssname:
         return flask.send_from_directory(os.path.join(app.static_folder, 'css'), cssname)
 
+def generate_graph_json(render=True):
+    """
+    read the results form tmp results
+    generate the json based graph
+    Args:
+        render (boolean): render as a js file or return nodes and edges
+    Returns:
+        str: the rendered template
+    """
+    env_dir = options.env_dir
+    with open("./results_tmp.log", 'r') as fp:
+        res = fp.read()
+
+    # handle the result
+    if 'FilePath' not in res:
+        return "Not detected"
+    pathes = res.split("|checker|")[1:]
+
+    # generate json for graph
+    edges = []
+    file_map = {}
+    node_map = {}
+    nodes = []
+    node_blocks = []
+    height = 0
+    idx = 0
+    for path in pathes:
+        blocks = path.split("$FilePath$")[1:]
+        pre_block = None
+        for block in blocks:
+            lines = block.split('\n')
+            lines[0] = os.path.relpath(lines[0], env_dir)
+            max_len = max(len(line) for line in lines)
+
+            title = lines[0]
+            if title not in file_map:
+                file_map[title] = idx
+                node_map[title] = {"data": {"id": idx, "content": title}}
+                idx += 1
+            block = '\n'.join(block.split('\n')[1:])
+            block_height = len(lines) * 15
+
+            if block not in node_map:
+                node_map[block] = {
+                    "data": {
+                        "id": idx, 
+                        "parent": file_map[title], 
+                        "content": block,
+                        "width": max_len * 8,
+                        'height': block_height
+                        }}
+                idx += 1
+
+            if pre_block:
+                source = node_map[pre_block]['data']['id']
+                target = node_map[block]['data']['id'] 
+                edges.append({
+                    "data":{
+                        "id": str(source) + "-" + str(target),
+                        "source": source,
+                        "target": target
+                        }
+                    })
+
+            pre_block = block
+
+    nodes = json.dumps([v for k, v in node_map.items()])
+    print(nodes)
+    edges = json.dumps(edges)
+    print(edges)
+    if render:
+        render_res = flask.render_template("graph.js", NODES=nodes, EDGES=edges)
+        return render_res
+    else:
+        return nodes, edges
+
 @app.route('/check', methods=['POST'])
 def check():
     env_dir = options.env_dir
@@ -63,64 +139,7 @@ def check():
     except Exception as e:
         print(e)
 
-    with open("./results_tmp.log", 'r') as fp:
-        res = fp.read()
-
-    # handle the result
-    if 'FilePath' not in res:
-        return "Not detected"
-    first_path = res.split("|checker|")[1]
-    print(first_path)
-
-    # generate json for graph
-    nodes = []
-    edges = []
-    file_map = {}
-    node_blocks = []
-    height = 0
-    idx = 0
-    blocks = first_path.split("$FilePath$")[1:]
-    for block in blocks:
-        lines = block.split('\n')
-        lines[0] = os.path.relpath(lines[0], env_dir)
-        max_len = max(len(line) for line in lines)
-
-        title = lines[0]
-        if title not in file_map:
-            file_map[title] = idx
-            nodes.append({"data": {"id": idx, "content": title}})
-            idx += 1
-        block = '\n'.join(block.split('\n')[1:])
-        block_height = len(lines) * 15
-        node_blocks.append(idx)
-        nodes.append({
-            "data": {
-                "id": idx, 
-                "parent": file_map[title], 
-                "content": block,
-                "width": max_len * 8,
-                'height': block_height
-                },
-            'position': {
-                "x": 0,
-                "y": height 
-                }})
-        height += 100 + block_height
-        idx += 1
-
-    for idx in range(len(node_blocks) - 1):
-        edges.append({
-            "data":{
-                "id": str(idx) + "-" + str(idx + 1),
-                "source": node_blocks[idx],
-                "target": node_blocks[idx + 1]
-                }
-            })
-
-    nodes = json.dumps(nodes)
-    edges = json.dumps(edges)
-    render_res = flask.render_template("graph.js", NODES=nodes, EDGES=edges)
-
+    render_res = generate_graph_json()
     return render_res
 
 
