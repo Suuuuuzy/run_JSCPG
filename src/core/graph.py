@@ -993,7 +993,13 @@ class Graph:
         name_node = self.get_name_node(var_name, scope)
         if name_node == None:
             return []
-        return self.get_objs_by_name_node(name_node, branches)
+        res_objs = self.get_objs_by_name_node(name_node, branches)
+        if var_name.startswith("source_hqbpillvul"):
+            # built in source, mark as tainted
+            for obj in res_objs:
+                self.set_node_attr(obj, ("tainted", True))
+
+        return res_objs
 
     def get_prop_names(self, parent_obj, exclude_proto=True):
         s = set()

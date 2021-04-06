@@ -127,7 +127,10 @@ def check():
     else:
         options.exit = False
 
-    options.input_file = os.path.join(os.path.abspath(env_dir), 'index.js')
+    options.input_file = os.path.join(os.path.abspath(env_dir))#, 'index.js')
+
+    if 'babel' in form:
+        options.babel = os.path.abspath(env_dir)
 
     # we need to clear the results tmp
     with open("./results_tmp.log", 'w') as fp:

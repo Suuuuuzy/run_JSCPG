@@ -13,7 +13,7 @@ def parse_args():
                         help="Check prototype pollution.")
     parser.add_argument('-m', '--module', action='store_true',
                         help="Module mode. Regard the input file as a module "
-                        "required by some other modules. This implies -a.")
+                        "required by some other modules.")
     parser.add_argument('-q', '--exit', action='store_true', default=False,
                         help="Exit the program when vulnerability is found.")
     parser.add_argument('-s', '--single-branch', action='store_true',
@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument('--run-env', default='./tmp_env/', help="set the running env location")
     parser.add_argument('--no-file-based', action='store_true', default=False, help="No file based detection")
     parser.add_argument('--parallel', help="run multiple package parallelly")
+    parser.add_argument('--auto-type', action='store_true', default=False, help="Auto change the type of wildcard obj based on the called method")
     parser.add_argument('--export', help="export the graph to csv files, can be light or all")
     parser.add_argument('--nodejs', action='store_true', default=False, help="run a nodejs package")
     parser.add_argument('--gc', action='store_true', default=False, help="run a garbage collection after every function run")

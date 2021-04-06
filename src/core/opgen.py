@@ -297,7 +297,10 @@ def setup_graph_env(G: Graph):
     """
     if options.print:
         G.print = True
-    G.run_all = options.run_all or options.module or options.nodejs or options.list
+    G.run_all = options.run_all or options.list 
+    if G.run_all is None:
+        G.run_all = False
+    #options.module or options.nodejs or options.list
     G.function_time_limit = options.function_timeout
     G.exit_when_found = options.exit
     G.single_branch = options.single_branch

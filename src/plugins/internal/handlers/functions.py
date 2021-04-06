@@ -512,7 +512,7 @@ def run_exported_functions(G, module_exports_objs, extra):
         # detect vulnerabilities
         vul_type = G.vul_type
 
-        if vul_type not in ['proto_pollution', 'ipt']:
+        if G.exit_when_found and vul_type not in ['proto_pollution', 'ipt']:
             res_path = traceback(G, vul_type)
             res_path = vul_checking(G, res_path[0], vul_type)
             if len(res_path) != 0:

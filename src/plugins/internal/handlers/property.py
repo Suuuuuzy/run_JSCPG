@@ -1,4 +1,5 @@
 from src.plugins.handler import Handler
+from src.core.options import options
 from src.core.utils import NodeHandleResult, ExtraInfo
 from src.core.helpers import to_values
 from src.plugins.internal.utils import wildcard, undefined
@@ -291,7 +292,10 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         if (not in_proto and not name_node_found) and is_wildcard_obj(G, parent_obj):
             # try to convert the object to a type of node
             for t in modeled_builtin_lists:
-                cur_methods = modeled_builtin_lists[t]
+                if options.auto_type:
+                    cur_methods = modeled_builtin_lists[t]
+                else:
+                    cur_methods = []
                 if prop_name in cur_methods:
                     G.convert_wildcard_obj_type(parent_obj, t)
                     # re-run the find_prop after convert the obj type
