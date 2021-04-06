@@ -2,12 +2,13 @@
 from src.core.graph import Graph
 from src.core.logger import *
 from src.core.utils import ExtraInfo, BranchTagContainer
-from ..utils import decl_vars_and_funcs
+from src.core.garbage_collection import cleanup_scope
+from ..utils import decl_vars_and_funcs, to_obj_nodes
 
 def simurun_block(G, ast_node, parent_scope=None, branches=None,
     block_scope=True, decl_var=False):
     """
-    Simurun a block by running its statements one by one. (dispatch_node to each stmt)
+    Simurun a block by running its statements one by one.
     A block is a BlockStatement in JavaScript,
     or an AST_STMT_LIST in PHP.
     """
@@ -35,9 +36,12 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         # add control flow edges here
         handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
 
-    returned_objs = G.function_returns[G.find_ancestor_scope()]
+
+    returned_objs = G.function_returns[G.find_ancestor_scope()][1]
     
     if block_scope:
+
         G.cur_scope = parent_scope
-    
+
+
     return list(returned_objs), list(used_objs)

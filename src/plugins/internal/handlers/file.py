@@ -6,8 +6,7 @@ from src.core.logger import *
 from .functions import simurun_function
 from ..utils import decl_function, decl_vars_and_funcs
 from src.plugins.handler import Handler
-
-import re
+from src.plugins.internal.handlers.class_ import handle_class
 
 
 class HandleFile(Handler):
@@ -35,8 +34,13 @@ class HandleToplevel(Handler):
         Returns:
             NodeHandleResult: the handle result
         """
-        module_exports_objs = run_toplevel_file(self.G, self.node_id)
-        # return NodeHandleResult(obj_nodes=module_exports_objs)
+
+        flags = self.G.get_node_attr(self.node_id).get('flags:string[]')
+        if flags == 'TOPLEVEL_FILE':
+            module_exports_objs = run_toplevel_file(self.G, self.node_id)
+            return NodeHandleResult(obj_nodes=module_exports_objs)
+        elif flags == 'TOPLEVEL_CLASS':
+            handle_class(self.G, self.node_id, self.extra)
 
 def run_toplevel_file(G: Graph, node_id):
     """
@@ -44,6 +48,8 @@ def run_toplevel_file(G: Graph, node_id):
     return a obj and scope
     """
     # switch current file path
+
+    file_path = None
     if 'name' in G.get_node_attr(node_id):
         file_path = G.get_node_attr(node_id)['name']
     else:
@@ -132,4 +138,5 @@ def run_toplevel_file(G: Graph, node_id):
     G.file_stack.pop(-1)
 
     module_exports_objs = None
+
     return module_exports_objs

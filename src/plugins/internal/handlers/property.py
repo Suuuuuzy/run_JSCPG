@@ -1,4 +1,5 @@
 from src.plugins.handler import Handler
+from src.core.options import options
 from src.core.utils import NodeHandleResult, ExtraInfo
 from src.core.helpers import to_values
 from src.plugins.internal.utils import wildcard, undefined
@@ -6,6 +7,7 @@ from ..utils import is_wildcard_obj
 from src.core.logger import loggers, sty
 from ..utils import get_df_callback,add_contributes_to
 from itertools import chain
+from src.plugins.internal.modeled_js_builtins_list import modeled_builtin_lists
 
 class HandleProp(Handler):
     """
@@ -54,10 +56,8 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
     # prepare property names
     prop_names, prop_name_sources, prop_name_tags = \
                             to_values(G, handled_prop, for_prop=True)
-    # print('debug: prop_names ', prop_names)
-
     name_tainted = False
-    if G.check_proto_pollution:
+    if G.check_proto_pollution or G.check_ipt:
         for source in chain(*prop_name_sources):
             if G.get_node_attr(source).get('tainted'):
                 name_tainted = True
@@ -103,7 +103,9 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
     parent_is_tainted = len(list(filter(lambda x: \
             G.get_node_attr(x).get('tainted') is True, parent_objs))) != 0
 
-    
+    parent_is_prop_tainted = len(list(filter(lambda x: \
+            G.get_node_attr(x).get('prop_tainted') is True, parent_objs))) != 0
+
     # find property name nodes and object nodes
     # (filtering is moved to find_prop)
     for i, prop_name in enumerate(prop_names):
@@ -119,8 +121,11 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
         if prop_name == wildcard:
             multi_assign = True
         if G.check_ipt and side != 'left' and (proto_is_tainted or \
-                (found_in_proto and parent_is_tainted)): 
+                (found_in_proto and parent_is_tainted) or \
+                parent_is_prop_tainted):
+                # second possibility, parent is prop_tainted
             tampered_prop = True
+            G.ipt_use.add(ast_node)
             if G.exit_when_found:
                 G.finished = True
             
@@ -137,6 +142,7 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
                 ' property tampering (any use) at node {} (Line {})'
                 .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'))
                 + sty.rs.all)
+            #loggers.res_logger.info(f"Internal property tampering detected in {G.package_name}")
 
     if len(prop_names) == 1:
         name = f'{parent_name}.{prop_names[0]}'
@@ -145,14 +151,14 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
 
     # tricky fix, we don't really link name nodes to the undefined object
     if not prop_obj_nodes:
-        # print('debug: no property obj node found for', parent_name)
         prop_obj_nodes = set([G.undefined_obj])
 
     return NodeHandleResult(obj_nodes=list(prop_obj_nodes),
             name=f'{name}', name_nodes=list(prop_name_nodes),
             ast_node=ast_node, callback=get_df_callback(G),
             name_tainted=name_tainted, parent_is_proto=parent_is_proto,
-            multi_assign=multi_assign, tampered_prop=tampered_prop
+            multi_assign=multi_assign, tampered_prop=tampered_prop,
+            parent_objs = parent_objs
         ), handled_parent
 
 def find_prop(G, parent_objs, prop_name, branches=None,
@@ -232,7 +238,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 __proto__obj_nodes = \
                     G.get_objs_by_name_node(__proto__name_node, branches)
                 if parent_obj in __proto__obj_nodes:
-                    logger.error(f'__proto__ {__proto__obj_nodes} and '
+                    loggers.main_logger.info(f'__proto__ {__proto__obj_nodes} and '
                         f'parent {parent_obj} have intersection')
                     __proto__obj_nodes = __proto__obj_nodes.remove(parent_obj)
                 if __proto__obj_nodes:
@@ -251,6 +257,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
 
         # If the property name is wildcard, fetch all properties
         if not in_proto and prop_name == wildcard:
+            loggers.main_logger.info(f"prop name is wildcard, fetch all the name nodes")
             for name_node in G.get_prop_name_nodes(parent_obj):
                 name = G.get_node_attr(name_node).get('name')
                 if name == wildcard:
@@ -262,6 +269,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     branches=branches)
                 if prop_objs:
                     prop_obj_nodes.update(prop_objs)
+            loggers.main_logger.info(f"fetch res {prop_name_nodes}")
 
         # If the name node is not found, try wildcard (*).
         # If checking prototype pollution, add wildcard (*) results.
@@ -279,6 +287,21 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                         for obj in prop_objs:
                             add_contributes_to(G, prop_name_sources, obj)
 
+        # it happens that the not found is because of type problem
+        if (not in_proto and not name_node_found) and is_wildcard_obj(G, parent_obj):
+            # try to convert the object to a type of node
+            for t in modeled_builtin_lists:
+                if options.auto_type:
+                    cur_methods = modeled_builtin_lists[t]
+                else:
+                    cur_methods = []
+                if prop_name in cur_methods:
+                    G.convert_wildcard_obj_type(parent_obj, t)
+                    # re-run the find_prop after convert the obj type
+                    return find_prop(G, parent_objs, prop_name, branches=branches,
+                        side=side, parent_name=parent_name, in_proto=in_proto, depth=depth,
+                        prop_name_for_tags=prop_name_for_tags, ast_node=ast_node, 
+                        prop_name_sources=prop_name_sources)
         # Create a name node if not found.
         # We cannot create name node under __proto__.
         # Name nodes are only created under the original parent objects.
@@ -288,7 +311,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         # Note that if it's on left side and the property name is
         # known, you need to create it with the concrete property name.
         if ((not in_proto or G.check_ipt) and is_wildcard_obj(G, parent_obj)
-                and not wc_name_node_found
+                and not wc_name_node_found and G.get_node_attr(parent_obj)['type'] == 'object' 
                 and (side != 'left' or prop_name == wildcard)):
             added_name_node = G.add_prop_name_node(wildcard, parent_obj)
             prop_name_nodes.add(added_name_node)
@@ -329,17 +352,17 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 added_name_node = \
                     G.add_prop_name_node(prop_name, parent_obj)
                 prop_name_nodes.add(added_name_node)
-                loggers.main_logger.debug(f'{sty.ef.b}Add prop name node {sty.rs.all} '
+                loggers.main_logger.debug(f'{sty.ef.b}Add prop name node{sty.rs.all} '
                     f'{parent_name}.{prop_name} '
                     f'({parent_obj}->{added_name_node})')
                 if prop_name == wildcard:
                     wc_name_node_found = True
                 else:
                     name_node_found = True
-                if parent_obj == G.BASE_OBJ:
-                    # G.add_obj_to_scope(name=prop_name, tobe_added_obj=)
-                    name_node = G.add_name_node(prop_name, scope=G.BASE_SCOPE)
-                    prop_name_nodes.add(name_node)
+                # if parent_obj == G.BASE_OBJ:
+                #     # G.add_obj_to_scope(name=prop_name, tobe_added_obj=)
+                #     name_node = G.add_name_node(prop_name, scope=G.BASE_SCOPE)
+                #     prop_name_nodes.add(name_node)
     # multi_assign = name_node_found and wc_name_node_found
     found_in_proto = found_in_proto and len(prop_name_nodes) != 0
     if found_in_proto:

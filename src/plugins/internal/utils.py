@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import json
 
+=======
+>>>>>>> 7f93e48ddcc68186472c815057ede6e066e1b1c9
 from src.core.graph import Graph
 from src.core.utils import NodeHandleResult, ExtraInfo, BranchTag
 from src.core.utils import wildcard, undefined
@@ -117,10 +120,6 @@ def decl_vars_and_funcs(G, ast_node, var=True, func=True):
                                    follow_scope_chain=False) is None:
                     G.add_obj_to_scope(name=name, scope=func_scope,
                                        tobe_added_obj=G.undefined_obj)
-                    # print('=======see scope ', func_scope)
-                    # if func_scope==G.BASE_SCOPE:
-                    #     G.add_obj_as_prop(prop_name=name, parent_obj=G.BASE_OBJ,
-                    #                          tobe_added_obj=G.undefined_obj, combined=False)
                 else:
                     pass
         elif func and node_type == 'AST_FUNC_DECL':
@@ -260,8 +259,7 @@ def combine_values(values, sources, *arg):
         d[v].extend(sources[i])
     return (list(d.keys()), list(d.values()), *arg)
 
-def peek_variables(G: Graph, ast_node, handling_func: Callable,
-    extra: ExtraInfo):
+def peek_variables(G: Graph, ast_node, extra: ExtraInfo):
     '''
     Experimental. Peek what variable is used in the statement and get
     their object nodes. Currently, you must ensure the statement you
@@ -275,14 +273,15 @@ def peek_variables(G: Graph, ast_node, handling_func: Callable,
         extra (ExtraInfo): Extra info.
     '''
     returned_dict = {}
+    from src.plugins.manager_instance import internal_manager
     if G.get_node_attr(ast_node).get('type') == 'AST_VAR' or \
         G.get_node_attr(ast_node).get('type') == 'AST_NAME':
-        handle_result = handling_func(G, ast_node, extra=extra)
+        handle_result = internal_manager.dispatch_node(ast_node, extra=extra)
         if handle_result.name:
             returned_dict[handle_result.name] = handle_result.obj_nodes
     else:
         for child in G.get_ordered_ast_child_nodes(ast_node):
-            d = peek_variables(G, child, handling_func, extra)
+            d = peek_variables(G, child, extra)
             for name, nodes in d.items():
                 if name in returned_dict:
                     returned_dict[name].extend(d[name])
@@ -666,6 +665,7 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo):
                 true_num += 1
         for obj in handled.obj_nodes:
             if obj in [G.undefined_obj, G.null_obj, G.false_obj]:
+                true_num += 0.1
                 pass
             elif obj in [G.infinity_obj, G.negative_infinity_obj, G.nan_obj,
                 G.true_obj]:

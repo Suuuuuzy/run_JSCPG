@@ -1,5 +1,7 @@
 from src.core.logger import loggers
+from src.core.utils import ExtraInfo
 from src.core.utils import NodeHandleResult
+from src.core.options import options
 
 class PluginManager(object):
     """
@@ -37,13 +39,14 @@ class PluginManager(object):
         from .internal.handlers.null import HandleNULL as HandleNULL
         from .internal.handlers.try_catch import HandleTry as HandleTry 
         from .internal.handlers.encaps_list import HandleEncapsList as HandleEncapsList
+        from .internal.handlers.assign_op import HandleAssignOP as HandleAssignOP
         from .internal.handlers.not_impl import HandleThrow as HandleThrow
         from .internal.handlers.not_impl import HandleBreak as HandleBreak
         from .internal.handlers.not_impl import HandleCatchList as HandleCatchList
         from .internal.handlers.not_impl import HandleContinue as HandleContinue
         from .internal.handlers.not_impl import HandleStmtList as HandleStmtList
-        from .internal.handlers.not_impl import HandleAssignOP as HandleAssignOP
         from .internal.handlers.not_impl import HandleClass as HandleClass
+        from .internal.handlers.not_impl import HandleMethod as HandleMethod 
         def __init__(self, G):
             self.G = G
             self.handler_map = {
@@ -53,6 +56,7 @@ class PluginManager(object):
                     'AST_ASSIGN': self.HandleAssign,
                     'AST_CALL': self.HandleASTCall,
                     'AST_METHOD_CALL': self.HandleASTCall,
+                    'AST_METHOD': self.HandleMethod,
                     'AST_NEW': self.HandleASTCall,
                     'AST_NAME': self.HandleVar,
                     'AST_VAR': self.HandleVar,
@@ -111,30 +115,34 @@ class PluginManager(object):
                 return NodeHandleResult()
 
             if self.G.is_statement(node_id):
+                line_mark = self.G.get_node_attr(node_id)['namespace'].split(":")
+                loggers.main_logger.info(f"Running Line {line_mark[0]} to {line_mark[2]}")
                 if node_id not in self.G.covered_stat:
-                    # print("{}% stmt covered.".format(len(self.G.covered_stat) / self.G.get_total_num_statements()))
                     self.G.covered_stat[node_id] = 0
+                    loggers.progress_logger.info("{}% stmt covered.".format(len(self.G.covered_stat) / self.G.get_total_num_statements()))
                 #elif self.G.covered_stat[node_id] > 300:
                 #    return NodeHandleResult()
                 else:
                     self.G.covered_stat[node_id] += 1
 
             node_attr = self.G.get_node_attr(node_id)
-            loggers.debug_logger.info("processing " + str(node_attr));
-            # print(node_attr)
+            loggers.debug_logger.info("processing {}".format(node_id) + str(node_attr));
             node_type = node_attr['type']
 
             if node_type not in self.handler_map:
-                # raise LookupError(node_type + " not implemented")
+                loggers.error_logger.info(node_type + " not implemented")
                 return NodeHandleResult()
+                #raise LookupError(node_type + " not implemented")
 
+            # remove side information
+            # we should consider remove it totally, bug fixed on 08/03/2021
+            # takes many hours to debug this one
+            side = extra.side if extra else None
+            extra = ExtraInfo(extra, side=None)
             handle_obj = self.handler_map[node_type](self.G, node_id, extra=extra)
             handle_res = handle_obj.process()
-
-
+            
             return handle_res
-
-
 
     def __init__(self, G=None, init=False):
        if not PluginManager.instance or init:

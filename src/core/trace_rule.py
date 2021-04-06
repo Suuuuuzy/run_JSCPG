@@ -144,6 +144,7 @@ class TraceRule:
 
         path_start_var_name = self.graph.get_name_from_child(start_node)
         # print('debug path_start_var_name: ', path_start_var_name)
+
         cur_node = self.graph.get_node_attr(start_node)
         if path_start_var_name is None:
             return False

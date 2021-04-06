@@ -46,10 +46,6 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
                 # we use the function scope
                 name_node = G.add_name_node(var_name,
                                 scope=G.find_ancestor_scope())
-                # scope_to_add = G.find_ancestor_scope()
-                # print('-----debug', scope_to_add, G.BASE_SCOPE)
-                # if scope_to_add==G.BASE_SCOPE:
-                #     G.add_prop_name_node(var_name, G.BASE_OBJ)
             elif cur_node_attr.get('flags:string[]') in [
                 'JS_DECL_LET', 'JS_DECL_CONST']:
                 # we use the block scope                
@@ -75,8 +71,10 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
 
     # tricky fix, we don't really link name nodes to the undefined object
     if not now_objs:
-        # print('debug var_name now_objs', var_name, now_objs)
         now_objs = [G.undefined_obj]
+    loggers.main_logger.info("Var {} handle result -> {}".format(var_name, now_objs))
+    for now_obj in now_objs:
+        loggers.main_logger.info(f"\t{now_obj}: {G.get_node_attr(now_obj)}")
 
     return NodeHandleResult(obj_nodes=now_objs, name=var_name,
         name_nodes=name_nodes, # from_branches=[from_branches],

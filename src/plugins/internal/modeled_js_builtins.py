@@ -60,9 +60,6 @@ def setup_string(G: Graph):
     G.add_blank_func_as_prop('trimStart', string_prototype, string_p_trim_start)
     G.add_blank_func_as_prop('charAt', string_prototype, string_p_char_at)
     G.add_blank_func_as_prop('slice', string_prototype, string_returning_func)
-    # str.indexOf(searchValue [, fromIndex])
-    G.add_blank_func_as_prop('indexOf', string_prototype, string_p_indexof)
-
 
 
 def setup_number(G: Graph):
@@ -213,8 +210,8 @@ def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), call
             else:
                 name_obj_node = G.add_obj_node(ast_node=caller_ast,
                     js_type='number', value=float(name))
-            obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
-            logger.debug(f'Array forEach callback arguments: index={name} ({sty.fg.green}{name_obj_node}{sty.rs.all}), obj_nodes={obj_nodes_log}, array={arr}')
+            obj_nodes_log = ', '.join([f'{obj}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
+            logger.debug(f'Array forEach callback arguments: index={name} ({name_obj_node}), obj_nodes={obj_nodes_log}, array={arr}')
             opgen.call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                         obj_nodes=obj_nodes),
@@ -251,7 +248,7 @@ def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult()
                 index_arg = NodeHandleResult(obj_nodes=[name_obj_node])
             else:
                 index_arg = NodeHandleResult(values=[float(name)])
-            obj_nodes_log = ', '.join([f'{sty.fg.green}{obj}{sty.rs.all}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
+            obj_nodes_log = ', '.join([f'{obj}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
             logger.debug(f'Array forEach callback arguments: index={name}, obj_nodes={obj_nodes_log}, array={arr}')
             def add_for_stack(G, **kwargs):
                 nonlocal name, name_nodes, array
@@ -275,7 +272,7 @@ def array_p_for_each_static(G: Graph, caller_ast, extra, array: NodeHandleResult
         elements = G.get_prop_obj_nodes(arr, branches=branches)
         for elem in elements:
             objs.add(elem)
-    logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
+    logger.debug(f'Calling callback functions {callback.obj_nodes} with elements {objs}.')
     for func in callback.obj_nodes:
         func_decl = G.get_obj_def_ast_node(func)
         func_name = G.get_name_from_child(func_decl)
@@ -314,7 +311,7 @@ def array_p_for_each_static_new(G: Graph, caller_ast, extra, array: NodeHandleRe
     args = [NodeHandleResult(obj_nodes=objs),
             NodeHandleResult(values=names, value_tags=name_tags),
             array]
-    logger.debug(sty.fg.green + f'Calling callback functions {callback.obj_nodes} with elements {objs}.' + sty.rs.all)
+    logger.debug(f'Calling callback functions {callback.obj_nodes} with elements {objs}.')
     new_extra = ExtraInfo(extra, branches=extra.branches+[BranchTag(point=f'ForEach{caller_ast}')])
     call_function(G, callback.obj_nodes, args=args,
         extra=new_extra, caller_ast=caller_ast, func_name=callback.name)
@@ -392,7 +389,6 @@ def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
         logger.debug('Copy arrays {} for branch {}, name nodes {}'.format(arrays.obj_nodes, extra.branches.get_last_choice_tag(), arrays.name_nodes))
         arrays = copy_objs_for_branch(G, arrays,
             branch=extra.branches.get_last_choice_tag(), ast_node=caller_ast)
-    # print('new arrays', arrays)
     for arr in arrays.obj_nodes:
         for prop_name_node in G.get_prop_name_nodes(arr):
             name = G.get_node_attr(prop_name_node).get('name')
@@ -424,8 +420,6 @@ def array_p_shift(G: Graph, caller_ast, extra, arrays: NodeHandleResult):
             except ValueError:
                 pass
                 # logger.error('Array {} length error'.format(arr))
-    # print('G.undefined_obj', G.undefined_obj)
-    # print('returned_objs: ', returned_objs)
     return NodeHandleResult(obj_nodes=list(returned_objs))
 
 
@@ -1053,7 +1047,7 @@ def function_p_bind(G: Graph, caller_ast, extra, func: NodeHandleResult, this=No
         if args:
             G.set_node_attr(new_func, ('bound_args', args))
         returned_objs.append(new_func)
-        logger.log('Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this.obj_nodes, ast_node))
+        logger.info('Bind function {} to {}, this={}, AST node {}'.format(f, new_func, this.obj_nodes, ast_node))
     return NodeHandleResult(obj_nodes=returned_objs, used_objs=func.obj_nodes)
 
 
@@ -1095,8 +1089,6 @@ def this_returning_func(G: Graph, caller_ast, extra, this=None, *args):
             return NodeHandleResult()
     else:
         return this
-
-
 
 
 def string_returning_func(G: Graph, caller_ast, extra, _, *args):
@@ -1168,10 +1160,9 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
                 value = to_python_array(G, obj, value=True)[0]
             else:
                 value = G.get_node_attr(obj).get('code')
-            values.append(f'{sty.fg.green}{obj}{sty.rs.all}: {val_to_str(value)}')
+            values.append(f'{obj}: {val_to_str(value)}')
         logger.debug(f'Argument {i} values: ' + ', '.join(values))
-    # return NodeHandleResult(obj_nodes=[G.undefined_obj], used_objs=list(used_objs))
-    return NodeHandleResult()
+    return NodeHandleResult(obj_nodes=[G.undefined_obj], used_objs=list(used_objs))
 
 
 def setup_json(G: Graph):
@@ -1237,53 +1228,6 @@ def regexp_constructor(G: Graph, caller_ast, extra, _, pattern=NodeHandleResult(
                 returned_objs.append(added_obj)
     return NodeHandleResult(obj_nodes=returned_objs,
         used_objs=pattern.obj_nodes+flags.obj_nodes)
-
-
-def string_p_indexof(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
-    searchValue=NodeHandleResult(), fromIndex=NodeHandleResult()):
-    returned_objs = []
-    used_objs = []
-    str = to_obj_nodes(G, strs, caller_ast)[0]
-    used_objs.append(str)
-    original_str = G.get_node_attr(str).get('code')
-    searchValue = to_obj_nodes(G, searchValue, caller_ast)[0]
-    used_objs.append(searchValue)
-    search_str = G.get_node_attr(searchValue).get('code')
-    index_objs = to_obj_nodes(G, fromIndex, caller_ast)
-    if len(index_objs) > 0:
-        fromIndex = index_objs[0]
-        used_objs.append(fromIndex)
-        from_index = G.get_node_attr(fromIndex).get('code')
-    else:
-        from_index = None
-    # print(original_str, search_str, from_index)
-    # str.index(sub[, start[, end]] )
-    if from_index==None:
-        try:
-            return_index = original_str.index(search_str)
-        except:
-            return_index = -1
-    else:
-        from_index = int(from_index)
-        if from_index<0:
-            try:
-                return_index = original_str.index(search_str)
-            except:
-                return_index = -1
-        elif from_index>len(original_str)-1:
-            if search_str=='':
-                return_index = len(original_str)
-            else:
-                return_index = -1
-        else:
-            try:
-                return_index = original_str.index(search_str, from_index)
-            except:
-                return_index = -1
-    # print(return_index)
-    added_obj = G.add_obj_node(ast_node=caller_ast, js_type = 'number', value = return_index)
-    returned_objs.append(added_obj)
-    return NodeHandleResult(obj_nodes=returned_objs, used_objs = used_objs)
 
 
 def string_p_replace(G: Graph, caller_ast, extra, strs=NodeHandleResult(),

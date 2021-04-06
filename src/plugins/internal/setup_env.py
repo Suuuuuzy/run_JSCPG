@@ -1,8 +1,8 @@
-from . import modeled_js_builtins, modeled_extension_builtins
+from . import modeled_js_builtins
 import sty
 from itertools import chain
 
-def setup_opg(G, vul_type):
+def setup_opg(G):
     """
     setup a opg graph, including build related global values, 
     setup scopes, add build-in functions etc.
@@ -22,7 +22,6 @@ def setup_opg(G, vul_type):
     # else:
     G.BASE_OBJ = G.add_obj_to_scope(name='global',
                         scope=G.BASE_SCOPE, combined=False)
-
     G.cur_objs = [G.BASE_OBJ]
 
     # setup JavaScript built-in values
@@ -54,10 +53,8 @@ def setup_opg(G, vul_type):
     G.add_obj_to_name('NaN', scope=G.BASE_SCOPE,
                          tobe_added_obj=G.nan_obj)
 
-
     # TODO: setup document, window, chrome, console object
     modeled_extension_builtins.setup_extension_builtins(G)
-
 
     G.internal_objs = {
         'undefined': G.undefined_obj,
@@ -77,7 +74,6 @@ def setup_opg(G, vul_type):
         G.object_prototype, G.string_prototype,
         G.array_prototype, G.function_prototype,
         G.number_prototype, G.boolean_prototype, G.regexp_prototype
-        # ,G.port_prototype
     ]
     G.pollutable_objs = set(chain(*
         [G.get_prop_obj_nodes(p) for p in G.builtin_prototypes]))

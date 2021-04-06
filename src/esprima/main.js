@@ -7,7 +7,7 @@ var delimiter; // '\t' or ','
 
 const path = require('path');
 const fs = require('fs');
-const esprima = require('esprima');
+const esprima = require('esprima');CONFLICT (add/add): Merge conflict in src/esprima/main.js
 const os = require('os');
 const ansicolor = require('ansicolor').nice;
 const Readable = require('stream').Readable;
@@ -1257,12 +1257,14 @@ function dfs(currentNode, currentId, parentId, childNum, currentFunctionId, extr
                     */
                 }
                 // finally, write the ClassBody node
+
+                relsStream.push([vAstToplevelClass, classBodyId, 'PARENT_OF'].join(delimiter) + '\n');
                 nodes[classBodyId] = {
                     label: 'AST',
                     type: currentNode.type,
                     phptype: 'AST_STMT_LIST',
                     lineLocStart: currentNode.loc ? currentNode.loc.start.line : null,
-                    childNum: childNum,
+                    childNum: 0,
                     lineLocEnd: currentNode.loc ? currentNode.loc.end.line : null,
                     colLocStart: currentNode.loc ? currentNode.loc.start.column : null,
                     colLocEnd: currentNode.loc ? currentNode.loc.end.column : null,
@@ -3169,7 +3171,8 @@ if (program.search){
             walkDir(dirname, null, analyze);
         }
     }
-}   
+
+}
 
 // analyze any required packages
 for (let currentModule of requiredModules) {

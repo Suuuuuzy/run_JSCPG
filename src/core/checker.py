@@ -1,7 +1,7 @@
 from .trace_rule import TraceRule
 from .vul_func_lists import *
-from src.core.logger import loggers, sty
-
+from .logger import loggers
+import sty
 
 def get_path_text(G, path, caller):
     """
@@ -15,7 +15,6 @@ def get_path_text(G, path, caller):
     res_path = ""
     cur_path_str1 = ""
     cur_path_str2 = ""
-    file = ""
     for node in path:
         cur_node_attr = G.get_node_attr(node)
         if cur_node_attr.get('lineno:int') is None:
@@ -24,84 +23,22 @@ def get_path_text(G, path, caller):
         start_lineno = int(cur_node_attr['lineno:int'])
         end_lineno = int(cur_node_attr['endlineno:int']
                         or start_lineno)
+
         content = None
+        cur_path_str2 += "$FilePath${}\n".format(G.get_node_file_path(node))
         try:
             content = G.get_node_file_content(node)
-        except:
-            pass
+        except Exception as e:
+            print(e)
         if content is not None:
-            # if switch to a new file, add the file name
-            if file != "{}\n".format(G.get_node_file_path(node)):
-                file = "{}\n".format(G.get_node_file_path(node))
-                cur_path_str2 += file
-            # cur_path_str2 += 'code: ' + G.get_node_attr(node).get('code') + '\n'
-            cur_path_str2 += "{}\t{}".format(start_lineno,
+            cur_path_str2 += "Line {}\t{}".format(start_lineno,
                     ''.join(content[start_lineno:end_lineno + 1]))
     cur_path_str1 += G.get_node_attr(caller)['lineno:int']
     G.logger.debug(cur_path_str1)
 
     res_path += "==========================\n"
-    # res_path += "{}\n".format(G.get_node_file_path(path[0]))
     res_path += cur_path_str2
     return res_path
-
-def traceback_crx(G, vul_type, start_node=None):
-    """
-    traceback from the leak point, the edge is OBJ_REACHES
-    Args:
-        G: the graph
-        vul_type: the type of vulnerability, listed below
-    Return:
-        the paths include the objs,
-        the string description of paths,
-        the list of callers,
-    """
-    res_path_text = ""
-    sink = []
-    sink.extend(crx_sink)
-    sink.extend(user_sink)
-    # func_nodes: the entries of traceback, which are all the CALLs of functions
-    func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
-    func_nodes += G.get_node_by_attr('type', 'AST_CALL')
-    func_nodes = [i for i in func_nodes if G.get_name_from_child(i) in sink]
-
-    ret_paths = []
-    caller_list = []
-    for func_node in func_nodes:
-        # we assume only one obj_decl edge
-        func_name = G.get_name_from_child(func_node)
-        # print('func_name debug##', func_name)
-        caller = func_node
-        # FROM AST NODE TO OPG NODE
-        caller = G.find_nearest_upper_CPG_node(caller)
-        caller_list.append("{} called {}".format(caller, func_name))
-        # caller_name = G.get_name_from_child(caller)
-        # print("{} called {}".format(caller_name, func_name))
-        pathes = G._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
-        # here we treat the single calling as a possible path
-        # pathes.append([caller])
-        # give the end node one more chance, find the parent obj of the ending point
-        """
-        for path in pathes:
-            last_node = path[-1]
-            upper_nodes = G._dfs_upper_by_edge_type(last_node, 
-                    "OBJ_TO_PROP")
-            for uppernode in upper_nodes:
-                path.append(uppernode)
-            #print('--', upper_nodes)
-        """
-        # NOTE: reverse the path here!
-        ret_paths.extend(pathes)
-        for path in pathes:
-            # ret_paths.append(path)
-            path.reverse()
-            res_path_text += get_path_text(G, path, caller)
-    print('=========ret_pathes debug=========\n', ret_paths)
-    # ret_paths: source 2 sink lists
-    # res_path_text: source 2 sink texts
-    return ret_paths, res_path_text, caller_list
-
-
 
 def traceback(G, vul_type, start_node=None):
     """
@@ -115,39 +52,35 @@ def traceback(G, vul_type, start_node=None):
         the list of callers,
     """
     res_path = ""
-    # in chrome extension this should be the corresponding sink functions
-    expoit_func_list = signature_lists[vul_type]
-
-    # func_nodes: the entries of traceback, which are all the CALLs of functions
-    func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
-    func_nodes += G.get_node_by_attr('type', 'AST_CALL')
     ret_pathes = []
     caller_list = []
+    if vul_type == "proto_pollution":
+        # in this case, we have to specify the start_node
+        if start_node is not None:
+            start_cpg = G.find_nearest_upper_CPG_node(start_node)
+            pathes = G._dfs_upper_by_edge_type(start_cpg, "OBJ_REACHES")
+
+            for path in pathes:
+                ret_pathes.append(path)
+                path.reverse()
+                res_path += get_path_text(G, path, start_cpg)
+            
+            return ret_pathes, res_path, caller_list
+
+    expoit_func_list = signature_lists[vul_type]
+
+    func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
+    func_nodes += G.get_node_by_attr('type', 'AST_CALL')
+
     for func_node in func_nodes:
         # we assume only one obj_decl edge
         func_name = G.get_name_from_child(func_node)
-        # print('func_name debug##', func_name)
         if func_name in expoit_func_list:
             caller = func_node
-            # FROM AST NODE TO OPG NODE
             caller = G.find_nearest_upper_CPG_node(caller)
             caller_list.append("{} called {}".format(caller, func_name))
-            # caller_name = G.get_name_from_child(caller)
-            # print("{} called {}".format(caller, func_name))
             pathes = G._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
-            # here we treat the single calling as a possible path
-            # pathes.append([caller])
-            # give the end node one more chance, find the parent obj of the ending point
-            """
-            for path in pathes:
-                last_node = path[-1]
-                upper_nodes = G._dfs_upper_by_edge_type(last_node, 
-                        "OBJ_TO_PROP")
-                for uppernode in upper_nodes:
-                    path.append(uppernode)
-                #print('--', upper_nodes)
-            """
-            # NOTE: reverse the path here!
+
             for path in pathes:
                 ret_pathes.append(path)
                 path.reverse()
@@ -196,7 +129,8 @@ def vul_checking(G, pathes, vul_type):
             [('has_user_input', None), ('not_start_with_func', ['sink_hqbpillvul_http_setHeader']), ('not_exist_func', ['parseInt']), ('end_with_func', ['sink_hqbpillvul_http_setHeader'])]
             ]
     os_command_rule_lists = [
-            [('has_user_input', None), ('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt'])]
+            [('has_user_input', None), ('not_start_within_file', ['child_process.js']), ('not_exist_func', ['parseInt'])],
+            [('start_with_var', ['source_hqbpillvul_url']), ('not_start_within_file', ['child_process.js']), ('not_exist_func', signature_lists['sanitation'])]
             ]
 
     code_exec_lists = [
@@ -284,6 +218,7 @@ def vul_checking(G, pathes, vul_type):
         [('has_user_input', None), ('end_with_func', crx_sink)]
     ]
 
+
     vul_type_map = {
             "xss": xss_rule_lists,
             "os_command": os_command_rule_lists,
@@ -295,31 +230,30 @@ def vul_checking(G, pathes, vul_type):
             "chrome_API_execution": chrome_API_execution
             }
 
+
     rule_lists = vul_type_map[vul_type]
     success_pathes = []
     print('vul_checking', vul_type)
     """
     print(pathes)
-    for path in pathes:
-        for node in path:
-            print(G.get_node_attr(node))
     """
+    for path in pathes:
+        res_text_path = get_path_text(G, path, path[0])
+        loggers.main_logger.info(res_text_path)
+
     for rule_list in rule_lists:
         success_pathes += do_vul_checking(G, rule_list, pathes)
-    print("success: ", success_pathes)
-    if success_pathes!=[]:
-        content = "success: " +  str(success_pathes) + '\n'
-    else:
-        content = 'no vulnerability discovered'
+    print_success_pathes(G, success_pathes)
+    return success_pathes
+
+def print_success_pathes(G, success_pathes):
+    print(sty.fg.li_green + "|Checker| success: ", success_pathes)
+    path_id = 0
     for path in success_pathes:
         res_text_path = get_path_text(G, path, path[0])
+        loggers.tmp_res_logger.info("|checker| success id${}$: ".format(path_id))
+        loggers.tmp_res_logger.info(res_text_path)
+        path_id += 1
         print("Attack Path: ")
-        print(res_text_path)
-        content += "Attack Path: " + '\n'
-        content += res_text_path + '\n'
-    loggers.crx_logger.info(
-        sty.ef.inverse + sty.fg.li_magenta + content)
-    # with open('crx_run_results.txt', 'a') as f:
-    #     f.write(content)
-    return success_pathes
+        print(res_text_path + sty.rs.all)
 

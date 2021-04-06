@@ -36,3 +36,8 @@ class HandleClass(Handler):
     def process(self):
         loggers.error_logger.error("AST_CLASS is not implemented")
         return NodeHandleResult()
+
+class HandleMethod(Handler):
+    def process(self):
+        loggers.error_logger.error("AST_Method is not implemented")
+        return NodeHandleResult()

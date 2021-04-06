@@ -1,8 +1,14 @@
 var request_builtin_object = function(){
   var source_hqbpillvul_url = '';
+  var req_body = {
+    'user': {
+      'name':source_hqbpillvul_url
+    }
+  }
   this.url = source_hqbpillvul_url;
   this.path = source_hqbpillvul_url;
-  this.params = [source_hqbpillvul_url, source_hqbpillvul_url, 
+  this.body = req_body;
+  this.params = [source_hqbpillvul_url, source_hqbpillvul_url,
     source_hqbpillvul_url, source_hqbpillvul_url];
 
   this.on = function(str, cb) {
@@ -55,6 +61,10 @@ function express(requestListener) {
   }
 
   this.get = function(file_path, cb) {
+    cb(req, res);
+  }
+
+  this.post= function(file_path, url, cb) {
     cb(req, res);
   }
 

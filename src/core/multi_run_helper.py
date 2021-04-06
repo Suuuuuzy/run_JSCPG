@@ -159,7 +159,6 @@ def preprocess_and_get_entrance_files_of_extension(extension_path, ingore_JQuery
 
 
 
-
 def get_entrance_files_of_package(package_path, get_all=False):
     """
     get the entrance file pathes of a package
@@ -192,10 +191,9 @@ def get_entrance_files_of_package(package_path, get_all=False):
             npm_test_logger.error("Special {}".format(package_path))
 
 
-        if 'main' not in package_json:
-            main_file = 'index.js'
-        else:
-            main_file = package_json['main']
+        main_files.append('index.js')
+        if 'main' in package_json:
+            main_files.append(package_json['main'])
 
         if 'bin' in package_json:
             if type(package_json['bin']) == str:
@@ -204,14 +202,13 @@ def get_entrance_files_of_package(package_path, get_all=False):
                 for key in package_json['bin']:
                     main_files.append(package_json['bin'][key])
 
-    print("path ", main_files)
     # entrance file maybe two different formats
     # ./index = ./index.js or ./index = ./index/index.js
-    if main_file[-3:] != ".js":
-        main_files.append(main_file + "/index.js")
-        main_file += '.js'
-
-    main_files.append(main_file)
+    for idx in range(len(main_files)):
+        main_file = main_files[idx]
+        if main_file[-3:] != ".js":
+            main_files.append(main_file + "/index.js")
+            main_files[idx] += '.js'
 
     if get_all:
         analysis_path = './require_analysis.js'
@@ -228,7 +225,7 @@ def get_entrance_files_of_package(package_path, get_all=False):
             entrance_files.append(root_file)
 
     for main_file in main_files:
-        if main_file not in entrance_files and os.path.exists("{}/{}".format(package_path, main_file)):
+        if main_file not in entrance_files and os.path.exists(os.path.join(package_path, main_file)):
             entrance_files.append(main_file)
 
     main_file_pathes = ["{}/{}".format(package_path, main_file) for main_file in entrance_files]

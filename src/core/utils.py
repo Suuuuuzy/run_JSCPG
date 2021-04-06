@@ -46,6 +46,7 @@ class NodeHandleResult:
         self.ast_node = kwargs.get('ast_node')
         self.name_tainted = kwargs.get('name_tainted')
         self.parent_is_proto = kwargs.get('parent_is_proto')
+        self.parent_objs = kwargs.get('parent_objs')
         self.terminated = kwargs.get('terminated')
         assert type(self.obj_nodes) == list
         assert type(self.used_objs) == list
@@ -267,12 +268,14 @@ class ExtraInfo:
         self.parent_obj = None
         self.caller_ast = None
         self.switch_var = None
+        self.class_obj = None
         if original is not None:
             self.branches = original.branches
             self.side = original.side
             self.parent_obj = original.parent_obj
             self.caller_ast = original.caller_ast
             self.switch_var = original.switch_var
+            self.class_obj = original.class_obj
         if 'branches' in kwargs:
             self.branches = kwargs.get('branches')
         if 'side' in kwargs:
@@ -283,6 +286,8 @@ class ExtraInfo:
             self.caller_ast = kwargs.get('caller_ast')
         if 'switch_var' in kwargs:
             self.switch_var = kwargs.get('switch_var')
+        if 'class_obj' in kwargs:
+            self.class_obj = kwargs.get('class_obj')
 
     def __bool__(self):
         return bool(self.branches or (self.side is not None) or

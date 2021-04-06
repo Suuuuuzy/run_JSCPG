@@ -1,11 +1,14 @@
 from src.core.graph import Graph
 from src.core.utils import *
-from .vars import handle_var
+
 from ..utils import to_obj_nodes, get_df_callback, to_values, check_condition
 from src.core.logger import loggers
 from . import vars
 from src.plugins.handler import Handler
+from src.plugins.internal.handlers.vars import handle_var
 import sty
+from src.core.checker import traceback, print_success_pathes
+from src.core.options import options
 
 class HandleBinaryOP(Handler):
     """
@@ -142,7 +145,6 @@ class HandleAssign(Handler):
                 self.internal_manager.dispatch_node(right, ExtraInfo(extra, side='right'))
         else:
             handled_right = right_override
-        # print('handled_right ', handled_right)
         # handle left
         if G.get_node_attr(left).get('type') == 'AST_ARRAY':
             # destructuring assignment
@@ -184,13 +186,12 @@ class HandleAssign(Handler):
                 return NodeHandleResult(obj_nodes=[added_obj])
         else:
             # normal assignment
-            # print('normal assignment ', left)
             handled_left = self.internal_manager.dispatch_node(left, ExtraInfo(extra, side='left'))
             # it happends that the handled
             # set function name
             name = handled_left.name
             if name and G.get_node_attr(right).get('type') in \
-                ['AST_FUNC_DECL', 'AST_CLOSURE']:
+                ['AST_FUNC_DECL', 'AST_CLOSURE', 'AST_METHOD']:
                 for func_obj in handled_right.obj_nodes:
                     old_name = G.get_node_attr(func_obj).get('name')
                     if not old_name or old_name == '{closure}':
@@ -220,6 +221,21 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     # returned objects for serial assignment (e.g. a = b = c)
     returned_objs = []
 
+    right_tainted = len(list(filter(lambda x: \
+            G.get_node_attr(x).get('tainted') is True, right_objs))) != 0
+
+    if G.check_ipt:
+        if handled_left.parent_objs is not None:
+            # the left part is property
+            if handled_left.name_tainted and right_tainted:
+                # name node tainted and it's a property assign
+                # mark the parent object as prop_tainted
+                for parent_obj in handled_left.parent_objs:
+                    G.set_node_attr(parent_obj, ('prop_tainted', True))
+
+    if G.check_proto_pollution:
+        loggers.main_logger.info(f"Checking proto pollution, name tainted: {handled_left.name_tainted}"\
+            f" parent is proto: {handled_left.parent_is_proto}")
     if G.check_proto_pollution and (handled_left.name_tainted and handled_left.parent_is_proto):
         flag1 = False
         flag2 = False
@@ -228,22 +244,30 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
             if G.get_node_attr(obj).get('tainted'):
                 flag2 = True
                 break
+
+        loggers.main_logger.info(f"right tainted: {flag2}")               
         if flag2:
+            #loggers.res_logger.info(f"Prototype pollution detected in {G.package_name}")
             name_node_log = [('{}: {}'.format(x, repr(G.get_node_attr(x)
                 .get('name')))) for x in handled_left.name_nodes]
+            print(sty.fg.li_green + sty.ef.inverse +
+                'Prototype pollution detected at node {} (Line {})'
+                .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'))
+                 + sty.rs.all)
+
+            pathes = traceback(G, "proto_pollution", ast_node)
+            #print_success_pathes(pathes)
+
             logger.warning(sty.fg.li_red + sty.ef.inverse +
                 'Possible prototype pollution at node {} (Line {}), '
                 'trying to assign {} to name node {}'
                 .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'),
                 right_objs, ', '.join(name_node_log)) + sty.rs.all)
+
             logger.debug(f'Pollutable objs: {G.pollutable_objs}')
             logger.debug(f'Pollutable NN: {G.pollutable_name_nodes}')
             G.proto_pollution.add(ast_node)
-            loggers.print_logger.warning(sty.fg.li_red + sty.ef.inverse +
-                'Possible prototype pollution at node {} (Line {}), '
-                'trying to assign {} to name node {}'
-                .format(ast_node, G.get_node_attr(ast_node).get('lineno:int'),
-                right_objs, ', '.join(name_node_log)) + sty.rs.all)
+            G.detection_res[options.vul_type].add(G.package_name)
             if G.exit_when_found:
                 G.finished = True
             # skip doing the assignment
@@ -259,7 +283,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
         # if not nn_for_tags: # empty array or None
         G.assign_obj_nodes_to_name_node(name_node, right_objs,
             branches=branches)
-        # print('assign_obj_nodes_to_name_node ', name_node, right_objs)
+
         returned_objs.extend(right_objs)
 
     return NodeHandleResult(obj_nodes=handled_right.obj_nodes,

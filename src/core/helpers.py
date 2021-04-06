@@ -9,10 +9,7 @@ from src.core.logger import loggers
 from src.plugins.internal.utils import register_func
 from .logger import loggers, sty
 import json
-import sty
-import os
-import re
-import shutil
+from functools import reduce
 
 
 def get_argnames_from_funcaller(G, node_id):
@@ -85,7 +82,7 @@ def add_edges_between_funcs(G):
         ln1 = G.get_node_attr(CPG_caller_id).get('lineno:int')
         ln2 = G.get_node_attr(list(G.get_in_edges(entry_edge[1]))[0][0]).get('lineno:int')
         ln2 = 'Line ' + ln2 if ln2 else 'Built-in'
-        loggers.main_logger.info(sty.ef.inverse + sty.fg.cyan + 'Add CFG edge' + sty.rs.all + ' {} -> {} (Line {} -> {})'.format(CPG_caller_id, entry_edge[1], ln1, ln2))
+        loggers.main_logger.info('Add CFG edge' + ' {} -> {} (Line {} -> {})'.format(CPG_caller_id, entry_edge[1], ln1, ln2))
         added_edge_list.append((CPG_caller_id, entry_edge[1], {'type:TYPE': 'FLOWS_TO'}))
 
         # add DF edge to PARAM
@@ -94,7 +91,7 @@ def add_edges_between_funcs(G):
         callee_paras = get_argids_from_funcallee(G, callee_id)
         for idx in range(min(len(callee_paras), len(caller_para_names))):
             ln2 = G.get_node_attr(callee_paras[idx]).get('lineno:int')
-            loggers.main_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add INTER_FUNC_REACHES' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(CPG_caller_id, callee_paras[idx], ln1, ln2))
+            loggers.main_logger.info('Add INTER_FUNC_REACHES' + ' {} -> {} (Line {} -> Line {})'.format(CPG_caller_id, callee_paras[idx], ln1, ln2))
             assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
             assert callee_paras[idx] != None, f"Failed to add CFG edge. callee_paras[{idx}] is None."
             added_edge_list.append((CPG_caller_id, callee_paras[idx], {'type:TYPE': 'INTER_FUNC_REACHES', 'var': str(caller_para_names[idx])}))
@@ -106,7 +103,7 @@ def add_edges_between_funcs(G):
                     if G.get_node_attr(stmt)['type'] == 'AST_RETURN':
                         ln1 = G.get_node_attr(stmt).get('lineno:int')
                         ln2 = G.get_node_attr(CPG_caller_id).get('lineno:int')
-                        loggers.main_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'Add return value data flow' + sty.rs.all + ' {} -> {} (Line {} -> Line {})'.format(stmt, CPG_caller_id, ln1, ln2))
+                        loggers.main_logger.info('Add return value data flow' + ' {} -> {} (Line {} -> Line {})'.format(stmt, CPG_caller_id, ln1, ln2))
                         assert stmt != None, "Failed to add CFG edge. Statement ID is None."
                         assert CPG_caller_id != None, "Failed to add CFG edge. CPG_caller_id is None."
                         added_edge_list.append((stmt, CPG_caller_id, {'type:TYPE': 'FLOWS_TO'}))
@@ -218,6 +215,7 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir):
                     processFile(scripts, 'bg.js')
     return True
 
+
 def parse_file(G, path, start_node_id=0):
     """
     parse a file, from a path to a AST by esprima
@@ -228,9 +226,11 @@ def parse_file(G, path, start_node_id=0):
     """
     result = esprima_parse(path, ['-n', str(start_node_id), '-o', '-'],
         print_func=loggers.main_logger.info)
-    with open(path + '_parse.txt', 'w') as fout:
-        fout.write(result)
+
+    # with open(path + '_parse.txt', 'w') as fout:
+    #     fout.write(result)
     # print('result', result)
+
     G.import_from_string(result)
 
 def parse_string(G, source, start_node_id=0):
@@ -246,7 +246,7 @@ def parse_string(G, source, start_node_id=0):
     G.import_from_string(result)
 
 def print_handle_result(handle_result: NodeHandleResult):
-    output = f'{sty.ef.b}{sty.fg.cyan}{handle_result.ast_node}{sty.rs.all} ' \
+    output = f'{handle_result.ast_node} ' \
         f'handle result: obj_nodes={handle_result.obj_nodes}, ' \
         f'name={handle_result.name}, name_nodes={handle_result.name_nodes}'
     if handle_result.values:
@@ -585,8 +585,8 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
         target_name = ', '.join(G.reverse_names[target])
         if not target_name:
             target_name = repr(G.get_node_attr(target).get('code'))
-        loggers.main_logger.debug(f'Object {_source}({source_name}) {sty.fg.li_magenta}'
-            f'CONTRIBUTES TO{sty.rs.all} {target}({target_name}) '
+        loggers.main_logger.debug(f'Object {_source}({source_name}) '\
+            f'CONTRIBUTES TO {target}({target_name}) '\
             f'(Operation: {operation}, Index: {index or i}), tainted: {tainted}')
         attr = {'type:TYPE': 'CONTRIBUTES_TO'}
         if operation is not None:

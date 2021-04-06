@@ -59,6 +59,13 @@ class Graph:
         self.bg_scope = None
 
         self.detection_res = {}
+        self.detection_res = {}
+        self.num_removed = 0
+        self.dont_quit = None
+        self.last_stmts = []
+        self.package_name = None
+        self.no_file_based = False
+        self.ipt_use = set()
 
         # for control flow
         self.cfg_stmt = None
@@ -93,10 +100,6 @@ class Graph:
         self.string_prototype = None
         self.boolean_prototype = None
         self.regexp_prototype = None
-
-        # extension internal values
-        # self.port_prototype = None
-
         
         self.builtin_constructors = []
         self.builtin_prototypes = []
@@ -112,7 +115,7 @@ class Graph:
         self.file_stack = []
         self.require_obj_stack = []
         self.cur_stmt = None # for building data flows
-        self.function_returns = defaultdict(lambda: [])
+        self.function_returns = defaultdict(lambda: [[], []])
 
         # Python-modeled built-in modules
         self.builtin_modules = {}
@@ -160,6 +163,12 @@ class Graph:
         print(node_list)
         return self.graph.add_nodes_from(node_list)
     """
+
+    def get_graph_size(self):
+        """
+        return the size of the graph
+        """
+        return self.graph.size()
 
     def set_node_attr(self, node_id, attr):
         """
@@ -286,9 +295,6 @@ class Graph:
                 self.graph.remove_edge(u, v)
             except nx.NetworkXError:
                 break
-
-    def get_successors(self, node_id):
-        return self.graph.successors(node_id)
 
     def get_out_edges(self, node_id, data = True, keys = True, edge_type = None):
         assert node_id is not None
@@ -531,12 +537,14 @@ class Graph:
 
         return children
 
-    def get_child_nodes(self, node_id, edge_type=None, child_name=None, child_type=None):
+    def get_child_nodes(self, node_id, edge_type=None, child_name=None, child_type=None, 
+        child_label=None):
         """
         return the children of node (with a specific edge type, name, or node type)
         """
-        if edge_type is None and child_name is None and child_type is None:
-            return self.get_successors(node_id)
+        if edge_type is None and child_name is None and child_type is None \
+            and child_label is None:
+            return self.graph.successors(node_id)
         res = set()
         edges = self.get_out_edges(node_id, edge_type=edge_type)
         for edge in edges:
@@ -550,7 +558,6 @@ class Graph:
                 res.add(edge[1])
         return list(res)
 
-
     def get_name_node_of_obj_node(self, nodeid):
         edges = self.get_in_edges(nodeid, edge_type='NAME_TO_OBJ')
         name_nodes = []
@@ -558,7 +565,7 @@ class Graph:
             name_nodes.append(edge[0])
         return name_nodes
 
-
+    get_successors = get_child_nodes
 
     def get_name_from_child(self, nodeid, max_depth = None):
         """
@@ -749,13 +756,6 @@ class Graph:
                 length = len(value)
             self.add_obj_as_prop(prop_name="length", parent_obj=
             obj_node, js_type='number', value=length)
-        # elif js_type == "port":
-        #     if self.port_prototype is not None:
-        #         # prevent setting __proto__ before setup_object_and_function runs
-        #         self.add_obj_as_prop(prop_name="__proto__", parent_obj=
-        #         obj_node, tobe_added_obj=self.port_prototype)
-        #         self.add_obj_as_prop(prop_name="constructor", parent_obj=
-        #             obj_node, tobe_added_obj=self.port_cons)
 
         self.set_node_attr(obj_node, ('type', js_type))
 
@@ -763,6 +763,56 @@ class Graph:
             self.set_node_attr(obj_node, ('code', value))
 
         return obj_node
+    
+    def convert_wildcard_obj_type(self, obj_node, to_type='array'):
+        """
+        the wildcard obj maybe every type. If we found a wildcard obj is a special type
+        we need to convert the obj into the specified type. 
+        supported type: array
+        """
+        loggers.main_logger.info(f"convert obj {obj_node} type to {to_type}")
+        self.set_node_attr(obj_node, ('type', to_type))
+
+        if to_type == 'array':
+            type_prototype = self.array_prototype
+            type_constructor = self.array_cons
+
+        proto_name_node = self.get_child_nodes(obj_node, child_name='__proto__')
+        cons_name_node = self.get_child_nodes(obj_node, child_name='constructor')
+
+        if len(proto_name_node) != 0:
+            proto_name_node = proto_name_node[0]
+            cur_proto_target = self.get_child_nodes(proto_name_node, 'NAME_TO_OBJ')
+            if len(cur_proto_target) != 0:
+                self.remove_all_edges_between(proto_name_node, cur_proto_target[0])
+            self.add_edge_if_not_exist(proto_name_node, type_prototype,
+                {'type:TYPE': "NAME_TO_OBJ"})
+        else:
+            self.add_obj_as_prop(prop_name="__proto__", parent_obj=
+            obj_node, tobe_added_obj=type_prototype)
+        
+        if len(cons_name_node) != 0:
+            cons_name_node = cons_name_node[0]
+            cur_proto_target = self.get_child_nodes(cons_name_node, 'NAME_TO_OBJ')
+            if len(cur_proto_target) != 0:
+                self.remove_all_edges_between(proto_name_node, cur_proto_target[0])
+            self.add_edge_if_not_exist(cons_name_node, type_constructor,
+                {'type:TYPE': "NAME_TO_OBJ"})
+        else:
+            self.add_obj_as_prop(prop_name="constructor", parent_obj=
+                obj_node, tobe_added_obj=type_constructor)
+        
+        if to_type == 'array':
+            # if the type is array, we should add 
+            num_added_sub = 3
+            if len(self.get_prop_obj_nodes(obj_node, prop_name='0')) == 0:
+                # no child under this array node
+                for i in range(num_added_sub):
+                    added_sub_obj = self.add_obj_as_prop(prop_name=str(i), parent_obj=obj_node)
+                    self.set_node_attr(added_sub_obj, ('tainted', True))
+                    self.set_node_attr(added_sub_obj, ('code', wildcard))
+                    loggers.main_logger.info(f"Adding sub obj {added_sub_obj} {self.get_node_attr(added_sub_obj)} to array {obj_node}")
+            self.add_obj_as_prop(prop_name='length', parent_obj=obj_node, value=str(num_added_sub))
 
     def add_name_node(self, name, scope=None):
         """
@@ -808,14 +858,18 @@ class Graph:
         add edge from ast node to obj generation node
         """
         assert parent_obj is not None
+
         name_node = self.get_prop_name_node(prop_name, parent_obj)
+
         if name_node is None:
             name_node = self.add_prop_name_node(prop_name, parent_obj)
+
         if tobe_added_obj is None:
             tobe_added_obj = self.add_obj_node(ast_node, js_type, value)
+
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
+
         if combined and parent_obj == self.BASE_OBJ:
-            print('debug: define variable as window.gvar', prop_name)
             self.add_obj_to_scope(name=prop_name, scope=self.BASE_SCOPE,
                 tobe_added_obj=tobe_added_obj, combined=False)
         return tobe_added_obj
@@ -827,21 +881,23 @@ class Graph:
         return the added node id
         """
         if scope == None:
-            scope = self.cur_scope
+            scope = self.cur_scope 
         # check if the name node exists first
         name_node = self.get_name_node(name, scope=scope, follow_scope_chain=False)
         if name_node == None:
             self.logger.debug(f'{sty.ef.b}Add name node{sty.rs.all} {name} in scope {scope}')
             name_node = self.add_name_node(name, scope=scope)
+
         if tobe_added_obj == None:
             # here we do not add obj to current obj when add to scope
             # we just add a obj to scope
             tobe_added_obj = self.add_obj_node(ast_node, js_type, value)
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
+
         if combined and scope == self.BASE_SCOPE:
-            # print('debug: define variable in base scope! ', name)
             self.add_obj_as_prop(prop_name=name, parent_obj=self.BASE_OBJ,
                 tobe_added_obj=tobe_added_obj, combined=False)
+
         return tobe_added_obj
 
     add_obj_to_name = add_obj_to_scope
@@ -859,6 +915,25 @@ class Graph:
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
         return tobe_added_obj
+
+    def get_all_child_name_nodes(self, scope, follow_scope_chain=True, scope_type=None):
+        """
+        return all the name nodes of a under a scope node
+        including only the name nodes that under scopes
+        """
+        res = set()
+        scope_queue = [scope]
+
+        while len(scope_queue) != 0:
+            cur_scope = scope_queue.pop()
+            var_edges = self.get_out_edges(cur_scope, data = True, keys = True, edge_type = "SCOPE_TO_VAR")
+            for cur_edge in var_edges:
+                res.add(cur_edge[1])
+            if not follow_scope_chain:
+                break
+            scope_edges = self.get_out_edges(cur_scope, data=False, keys=False, edge_type = "PARENT_SCOPE_OF")
+            scope_queue += [edge[1] for edge in scope_edges]
+        return res 
 
     def get_name_node(self, var_name, scope = None, follow_scope_chain = True):
         """
@@ -954,7 +1029,13 @@ class Graph:
         name_node = self.get_name_node(var_name, scope)
         if name_node == None:
             return []
-        return self.get_objs_by_name_node(name_node, branches)
+        res_objs = self.get_objs_by_name_node(name_node, branches)
+        if var_name.startswith("source_hqbpillvul"):
+            # built in source, mark as tainted
+            for obj in res_objs:
+                self.set_node_attr(obj, ("tainted", True))
+
+        return res_objs
 
     def get_prop_names(self, parent_obj, exclude_proto=True):
         s = set()
@@ -1008,8 +1089,7 @@ class Graph:
 
     def get_prop_obj_nodes(self, parent_obj, prop_name=None,
         branches: List[BranchTag]=[], exclude_proto=True,
-        numeric_only=False, user_defined_only = False
-        ):
+        numeric_only=False):
         '''
         Get object nodes of an object's property.
         
@@ -1046,15 +1126,7 @@ class Graph:
                             return False
                         return True
                 name_nodes = filter(is_name_int, name_nodes)
-            if prop_name is None and user_defined_only:
-                name_nodes = filter(
-                    lambda x: self.get_node_attr(x).get('name') not in
-                              ['prototype', '__proto__', 'constructor', 'length'],
-                    name_nodes)
             for name_node in name_nodes:
-                if parent_obj=='3489':
-                    print('debug',self.get_node_attr(name_node).get('name'))
-                    print(self.get_obj_nodes(name_node, branches))
                 s.update(self.get_obj_nodes(name_node, branches))
         else:
             name_node = self.get_prop_name_node(prop_name, parent_obj)
@@ -1079,7 +1151,7 @@ class Graph:
         branch = branches.get_last_choice_tag()
         # remove previous objects
         pre_objs = self.get_objs_by_name_node(name_node, branches)
-        self.logger.debug(f'Assigning {obj_nodes} to {name_node}, ' \
+        self.logger.debug(f'Assigning {obj_nodes} to {name_node}, ' + \
             f'pre_objs={pre_objs}, branches={branches}')
         if pre_objs and not multi:
             for obj in pre_objs:
@@ -1119,7 +1191,7 @@ class Graph:
         OBJ_TO_AST edge.
         """
         aim_map = {
-                'function': ['AST_FUNC_DECL', 'AST_CLOSURE'],
+                'function': ['AST_FUNC_DECL', 'AST_CLOSURE', 'AST_METHOD'],
                 }
         tmp_edge = self.get_out_edges(obj_node, data = True, keys = True,
             edge_type = "OBJ_TO_AST")
@@ -1172,7 +1244,7 @@ class Graph:
                     if j[1] in copied:
                         continue
                     copied.add(j[1])
-                    new_prop_obj_node = self.copy_obj(j[1], ast_node, copied, deep)
+                    new_prop_obj_node = self.copy_obj(j[1], ast_node, copied)
                     # self.add_node(new_prop_obj_node, self.get_node_attr(j[1])) # ?
                     self.add_edge(new_prop_name_node, new_prop_obj_node,
                         {'type:TYPE': 'NAME_TO_OBJ'})
@@ -1190,6 +1262,13 @@ class Graph:
             for e in self.get_out_edges(obj_node, edge_type='OBJ_TO_AST'):
                 self.add_edge(new_obj_node, e[1], {'type:TYPE': 'OBJ_TO_AST'})
         return new_obj_node
+
+
+    def get_name_nodes_to_obj(self, obj_node):
+        """
+        return a list of name nodes that points to cur obj node
+        """
+        return [edge[0] for edge in self.get_in_edges(obj_node, edge_type='NAME_TO_OBJ')]
 
     # scopes
 
@@ -1475,6 +1554,74 @@ class Graph:
             self.add_obj_as_prop('__proto__', parent_obj=obj_node,
                                  tobe_added_obj=obj)
 
+    # Misc
+
+    def setup1(self):
+        """
+        the init function of setup a run
+        """
+        # base scope is not related to any file
+        self.BASE_SCOPE = self.add_scope("BASE_SCOPE", scope_name='Base')
+
+        self.BASE_OBJ = self.add_obj_to_scope(name='global',
+                            scope=self.BASE_SCOPE, combined=False)
+        self.cur_objs = [self.BASE_OBJ]
+
+        # setup JavaScript built-in values
+        self.null_obj = self.add_obj_to_scope(name='null', value='null',
+                                              scope=self.BASE_SCOPE)
+
+        self.true_obj = self.add_obj_node(None, 'boolean', 'true')
+        self.add_obj_to_name('true', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.true_obj)
+        self.false_obj = self.add_obj_node(None, 'boolean', 'false')
+        self.add_obj_to_name('false', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.false_obj)
+
+    def setup2(self):
+        # self.tainted_user_input = self.add_obj_to_scope(
+        #     name='pyTaintedUserInput', js_type=None,
+        #     value='*', scope=self.BASE_SCOPE)
+        # self.logger.debug("{} is mared as tainted for user input".format(self.tainted_user_input))
+        # self.set_node_attr(self.tainted_user_input, ('tainted', True))
+
+        # setup JavaScript built-in values
+        self.undefined_obj = self.add_obj_node(None, 'undefined',
+                                                value='undefined')
+        self.add_obj_to_name('undefined', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.undefined_obj)
+        self.infinity_obj = self.add_obj_node(None, 'number', 'Infinity')
+        self.add_obj_to_name('Infinity', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.infinity_obj)
+        self.negative_infinity_obj = self.add_obj_node(None, 'number',
+                                                       '-Infinity')
+        self.nan_obj = self.add_obj_node(None, 'number', float('nan'))
+        self.add_obj_to_name('NaN', scope=self.BASE_SCOPE,
+                             tobe_added_obj=self.nan_obj)
+
+        self.internal_objs = {
+            'undefined': self.undefined_obj,
+            'null': self.null_obj,
+            'global': self.BASE_OBJ,
+            'infinity': self.infinity_obj,
+            '-infinity': self.negative_infinity_obj,
+            'NaN': self.nan_obj,
+            'true': self.true_obj,
+            'false': self.false_obj
+        }
+        self.inv_internal_objs = {v: k for k, v in self.internal_objs.items()}
+        self.logger.debug(sty.ef.inverse + 'Internal objects\n' + 
+            str(self.internal_objs)[1:-1] + sty.rs.all)
+
+        self.builtin_prototypes = [
+            self.object_prototype, self.string_prototype,
+            self.array_prototype, self.function_prototype,
+            self.number_prototype, self.boolean_prototype, self.regexp_prototype
+        ]
+        self.pollutable_objs = set(chain(*
+            [self.get_prop_obj_nodes(p) for p in self.builtin_prototypes]))
+        self.pollutable_name_nodes = set(chain(*
+            [self.get_prop_name_nodes(p) for p in self.builtin_prototypes]))
 
     def get_parent_object_def(self, node_id):
         """
@@ -1659,6 +1806,12 @@ class Graph:
             if func_name in func_names:
                 return True
         return False
+    
+    def get_covered_statements(self):
+        """
+        return the covered statements
+        """
+        return self.covered_stat
 
     def get_total_num_statements(self):
         """

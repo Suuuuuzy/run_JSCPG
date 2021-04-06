@@ -1,5 +1,5 @@
 import argparse
-from src.core.graph import Graph 
+
 
 def parse_args():
     # Parse arguments
@@ -14,7 +14,7 @@ def parse_args():
                         help="Check prototype pollution.")
     parser.add_argument('-m', '--module', action='store_true',
                         help="Module mode. Regard the input file as a module "
-                        "required by some other modules. This implies -a.")
+                        "required by some other modules.")
     parser.add_argument('-q', '--exit', action='store_true', default=False,
                         help="Exit the program when vulnerability is found.")
     parser.add_argument('-s', '--single-branch', action='store_true',
@@ -32,15 +32,18 @@ def parse_args():
                         "(Defaults to 3.)")
     parser.add_argument('-e', '--entry-func')
     parser.add_argument('-l', '--list', action='store')
-    parser.add_argument('--parallel', action='store_true', default=False, help="run multiple package parallelly")
+    parser.add_argument('--install', action='store_true', default=False, help="If set, we will install the packages to the run env")
+    parser.add_argument('--run-env', default='./tmp_env/', help="set the running env location")
+    parser.add_argument('--no-file-based', action='store_true', default=False, help="No file based detection")
+    parser.add_argument('--parallel', help="run multiple package parallelly")
+    parser.add_argument('--auto-type', action='store_true', default=False, help="Auto change the type of wildcard obj based on the called method")
     parser.add_argument('--export', help="export the graph to csv files, can be light or all")
     parser.add_argument('--nodejs', action='store_true', default=False, help="run a nodejs package")
-    parser.add_argument('input_file', action='store', nargs='?',
-        help="Source code file (or directory) to generate object graph for. "
-        "Use '-' to get source code from stdin. Ignore this argument to "
-        "analyze ./nodes.csv and ./rels.csv.")
-    parser.add_argument('-crx', '--chrome_extension', action='store_true', default=False,
-                        help="run a chrome extension")
+    parser.add_argument('--gc', action='store_true', default=False, help="run a garbage collection after every function run")
+    parser.add_argument('--babel', help="use babel to convert the files first, need to input the path to the files to be converted")
+    parser.add_argument('input_file', action='store', nargs='?', help="Source code file (or directory) to generate object graph for. "
+        "Use '-' to get source code from stdin. Ignore this argument to analyze ./nodes.csv and ./rels.csv.")
+    parser.add_argument('-crx', '--chrome_extension', action='store_true', default=False, help="run a chrome extension")
 
     args = parser.parse_args()
     if args.vul_type == 'prototype_pollution':
@@ -48,30 +51,19 @@ def parse_args():
 
     return args
 
-def setup_graph_env(G: Graph, args):
-    """
-    setup the graph environment based on the user input
+class Options:
+    class __Options:
+        def __init__(self):
+            args = parse_args()
+            for arg in vars(args):
+                setattr(self,arg,getattr(args,arg))
+    instance = None
+    def __init__(self):
+        if not Options.instance:
+            Options.instance = Options.__Options()
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
+    def __setattr__(self, name, val):
+        return setattr(self.instance, name, val)
 
-    Args:
-        G (Graph): the Graph to setup
-        args (args): the user input args
-    """
-
-    if args.print:
-        logger = create_logger("main_logger", output_type="console",
-            level=logging.DEBUG)
-        create_logger("graph_logger", output_type="console",
-            level=logging.DEBUG)
-        G.print = True
-
-    G.run_all = args.run_all or args.module or args.nodejs or args.list
-    G.function_time_limit = args.function_timeout
-    G.exit_when_found = args.exit
-    G.single_branch = args.single_branch
-    G.vul_type = args.vul_type
-    G.func_entry_point = args.entry_func
-    G.check_proto_pollution = (args.prototype_pollution or 
-                               args.vul_type == 'proto_pollution')
-    G.check_ipt = (args.vul_type == 'ipt')
-    G.call_limit = args.call_limit
-    G.detection_res[args.vul_type] = set()
+options = Options()

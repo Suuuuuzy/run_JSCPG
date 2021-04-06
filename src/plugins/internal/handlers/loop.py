@@ -4,7 +4,6 @@ from ..utils import peek_variables, val_to_str, is_int
 from . import vars
 from ..utils import check_condition, wildcard, is_wildcard_obj, add_contributes_to
 from .blocks import simurun_block
-from src.core.logger import loggers
 
 class HandleFor(Handler):
     """
@@ -18,7 +17,7 @@ class HandleFor(Handler):
             init, cond, inc, body = G.get_ordered_ast_child_nodes(node_id)[:4]
         except ValueError as e:
             for n in G.get_ordered_ast_child_nodes(node_id):
-                loggers.error_logger.error(n, G.get_node_attr(n))
+                logger.error(n, G.get_node_attr(n))
                 return None
         cond = G.get_ordered_ast_child_nodes(cond)[0]
         # switch scopes
@@ -26,10 +25,11 @@ class HandleFor(Handler):
         G.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
                       scope_name=G.scope_counter.gets(f'Block{body}'))
         result = self.internal_manager.dispatch_node(init, extra) # init loop variables
-        d = peek_variables(G, ast_node=inc, handling_func=vars.handle_var,
-            extra=extra) # check increment to determine loop variables
+
         counter = 0
         while True:
+            # check increment to determine loop variables
+            d = peek_variables(G, ast_node=inc, extra=extra) 
             loggers.main_logger.debug('For loop variables:')
             for name, obj_nodes in d.items():
                 loggers.main_logger.debug(sty.ef.i + name + sty.rs.all + ': ' +
@@ -170,7 +170,7 @@ class HandleWhile(Handler):
             test, body = G.get_ordered_ast_child_nodes(node_id)[:2]
         except ValueError as e:
             for n in G.get_ordered_ast_child_nodes(node_id):
-                loggers.error_logger.error(n, G.get_node_attr(n))
+                logger.error(n, G.get_node_attr(n))
         # test = G.get_ordered_ast_child_nodes(test)[0] # wrongly influenced by for?
         # switch scopes
         parent_scope = G.cur_scope
