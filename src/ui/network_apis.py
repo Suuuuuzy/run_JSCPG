@@ -9,11 +9,11 @@ from src.core.options import options
 from src.core.opgen import OPGen
 
 app = flask.Flask(__name__)
-options.env_dir = None
+options.net_env_dir = None
 
 def update_env():
-    options.env_dir = os.path.join('./net_env_dir/', str(uuid.uuid4()))
-    env_dir = options.env_dir
+    options.net_env_dir = os.path.join('./net_env_dir/', str(uuid.uuid4()))
+    env_dir = options.net_env_dir
     if not os.path.exists(env_dir):
         os.makedirs(env_dir, exist_ok=True)
     return env_dir
@@ -40,7 +40,7 @@ def generate_graph_json(render=True):
     Returns:
         str: the rendered template
     """
-    env_dir = options.env_dir
+    env_dir = options.net_env_dir
     with open("./results_tmp.log", 'r') as fp:
         res = fp.read()
 
@@ -109,7 +109,7 @@ def generate_graph_json(render=True):
 
 @app.route('/check', methods=['POST'])
 def check():
-    env_dir = options.env_dir
+    env_dir = options.net_env_dir
     form = flask.request.form
     options.vul_type = form['vul_type']
     if 'module' in form:
@@ -126,6 +126,9 @@ def check():
         options.exit = True
     else:
         options.exit = False
+
+    if 'run_all' in form:
+        options.run_all = True
 
     options.input_file = os.path.join(os.path.abspath(env_dir))#, 'index.js')
 
@@ -148,8 +151,8 @@ def check():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    options.env_dir = update_env()
-    env_dir = options.env_dir
+    options.net_env_dir = update_env()
+    env_dir = options.net_env_dir
     file_cnt = 0
     file_path = None
     try:
