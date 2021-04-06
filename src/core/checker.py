@@ -281,9 +281,7 @@ def vul_checking(G, pathes, vul_type):
     ]
 
     chrome_API_execution = [
-        [
-            # ('start_with_func', dispatchable_events),
-          ('end_with_func', crx_sink)]
+        [('has_user_input', None), ('end_with_func', crx_sink)]
     ]
 
     vul_type_map = {
