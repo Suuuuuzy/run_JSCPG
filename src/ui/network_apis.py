@@ -13,12 +13,11 @@ options.net_env_dir = None
 
 def update_env():
     options.net_env_dir = os.path.join('./net_env_dir/', str(uuid.uuid4()))
+
     env_dir = options.net_env_dir
     if not os.path.exists(env_dir):
         os.makedirs(env_dir, exist_ok=True)
     return env_dir
-
-#update_env()
 
 @app.route('/')
 @app.route('/js/<path:jsname>')
@@ -31,6 +30,14 @@ def index(jsname=None, cssname=None):
     elif cssname:
         return flask.send_from_directory(os.path.join(app.static_folder, 'css'), cssname)
 
+@app.route('/getFile', methods=['POST'])
+def get_file():
+    data = flask.request.get_json()
+    file_name = os.path.abspath(os.path.join(options.run_env, data['name']))
+    #TODO: vulnerable to path traversal
+    return flask.send_file(file_name)
+
+
 def generate_graph_json(render=True):
     """
     read the results form tmp results
@@ -40,7 +47,8 @@ def generate_graph_json(render=True):
     Returns:
         str: the rendered template
     """
-    env_dir = options.net_env_dir
+    env_dir = options.run_env
+
     with open("./results_tmp.log", 'r') as fp:
         res = fp.read()
 
@@ -129,11 +137,17 @@ def check():
 
     if 'run_all' in form:
         options.run_all = True
+    else:
+        options.run_all = False
 
-    options.input_file = os.path.join(os.path.abspath(env_dir))#, 'index.js')
+    options.input_file = os.path.join(os.path.abspath(env_dir))
 
     if 'babel' in form:
         options.babel = os.path.abspath(env_dir)
+        options.run_env = os.path.join('./net_env_dir/', str(uuid.uuid4()))
+    else:
+        options.babel = None
+        options.run_env = options.net_env_dir
 
     # we need to clear the results tmp
     with open("./results_tmp.log", 'w') as fp:
@@ -161,7 +175,6 @@ def upload():
             # we only have one key here
             for f in file_values:
                 file_path = os.path.join(env_dir, secure_filename(f.filename))
-                print(file_path)
                 f.save(file_path)
                 file_cnt += 1
     except Exception as e:

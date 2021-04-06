@@ -47,7 +47,7 @@ let bfs = {
   padding: 10, // padding on fit
   circle: false, // put depths in concentric circles if true, put depths top down if false
   grid: true, // whether to create an even grid into which the DAG is placed (circle:false only)
-  spacingFactor: 1.2, // positive spacing factor, larger => more space between nodes (N.B. n/a if causes overlap)
+  spacingFactor: 1.1, // positive spacing factor, larger => more space between nodes (N.B. n/a if causes overlap)
   boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
   avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
   nodeDimensionsIncludeLabels: false, // Excludes the label when calculating node bounding boxes for the layout algorithm
@@ -220,4 +220,44 @@ var cy = window.cy = cytoscape({
   layout: bfs 
 });
 
+function send_click(data, lineno){
+  $.ajax({
+    url: '/getFile',
+    type: 'POST',
+    data: JSON.stringify({'name': data}),
+    contentType: "application/json",
+    dataType: 'html',
+    success: function(succ){
+      $("#editor-title").html("Editor: " + data);
+      var editor = ace.edit('editor');
+      var Range = ace.require('ace/range').Range;
+      
+      if (editor.marker != undefined) {
+        editor.session.removeMarker(editor.marker);
+      }
+      editor.marker = editor.session.addMarker(
+        new Range(lineno - 1, 0, lineno - 1, 1), "myMarker", "fullLine"
+      );
+      editor.setValue(succ);
+      editor.clearSelection();
+      editor.moveCursorTo(lineno, 0);
+      editor.gotoLine(lineno, 0, true);
+    }
+  });
+}
 
+
+cy.on('click', 'node', function(evt){
+  var cur_parent = this.parent();
+  var lineno = 0;
+  if (cur_parent != undefined){
+    // not parent
+    file_path = cur_parent.data()['content'];
+    lineno = parseInt(this.data()['content'].split("Line ")[1].split(" ")[0]);
+  } else {
+    file_path = this.data()['content'];
+  }
+  send_click(file_path, lineno);
+  console.log(file_path)
+  console.log( 'clicked ' + this.data()['content']);
+});

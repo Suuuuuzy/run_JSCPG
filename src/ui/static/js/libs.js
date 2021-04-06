@@ -24,7 +24,6 @@ function start_check() {
       } else {
         eval(data);
       }
-      //$("#result-display").html(data);
     }
   });
 }
