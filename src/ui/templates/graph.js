@@ -220,4 +220,44 @@ var cy = window.cy = cytoscape({
   layout: bfs 
 });
 
+function send_click(data, lineno){
+  $.ajax({
+    url: '/getFile',
+    type: 'POST',
+    data: JSON.stringify({'name': data}),
+    contentType: "application/json",
+    dataType: 'html',
+    success: function(succ){
+      $("#editor-title").html("Editor: " + data);
+      var editor = ace.edit('editor');
+      var Range = ace.require('ace/range').Range;
+      
+      if (editor.marker != undefined) {
+        editor.session.removeMarker(editor.marker);
+      }
+      editor.marker = editor.session.addMarker(
+        new Range(lineno - 1, 0, lineno - 1, 1), "myMarker", "fullLine"
+      );
+      editor.setValue(succ);
+      editor.clearSelection();
+      editor.moveCursorTo(lineno, 0);
+      editor.gotoLine(lineno, 0, true);
+    }
+  });
+}
 
+
+cy.on('click', 'node', function(evt){
+  var cur_parent = this.parent();
+  var lineno = 0;
+  if (cur_parent != undefined){
+    // not parent
+    file_path = cur_parent.data()['content'];
+    lineno = parseInt(this.data()['content'].split("Line ")[1].split(" ")[0]);
+  } else {
+    file_path = this.data()['content'];
+  }
+  send_click(file_path, lineno);
+  console.log(file_path)
+  console.log( 'clicked ' + this.data()['content']);
+});
