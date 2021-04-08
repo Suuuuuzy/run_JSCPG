@@ -11,7 +11,8 @@ from .logger import loggers, sty
 import json
 from functools import reduce
 import os
-
+import re
+import glob
 
 def get_argnames_from_funcaller(G, node_id):
     """
@@ -137,16 +138,11 @@ def parse_chrome_extension(G, path, start_node_id=0):
         # result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],
         #                        print_func=loggers.main_logger.info)
         G.import_from_string(result)
-        # TODO: remove generated_extension_dir
-        # shutil.rmtree(generated_extension_dir)
 
 
 def generate_extension_files(extension_path):
-    if not os.path.isdir('crx_tmp'):
-        os.mkdir('crx_tmp')
     generated_extension_dir = os.path.join('crx_tmp', "eopg_generated_files")
-    if not os.path.isdir(generated_extension_dir):
-        os.mkdir(generated_extension_dir)
+    os.makedirs(generated_extension_dir, exist_ok=True)
     # clean the old directory, if any file exists
     for file in os.listdir(generated_extension_dir):
         os.remove(os.path.join(generated_extension_dir,file))
@@ -157,8 +153,9 @@ def generate_extension_files(extension_path):
 
 def combine_files(newfile, files):
     result = ''
+    print('=======newfile=======', newfile)
     for file in files:
-        # print(file)
+        print(file)
         with open(file) as fin:
             content = fin.read()
             result += '// original file:' + file + '\n\n'
@@ -178,19 +175,29 @@ def js_file_filter(files):
     return re
 
 def preprocess_cs_bg_war(extension_path, generated_extension_dir):
-    def processFile(files, newname):
-        files = js_file_filter(files)
-        files = [os.path.join(extension_path, i) for i in files]
+    def processFile(files, newname, relative_path = None):
+        filtered_js_files = []
+        for file in files:
+            if relative_path==None:
+                filelist = glob.glob(os.path.join(extension_path, file))
+            else:
+                filepath = os.path.abspath(os.path.join(relative_path, file))
+                # print('filepath, ', filepath)
+                filelist = glob.glob(filepath)
+            filelist = [x for x in filelist if x.endswith('.js') and 'jquery' not in x]
+            filtered_js_files.extend(filelist)
+        # print('filtered_js_files', filtered_js_files)
+        # print('newname', newname)
+        # files = js_file_filter(files)
+        # files = [os.path.join(extension_path, i) for i in files]
         if 'cs' in newname:
-            files.insert(0, 'crx_headers/cs_header.js')
-            files.insert(0, 'crx_headers/jquery_header.js')
+            filtered_js_files.insert(0, 'crx_headers/cs_header.js')
+            filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
         elif 'bg' in newname:
-            files.insert(0, 'crx_headers/jquery_header.js')
-            files.insert(0,'crx_headers/bg_header.js')
+            filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
+            filtered_js_files.insert(0,'crx_headers/bg_header.js')
         # print(newname, ': \n', files)
-        combine_files(os.path.join(generated_extension_dir, newname), files)
-    if not os.path.isdir(generated_extension_dir):
-        os.mkdir(generated_extension_dir)
+        combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
     with open(os.path.join(extension_path, 'manifest.json')) as f:
         manifest = json.load(f)
         if 'content_scripts' in manifest:
@@ -214,7 +221,13 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir):
                     pattern = re.compile('<script .*src=".*"></script>')
                     scripts = pattern.findall(content)
                     scripts = [i.split('src=\"')[1].split('\"')[0] for i in scripts]
-                    processFile(scripts, 'bg.js')
+                    bg_last = os.path.abspath(os.path.join(extension_path, bgpage, '..'))
+                    # print(bg_last)
+                    # print('scripts: ', scripts)
+                    # for st in scripts:
+                    #     print(os.path.abspath(os.path.join(bg_last, st)))
+                    # bgpage_path = bgpage.split('/')
+                    processFile(scripts, 'bg.js', relative_path = bg_last)
     return True
 
 

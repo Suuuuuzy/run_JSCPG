@@ -4,6 +4,7 @@ from ..utils import peek_variables, val_to_str, is_int
 from . import vars
 from ..utils import check_condition, wildcard, is_wildcard_obj, add_contributes_to
 from .blocks import simurun_block
+from src.core.logger import *
 
 class HandleFor(Handler):
     """
@@ -17,7 +18,7 @@ class HandleFor(Handler):
             init, cond, inc, body = G.get_ordered_ast_child_nodes(node_id)[:4]
         except ValueError as e:
             for n in G.get_ordered_ast_child_nodes(node_id):
-                logger.error(n, G.get_node_attr(n))
+                loggers.error_logger.error(n, G.get_node_attr(n))
                 return None
         cond = G.get_ordered_ast_child_nodes(cond)[0]
         # switch scopes
