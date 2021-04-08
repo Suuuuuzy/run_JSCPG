@@ -85,7 +85,7 @@ class OPGen:
             list: the test result pathes of the chrome extension
         """
         # preprocess of the files in chrome extension
-        print('process chrome extension')
+        print('process chrome extension: ', extension_path)
         if not validate_chrome_extension(extension_path):
             print('not valid chrome extension')
             return -1
