@@ -1,4 +1,4 @@
-// port
+// ========= port ========= 
 function Port(info){
     if (info.includeTlsChannelId){
         this.includeTlsChannelId = info.includeTlsChannelId;
@@ -7,6 +7,8 @@ function Port(info){
         this.name = info.name;
     }
 }
+
+Port.prototype.onMessage = new Object();
 
 Port.prototype.onMessage.addListener = function(myCallback){
     RegisterFunc("bg_port_onMessage", myCallback);
@@ -18,7 +20,7 @@ Port.prototype.postMessage = function(msg){
     TriggerEvent(eventName, info);
 };
 
-// tab
+// ========= tab ========= 
 function Tab(){
     this.active = true;
     this.audible = true;
@@ -43,20 +45,74 @@ function Tab(){
     this.windowId = 14;
 }
 
-// chrome
+//  ========= chrome ========= 
 function Chrome(){}
 
+Chrome.prototype.runtime = new Object();
+Chrome.prototype.runtime.onInstalled = new Object();
 // this function be called righrt after all the 
 Chrome.prototype.runtime.onInstalled.addListener = function(myCallback) {
   RegisterFunc("bg_chrome_runtime_onInstalled", myCallback);
 };
 
 
+Chrome.prototype.runtime.onConnect = new Object();
 Chrome.prototype.runtime.onConnect.addListener = function(myCallback) {
   RegisterFunc("bg_chrome_runtime_onConnect", myCallback);
 };
 
 
+Chrome.prototype.runtime.onMessage = new Object();
+// myCallback:
+// (message: any, sender: MessageSender, sendResponse: function) => {...}
+// get message from chrome.runtime.sendMessage or chrome.tabs.sendMessage
+Chrome.prototype.runtime.onMessage.addListener = function(myCallback) {
+    RegisterFunc('bg_chrome_runtime_onMessage', myCallback);
+};
+MessageSender = function(){
+    this.frameId = 123;
+    this.guestProcessId=456;
+    this.guestRenderFrameRoutingId = 109;
+    this.id = 0;
+    this.nativeApplication = 'nativeApplication';
+    this.origin = 'back';
+    this.tab = new Tab();
+    this.tlsChannelId = 'tlsChannelId';
+    this.url = 'url';
+};
+function sendResponse(message_back){
+    var eventName = 'bg_chrome_runtime_onMessage_response';
+    var info = {message: message_back};
+    TriggerEvent(eventName, info);
+};
+
+
+// chrome.runtime.onMessageExternal.addListener
+Chrome.prototype.runtime.onMessageExternal = new Object();
+// myCallback parameters: (message: any, sender: MessageSender, sendResponse: function) => {...}
+Chrome.prototype.runtime.onMessageExternal.addListener = function(myCallback){
+    // ("bg_chrome_runtime_onMessageExternal", myCallback);
+    var type = 'bg_chrome_runtime_MessageExternal';
+    MarkAttackEntry(type, myCallback);
+}
+MessageSenderExternal = function(){
+    this.frameId = 123;
+    this.guestProcessId=456;
+    this.guestRenderFrameRoutingId = 109;
+    this.id = 0;
+    this.nativeApplication = 'nativeApplication';
+    this.origin = 'external';
+    this.tab = new Tab();
+    this.tlsChannelId = 'tlsChannelId';
+    this.url = 'url';
+};
+function sendResponseExternal(message_out){
+    sendResponseExternal_sink(message_out);
+};
+
+
+
+Chrome.prototype.topSites = new Object();
 Chrome.prototype.topSites.get = function(myCallback){
     var mostVisitedUrls_source = {title:'title', url:'url'};
     // mostVisitedUrls is sensitive data!
@@ -71,13 +127,38 @@ Chrome.prototype.topSites.get = function(myCallback){
 //     TriggerEvent(eventName, info);
 // };
 // 
+Chrome.prototype.tabs = new Object();
 Chrome.prototype.tabs.sendMessage = function(tabId, message, responseCallback){
     var eventName = 'bg_chrome_tabs_sendMessage';
     var info =  {tabId:tabId, message:message, responseCallback:responseCallback};
     TriggerEvent(eventName, info);
 };
 
+// chrome.tabs.query(queryInfo: object, callback: function)
+Chrome.prototype.tabs.query = function(queryInfo, callback){
+    // queryInfo is to find corresponding tabs, ingore it now
+    var tab = new Tab();
+    var alltabs = [tab];
+    callback(alltabs);
+}
 
+Chrome.prototype.tabs.onActivated = new Object();
+// the callback is called once a new tab is activated, we run the callback after all the others are set
+Chrome.prototype.tabs.onActivated.addListener = function(myCallback){
+    // var activeInfo = {tabId:99, windowId:80};
+    // myCallback(activeInfo);
+    RegisterFunc("bg_chrome_tabs_onActivated", myCallback);
+}
+
+
+function ActiveInfo(){
+    this.tabId = 3;
+    this.windowId = 1;
+};
+
+
+
+Chrome.prototype.cookies = new Object();
 // chrome.cookies.get(details: CookieDetails, callback: function)
 Chrome.prototype.cookies.get = function(details, callback){
     // details does not matter for now
@@ -105,20 +186,24 @@ Chrome.prototype.cookies.getAllCookieStores = function(callback){
 };
 
 
+Chrome.prototype.storage = new Object();
+Chrome.prototype.storage.sync = new Object();
 Chrome.prototype.storage.sync.get = function(key, callback){
     var storage_sync_get_source = {'key':'value'};
     callback(storage_sync_get_source);
 };
 
 
+Chrome.prototype.storage.local = new Object();
 Chrome.prototype.storage.local.get = function(key, callback){
     var storage_local_get_source = {'key':'value'};
     callback(storage_local_get_source);
 };
 
 
+Chrome.prototype.history = new Object();
 Chrome.prototype.history.search = function(query, callback){
-    var HistoryItem = {id:'id for the item' ,lastVisitTime:1000 ,title:'title of the page' , typedCount:3, url:'https://example.com' , visitCount:2   };
+    var HistoryItem = {id:'id for history item' ,lastVisitTime:1000 ,title:'title of history page' , typedCount:3, url:'https://example.com' , visitCount:2   };
     var results_source = [HistoryItem];
     callback(results_source);
 };
@@ -130,7 +215,7 @@ Chrome.prototype.history.getVisits = function(details, callback){
     callback(results_source);
 };
 
-
+Chrome.prototype.downloads = new Object();
 Chrome.prototype.downloads.search = function(query, callback){
     var DownloadItem = {byExtensionId:'id for the extension', byExtensionName:'name for the extension'};
     var results_source = [DownloadItem];
@@ -145,29 +230,8 @@ Chrome.prototype.downloads.getFileIcon = function(downloadId, callback){
 
 
 
-// chrome.tabs.query(queryInfo: object, callback: function)
-Chrome.prototype.tabs.query = function(queryInfo, callback){
-    // queryInfo is to find corresponding tabs, ingore it now
-    var tab = new Tab();
-    var alltabs = [tab];
-    callback(alltabs);
-}
-
-// the callback is called once a new tab is activated, we run the callback after all the others are set
-Chrome.prototype.tabs.onActivated.addListener = function(myCallback){
-    // var activeInfo = {tabId:99, windowId:80};
-    // myCallback(activeInfo);
-    RegisterFunc("bg_chrome_tabs_onActivated", myCallback);
-}
-
-
-function ActiveInfo(){
-    this.tabId = 3;
-    this.windowId = 1;
-};
-
-
-
+Chrome.prototype.webRequest = new Object();
+Chrome.prototype.webRequest.onBeforeSendHeaders = new Object();
 // Fired before sending an HTTP request
 // chrome.webRequest.onBeforeSendHeaders.addListener(listener: function)
 // MDN:
@@ -186,33 +250,7 @@ Chrome.prototype.webRequest.onBeforeSendHeaders.addListener = function(myCallbac
     // RegisterFunc();
 }
 
-// myCallback:
-// (message: any, sender: MessageSender, sendResponse: function) => {...}
-// get message from chrome.runtime.sendMessage or chrome.tabs.sendMessage
-Chrome.prototype.runtime.onMessage.addListener = function(myCallback) {
-    RegisterFunc('bg_chrome_runtime_onMessage', myCallback);
-};
-MessageSender = function(){
-    this.frameId = 123;
-    this.guestProcessId=456;
-    this.guestRenderFrameRoutingId = 109;
-    this.id = 0;
-    this.nativeApplication = 'nativeApplication';
-    this.origin = 'back';
-    this.tab = new Tab();
-    this.tlsChannelId = 'tlsChannelId';
-    this.url = 'url';
-};
-function sendResponse(message_back){
-    var eventName = 'bg_chrome_runtime_onMessage_response';
-    var info = {message: message_back};
-    TriggerEvent(eventName, info);
-};
 
-// // Tab
-// Tab = function(){
-//     this.
-// }
 
 chrome = new Chrome();
 

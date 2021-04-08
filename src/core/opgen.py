@@ -4,14 +4,17 @@ from .helpers import *
 from .timeout import timeout, TimeoutError
 from ..plugins.manager import PluginManager 
 from ..plugins.internal.setup_env import setup_opg
-from .checker import traceback, vul_checking
-from .multi_run_helper import validate_package, get_entrance_files_of_package 
+from .checker import traceback, vul_checking, traceback_crx
+from .multi_run_helper import validate_package, get_entrance_files_of_package, validate_chrome_extension
 from .logger import loggers
 from .options import options
 import os
 import shutil
 import sys
 from tqdm import tqdm
+from ..plugins.internal.handlers.event_loop import event_loop
+import time
+
 
 class OPGen:
     """
@@ -280,6 +283,8 @@ class OPGen:
             elif options.nodejs:
                 self.test_nodejs_package(options.input_file, 
                         options.vul_type, G=self.graph, timeout_s=timeout_s)
+            elif options.chrome_extension:
+                self.test_chrome_extension(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
             else:
                 # analyze from JS source code files
                 self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)

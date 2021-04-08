@@ -61,6 +61,9 @@ def setup_string(G: Graph):
     G.add_blank_func_as_prop('charAt', string_prototype, string_p_char_at)
     G.add_blank_func_as_prop('slice', string_prototype, string_returning_func)
 
+    # str.indexOf(searchValue [, fromIndex])
+    G.add_blank_func_as_prop('indexOf', string_prototype, string_p_indexof)
+
 
 def setup_number(G: Graph):
     number_cons = G.add_blank_func_to_scope('Number', scope=G.BASE_SCOPE, python_func=number_constructor)
@@ -212,7 +215,8 @@ def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), call
                     js_type='number', value=float(name))
             obj_nodes_log = ', '.join([f'{obj}: {G.get_node_attr(obj).get("code")}' for obj in obj_nodes])
             logger.debug(f'Array forEach callback arguments: index={name} ({name_obj_node}), obj_nodes={obj_nodes_log}, array={arr}')
-            opgen.call_function(G, callback.obj_nodes,
+            from src.plugins.internal.handlers.functions import call_function
+            call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                         obj_nodes=obj_nodes),
                     NodeHandleResult(obj_nodes=[name_obj_node]),
@@ -1913,3 +1917,49 @@ def promise_p_catch(G: Graph, caller_ast, extra, this, on_rejected=NodeHandleRes
 
 def promise_p_finally(G: Graph, caller_ast, extra, this, on_finally=NodeHandleResult()):
     return promise_p_then(G, caller_ast, extra, this, on_finally, on_finally)
+
+def string_p_indexof(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
+    searchValue=NodeHandleResult(), fromIndex=NodeHandleResult()):
+    returned_objs = []
+    used_objs = []
+    str = to_obj_nodes(G, strs, caller_ast)[0]
+    used_objs.append(str)
+    original_str = G.get_node_attr(str).get('code')
+    searchValue = to_obj_nodes(G, searchValue, caller_ast)[0]
+    used_objs.append(searchValue)
+    search_str = G.get_node_attr(searchValue).get('code')
+    index_objs = to_obj_nodes(G, fromIndex, caller_ast)
+    if len(index_objs) > 0:
+        fromIndex = index_objs[0]
+        used_objs.append(fromIndex)
+        from_index = G.get_node_attr(fromIndex).get('code')
+    else:
+        from_index = None
+    # print(original_str, search_str, from_index)
+    # str.index(sub[, start[, end]] )
+    if from_index==None:
+        try:
+            return_index = original_str.index(search_str)
+        except:
+            return_index = -1
+    else:
+        from_index = int(from_index)
+        if from_index<0:
+            try:
+                return_index = original_str.index(search_str)
+            except:
+                return_index = -1
+        elif from_index>len(original_str)-1:
+            if search_str=='':
+                return_index = len(original_str)
+            else:
+                return_index = -1
+        else:
+            try:
+                return_index = original_str.index(search_str, from_index)
+            except:
+                return_index = -1
+    # print(return_index)
+    added_obj = G.add_obj_node(ast_node=caller_ast, js_type = 'number', value = return_index)
+    returned_objs.append(added_obj)
+    return NodeHandleResult(obj_nodes=returned_objs, used_objs = used_objs)

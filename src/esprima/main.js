@@ -7,7 +7,7 @@ var delimiter; // '\t' or ','
 
 const path = require('path');
 const fs = require('fs');
-const esprima = require('esprima');CONFLICT (add/add): Merge conflict in src/esprima/main.js
+const esprima = require('esprima');
 const os = require('os');
 const ansicolor = require('ansicolor').nice;
 const Readable = require('stream').Readable;

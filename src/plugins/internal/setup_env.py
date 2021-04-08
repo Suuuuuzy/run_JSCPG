@@ -1,4 +1,4 @@
-from . import modeled_js_builtins
+from . import modeled_js_builtins, modeled_extension_builtins
 import sty
 from itertools import chain
 

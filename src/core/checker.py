@@ -257,3 +257,51 @@ def print_success_pathes(G, success_pathes):
         print("Attack Path: ")
         print(res_text_path + sty.rs.all)
 
+
+def traceback_crx(G, vul_type, start_node=None):
+    """
+    traceback from the leak point, the edge is OBJ_REACHES
+    Args:
+        G: the graph
+        vul_type: the type of vulnerability, listed below
+    Return:
+        the paths include the objs,
+        the string description of paths,
+        the list of callers,
+    """
+    res_path_text = ""
+    sink = []
+    sink.extend(crx_sink)
+    sink.extend(user_sink)
+    # func_nodes: the entries of traceback, which are all the CALLs of functions
+    func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
+    func_nodes += G.get_node_by_attr('type', 'AST_CALL')
+    func_nodes = [i for i in func_nodes if G.get_name_from_child(i) in sink]
+
+    ret_paths = []
+    caller_list = []
+    for func_node in func_nodes:
+        # we assume only one obj_decl edge
+        func_name = G.get_name_from_child(func_node)
+        # print('func_name debug##', func_name)
+        caller = func_node
+        # FROM AST NODE TO OPG NODE
+        caller = G.find_nearest_upper_CPG_node(caller)
+        caller_list.append("{} called {}".format(caller, func_name))
+        # caller_name = G.get_name_from_child(caller)
+        # print("{} called {}".format(caller_name, func_name))
+        pathes = G._dfs_upper_by_edge_type(caller, "OBJ_REACHES")
+        # here we treat the single calling as a possible path
+        # pathes.append([caller])
+        # NOTE: reverse the path here!
+        ret_paths.extend(pathes)
+        for path in pathes:
+            # ret_paths.append(path)
+            path.reverse()
+            res_path_text += get_path_text(G, path, caller)
+    print('=========ret_pathes debug=========\n', ret_paths)
+    # print(res_path_text)
+    # ret_paths: source 2 sink lists
+    # res_path_text: source 2 sink texts
+    return ret_paths, res_path_text, caller_list
+

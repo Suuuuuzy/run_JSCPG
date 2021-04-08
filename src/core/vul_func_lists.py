@@ -54,7 +54,7 @@ crx_source_var_name = ['mostVisitedUrls_source',
                         'jQuery_get_source',
                         'jQuery_post_source'
                        ]
-
+'''
 crx_source = [
         # chrome extension built-in get sensitive data APIs
         'chrome_topSites_get_source',
@@ -72,6 +72,7 @@ crx_source = [
         'jQuery_get_source',
         'jQuery_post_source'
 ]
+'''
 
 crx_sink = [
         # jQuery sinks
@@ -108,7 +109,8 @@ user_sink = [
     'JQ_obj_val_sink',
     'JQ_obj_html_sink',
     # to window
-    'window_postMessage_sink'
+    'window_postMessage_sink',
+    'sendResponseExternal_sink'
 ]
 
 

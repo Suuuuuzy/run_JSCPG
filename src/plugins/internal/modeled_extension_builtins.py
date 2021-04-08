@@ -105,7 +105,7 @@ def MarkSink(G: Graph, caller_ast, extra, _, *args):
 def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = G.get_node_attr(args[0].obj_nodes[0]).get('code')
     listener = args[1].obj_nodes[0]
-    # print('sensitiveSource', sensitiveSource)
+    # print('MarkAttackEntry: ', type)
     G.attackEntries.insert(0, [type, listener])
     return NodeHandleResult()
     # return NodeHandleResult(used_objs=list(used_objs))

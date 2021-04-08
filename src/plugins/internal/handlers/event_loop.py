@@ -1,16 +1,17 @@
 from src.core.utils import NodeHandleResult
 from src.plugins.internal.handlers.functions import call_function
 from src.core.graph import Graph
+from src.core.utils import wildcard
 from src.plugins.internal.utils import get_df_callback, get_off_spring
 
 
 def event_loop(G: Graph):
     # TODO: see what happens after the first round of event registering
-    print('####SEE eventRegisteredFuncs:')
+    print('========SEE eventRegisteredFuncs:========')
     for i in G.eventRegisteredFuncs:
         print(i, G.eventRegisteredFuncs[i])
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
-    print('####SEE original event queue:')
+    print('========SEE original event queue:========')
     cnt = 0
     for i in G.eventQueue:
         print('event ', cnt)
@@ -41,17 +42,37 @@ def event_loop(G: Graph):
                                                       mark_fake_args=False)
     # TODO: execute the attack entries, we assume there won't be more entries as the execution goes
     print('========SEE attackEntries:========')
-    for i in G.attackEntries:
-        print(i)
-        print(G.get_node_attr(G.get_obj_def_ast_node(i))) # a list of attack entries (function declaration objs)
+    # for i in G.attackEntries:
+    #     print(i)
+    #     print(G.get_node_attr(G.get_obj_def_ast_node(i))) # a list of attack entries (function declaration objs)
     while len(G.attackEntries) != 0:
         entry = G.attackEntries.pop()
         print('attack:', entry[0])
-        func_objs =  [entry[1]]
-        args = [] # no args
-        returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
-                    caller_ast=None, is_new=False, stmt_id='Unknown',
-                    mark_fake_args=True)
+        # if the attack entry is the message from external, args are not []
+        if entry[0]=='bg_chrome_runtime_MessageExternal':
+            wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
+                                       else None, value=wildcard)
+            G.set_node_attr(wildcard_msg_obj, ('tainted', True))
+            G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
+            func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
+            MessageSenderExternal, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
+                                                        extra=None,
+                                                        caller_ast=None, is_new=True, stmt_id='Unknown',
+                                                        func_name='MessageSenderExternal',
+                                                        mark_fake_args=False)
+            MessageSenderExternal.obj_nodes = created_objs
+            sendResponseExternal = G.get_objs_by_name('sendResponseExternal', scope=G.bg_scope, branches=[])
+            args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), MessageSenderExternal, NodeHandleResult(obj_nodes=sendResponseExternal)]
+            func_objs = [entry[1]]
+            returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+                                                          caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                          mark_fake_args=False)
+        else:
+            func_objs = [entry[1]]
+            args = []  # no args
+            returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+                                                          caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                          mark_fake_args=True)
 
     # TODO: add asynchronous functions
     while len(G.eventQueue) != 0:
@@ -116,11 +137,6 @@ def event_loop(G: Graph):
                 message = G.get_prop_obj_nodes(event['info'], prop_name = 'message')[0]
                 message = G.copy_obj(message, ast_node=None, deep=True)
                 info_nodes = G.get_prop_name_nodes(event['info'])
-                # for info_node in info_nodes:
-                #     print(G.get_node_attr(info_node))
-                # print(G.get_obj_def_ast_node(message))
-                # print('message obj node:',message,  G.get_node_attr(message))
-                # (message: any, sender: MessageSender, sendResponse: function)
                 func_objs = G.get_objs_by_name('MessageSender', scope=G.bg_scope, branches=[])
                 MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
                               extra=None,
@@ -128,9 +144,7 @@ def event_loop(G: Graph):
                               func_name='MessageSender',
                               mark_fake_args=False)
                 MessageSender.obj_nodes = created_objs
-                # print('MessageSender obj', created_objs[0], G.get_node_attr(created_objs[0]))
                 sendResponse = G.get_objs_by_name('sendResponse', scope=G.bg_scope, branches=[])
-                # print('sendResponse obj', sendResponse[0], G.get_obj_def_ast_node(sendResponse[0]), G.get_node_attr(sendResponse[0]))
                 args = [NodeHandleResult(obj_nodes=[message]), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
                 func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onMessage']
                 returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,

@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import json
-
-=======
->>>>>>> 7f93e48ddcc68186472c815057ede6e066e1b1c9
 from src.core.graph import Graph
 from src.core.utils import NodeHandleResult, ExtraInfo, BranchTag
 from src.core.utils import wildcard, undefined

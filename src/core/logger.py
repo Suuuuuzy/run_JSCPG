@@ -73,6 +73,7 @@ class Loggers:
             self.res_logger = create_logger("result", file_name="results.log")
             self.detail_logger = create_logger("details", file_name="details.log")
             self.tmp_res_logger = create_logger("result_tmp", file_name="results_tmp.log")
+            self.crx_logger = create_logger("crx_res", file_name="crx.log")
     instance = None
     def __init__(self):
         if not Loggers.instance:

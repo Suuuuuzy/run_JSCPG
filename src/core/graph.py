@@ -1089,7 +1089,7 @@ class Graph:
 
     def get_prop_obj_nodes(self, parent_obj, prop_name=None,
         branches: List[BranchTag]=[], exclude_proto=True,
-        numeric_only=False):
+        numeric_only=False, user_defined_only = False):
         '''
         Get object nodes of an object's property.
         
@@ -1126,6 +1126,11 @@ class Graph:
                             return False
                         return True
                 name_nodes = filter(is_name_int, name_nodes)
+            if prop_name is None and user_defined_only:
+                name_nodes = filter(
+                    lambda x: self.get_node_attr(x).get('name') not in
+                              ['prototype', '__proto__', 'constructor', 'length'],
+                    name_nodes)
             for name_node in name_nodes:
                 s.update(self.get_obj_nodes(name_node, branches))
         else:

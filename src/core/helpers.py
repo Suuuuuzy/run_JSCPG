@@ -10,6 +10,7 @@ from src.plugins.internal.utils import register_func
 from .logger import loggers, sty
 import json
 from functools import reduce
+import os
 
 
 def get_argnames_from_funcaller(G, node_id):
@@ -129,7 +130,8 @@ def parse_chrome_extension(G, path, start_node_id=0):
             parse_result.close()
         else:
             result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],
-                               print_func=loggers.main_logger.info)
+                                   print_func=loggers.main_logger.info)
+            # print('result: ',result)
             with open(parse_result_file, 'w') as parse_result:
                 parse_result.write(result)
         # result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],

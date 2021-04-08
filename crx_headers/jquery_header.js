@@ -1,4 +1,4 @@
-// the document and its elements are all objects
+//  ========= the document and its elements are all objects ========= 
 
 function Document_element(id, class_name, tag){
     this.id = id;
@@ -14,6 +14,9 @@ Document_element.prototype.createElement = function(tagname){
 
 
 function Document(){}
+
+Document.prototype.body = new Object();
+
 Document.prototype.getElementById = function(id){
     var document_element = new Document_element(id);
 };
@@ -22,7 +25,7 @@ Document.prototype.body.appendChild = function(){};
 
 var document = new Document();
 
-
+//  ========= JQuery ========= 
 // $(this).hide() - hides the current element.
 // $("p").hide() - hides all <p> elements.
 // $(".test").hide() - hides all elements with class="test".
@@ -186,6 +189,7 @@ $.extend = function(obj1, obj2){
 
 // jQuery.extend( [deep ], target, object1 [, objectN ] ) deep copy
 
+//  ========= Event ========= 
 function Event(type){
     this.type = type;
 }

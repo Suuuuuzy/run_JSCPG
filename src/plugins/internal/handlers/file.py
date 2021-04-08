@@ -124,11 +124,7 @@ def run_toplevel_file(G: Graph, node_id):
             print('exported', G.get_node_attr(o))
     """
 
-    # TODO: find out eventListener callback function as object
-    # target.addEventListener
-    # target can be different:
-    # 1. predefined (window)
-    # 2. self-defined event (custom event)
+
     # switch back scope, object, path and statement AST node id
     G.cur_scope = backup_scope
     # G.cur_objs = backup_objs
@@ -137,6 +133,6 @@ def run_toplevel_file(G: Graph, node_id):
 
     G.file_stack.pop(-1)
 
-    module_exports_objs = None
+    module_exports_objs = []
 
     return module_exports_objs

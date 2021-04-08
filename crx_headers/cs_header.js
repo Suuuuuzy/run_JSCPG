@@ -1,4 +1,4 @@
-// port
+//  ========= port ========= 
 function Port(info){
     if (info.includeTlsChannelId){
         this.includeTlsChannelId = info.includeTlsChannelId;
@@ -7,6 +7,9 @@ function Port(info){
         this.name = info.name;
     }
 }
+
+Port.prototype.onMessage = new Object();
+
 
 Port.prototype.onMessage.addListener = function(myCallback){
         RegisterFunc("cs_port_onMessage", myCallback);
@@ -19,8 +22,16 @@ Port.prototype.postMessage = function(msg){
 };
 
 
-// chrome
+//  ========= chrome ========= 
 function Chrome(){}
+
+Chrome.prototype.runtime = new Object();
+// chrome.runtime.sendMessage(extensionId?: string, message: any, options: object, responseCallback: function)
+Chrome.prototype.runtime.sendMessage = function(message, responseCallback){
+    var eventName = 'cs_chrome_runtime_sendMessage';
+    var info = {message: message,responseCallback: responseCallback};
+    TriggerEvent(eventName, info);
+};
 
 Chrome.prototype.runtime.connect = function(extensionId, connectInfo){
     var eventName = 'cs_chrome_runtime_connect';
@@ -33,7 +44,7 @@ Chrome.prototype.runtime.connect = function(extensionId, connectInfo){
     return new Port(connectInfo);
 };
 
-
+Chrome.prototype.runtime.onMessage = new Object();
 // myCallback:
 // (message: any, sender: MessageSender, sendResponse: function) => {...}
 // get message from chrome.runtime.sendMessage or chrome.tabs.sendMessage
@@ -80,17 +91,10 @@ function sendResponse(message_back){
 // };
 
 
-// chrome.runtime.sendMessage(extensionId?: string, message: any, options: object, responseCallback: function)
-Chrome.prototype.runtime.sendMessage = function(message, responseCallback){
-    var eventName = 'cs_chrome_runtime_sendMessage';
-    var info = {message: message,responseCallback: responseCallback};
-    TriggerEvent(eventName, info);
-};
-
 chrome = new Chrome();
 
 
-// window
+//  ========= window ========= 
 function Window(){}
 
 // targetWindow.postMessage(message, targetOrigin, [transfer]);
@@ -104,8 +108,10 @@ Window.prototype.addEventListener = function(type, listener,  [ options]){
     MarkAttackEntry(type, listener);
 };
 
+Window.prototype.top = new Object();
 Window.prototype.top.addEventListener = Window.prototype.addEventListener;
 
+Window.prototype.localStorage = new Object();
 Window.prototype.localStorage.removeItem = function(a){
 
 };
@@ -118,12 +124,10 @@ Window.prototype.localStorage.getItem = function(a, b){
 
 };
 
-
-
 window = new Window();
 
 
-//
+// ========= location ========= 
 location = new Object();
 location.href = 'http://www.example.com/search?q=q&oq=oq&chrome=chrome&sourceid=sourceid&ie=UTF-8';
 
