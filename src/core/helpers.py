@@ -179,12 +179,18 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir):
         filtered_js_files = []
         for file in files:
             if relative_path==None:
+                # print(extension_path)
+                # print(file)
+                if file.startswith('/'):
+                    file = '.' + file
+                # print(os.path.join(extension_path, file))
                 filelist = glob.glob(os.path.join(extension_path, file))
+                # print('filepath, ', filelist)
             else:
                 filepath = os.path.abspath(os.path.join(relative_path, file))
                 # print('filepath, ', filepath)
                 filelist = glob.glob(filepath)
-            filelist = [x for x in filelist if x.endswith('.js') and 'jquery' not in x]
+            filelist = [x for x in filelist if x.endswith('.js') and 'jquery' not in x.lower()]
             filtered_js_files.extend(filelist)
         # print('filtered_js_files', filtered_js_files)
         # print('newname', newname)
