@@ -133,7 +133,9 @@ class OPGen:
         G.export_node = True
         internal_plugins = PluginManager(G, init=True)
         entry_id = '0'
-
+        # jianjia: generate branch graph before we fully run
+        # (mark on the AST node, each node should search ancestors until branch is found)
+        generate_branch_graph(G, entry_nodeid=entry_id)
         generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
         if vul_type in ['chrome_API_execution', 'chrome_data_exfiltration']:
             event_loop(G)
@@ -421,4 +423,35 @@ def prepare_split_list():
         with open(os.path.join(options.run_env, tmp_list_dir, str(cnt)), 'w') as fp:
             fp.writelines(sub_packages)
         cnt += 1
-    
+
+
+
+def generate_branch_graph(G, entry_nodeid='0'):
+    """
+    generate the object graph of a program
+    Args:
+        G (Graph): the graph to generate
+        internal_plugins（PluginManager): the plugin obj
+        entry_nodeid (str) 0: the entry node id,
+            by default 0
+    """
+    entry_nodeid = str(entry_nodeid)
+    loggers.main_logger.info(sty.fg.green + "GENERATE BRANCH GRAPH" + sty.rs.all + ": " + entry_nodeid)
+    # start from node 0, go!
+    visited = set()
+    depth = 0
+    DFS(G, entry_nodeid, visited, depth)
+    print('jianjia see branch graph')
+    for node in G.graph.nodes:
+        if 'branch' in G.get_node_attr(node):
+            print(node, G.get_node_attr(node)['branch'])
+
+
+def DFS(G, nodeid, visited, depth):
+    visited.add(nodeid)
+    node_type = G.get_node_attr(nodeid)['type']
+    if node_type in ['AST_IF_ELEM', 'AST_SWITCH_CASE']:
+        G.set_node_attr(nodeid, ('branch', depth))
+    for child in G.get_child_nodes(nodeid):
+        if child not in visited:
+            DFS(G, child, visited, depth+1)

@@ -105,7 +105,6 @@ class PluginManager(object):
             the handling process for each node include multiple stages
             
             Args:
-                G (Graph): the graph
                 node_id (str): the id of the node
                 extra (Extra): the extra info
             Returns:
@@ -141,7 +140,6 @@ class PluginManager(object):
             extra = ExtraInfo(extra, side=None)
             handle_obj = self.handler_map[node_type](self.G, node_id, extra=extra)
             handle_res = handle_obj.process()
-            
             return handle_res
 
     def __init__(self, G=None, init=False):

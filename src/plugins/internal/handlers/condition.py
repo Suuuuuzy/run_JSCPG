@@ -6,6 +6,7 @@ from . import blocks
 from ..utils import get_random_hex, check_condition, decl_vars_and_funcs
 from ..utils import has_else, merge, get_df_callback
 from .blocks import simurun_block
+from src.core.timeout import timeout, TimeoutError
 
 class HandleIf(Handler):
     """
@@ -24,39 +25,46 @@ class HandleIf(Handler):
         # if it is sure (deterministic) that "else" needs to run 
         else_is_deterministic = True
         for if_elem in if_elems:
-            # for each if statement, we should make sure cfg starts from the 
-            # if condition stmt
-            G.cfg_stmt = node_id 
+            try:
+                with timeout(seconds=2):
+                    # for each if statement, we should make sure cfg starts from the
+                    # if condition stmt
+                    G.cfg_stmt = node_id
 
-            condition, body = G.get_ordered_ast_child_nodes(if_elem)
-            if G.get_node_attr(condition).get('type') == 'NULL': # else
-                if else_is_deterministic or G.single_branch:
-                    blocks.simurun_block(G, body, G.cur_scope, branches)
-                else:
-                    # not deterministic, create branch
-                    branch_tag = BranchTag(
-                        point=stmt_id, branch=str(branch_num_counter))
-                    branch_num_counter += 1
-                    blocks.simurun_block(G, body, G.cur_scope, branches+[branch_tag])
-                break
-            # check condition
-            possibility, deterministic = check_condition(G, condition, extra)
-            loggers.main_logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
-                G.get_node_attr(condition).get('code') + sty.rs.all,
-                possibility, deterministic))
-            if deterministic and possibility == 1:
-                # if the condition is surely true
-                blocks.simurun_block(G, body, G.cur_scope, branches)
-                break
-            elif G.single_branch and possibility != 0:
-                simurun_block(G, body, G.cur_scope)
-            elif not deterministic or possibility is None or 0 < possibility < 1:
-                # if the condition is unsure
-                else_is_deterministic = False
-                branch_tag = \
-                    BranchTag(point=stmt_id, branch=str(branch_num_counter))
-                branch_num_counter += 1
-                blocks.simurun_block(G, body, G.cur_scope, branches+[branch_tag])
+                    condition, body = G.get_ordered_ast_child_nodes(if_elem)
+                    if G.get_node_attr(condition).get('type') == 'NULL': # else
+                        if else_is_deterministic or G.single_branch:
+                            blocks.simurun_block(G, body, G.cur_scope, branches)
+                        else:
+                            # not deterministic, create branch
+                            branch_tag = BranchTag(
+                                point=stmt_id, branch=str(branch_num_counter))
+                            branch_num_counter += 1
+                            blocks.simurun_block(G, body, G.cur_scope, branches+[branch_tag] )
+                        break
+                    # check condition
+                    possibility, deterministic = check_condition(G, condition, extra)
+                    loggers.main_logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
+                        G.get_node_attr(condition).get('code') + sty.rs.all,
+                        possibility, deterministic))
+                    if deterministic and possibility == 1:
+                        # if the condition is surely true
+                        blocks.simurun_block(G, body, G.cur_scope, branches)
+                        break
+                    elif G.single_branch and possibility != 0:
+                        simurun_block(G, body, G.cur_scope)
+                    elif not deterministic or possibility is None or 0 < possibility < 1:
+                        # if the condition is unsure
+                        else_is_deterministic = False
+                        branch_tag = \
+                            BranchTag(point=stmt_id, branch=str(branch_num_counter))
+                        branch_num_counter += 1
+                        blocks.simurun_block(G, body, G.cur_scope, branches+[branch_tag])
+            except TimeoutError as err:
+                print(err)
+                print('this branch timeout, jump to another')
+                return NodeHandleResult()
+
         # When there is no "else", we still need to add a hidden else
         if not has_else(G, node_id):
             branch_num_counter += 1
