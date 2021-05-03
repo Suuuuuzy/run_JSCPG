@@ -176,8 +176,20 @@ class TraceRule:
                 if 'type:TYPE' in cur_edges[k] and cur_edges[k]['type:TYPE'] == "OBJ_REACHES":
                     obj = cur_edges[k]['obj']
                     obj_attr = self.graph.get_node_attr(obj)
+                    print('debug has user input: ', obj, self.graph.get_name_from_child(obj))
+                    names = self.graph.get_prop_names(obj)
+                    print('debug prop names: ', names)
+                    # self.graph.getpro
+                    props = self.graph.get_prop_obj_nodes(obj)
+                    for prop in props:
+                        print('debug prop attr: ', prop, self.graph.get_node_attr(prop))
                     if 'tainted' in obj_attr and obj_attr['tainted']:
                         return True
+                    off_spring = self.graph.get_off_spring(obj)
+                    for child in off_spring:
+                        child_attr = self.graph.get_node_attr(child)
+                        if 'tainted' in child_attr and child_attr['tainted']:
+                            return True
             pre_node = node
 
             """
@@ -196,6 +208,31 @@ class TraceRule:
             return True
         return False
 
+    # def start_with_var_offspring(self, var_names, path):
+    #     # TODO: not finished, need to update the var name finding algorithm
+    #     """
+    #     check whether a path starts with a variable
+    #     Args:
+    #         var_names: the possible var names
+    #         path: the path to be checked
+    #     Return:
+    #         True or False
+    #     """
+    #     start_node = path[0]
+    #     ancestors = self.graph.get_ancestors_in(start_node, edge_types=)
+    #     for ac in ancestors:
+    #         if not ac:
+    #             continue
+    #         print('debug ancestor name: ', self.graph.get_name_from_child(ac))
+    #
+    #     path_start_var_name = self.graph.get_name_from_child(start_node)
+    #     print('debug path_start_var_name: ', path_start_var_name)
+    #
+    #     cur_node = self.graph.get_node_attr(start_node)
+    #     if path_start_var_name is None:
+    #         return False
+    #     return path_start_var_name in var_names
+
     def check(self, path):
         """
         select the checking function and run it based on the key value
@@ -211,7 +248,8 @@ class TraceRule:
                 "not_start_within_file": self.not_start_within_file,
                 "end_with_func": self.end_with_func,
                 "has_user_input": self.has_user_input,
-                "start_with_var": self.start_with_var
+                "start_with_var": self.start_with_var,
+                # "start_with_var_offspring": self.start_with_var_offspring
                 }
 
         if self.key in key_map:

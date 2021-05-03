@@ -44,6 +44,10 @@ signature_lists = {
         ]
 }
 
+external_source_var_name = [
+    'bg_chrome_runtime_MessageExternal_src'
+]
+
 crx_source_var_name = ['mostVisitedUrls_source',
                        'cookie_source',
                        'cookies_source',
@@ -89,7 +93,7 @@ crx_sink = [
         'chrome_history_deleteUrl_sink',
         'chrome_history_deleteRange_sink',
         'chrome_history_deleteAll_sink',
-        'chrome_downloads_download_sink',
+        'chrome_downloads_download_sink', # added
         'chrome_downloads_pause_sink',
         'chrome_downloads_resume_sink',
         'chrome_downloads_cancel_sink',

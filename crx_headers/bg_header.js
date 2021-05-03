@@ -87,6 +87,11 @@ function sendResponse(message_back){
 };
 
 
+// chrome.runtime.onMessage.removeListener
+Chrome.prototype.runtime.onMessage.removeListener = function(myCallback) {
+    UnregisterFunc('bg_chrome_runtime_onMessage', myCallback);
+};
+
 // chrome.runtime.onMessageExternal.addListener
 Chrome.prototype.runtime.onMessageExternal = new Object();
 // myCallback parameters: (message: any, sender: MessageSender, sendResponse: function) => {...}
@@ -200,6 +205,13 @@ Chrome.prototype.storage.local.get = function(key, callback){
     callback(storage_local_get_source);
 };
 
+Chrome.prototype.storage.local.set = function(data){
+    chrome_storage_local_set_sink(data);
+    callback();
+};
+
+
+
 
 Chrome.prototype.history = new Object();
 Chrome.prototype.history.search = function(query, callback){
@@ -221,6 +233,14 @@ Chrome.prototype.downloads.search = function(query, callback){
     var results_source = [DownloadItem];
     callback(results_source);
 };
+
+
+Chrome.prototype.downloads.download = function(options, callback){
+    chrome_downloads_download_sink(options);
+    // chrome_downloads_download_sink(options.url);
+    // chrome_downloads_download_sink(options.body);
+    // chrome_downloads_download_sink(options.filename);
+}
 
 Chrome.prototype.downloads.getFileIcon = function(downloadId, callback){
     var iconURL = 'https://example.com/image.png';

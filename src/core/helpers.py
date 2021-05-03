@@ -213,9 +213,9 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir):
                     csfiles = j['js']
                     processFile(csfiles, 'cs_'+str(count)+'.js')
                 count += 1
-        if 'web_accessible_resources' in manifest:
-            warfiles = manifest['web_accessible_resources']
-            processFile(warfiles, 'war.js')
+        # if 'web_accessible_resources' in manifest:
+        #     warfiles = manifest['web_accessible_resources']
+        #     processFile(warfiles, 'war.js')
         if 'background' in manifest:
             if 'scripts' in manifest['background']:
                 bgfiles = manifest['background']['scripts']

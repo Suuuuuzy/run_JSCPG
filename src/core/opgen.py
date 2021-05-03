@@ -14,6 +14,7 @@ import sys
 from tqdm import tqdm
 from ..plugins.internal.handlers.event_loop import event_loop
 import time
+from threading import Thread, Event
 
 
 class OPGen:
@@ -57,7 +58,7 @@ class OPGen:
 
         return vul_pathes
 
-    def test_file(self, file_path, vul_type='os_command', G=None, timeout_s=None):
+    def test_file(self, file_path, vul_type='os_command', G=None, timeout_s=None, pq=False):
         """
         test a file as a js script
         Args:
@@ -71,10 +72,10 @@ class OPGen:
         if G is None:
             G = self.graph
         parse_file(G, file_path)
-        test_res = self._test_graph(G, vul_type=vul_type)
+        test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
         return test_res
 
-    def test_chrome_extension(self, extension_path, vul_type, G=None,  timeout_s=None):
+    def test_chrome_extension(self, extension_path, vul_type, G=None,  timeout_s=None, pq=False):
         """
         test a dir of files as an chrome extension
         Args:
@@ -100,7 +101,7 @@ class OPGen:
                                      format(extension_path, timeout_s)):
                     start_time = time.time()
                     parse_chrome_extension(G, extension_path)
-                    test_res = self._test_graph(G, vul_type=vul_type)
+                    test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
                     end_time = time.time()
                     loggers.crx_logger.info(str(end_time-start_time) + 'second spent####')
             except TimeoutError as err:
@@ -114,12 +115,12 @@ class OPGen:
                 loggers.crx_logger.info("{}% stmt covered####".format(covered_stat_rate))
         else:
             parse_chrome_extension(G, extension_path)
-            test_res = self._test_graph(G, vul_type=vul_type)
+            test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
         # test_res = None
         return test_res
 
 
-    def _test_graph(self, G: Graph, vul_type='os_command'):
+    def _test_graph(self, G: Graph, vul_type='os_command', pq=False):
         """
         for a parsed AST graph, generate OPG and test vul
         Args:
@@ -129,6 +130,7 @@ class OPGen:
         Returns:
             list: the test result pathes of the module
         """
+        check_res = None
         setup_opg(G)
         G.export_node = True
         internal_plugins = PluginManager(G, init=True)
@@ -136,7 +138,7 @@ class OPGen:
         # jianjia: generate branch graph before we fully run
         # (mark on the AST node, each node should search ancestors until branch is found)
         generate_branch_graph(G, entry_nodeid=entry_id)
-        generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
+        generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id, pq=pq)
         if vul_type in ['chrome_API_execution', 'chrome_data_exfiltration']:
             event_loop(G)
 
@@ -144,11 +146,10 @@ class OPGen:
             check_res = self.check_vuls(vul_type, G)
             if len(check_res) != 0:
                 self.graph.detection_res[vul_type].add(G.package_name)
-
         return check_res
 
     def test_module(self, module_path, vul_type='os_command', G=None, 
-            timeout_s=None):
+            timeout_s=None, pq=False):
         """
         test a file as a module
         Args:
@@ -175,13 +176,13 @@ class OPGen:
                         error_message="{} timeout after {} seconds".\
                                 format(module_path, timeout_s)):
                     parse_string(G, js_call_templete)
-                    test_res = self._test_graph(G, vul_type=vul_type)
+                    test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
             except TimeoutError as err:
                 loggers.error_logger.error(err)
                 loggers.res_logger.error(err)
         else:
             parse_string(G, js_call_templete)
-            test_res = self._test_graph(G, vul_type=vul_type)
+            test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
 
         return test_res
 
@@ -281,15 +282,15 @@ class OPGen:
 
         else:
             if options.module:
-                self.test_module(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
+                self.test_module(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, pq=options.run_with_pq)
             elif options.nodejs:
                 self.test_nodejs_package(options.input_file, 
                         options.vul_type, G=self.graph, timeout_s=timeout_s)
             elif options.chrome_extension:
-                self.test_chrome_extension(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
+                self.test_chrome_extension(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, pq=options.run_with_pq)
             else:
                 # analyze from JS source code files
-                self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
+                self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, pq=options.run_with_pq)
 
             if len(self.graph.detection_res[options.vul_type]) != 0:
                 print(sty.fg.li_green + sty.ef.inverse +
@@ -310,7 +311,7 @@ class OPGen:
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=False)
 
 
-def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
+def generate_obj_graph(G, internal_plugins, entry_nodeid='0', pq = False):
     """
     generate the object graph of a program
     Args:
@@ -327,7 +328,51 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
         register_func(G, node[0])
-    internal_plugins.dispatch_node(entry_nodeid)
+    if pq:
+        # print('jianjia pq')
+        t = Thread(target=internal_plugins.dispatch_node, args=(entry_nodeid, None, pq))
+        t.start()
+        # G.pq.put((1, t.ident, t))
+        G.running_thread = t
+        G.running_thread_id = t.ident
+        G.running_thread_age = 1
+        G.running_time_ns = time.time_ns()
+        # t.join() # main thread wait unitl it finishes
+        # lock = Event()
+        G.pq_event.set()
+        G.reverse_pq_event.clear()
+        while True:
+            # if the current thread is still running and the event is not set
+            if G.running_thread.is_alive() and not G.pq_event.isSet():
+                continue
+            else:
+                # if the event is not set, a former thread finishes, let it go
+                if not G.pq_event.isSet():
+                    G.pq_event.set()
+                    G.reverse_pq_event.clear()
+                # if former thread is alive, put it back
+                # former_running_thread = G.running_thread
+                # if former_running_thread.is_alive():
+                # if the event is set, a former thread does not finish
+                elif not G.reverse_pq_event.is_set():
+                    assert(G.running_thread.is_alive())
+                    # if only one thread running, do not add to the age, else, add
+                    new_age = G.running_thread_age if G.pq.empty() else G.running_thread_age + 1
+                    G.pq.put((new_age, G.running_thread_id, G.running_thread))
+                # fetch a new thread to let it run
+                if not G.pq.empty():
+                    result = G.pq.get()
+                    G.running_thread = result[2]
+                    G.running_thread_id = result[1]
+                    G.running_thread_age = result[0]
+                    G.running_time_ns = time.time_ns()
+                    G.pq_event.clear()
+                    G.reverse_pq_event.set()
+                else:
+                    break
+            print('jianjia see thread ', G.running_thread_age, G.running_thread_id)
+    else:
+        internal_plugins.dispatch_node(entry_nodeid, pq=pq)
     #add_edges_between_funcs(G)
 
 def install_list_of_packages(package_list):
@@ -455,3 +500,5 @@ def DFS(G, nodeid, visited, depth):
     for child in G.get_child_nodes(nodeid):
         if child not in visited:
             DFS(G, child, visited, depth+1)
+
+# def first_thread():

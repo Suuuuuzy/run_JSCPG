@@ -11,6 +11,10 @@ from .logger import *
 import uuid
 from itertools import chain
 from collections import defaultdict
+from queue import PriorityQueue
+from threading import Thread, Event
+
+
 
 class Graph:
 
@@ -140,6 +144,15 @@ class Graph:
             doublequote = False
             escapechar = '\\'
         self.csv_dialect = joern_dialect
+        # set a priority queue
+        self.pq = PriorityQueue()
+        self.pq_event = Event()
+        self.reverse_pq_event = Event()
+
+        self.running_thread_id=0
+        self.running_thread_age = 0
+        self.running_time_ns = 0
+        self.running_thread = None
 
     # Basic graph operations
     # node
@@ -328,7 +341,7 @@ class Graph:
         subEdges = self.get_edges_by_type(edge_type)
         return nx.MultiDiGraph(subEdges)
 
-    def get_ancestors_in(self, node_id, edge_types=None, node_types=None,
+    def get_ancestors_in(self, node_id, edge_types, node_types=None,
         candidates=None, step=1):
         results = []
         if step > 1:
@@ -1852,3 +1865,22 @@ class Graph:
                         self.all_func.add(n)
         return len(self.all_func)
 
+    def get_off_spring(self, node_id):
+        """
+        # get all the offsprings of a certain obj node
+        # if we do not wish to include the length obj, we should exclude it
+        :param G: graph
+        :param node_id: node id
+        :return: a set of objs which is the user_defined_only offspring of the obj
+        """
+        offspring = set()  # the set of all its offspring
+        sons = set()  # the set of the next level offspring
+        #
+        names = self.get_prop_name_nodes(node_id)
+        sons.update(self.get_prop_obj_nodes(parent_obj=node_id, user_defined_only=True))
+        offspring = offspring.union(sons)
+        # now sons is the set of the next level offspring
+        if len(sons) != 0:
+            for son in sons:
+                offspring = offspring.union(self.get_off_spring(son))
+        return offspring

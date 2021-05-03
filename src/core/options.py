@@ -44,6 +44,8 @@ def parse_args():
     parser.add_argument('input_file', action='store', nargs='?', help="Source code file (or directory) to generate object graph for. "
         "Use '-' to get source code from stdin. Ignore this argument to analyze ./nodes.csv and ./rels.csv.")
     parser.add_argument('-crx', '--chrome_extension', action='store_true', default=False, help="run a chrome extension")
+    parser.add_argument('-pq', '--run_with_pq', action='store_true', default=False, help="run a the program as a priority queue")
+
 
     args = parser.parse_args()
     if args.vul_type == 'prototype_pollution':

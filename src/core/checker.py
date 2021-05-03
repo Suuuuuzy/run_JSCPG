@@ -208,14 +208,16 @@ def vul_checking(G, pathes, vul_type):
         "XMLHttpRequest"
     ]
 
+    # ('start_with_func', dispatchable_events),
     chrome_data_exfiltration = [
-        [
-            # ('start_with_func', dispatchable_events),
-         ('start_with_var', crx_source_var_name),('end_with_func', user_sink)]
+        [ ('start_with_var', crx_source_var_name),('end_with_func', user_sink)],
+        # first combine them together
+        [('has_user_input', None), ('end_with_func', crx_sink)],
     ]
-
+    # has_user_input means tainted
     chrome_API_execution = [
-        [('has_user_input', None), ('end_with_func', crx_sink)]
+        [('has_user_input', None), ('end_with_func', crx_sink)],
+        # [('start_with_var_offspring', external_source_var_name), ('end_with_func', crx_sink)]
     ]
 
 
@@ -283,7 +285,7 @@ def traceback_crx(G, vul_type, start_node=None):
     for func_node in func_nodes:
         # we assume only one obj_decl edge
         func_name = G.get_name_from_child(func_node)
-        # print('func_name debug##', func_name)
+        print('func_name debug##', func_name)
         caller = func_node
         # FROM AST NODE TO OPG NODE
         caller = G.find_nearest_upper_CPG_node(caller)
@@ -300,7 +302,7 @@ def traceback_crx(G, vul_type, start_node=None):
             path.reverse()
             res_path_text += get_path_text(G, path, caller)
     print('=========ret_pathes debug=========\n', ret_paths)
-    # print(res_path_text)
+    print(res_path_text)
     # ret_paths: source 2 sink lists
     # res_path_text: source 2 sink texts
     return ret_paths, res_path_text, caller_list

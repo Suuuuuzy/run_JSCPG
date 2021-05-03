@@ -91,6 +91,14 @@ function sendResponse(message_back){
 // };
 
 
+Chrome.prototype.storage = new Object();
+Chrome.prototype.storage.local = new Object();
+Chrome.prototype.storage.local.set = function(data){
+    chrome_storage_local_set_sink(data);
+    callback();
+};
+
+
 chrome = new Chrome();
 
 
@@ -105,6 +113,7 @@ Window.prototype.postMessage = function(message, targetOrigin, [transfer]){
 // target.addEventListener(type, listener [, options]);
 // the 'e' parameter passed to listener can be ignored, otherwise, it is the event object
 Window.prototype.addEventListener = function(type, listener,  [ options]){
+    var type = 'cs_window_postMessage';
     MarkAttackEntry(type, listener);
 };
 
