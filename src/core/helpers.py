@@ -157,6 +157,7 @@ def combine_files(newfile, files):
     for file in files:
         print(file)
         with open(file) as fin:
+            # print('debug file: ', file)
             content = fin.read()
             result += '// original file:' + file + '\n\n'
             result += content

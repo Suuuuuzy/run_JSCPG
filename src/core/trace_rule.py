@@ -144,11 +144,32 @@ class TraceRule:
 
         path_start_var_name = self.graph.get_name_from_child(start_node)
         # print('debug path_start_var_name: ', path_start_var_name)
+        # for item in self.graph.get_edge_attr(path[0], path[1]):
+        #     start_obj = self.graph.get_edge_attr(path[0], path[1])[item].get('obj')
+        #     print('debug start_obj: ', start_obj)
+        #     if start_obj==None:
+        #         continue
+        #     names = self.graph.get_prop_names(start_obj)
+        #     print('debug prop names: ', names)
+
 
         cur_node = self.graph.get_node_attr(start_node)
         if path_start_var_name is None:
             return False
         return path_start_var_name in var_names
+
+    def start_with_sensitiveSource(self, _, path):
+        for item in self.graph.get_edge_attr(path[0], path[1]):
+            start_obj = self.graph.get_edge_attr(path[0], path[1])[item].get('obj')
+            # print('debug start_obj sensitiveSource: ', start_obj)
+            if start_obj==None:
+                continue
+            offsprings = self.graph.get_off_spring(start_obj)
+            for off in offsprings:
+                if off in self.graph.sensitiveSource:
+                    return True
+
+        return False
 
     def has_user_input(self, _, path):
         """
@@ -176,6 +197,7 @@ class TraceRule:
                 if 'type:TYPE' in cur_edges[k] and cur_edges[k]['type:TYPE'] == "OBJ_REACHES":
                     obj = cur_edges[k]['obj']
                     obj_attr = self.graph.get_node_attr(obj)
+                    """
                     print('debug has user input: ', obj, self.graph.get_name_from_child(obj))
                     names = self.graph.get_prop_names(obj)
                     print('debug prop names: ', names)
@@ -183,6 +205,7 @@ class TraceRule:
                     props = self.graph.get_prop_obj_nodes(obj)
                     for prop in props:
                         print('debug prop attr: ', prop, self.graph.get_node_attr(prop))
+                    """
                     if 'tainted' in obj_attr and obj_attr['tainted']:
                         return True
                     off_spring = self.graph.get_off_spring(obj)
@@ -249,6 +272,7 @@ class TraceRule:
                 "end_with_func": self.end_with_func,
                 "has_user_input": self.has_user_input,
                 "start_with_var": self.start_with_var,
+                "start_with_sensitiveSource": self.start_with_sensitiveSource
                 # "start_with_var_offspring": self.start_with_var_offspring
                 }
 

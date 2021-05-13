@@ -161,6 +161,7 @@ def vul_checking(G, pathes, vul_type):
             ]
             ]
 
+    '''
     chrome_data_exfiltration_APIs = [
         "chrome.cookies.get",
         "chrome.cookies.getAll",
@@ -174,6 +175,7 @@ def vul_checking(G, pathes, vul_type):
         "chrome.downloads.search",
         "chrome.downloads.getFileIcon"
     ]
+
 
     dispatchable_events = [
         "window.postMessage",
@@ -207,12 +209,15 @@ def vul_checking(G, pathes, vul_type):
         "chrome.downloads.setShelfEnabled",
         "XMLHttpRequest"
     ]
+    '''
 
     # ('start_with_func', dispatchable_events),
     chrome_data_exfiltration = [
-        [ ('start_with_var', crx_source_var_name),('end_with_func', user_sink)],
+        # [ ('start_with_var', crx_source_var_name),('end_with_func', user_sink)],
+        [('start_with_sensitiveSource', None), ('end_with_func', user_sink)], # this one should be able to replace the above one
         # first combine them together
         [('has_user_input', None), ('end_with_func', crx_sink)],
+        [('end_with_func', ctrl_sink)]
     ]
     # has_user_input means tainted
     chrome_API_execution = [
@@ -275,6 +280,7 @@ def traceback_crx(G, vul_type, start_node=None):
     sink = []
     sink.extend(crx_sink)
     sink.extend(user_sink)
+    sink.extend(ctrl_sink)
     # func_nodes: the entries of traceback, which are all the CALLs of functions
     func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
     func_nodes += G.get_node_by_attr('type', 'AST_CALL')

@@ -19,6 +19,7 @@ class HandleConst(Handler) :
                 value = int(code, 16)
         elif cur_type == 'integer' and \
             code.startswith("0b") or code.startswith("0B"):
+                print('debug: ', code)
                 value = int(code, 2)
         elif cur_type == 'string':
             if self.G.get_node_attr(self.node_id).get('flags:string[]') == 'JS_REGEXP':
