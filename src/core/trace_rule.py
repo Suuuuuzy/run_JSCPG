@@ -143,7 +143,7 @@ class TraceRule:
         start_node = path[0]
 
         path_start_var_name = self.graph.get_name_from_child(start_node)
-        # print('debug path_start_var_name: ', path_start_var_name)
+        print('debug path_start_var_name: ', path_start_var_name)
         # for item in self.graph.get_edge_attr(path[0], path[1]):
         #     start_obj = self.graph.get_edge_attr(path[0], path[1])[item].get('obj')
         #     print('debug start_obj: ', start_obj)
@@ -159,16 +159,16 @@ class TraceRule:
         return path_start_var_name in var_names
 
     def start_with_sensitiveSource(self, _, path):
-        for item in self.graph.get_edge_attr(path[0], path[1]):
-            start_obj = self.graph.get_edge_attr(path[0], path[1])[item].get('obj')
-            # print('debug start_obj sensitiveSource: ', start_obj)
-            if start_obj==None:
-                continue
-            offsprings = self.graph.get_off_spring(start_obj)
-            for off in offsprings:
-                if off in self.graph.sensitiveSource:
-                    return True
-
+        if len(path)>1:
+            for item in self.graph.get_edge_attr(path[0], path[1]):
+                start_obj = self.graph.get_edge_attr(path[0], path[1])[item].get('obj')
+                # print('debug start_obj sensitiveSource: ', start_obj)
+                if start_obj==None:
+                    continue
+                offsprings = self.graph.get_off_spring(start_obj)
+                for off in offsprings:
+                    if off in self.graph.sensitiveSource:
+                        return True
         return False
 
     def has_user_input(self, _, path):

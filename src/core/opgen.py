@@ -4,7 +4,7 @@ from .helpers import *
 from .timeout import timeout, TimeoutError
 from ..plugins.manager import PluginManager 
 from ..plugins.internal.setup_env import setup_opg
-from .checker import traceback, vul_checking, traceback_crx
+from .checker import traceback, vul_checking, traceback_crx, obj_traceback, obj_traceback_crx
 from .multi_run_helper import validate_package, get_entrance_files_of_package, validate_chrome_extension
 from .logger import loggers
 from .options import options
@@ -48,13 +48,20 @@ class OPGen:
         vul_pathes = []
 
         if vul_type == 'os_command' or vul_type == 'path_traversal':
-            pathes = traceback(G, vul_type)
-            vul_pathes = vul_checking(G, pathes[0], vul_type)
+            if options.obj_traceback:
+                pathes = obj_traceback(G, vul_type)
+                vul_pathes = vul_checking(G, pathes[0], vul_type)
+            else:
+                pathes = traceback(G, vul_type)
+                vul_pathes = vul_checking(G, pathes[0], vul_type)
         # add chrome extension part
         elif vul_type == 'chrome_data_exfiltration' or vul_type == 'chrome_API_execution':
-            # print('G.sensitiveSource', G.sensitiveSource)
-            pathes = traceback_crx(G, vul_type)
-            vul_pathes = vul_checking(G, pathes[0], vul_type)
+            if options.obj_traceback:
+                pathes = obj_traceback_crx(G, vul_type)
+                vul_pathes = vul_checking(G, pathes[0], vul_type)
+            else:
+                pathes = traceback_crx(G, vul_type)
+                vul_pathes = vul_checking(G, pathes[0], vul_type)
 
         return vul_pathes
 
@@ -141,7 +148,6 @@ class OPGen:
         generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id, pq=pq)
         if vul_type in ['chrome_API_execution', 'chrome_data_exfiltration']:
             event_loop(G)
-
         if vul_type is not None:
             check_res = self.check_vuls(vul_type, G)
             if len(check_res) != 0:

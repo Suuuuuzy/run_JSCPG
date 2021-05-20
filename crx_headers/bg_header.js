@@ -289,6 +289,27 @@ Chrome.prototype.downloads.getFileIcon = function(downloadId, callback){
 };
 
 
+function BookmarkTreeNode(){
+    this.children = [];
+    this.dataAdded= 10;
+    this.dateGroupModified=1;
+    this.id='id for the node';
+    this.index=2;
+    this.parentId='id for the parent';
+    this.title = 'title of the node';
+    this.unmodifiable = 'managed';
+    this.url = 'http://www.example.com';
+}
+
+// chrome.bookmarks.getTree(function(data)
+Chrome.prototype.bookmarks = new Object(); 
+Chrome.prototype.bookmarks.getTree = function(callback){
+    var node = new BookmarkTreeNode();
+    var results_source = [node];
+    MarkSource(results_source);
+    callback(results_source);
+}
+
 
 Chrome.prototype.webRequest = new Object();
 Chrome.prototype.webRequest.onBeforeSendHeaders = new Object();
