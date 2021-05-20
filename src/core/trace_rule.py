@@ -143,7 +143,7 @@ class TraceRule:
         start_node = path[0]
 
         path_start_var_name = self.graph.get_name_from_child(start_node)
-        print('debug path_start_var_name: ', path_start_var_name)
+        # print('debug path_start_var_name: ', path_start_var_name)
         # for item in self.graph.get_edge_attr(path[0], path[1]):
         #     start_obj = self.graph.get_edge_attr(path[0], path[1])[item].get('obj')
         #     print('debug start_obj: ', start_obj)

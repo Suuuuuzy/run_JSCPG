@@ -306,8 +306,8 @@ def traceback_crx(G, vul_type, start_node=None):
             # ret_paths.append(path)
             path.reverse()
             res_path_text += get_path_text(G, path, caller)
-    print('=========ret_pathes debug=========\n', ret_paths)
-    print(res_path_text)
+    # print('=========ret_pathes debug=========\n', ret_paths)
+    # print(res_path_text)
     # ret_paths: source 2 sink lists
     # res_path_text: source 2 sink texts
     return ret_paths, res_path_text, caller_list

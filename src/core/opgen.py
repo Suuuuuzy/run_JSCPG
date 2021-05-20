@@ -15,6 +15,7 @@ from tqdm import tqdm
 from ..plugins.internal.handlers.event_loop import event_loop
 import time
 from threading import Thread, Event
+from queue import PriorityQueue
 
 
 class OPGen:
@@ -122,12 +123,14 @@ class OPGen:
                 loggers.crx_logger.info("{}% stmt covered####".format(covered_stat_rate))
         else:
             parse_chrome_extension(G, extension_path)
-            test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
+            if pq:
+                G.pq = PriorityQueue()
+            test_res = self._test_graph(G, vul_type=vul_type)
         # test_res = None
         return test_res
 
 
-    def _test_graph(self, G: Graph, vul_type='os_command', pq=False):
+    def _test_graph(self, G: Graph, vul_type='os_command'):
         """
         for a parsed AST graph, generate OPG and test vul
         Args:
@@ -145,7 +148,7 @@ class OPGen:
         # jianjia: generate branch graph before we fully run
         # (mark on the AST node, each node should search ancestors until branch is found)
         generate_branch_graph(G, entry_nodeid=entry_id)
-        generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id, pq=pq)
+        generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
         if vul_type in ['chrome_API_execution', 'chrome_data_exfiltration']:
             event_loop(G)
         if vul_type is not None:
@@ -317,7 +320,7 @@ class OPGen:
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=False)
 
 
-def generate_obj_graph(G, internal_plugins, entry_nodeid='0', pq = False):
+def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     """
     generate the object graph of a program
     Args:
@@ -334,9 +337,9 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0', pq = False):
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
         register_func(G, node[0])
-    if pq:
+    if G.pq:
         # print('jianjia pq')
-        t = Thread(target=internal_plugins.dispatch_node, args=(entry_nodeid, None, pq))
+        t = Thread(target=internal_plugins.dispatch_node, args=(entry_nodeid))
         t.start()
         # G.pq.put((1, t.ident, t))
         G.running_thread = t
@@ -378,7 +381,7 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0', pq = False):
                     break
             print('jianjia see thread ', G.running_thread_age, G.running_thread_id)
     else:
-        internal_plugins.dispatch_node(entry_nodeid, pq=pq)
+        internal_plugins.dispatch_node(entry_nodeid)
     #add_edges_between_funcs(G)
 
 def install_list_of_packages(package_list):

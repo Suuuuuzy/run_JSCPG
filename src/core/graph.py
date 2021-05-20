@@ -145,7 +145,7 @@ class Graph:
             escapechar = '\\'
         self.csv_dialect = joern_dialect
         # set a priority queue
-        self.pq = PriorityQueue()
+        self.pq = None
         self.pq_event = Event()
         self.reverse_pq_event = Event()
 

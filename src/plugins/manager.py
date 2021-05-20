@@ -100,7 +100,7 @@ class PluginManager(object):
                     'AST_CLASS': self.HandleClass,
                     }
 
-        def dispatch_node(self, node_id, extra=None, pq=False):
+        def dispatch_node(self, node_id, extra=None):
             """
             this method will dispatch nodes to different modules based
             on the type of the node
@@ -112,7 +112,7 @@ class PluginManager(object):
             Returns:
                 NodeHandleResult: the handle result of the node
             """
-            if pq:
+            if self.G.pq:
                 while True:
                     self.G.reverse_pq_event.wait()
                     # step 1: check whether this is the current thread
@@ -127,15 +127,15 @@ class PluginManager(object):
                     # else, run!
                     # print('jianjia thread time', (time.time_ns()-self.G.running_time_ns)/1000000000)
                     # print(self.G.running_thread_age, threading.get_ident(), pq)
-                    handle_res = self.inner_dispatch_node(node_id, extra, pq)
+                    handle_res = self.inner_dispatch_node(node_id, extra)
                     break
             else:
-                handle_res = self.inner_dispatch_node(node_id, extra, pq)
+                handle_res = self.inner_dispatch_node(node_id, extra)
 
             return handle_res
 
 
-        def inner_dispatch_node(self, node_id, extra=None, pq=False):
+        def inner_dispatch_node(self, node_id, extra=None):
             # print('pq in inner_dispatch_node', pq)
             if self.G.finished:
                 return NodeHandleResult()
@@ -166,12 +166,10 @@ class PluginManager(object):
             # takes many hours to debug this one
             side = extra.side if extra else None
             extra = ExtraInfo(extra, side=None)
+
             handle_obj = self.handler_map[node_type](self.G, node_id, extra=extra)
-            if node_type=='AST_IF':
-                print('pq in if', pq)
-                handle_res = handle_obj.process(pq=pq)
-            else:
-                handle_res = handle_obj.process()
+            handle_res = handle_obj.process()
+
             return handle_res
 
     def __init__(self, G=None, init=False):

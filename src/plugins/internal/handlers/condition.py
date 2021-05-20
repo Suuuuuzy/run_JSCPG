@@ -14,7 +14,7 @@ class HandleIf(Handler):
     """
     handle the if ast
     """
-    def process(self, pq):
+    def process(self):
 
         G = self.G
         node_id = self.node_id
@@ -99,7 +99,7 @@ class HandleIf(Handler):
             return True
 
         for idx,if_elem in enumerate(if_elems):
-            if not pq:
+            if not G.pq:
                 print('jianjia see if_elem in dispatch: ', if_elem)
                 depth = G.get_node_attr(if_elem)['branch']
                 print(depth)
@@ -126,7 +126,7 @@ class HandleIf(Handler):
         if not has_else(G, node_id):
             branch_num_counter += 1
         # We always flatten edges
-        if not G.single_branch or not pq:
+        if not G.single_branch or not G.pq:
             merge(G, stmt_id, branch_num_counter, parent_branch)
         return NodeHandleResult()
 
