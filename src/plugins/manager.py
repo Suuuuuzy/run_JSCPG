@@ -114,14 +114,13 @@ class PluginManager(object):
             """
             if self.G.pq:
                 while True:
-                    self.G.reverse_pq_event.wait()
-                    # step 1: check whether this is the current thread
-                    if self.G.running_thread_id!=threading.get_ident():
+                    # step 1: check whether pq lock is set or this is the current thread
+                    if self.G.pq_event.isSet() or self.G.running_thread_id!=threading.get_ident():
                         continue
                     # step 2: check running time of current thread
                     if time.time_ns()-self.G.running_time_ns>10000000/self.G.running_thread_age:
-                        print('this thread timeout')
-                        self.G.reverse_pq_event.clear()
+                        # print('this thread timeout')
+                        # self.G.reverse_pq_event.clear()
                         self.G.pq_event.set()
                         continue
                     # else, run!

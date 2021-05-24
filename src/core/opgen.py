@@ -80,7 +80,9 @@ class OPGen:
         if G is None:
             G = self.graph
         parse_file(G, file_path)
-        test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
+        if pq:
+            G.pq = PriorityQueue()
+        test_res = self._test_graph(G, vul_type=vul_type)
         return test_res
 
     def test_chrome_extension(self, extension_path, vul_type, G=None,  timeout_s=None, pq=False):
@@ -109,7 +111,7 @@ class OPGen:
                                      format(extension_path, timeout_s)):
                     start_time = time.time()
                     parse_chrome_extension(G, extension_path)
-                    test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
+                    test_res = self._test_graph(G, vul_type=vul_type)
                     end_time = time.time()
                     loggers.crx_logger.info(str(end_time-start_time) + 'second spent####')
             except TimeoutError as err:
@@ -329,6 +331,7 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
         entry_nodeid (str) 0: the entry node id,
             by default 0
     """
+    old_running_thread_id = 0
 
     NodeHandleResult.print_callback = print_handle_result
 
@@ -345,11 +348,11 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
         G.running_thread = t
         G.running_thread_id = t.ident
         G.running_thread_age = 1
-        G.running_time_ns = time.time_ns()
+        G.running_time_ns = time.time_ns() # the start time of a thread
         # t.join() # main thread wait unitl it finishes
         # lock = Event()
         G.pq_event.set()
-        G.reverse_pq_event.clear()
+        # G.reverse_pq_event.clear()
         while True:
             # if the current thread is still running and the event is not set
             if G.running_thread.is_alive() and not G.pq_event.isSet():
@@ -358,12 +361,16 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
                 # if the event is not set, a former thread finishes, let it go
                 if not G.pq_event.isSet():
                     G.pq_event.set()
-                    G.reverse_pq_event.clear()
+                    # G.reverse_pq_event.clear()
                 # if former thread is alive, put it back
                 # former_running_thread = G.running_thread
                 # if former_running_thread.is_alive():
                 # if the event is set, a former thread does not finish
-                elif not G.reverse_pq_event.is_set():
+                # elif not G.reverse_pq_event.is_set():
+                else:
+                    # if adding new threads by branch
+                    if G.add_branch:
+                        continue
                     assert(G.running_thread.is_alive())
                     # if only one thread running, do not add to the age, else, add
                     new_age = G.running_thread_age if G.pq.empty() else G.running_thread_age + 1
@@ -376,10 +383,12 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
                     G.running_thread_age = result[0]
                     G.running_time_ns = time.time_ns()
                     G.pq_event.clear()
-                    G.reverse_pq_event.set()
+                    # G.reverse_pq_event.set()
                 else:
                     break
-            print('jianjia see thread ', G.running_thread_age, G.running_thread_id)
+            if old_running_thread_id!=G.running_thread_id:
+                old_running_thread_id = G.running_thread_id
+                print('jianjia see thread ', G.running_thread_age, G.running_thread_id)
     else:
         internal_plugins.dispatch_node(entry_nodeid)
     #add_edges_between_funcs(G)

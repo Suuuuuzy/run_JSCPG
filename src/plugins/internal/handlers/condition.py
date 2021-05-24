@@ -100,22 +100,26 @@ class HandleIf(Handler):
 
         for idx,if_elem in enumerate(if_elems):
             if not G.pq:
-                print('jianjia see if_elem in dispatch: ', if_elem)
                 depth = G.get_node_attr(if_elem)['branch']
-                print(depth)
+                # print(depth)
                 result, else_is_deterministic, branch_num_counter = run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
                 if not result:
                     break
             else:
+                print('jianjia see if_elem in dispatch: ', if_elem)
                 if idx!=0:
                     print('jianjia see if_elem in dispatch pq: ', if_elem)
                     depth = G.get_node_attr(if_elem)['branch']
                     print(depth)
-                    t = Thread(target=run_if_elem_pq, args=(if_elem))
+                    t = Thread(target=run_if_elem_pq, args=(if_elem,))
                     t.start()
-                    G.pq_event.wait()
+                    while G.pq_event.isSet():
+                        continue
+                    G.add_branch = True
                     G.pq_event.set()
+                    print(t.ident)
                     G.pq.put(((1, t.ident, t)))
+                    G.add_branch = False
                     G.pq_event.clear()
                 else:
                     run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
@@ -126,7 +130,7 @@ class HandleIf(Handler):
         if not has_else(G, node_id):
             branch_num_counter += 1
         # We always flatten edges
-        if not G.single_branch or not G.pq:
+        if not G.single_branch and not G.pq:
             merge(G, stmt_id, branch_num_counter, parent_branch)
         return NodeHandleResult()
 
