@@ -223,8 +223,9 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
                 processFile(bgfiles, 'bg.js')
             elif 'page' in manifest['background']:
                 bgpage = manifest['background']['page']
-                with open(os.path.join(extension_path, bgpage)) as f:
-                    content = f.read()
+                with open(os.path.join(extension_path, bgpage), "rb") as f:
+                    print('debug jianjia' + os.path.join(extension_path, bgpage))
+                    content = f.read().decode("UTF-8")
                     pattern = re.compile('<script .*src=".*"></script>')
                     scripts = pattern.findall(content)
                     scripts = [i.split('src=\"')[1].split('\"')[0] for i in scripts]
