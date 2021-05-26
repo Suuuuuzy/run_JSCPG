@@ -202,9 +202,14 @@ def find_prop(G, parent_objs, prop_name, branches=None,
     found_in_proto = False
 
     for parent_obj in parent_objs:
-        if prop_name == wildcard and not is_wildcard_obj(G, parent_obj) and \
-            not G.check_proto_pollution and not G.check_ipt:
-            continue
+        # if prop_name == wildcard and not is_wildcard_obj(G, parent_obj) and \
+        #     not G.check_proto_pollution and not G.check_ipt:
+        #     print('see jianjia')
+        #     name_node = G.add_prop_name_node('user_wildcard', parent_obj)
+        #     # new_prop_obj = G.add_obj_to_name_node(name_node)
+        #     prop_name_nodes.add(name_node) # this name node we have
+        #     # prop_obj_nodes.add(new_prop_obj) #
+        #     continue
 
         # if in_proto and G.get_node_attr(parent_obj).get('tainted'):
         if in_proto:
@@ -269,6 +274,15 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     branches=branches)
                 if prop_objs:
                     prop_obj_nodes.update(prop_objs)
+            # if the user intend to create a property for the object, we have to add this property node
+            # name_node = G.add_prop_name_node('user_wildcard',parent_obj)
+            # new_prop_obj = G.add_obj_to_name_node(name_node)
+            # prop_name_nodes.add(name_node) # this name node we have
+            # prop_obj_nodes.add(new_prop_obj) #
+            # print('jianjia see wildcard name no: ', parent_obj)
+            # for name_node in G.get_prop_name_nodes(parent_obj):
+            #     name = G.get_node_attr(name_node).get('name')
+            #     print('jianjia see wildcard name no: ', name)
             loggers.main_logger.info(f"fetch res {prop_name_nodes}")
 
         # If the name node is not found, try wildcard (*).

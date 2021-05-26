@@ -140,13 +140,13 @@ def parse_chrome_extension(G, path, start_node_id=0):
         G.import_from_string(result)
 
 
-def generate_extension_files(extension_path):
+def generate_extension_files(extension_path, header=True):
     generated_extension_dir = os.path.join('crx_tmp', "eopg_generated_files")
     os.makedirs(generated_extension_dir, exist_ok=True)
     # clean the old directory, if any file exists
     for file in os.listdir(generated_extension_dir):
         os.remove(os.path.join(generated_extension_dir,file))
-    if(preprocess_cs_bg_war(extension_path, generated_extension_dir)):
+    if(preprocess_cs_bg_war(extension_path, generated_extension_dir, header)):
         return generated_extension_dir
     else:
         return False
@@ -157,6 +157,7 @@ def combine_files(newfile, files):
     for file in files:
         print(file)
         with open(file) as fin:
+            # print('debug file: ', file)
             content = fin.read()
             result += '// original file:' + file + '\n\n'
             result += content
@@ -174,7 +175,7 @@ def js_file_filter(files):
             re.append(file)
     return re
 
-def preprocess_cs_bg_war(extension_path, generated_extension_dir):
+def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
     def processFile(files, newname, relative_path = None):
         filtered_js_files = []
         for file in files:
@@ -196,10 +197,10 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir):
         # print('newname', newname)
         # files = js_file_filter(files)
         # files = [os.path.join(extension_path, i) for i in files]
-        if 'cs' in newname:
+        if 'cs' in newname and header:
             filtered_js_files.insert(0, 'crx_headers/cs_header.js')
             filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
-        elif 'bg' in newname:
+        elif 'bg' in newname and header:
             filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
             filtered_js_files.insert(0,'crx_headers/bg_header.js')
         # print(newname, ': \n', files)
@@ -213,9 +214,9 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir):
                     csfiles = j['js']
                     processFile(csfiles, 'cs_'+str(count)+'.js')
                 count += 1
-        if 'web_accessible_resources' in manifest:
-            warfiles = manifest['web_accessible_resources']
-            processFile(warfiles, 'war.js')
+        # if 'web_accessible_resources' in manifest:
+        #     warfiles = manifest['web_accessible_resources']
+        #     processFile(warfiles, 'war.js')
         if 'background' in manifest:
             if 'scripts' in manifest['background']:
                 bgfiles = manifest['background']['scripts']

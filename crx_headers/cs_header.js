@@ -91,6 +91,52 @@ function sendResponse(message_back){
 // };
 
 
+Chrome.prototype.storage = new Object();
+Chrome.prototype.storage.sync = new Object();
+Chrome.prototype.storage.sync.get = function(key, callback){
+    var storage_sync_get_source = {'key':'value'};
+    MarkSource(storage_sync_get_source);
+    callback(storage_sync_get_source);
+};
+
+Chrome.prototype.storage.sync.set = function(key, callback){
+    chrome_storage_sync_set_sink(key);
+    callback();
+};
+
+Chrome.prototype.storage.sync.remove = function(key, callback){
+    chrome_storage_sync_remove_sink(key);
+    callback();
+};
+
+Chrome.prototype.storage.sync.clear = function(callback){
+    chrome_storage_sync_clear_sink();
+    callback();
+};
+
+
+Chrome.prototype.storage.local = new Object();
+Chrome.prototype.storage.local.get = function(key, callback){
+    var storage_local_get_source = {'key':'value'};
+    MarkSource(storage_local_get_source);
+    callback(storage_local_get_source);
+};
+
+Chrome.prototype.storage.local.set = function(key, callback){
+    chrome_storage_local_set_sink(key);
+    callback();
+};
+
+Chrome.prototype.storage.local.remove = function(key, callback){
+    chrome_storage_local_remove_sink(key);
+    callback();
+};
+
+Chrome.prototype.storage.local.clear = function(callback){
+    chrome_storage_local_clear_sink();
+    callback();
+};
+
 chrome = new Chrome();
 
 
@@ -105,6 +151,7 @@ Window.prototype.postMessage = function(message, targetOrigin, [transfer]){
 // target.addEventListener(type, listener [, options]);
 // the 'e' parameter passed to listener can be ignored, otherwise, it is the event object
 Window.prototype.addEventListener = function(type, listener,  [ options]){
+    var type = 'cs_window_postMessage';
     MarkAttackEntry(type, listener);
 };
 

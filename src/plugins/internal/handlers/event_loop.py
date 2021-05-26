@@ -54,6 +54,7 @@ def event_loop(G: Graph):
                                        else None, value=wildcard)
             G.set_node_attr(wildcard_msg_obj, ('tainted', True))
             G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
+            # G.add_obj_to_name(name='bg_chrome_runtime_MessageExternal_src', tobe_added_obj=wildcard_msg_obj)
             func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
             MessageSenderExternal, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
                                                         extra=None,
@@ -67,6 +68,15 @@ def event_loop(G: Graph):
             returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
                                                           mark_fake_args=False)
+        # elif entry[0]=='cs_window_postMessage':
+        #     wildcard_event_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
+        #     else None, value=wildcard)
+        #     G.set_node_attr(wildcard_event_obj, ('tainted', True))
+        #     G.set_node_attr(wildcard_event_obj, ('fake_arg', True))
+        #     args = [NodeHandleResult(obj_nodes=[wildcard_event_obj])]
+        #     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+        #                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
+        #                                                   mark_fake_args=True)
         else:
             func_objs = [entry[1]]
             args = []  # no args

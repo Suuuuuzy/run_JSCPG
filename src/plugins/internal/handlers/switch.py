@@ -4,6 +4,8 @@ from src.plugins.internal.utils import to_values, undefined, wildcard, merge, js
 from .blocks import simurun_block
 from src.core.graph import Graph
 from src.core.logger import loggers
+from src.core.timeout import timeout, TimeoutError
+import threading
 
 class HandleSwitch(Handler):
 
@@ -25,6 +27,11 @@ class HandleSwitchList(Handler):
         cases = G.get_ordered_ast_child_nodes(node_id)
         default_is_deterministic = True
         for i, case in enumerate(cases):
+            '''
+            print('jianjia see case in dispatch: ', case)
+            depth = G.get_node_attr(case)['branch']
+            print(depth)
+            '''
             branch_tag = BranchTag(point=stmt_id, branch=str(i))
             test, body = G.get_ordered_ast_child_nodes(case)
             if G.get_node_attr(test).get('type') == 'NULL': # default
@@ -71,3 +78,5 @@ def check_switch_var(ins, G: Graph, ast_node, extra: ExtraInfo):
                 true_num += 0.5
                 deter_flag = False
     return total_num if total_num == 0 else true_num / total_num, deter_flag
+
+# def run_case(case):

@@ -44,6 +44,10 @@ signature_lists = {
         ]
 }
 
+external_source_var_name = [
+    'bg_chrome_runtime_MessageExternal_src'
+]
+
 crx_source_var_name = ['mostVisitedUrls_source',
                        'cookie_source',
                        'cookies_source',
@@ -84,12 +88,16 @@ crx_sink = [
         'chrome_cookies_set_sink',
         'chrome_cookies_remove_sink',
         'chrome_storage_sync_set_sink',
+        'chrome_storage_sync_remove_sink',
+        'chrome_storage_sync_clear_sink',
         'chrome_storage_local_set_sink',
+        'chrome_storage_local_remove_sink',
+        'chrome_storage_local_clear_sink',
         'chrome_history_addUrl_sink',
         'chrome_history_deleteUrl_sink',
         'chrome_history_deleteRange_sink',
         'chrome_history_deleteAll_sink',
-        'chrome_downloads_download_sink',
+        'chrome_downloads_download_sink', # added
         'chrome_downloads_pause_sink',
         'chrome_downloads_resume_sink',
         'chrome_downloads_cancel_sink',
@@ -101,7 +109,14 @@ crx_sink = [
         'chrome_downloads_setShelfEnabled_sink',
         'chrome_downloads_acceptDanger_sink',
         'chrome_downloads_setShelfEnabled_sink',
-        'XMLHttpRequest_sink'
+        'XMLHttpRequest_sink',
+        'eval'
+]
+
+ctrl_sink = [
+        'chrome_browsingData_remove_sink',
+        'chrome_storage_local_clear_sink',
+        'chrome_storage_sync_clear_sink'
 ]
 
 user_sink = [

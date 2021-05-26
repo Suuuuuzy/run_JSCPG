@@ -2,6 +2,8 @@ from src.core.logger import loggers
 from src.core.utils import ExtraInfo
 from src.core.utils import NodeHandleResult
 from src.core.options import options
+import threading
+import time
 
 class PluginManager(object):
     """
@@ -105,12 +107,35 @@ class PluginManager(object):
             the handling process for each node include multiple stages
             
             Args:
-                G (Graph): the graph
                 node_id (str): the id of the node
                 extra (Extra): the extra info
             Returns:
                 NodeHandleResult: the handle result of the node
             """
+            if self.G.pq:
+                while True:
+                    # step 1: check whether pq lock is set or this is the current thread
+                    if self.G.pq_event.isSet() or self.G.running_thread_id!=threading.get_ident():
+                        continue
+                    # step 2: check running time of current thread
+                    if time.time_ns()-self.G.running_time_ns>10000000/self.G.running_thread_age:
+                        # print('this thread timeout')
+                        # self.G.reverse_pq_event.clear()
+                        self.G.pq_event.set()
+                        continue
+                    # else, run!
+                    # print('jianjia thread time', (time.time_ns()-self.G.running_time_ns)/1000000000)
+                    # print(self.G.running_thread_age, threading.get_ident(), pq)
+                    handle_res = self.inner_dispatch_node(node_id, extra)
+                    break
+            else:
+                handle_res = self.inner_dispatch_node(node_id, extra)
+
+            return handle_res
+
+
+        def inner_dispatch_node(self, node_id, extra=None):
+            # print('pq in inner_dispatch_node', pq)
             if self.G.finished:
                 return NodeHandleResult()
 
@@ -119,8 +144,9 @@ class PluginManager(object):
                 loggers.main_logger.info(f"Running Line {line_mark[0]} to {line_mark[2]}")
                 if node_id not in self.G.covered_stat:
                     self.G.covered_stat[node_id] = 0
-                    loggers.progress_logger.info("{}% stmt covered.".format(100*len(self.G.covered_stat) / self.G.get_total_num_statements()))
-                #elif self.G.covered_stat[node_id] > 300:
+                    loggers.progress_logger.info(
+                        "{}% stmt covered.".format(100 * len(self.G.covered_stat) / self.G.get_total_num_statements()))
+                # elif self.G.covered_stat[node_id] > 300:
                 #    return NodeHandleResult()
                 else:
                     self.G.covered_stat[node_id] += 1
@@ -132,16 +158,17 @@ class PluginManager(object):
             if node_type not in self.handler_map:
                 loggers.error_logger.info(node_type + " not implemented")
                 return NodeHandleResult()
-                #raise LookupError(node_type + " not implemented")
+                # raise LookupError(node_type + " not implemented")
 
             # remove side information
             # we should consider remove it totally, bug fixed on 08/03/2021
             # takes many hours to debug this one
             side = extra.side if extra else None
             extra = ExtraInfo(extra, side=None)
+
             handle_obj = self.handler_map[node_type](self.G, node_id, extra=extra)
             handle_res = handle_obj.process()
-            
+
             return handle_res
 
     def __init__(self, G=None, init=False):

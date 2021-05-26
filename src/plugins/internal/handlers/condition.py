@@ -6,12 +6,16 @@ from . import blocks
 from ..utils import get_random_hex, check_condition, decl_vars_and_funcs
 from ..utils import has_else, merge, get_df_callback
 from .blocks import simurun_block
+from src.core.timeout import timeout, TimeoutError
+from threading import Thread, Event
+
 
 class HandleIf(Handler):
     """
     handle the if ast
     """
     def process(self):
+
         G = self.G
         node_id = self.node_id
         extra = self.extra
@@ -23,13 +27,14 @@ class HandleIf(Handler):
         branch_num_counter = 0
         # if it is sure (deterministic) that "else" needs to run 
         else_is_deterministic = True
-        for if_elem in if_elems:
-            # for each if statement, we should make sure cfg starts from the 
+        #  three returns in this function, not a good solution
+        def run_if_elem(if_elem, else_is_deterministic, branch_num_counter):
+            # for each if statement, we should make sure cfg starts from the
             # if condition stmt
-            G.cfg_stmt = node_id 
+            G.cfg_stmt = node_id
 
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
-            if G.get_node_attr(condition).get('type') == 'NULL': # else
+            if G.get_node_attr(condition).get('type') == 'NULL':  # else
                 if else_is_deterministic or G.single_branch:
                     blocks.simurun_block(G, body, G.cur_scope, branches)
                 else:
@@ -37,17 +42,21 @@ class HandleIf(Handler):
                     branch_tag = BranchTag(
                         point=stmt_id, branch=str(branch_num_counter))
                     branch_num_counter += 1
-                    blocks.simurun_block(G, body, G.cur_scope, branches+[branch_tag])
-                break
+                    blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
+                return False, else_is_deterministic, branch_num_counter
+                # break
             # check condition
             possibility, deterministic = check_condition(G, condition, extra)
             loggers.main_logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
-                G.get_node_attr(condition).get('code') + sty.rs.all,
-                possibility, deterministic))
+                                                                                G.get_node_attr(condition).get(
+                                                                                    'code') + sty.rs.all,
+                                                                                possibility, deterministic))
             if deterministic and possibility == 1:
                 # if the condition is surely true
                 blocks.simurun_block(G, body, G.cur_scope, branches)
-                break
+                return False, else_is_deterministic, branch_num_counter
+                # break
+
             elif G.single_branch and possibility != 0:
                 simurun_block(G, body, G.cur_scope)
             elif not deterministic or possibility is None or 0 < possibility < 1:
@@ -56,12 +65,72 @@ class HandleIf(Handler):
                 branch_tag = \
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
                 branch_num_counter += 1
-                blocks.simurun_block(G, body, G.cur_scope, branches+[branch_tag])
+                blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
+            return True, else_is_deterministic, branch_num_counter
+
+        def run_if_elem_pq(if_elem):
+            # for each if statement, we should make sure cfg starts from the
+            # if condition stmt
+            G.cfg_stmt = node_id
+            condition, body = G.get_ordered_ast_child_nodes(if_elem)
+            if G.get_node_attr(condition).get('type') == 'NULL':  # else
+                # not deterministic, create branch
+                branch_tag = BranchTag(
+                    point=stmt_id, branch=str(''))
+                blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
+                return False
+                # break
+            # check condition
+            possibility, deterministic = check_condition(G, condition, extra)
+            loggers.main_logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +G.get_node_attr(condition).get( 'code') + sty.rs.all,possibility, deterministic))
+            if deterministic and possibility == 1:
+                # if the condition is surely true
+                blocks.simurun_block(G, body, G.cur_scope, branches)
+                return False
+                # break
+            elif G.single_branch and possibility != 0:
+                simurun_block(G, body, G.cur_scope)
+            elif not deterministic or possibility is None or 0 < possibility < 1:
+                # if the condition is unsure
+                else_is_deterministic = False
+                branch_tag = \
+                    BranchTag(point=stmt_id, branch=str(''))
+                blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
+            return True
+
+        for idx,if_elem in enumerate(if_elems):
+            if not G.pq:
+                depth = G.get_node_attr(if_elem)['branch']
+                # print(depth)
+                result, else_is_deterministic, branch_num_counter = run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
+                if not result:
+                    break
+            else:
+                print('jianjia see if_elem in dispatch: ', if_elem)
+                if idx!=0:
+                    print('jianjia see if_elem in dispatch pq: ', if_elem)
+                    depth = G.get_node_attr(if_elem)['branch']
+                    print(depth)
+                    t = Thread(target=run_if_elem_pq, args=(if_elem,))
+                    t.start()
+                    while G.pq_event.isSet():
+                        continue
+                    G.add_branch = True
+                    G.pq_event.set()
+                    print(t.ident)
+                    G.pq.put(((1, t.ident, t)))
+                    G.add_branch = False
+                    G.pq_event.clear()
+                else:
+                    run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
+
+
+
         # When there is no "else", we still need to add a hidden else
         if not has_else(G, node_id):
             branch_num_counter += 1
         # We always flatten edges
-        if not G.single_branch:
+        if not G.single_branch and not G.pq:
             merge(G, stmt_id, branch_num_counter, parent_branch)
         return NodeHandleResult()
 
@@ -92,3 +161,4 @@ class HandleIfElem(Handler):
         # maybe wrong, but lets see
         # TODO: check how to handle if elem
         decl_vars_and_funcs(self.G, self.node_id)
+

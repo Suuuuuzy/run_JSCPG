@@ -1104,7 +1104,7 @@ def string_returning_func(G: Graph, caller_ast, extra, _, *args):
         for obj in arg.obj_nodes:
             offspring = get_off_spring(G, obj)
             used_objs.update(offspring)
-        used_objs = list(used_objs)
+        # used_objs = list(used_objs)
         # print('used_objs of json_stringfy', used_objs)
         for used in used_objs:
             ast = G.get_obj_def_ast_node(used)
@@ -1751,7 +1751,7 @@ def split_regexp(code) -> Tuple[str, str]:
         return wildcard, wildcard
 
 
-def convert_to_python_re(code) -> Tuple[re.Pattern, bool, bool]:
+def convert_to_python_re(code): # -> Tuple[_sre.SRE_Pattern, bool, bool]:
     pattern, flags = split_regexp(code)
     glob, sticky = False, False
     if pattern != wildcard:
