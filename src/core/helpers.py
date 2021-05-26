@@ -156,7 +156,7 @@ def combine_files(newfile, files):
     print('=======newfile=======', newfile)
     for file in files:
         print(file)
-        with open(file) as fin:
+        with open(file, encoding='ascii', errors='ignore') as fin:
             # print('debug file: ', file)
             content = fin.read()
             result += '// original file:' + file + '\n\n'
@@ -205,7 +205,7 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
             filtered_js_files.insert(0,'crx_headers/bg_header.js')
         # print(newname, ': \n', files)
         combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
-    with open(os.path.join(extension_path, 'manifest.json')) as f:
+    with open(os.path.join(extension_path, 'manifest.json'), encoding='ascii', errors='ignore') as f:
         manifest = json.load(f)
         if 'content_scripts' in manifest:
             count = 0
@@ -223,7 +223,7 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
                 processFile(bgfiles, 'bg.js')
             elif 'page' in manifest['background']:
                 bgpage = manifest['background']['page']
-                with open(os.path.join(extension_path, bgpage)) as f:
+                with open(os.path.join(extension_path, bgpage), encoding='ascii', errors='ignore') as f:
                     content = f.read()
                     pattern = re.compile('<script .*src=".*"></script>')
                     scripts = pattern.findall(content)
