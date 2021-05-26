@@ -23,15 +23,16 @@ def main():
             continue
         else:
             ids.add(id)
-        if 'no vulnerability discovered' in block:
-            if lines[-2].endswith('second spent####'):
-                time = lines[-2].split('second spent####')[0]
-            elif lines[-2].endswith(' spent####'):
-                time = lines[-2].split(' spent####')[0]
+        time = 0
+        if lines[-2].endswith('second spent####'):
+            time = lines[-2].split('second spent####')[0]
+        elif lines[-2].endswith(' spent####'):
+            time = lines[-2].split(' spent####')[0]
+        if time!=0:
             no_timeout_time += float(time)
             no_vul_ids.append(id)
-            # print(time)
-        elif 'timeout after 300 seconds' in block:
+        # print(time)
+        elif 'timeout after' in block:
             # cov = lines[-2]
             cov = lines[-2].split(' stmt covered####')[0]
             cov = cov.split('%')[0]
@@ -46,7 +47,7 @@ def main():
     print('total: ', len(ids), ' extenions')
     print(len(no_vul_ids), ' extensions run without error')
     print('avarage analyzing time: ', no_timeout_time/len(no_vul_ids), ' seconds')
-    print(len(timeout_ids_cov), ' extensions timeout after 300 seconds')
+    print(len(timeout_ids_cov), ' extensions timeout')
     print(len(error_ids), ' extensions run with error')
     
     if not os.path.isdir('crx_record'):
@@ -62,7 +63,7 @@ def main():
         f.write(content)
 
     plt.bar(range(len(covs)), covs)
-    plt.title('code coverage of timeout extension after 300 seconds (%)')
+    plt.title('code coverage of timeout extension (%)')
     plt.show()
 
 
