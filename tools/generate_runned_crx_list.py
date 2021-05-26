@@ -10,7 +10,7 @@ def generate_list(dir_path):
     """
     with open(dir_path) as f:
         content = f.read()
-    pattern = re.compile(r'extension/media/data2/song/extensions/unzipped_extensions/[^\n]*')
+    pattern = re.compile(r'/media/data2/song/extensions/unzipped_extensions/[^\n\ ]*')
     # all the package should be folders
     res = pattern.findall(content)
     # for d in dir_list:
