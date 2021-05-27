@@ -176,34 +176,26 @@ def js_file_filter(files):
     return re
 
 def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
-    def processFile(files, newname, relative_path = None):
+    def processFile(files, newname, relative_path = extension_path):
         filtered_js_files = []
         for file in files:
-            if relative_path==None:
-                # print(extension_path)
-                # print(file)
-                if file.startswith('/'):
-                    file = '.' + file
-                # print(os.path.join(extension_path, file))
+            if file.startswith("https:") or file.startswith("http:"):
+                continue
+            if file.startswith('/'):
+                file = '.' + file
                 filelist = glob.glob(os.path.join(extension_path, file))
-                # print('filepath, ', filelist)
             else:
                 filepath = os.path.abspath(os.path.join(relative_path, file))
-                # print('filepath, ', filepath)
                 filelist = glob.glob(filepath)
             filelist = [x for x in filelist if x.endswith('.js') and 'jquery' not in x.lower()]
             filtered_js_files.extend(filelist)
         # print('filtered_js_files', filtered_js_files)
-        # print('newname', newname)
-        # files = js_file_filter(files)
-        # files = [os.path.join(extension_path, i) for i in files]
         if 'cs' in newname and header:
             filtered_js_files.insert(0, 'crx_headers/cs_header.js')
             filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
         elif 'bg' in newname and header:
             filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
             filtered_js_files.insert(0,'crx_headers/bg_header.js')
-        # print(newname, ': \n', files)
         combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
     with open(os.path.join(extension_path, 'manifest.json'), encoding='ascii', errors='ignore') as f:
         manifest = json.load(f)
@@ -223,17 +215,14 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
                 processFile(bgfiles, 'bg.js')
             elif 'page' in manifest['background']:
                 bgpage = manifest['background']['page']
+                if bgpage.startswith('/'):
+                    bgpage = '.' + bgpage
                 with open(os.path.join(extension_path, bgpage), encoding='ascii', errors='ignore') as f:
                     content = f.read()
-                    pattern = re.compile('<script .*src=".*"></script>')
+                    # pattern = re.compile('<script .*src=".*"></script>')
+                    pattern = re.compile('<script .*?src=["|\']([^["|\']*?)"')
                     scripts = pattern.findall(content)
-                    scripts = [i.split('src=\"')[1].split('\"')[0] for i in scripts]
                     bg_last = os.path.abspath(os.path.join(extension_path, bgpage, '..'))
-                    # print(bg_last)
-                    # print('scripts: ', scripts)
-                    # for st in scripts:
-                    #     print(os.path.abspath(os.path.join(bg_last, st)))
-                    # bgpage_path = bgpage.split('/')
                     processFile(scripts, 'bg.js', relative_path = bg_last)
     return True
 
