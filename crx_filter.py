@@ -93,7 +93,7 @@ def crx_src_sink_filter(extension_dir):
                 execution_APIs = True
             loggers.crx_src_sink_logger.info(item)
 
-    if attack and exfiltration_APIs and execution_APIs:
+    if attack and (exfiltration_APIs or execution_APIs):
         suspicous_list.append(extension_dir)
         with open('crx_lists/suspicous_list.list', "w") as f:
             json.dump(suspicous_list, f)
