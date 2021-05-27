@@ -95,6 +95,8 @@ def crx_src_sink_filter(extension_dir):
 
     if attack and exfiltration_APIs and execution_APIs:
         suspicous_list.append(extension_dir)
+        with open('crx_lists/suspicous_list.list', "w") as f:
+            json.dump(suspicous_list, f)
 
 suspicous_list = []
 list_file = sys.argv[1]
@@ -103,6 +105,4 @@ with open(list_file) as f:
     files = content.split('\n')
 for file in files:
     crx_src_sink_filter(file)
-with open('crx_lists/suspicous_list.list', "w") as f:
-    json.dump(suspicous_list, f)
 # content = open(extension_dir)

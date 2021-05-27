@@ -156,12 +156,15 @@ def combine_files(newfile, files):
     print('=======newfile=======', newfile)
     for file in files:
         print(file)
-        with open(file, encoding='ascii', errors='ignore') as fin:
-            # print('debug file: ', file)
-            content = fin.read()
-            result += '// original file:' + file + '\n\n'
-            result += content
-            result += '\n'
+        try:
+            with open(file, encoding='ascii', errors='ignore') as fin:
+                # print('debug file: ', file)
+                content = fin.read()
+                result += '// original file:' + file + '\n\n'
+                result += content
+                result += '\n'
+        except OSError as e:
+            print(e)
     with open(newfile, 'w') as fout:
         fout.write(result)
 
@@ -217,13 +220,16 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
                 bgpage = manifest['background']['page']
                 if bgpage.startswith('/'):
                     bgpage = '.' + bgpage
-                with open(os.path.join(extension_path, bgpage), encoding='ascii', errors='ignore') as f:
-                    content = f.read()
-                    # pattern = re.compile('<script .*src=".*"></script>')
-                    pattern = re.compile('<script .*?src=["|\']([^["|\']*?)"')
-                    scripts = pattern.findall(content)
-                    bg_last = os.path.abspath(os.path.join(extension_path, bgpage, '..'))
-                    processFile(scripts, 'bg.js', relative_path = bg_last)
+                try:
+                    with open(os.path.join(extension_path, bgpage), encoding='ascii', errors='ignore') as f:
+                        content = f.read()
+                        # pattern = re.compile('<script .*src=".*"></script>')
+                        pattern = re.compile('<script .*?src=["|\']([^["|\']*?)"')
+                        scripts = pattern.findall(content)
+                        bg_last = os.path.abspath(os.path.join(extension_path, bgpage, '..'))
+                        processFile(scripts, 'bg.js', relative_path = bg_last)
+                except OSError as e:
+                    print(e)
     return True
 
 
