@@ -2,6 +2,7 @@ import sys
 import os
 from src.core.logger import loggers
 from src.core.helpers import generate_extension_files
+import json
 
 dispatchable_events = [
     "window.postMessage",
@@ -61,30 +62,47 @@ def crx_src_sink_filter(extension_dir):
     generated_extension_dir = generate_extension_files(extension_dir, header=False)
     content = ''
     for file in os.listdir(generated_extension_dir):
-        print(file)
+        # print(file)
         file = os.path.join(generated_extension_dir, file)
         with open(file) as f:
             content+=f.read()
 
+    attack = False
+    exfiltration_APIs = False
+    execution_APIs = False
+    global suspicous_list
+
     loggers.crx_src_sink_logger.info('$attack_entries$')
     for item in attack_entries:
         if item in content:
+            if not attack:
+                attack = True
             loggers.crx_src_sink_logger.info(item)
 
     loggers.crx_src_sink_logger.info('$chrome_data_exfiltration_APIs$')
     for item in chrome_data_exfiltration_APIs:
         if item in content:
+            if not exfiltration_APIs:
+                exfiltration_APIs = True
             loggers.crx_src_sink_logger.info(item)
 
     loggers.crx_src_sink_logger.info('$chrome_API_execution_APIs$')
     for item in chrome_API_execution_APIs:
         if item in content:
+            if not execution_APIs:
+                execution_APIs = True
             loggers.crx_src_sink_logger.info(item)
 
+    if attack and exfiltration_APIs and execution_APIs:
+        suspicous_list.append(extension_dir)
+
+suspicous_list = []
 list_file = sys.argv[1]
 with open(list_file) as f:
     content = f.read()
     files = content.split('\n')
 for file in files:
     crx_src_sink_filter(file)
+with open('crx_lists/suspicous_list.list', "w") as f:
+    json.dump(suspicous_list, f)
 # content = open(extension_dir)
