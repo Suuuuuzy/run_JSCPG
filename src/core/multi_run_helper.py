@@ -25,8 +25,18 @@ def validate_chrome_extension(extension_path):
     Returns:
         True or False
     """
+    valid = True
     manifest_json_path = '{}/manifest.json'.format(extension_path)
-    return os.path.exists(manifest_json_path)
+    if os.path.exists(manifest_json_path):
+        with open(manifest_json_path) as f:
+            try:
+                x = json.load(f)
+            except json.decoder.JSONDecodeError:
+                valid = False
+                print("File content could not be converted to JSON")
+    else:
+        valid = False
+    return valid
 
 
 def validate_package(package_path):

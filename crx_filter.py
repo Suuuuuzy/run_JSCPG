@@ -103,6 +103,15 @@ list_file = sys.argv[1]
 with open(list_file) as f:
     content = f.read()
     files = content.split('\n')
+with open('crx_src_sink.log') as f:
+    filtered = f.read()
 for file in files:
+    if file in filtered:
+        continue
     crx_src_sink_filter(file)
 # content = open(extension_dir)
+
+
+
+
+
