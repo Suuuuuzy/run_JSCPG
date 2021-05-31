@@ -331,8 +331,6 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
         entry_nodeid (str) 0: the entry node id,
             by default 0
     """
-    old_running_thread_id = 0
-
     NodeHandleResult.print_callback = print_handle_result
 
     entry_nodeid = str(entry_nodeid)
@@ -342,56 +340,63 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
         register_func(G, node[0])
     if G.pq:
         # print('jianjia pq')
-        t = Thread(target=internal_plugins.dispatch_node, args=(entry_nodeid))
-        t.start()
-        # G.pq.put((1, t.ident, t))
-        G.running_thread = t
-        G.running_thread_id = t.ident
-        G.running_thread_age = 1
-        G.running_time_ns = time.time_ns() # the start time of a thread
-        # t.join() # main thread wait unitl it finishes
-        # lock = Event()
-        G.pq_event.set()
-        # G.reverse_pq_event.clear()
-        while True:
-            # if the current thread is still running and the event is not set
-            if G.running_thread.is_alive() and not G.pq_event.isSet():
-                continue
-            else:
-                # if the event is not set, a former thread finishes, let it go
-                if not G.pq_event.isSet():
-                    G.pq_event.set()
-                    # G.reverse_pq_event.clear()
-                # if former thread is alive, put it back
-                # former_running_thread = G.running_thread
-                # if former_running_thread.is_alive():
-                # if the event is set, a former thread does not finish
-                # elif not G.reverse_pq_event.is_set():
+        admin_threads(G, internal_plugins.dispatch_node, (entry_nodeid), old_running_thread_id=0)
+    else:
+        internal_plugins.dispatch_node(entry_nodeid)
+    #add_edges_between_funcs(G)
+
+# the function to admin the threads, to use this, you have to pass G and the initial running thread
+def admin_threads(G, function, args, old_running_thread_id):
+    t = Thread(target=function, args=args)
+    t.start()
+    # G.pq.put((1, t.ident, t))
+    G.running_thread = t
+    G.running_thread_id = t.ident
+    G.running_thread_age = 1
+    G.running_time_ns = time.time_ns()  # the start time of a thread
+    print('jianjia see thread ', G.running_thread_age, G.running_thread_id)
+    while True:
+        # if the current thread is not dead and the event is not set
+        if G.running_thread.is_alive() and not G.pq_event.isSet():
+            continue
+        else:
+            # if the event is not set, a former thread died, let it go
+            if not G.pq_event.isSet():
+                # if all the threads finish
+                if G.pq.empty():
+                    return
+                # else, fetch a new thread to run
                 else:
-                    # if adding new threads by branch
-                    if G.add_branch:
-                        continue
-                    assert(G.running_thread.is_alive())
-                    # if only one thread running, do not add to the age, else, add
-                    new_age = G.running_thread_age if G.pq.empty() else G.running_thread_age + 1
-                    G.pq.put((new_age, G.running_thread_id, G.running_thread))
-                # fetch a new thread to let it run
-                if not G.pq.empty():
+                    G.pq_event.set()
                     result = G.pq.get()
                     G.running_thread = result[2]
                     G.running_thread_id = result[1]
                     G.running_thread_age = result[0]
                     G.running_time_ns = time.time_ns()
                     G.pq_event.clear()
-                    # G.reverse_pq_event.set()
-                else:
-                    break
-            if old_running_thread_id!=G.running_thread_id:
-                old_running_thread_id = G.running_thread_id
-                print('jianjia see thread ', G.running_thread_age, G.running_thread_id)
-    else:
-        internal_plugins.dispatch_node(entry_nodeid)
-    #add_edges_between_funcs(G)
+            # else: G.pq_event.is_set(): either add branch or timeup
+            else:
+                # if add branch
+                if G.add_branch:
+                    continue
+                # if timeup
+                assert (G.running_thread.is_alive())
+                assert (not G.pq.empty())
+                # if only one thread running, do not add to the age, else, add
+                # if not G.pq.empty(): # switch
+                new_age = G.running_thread_age + 1
+                G.pq.put((new_age, G.running_thread_id, G.running_thread))
+                result = G.pq.get()
+                G.running_thread = result[2]
+                G.running_thread_id = result[1]
+                G.running_thread_age = result[0]
+                G.running_time_ns = time.time_ns()
+                G.pq_event.clear()
+        if old_running_thread_id != G.running_thread_id:
+            old_running_thread_id = G.running_thread_id
+            print('jianjia see thread ', G.running_thread_age, G.running_thread_id)
+
+
 
 def install_list_of_packages(package_list):
     """

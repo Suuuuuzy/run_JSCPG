@@ -290,7 +290,7 @@ def traceback_crx(G, vul_type, start_node=None):
     for func_node in func_nodes:
         # we assume only one obj_decl edge
         func_name = G.get_name_from_child(func_node)
-        print('func_name debug##', func_name)
+        # print('func_name debug##', func_name)
         caller = func_node
         # FROM AST NODE TO OPG NODE
         caller = G.find_nearest_upper_CPG_node(caller)
