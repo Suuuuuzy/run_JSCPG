@@ -100,6 +100,7 @@ class HandleIf(Handler):
 
         for idx,if_elem in enumerate(if_elems):
             if not G.pq:
+                print('jianjia see if_elem in dispatch: ', if_elem)
                 depth = G.get_node_attr(if_elem)['branch']
                 # print(depth)
                 result, else_is_deterministic, branch_num_counter = run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
@@ -123,8 +124,6 @@ class HandleIf(Handler):
                     G.pq_event.clear()
                 else:
                     run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
-
-
 
         # When there is no "else", we still need to add a hidden else
         if not has_else(G, node_id):

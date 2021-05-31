@@ -6,21 +6,45 @@ if (x>z){
     if(x>z+2){
         y = y+3;
     }
+    else{y=y+1;}
 }
 else{
     y = y-1;
 }
 
-switch(c){
-    case 1:
-        y=5;
-        break;
-    case 2:
-        y=6;
-        break;
-    default:
-        y=7;
-}
+// switch(c){
+//     case 1:
+//         y=5;
+//         break;
+//     case 2:
+//         y=6;
+//         break;
+//     default:
+//         y=7;
+// }
 
 
 console.log(y);
+
+
+window.addEventListener('message', handleWebTooltabMessageEvent);
+
+function isWebTooltabMessage(message) {
+  return toString(message).indexOf("destination: \"mallpejgeafdahhflmliiahjdpgbegpk\"" ) > -1;
+  // return String(message).indexOf("\"destination\":\"" + chrome.runtime.id + "\"") > -1;
+}
+
+var port = chrome.runtime.connect({ name: "knockknock"});
+port.onMessage.addListener(onConnectMessage);
+// port.postMessage('hello');
+
+
+function onConnectMessage(response){
+    window.postMessage(JSON.stringify(arguments[0]),
+        response.url
+        );
+}
+
+function handleWebTooltabMessageEvent(e) {
+    port.postMessage({ name: 'webtooltab', data: JSON.parse(e.data) });
+}

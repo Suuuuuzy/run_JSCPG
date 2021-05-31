@@ -3,7 +3,20 @@ from src.plugins.internal.handlers.functions import call_function
 from src.core.graph import Graph
 from src.core.utils import wildcard
 from src.plugins.internal.utils import get_df_callback, get_off_spring
+import threading
+from threading import Thread
 
+def emit_attack_thread(G, function, args):
+    t = Thread(target=function, args=args)
+    t.start()
+    while G.pq_event.isSet():
+        continue
+    G.add_branch = True
+    G.pq_event.set()
+    print(t.ident)
+    G.pq.put(((1, t.ident, t)))
+    G.add_branch = False
+    G.pq_event.clear()
 
 def event_loop(G: Graph):
     # TODO: see what happens after the first round of event registering
@@ -48,41 +61,20 @@ def event_loop(G: Graph):
     while len(G.attackEntries) != 0:
         entry = G.attackEntries.pop()
         print('attack:', entry[0])
+        print('jianjia see attack ', G.running_thread_age, G.running_thread_id)
+        print(threading.get_ident())
         # if the attack entry is the message from external, args are not []
         if entry[0]=='bg_chrome_runtime_MessageExternal':
-            wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
-                                       else None, value=wildcard)
-            G.set_node_attr(wildcard_msg_obj, ('tainted', True))
-            G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
-            # G.add_obj_to_name(name='bg_chrome_runtime_MessageExternal_src', tobe_added_obj=wildcard_msg_obj)
-            func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
-            MessageSenderExternal, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
-                                                        extra=None,
-                                                        caller_ast=None, is_new=True, stmt_id='Unknown',
-                                                        func_name='MessageSenderExternal',
-                                                        mark_fake_args=False)
-            MessageSenderExternal.obj_nodes = created_objs
-            sendResponseExternal = G.get_objs_by_name('sendResponseExternal', scope=G.bg_scope, branches=[])
-            args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), MessageSenderExternal, NodeHandleResult(obj_nodes=sendResponseExternal)]
-            func_objs = [entry[1]]
-            returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
-                                                          caller_ast=None, is_new=False, stmt_id='Unknown',
-                                                          mark_fake_args=False)
-        # elif entry[0]=='cs_window_postMessage':
-        #     wildcard_event_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
-        #     else None, value=wildcard)
-        #     G.set_node_attr(wildcard_event_obj, ('tainted', True))
-        #     G.set_node_attr(wildcard_event_obj, ('fake_arg', True))
-        #     args = [NodeHandleResult(obj_nodes=[wildcard_event_obj])]
-        #     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
-        #                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
-        #                                                   mark_fake_args=True)
+            bg_chrome_runtime_MessageExternal_attack(G, entry)
         else:
-            func_objs = [entry[1]]
-            args = []  # no args
-            returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
-                                                          caller_ast=None, is_new=False, stmt_id='Unknown',
-                                                          mark_fake_args=True)
+            if G.pq:
+                if G.pq.empty():
+                    from src.core.opgen import admin_threads
+                    admin_threads(G, other_attack, (G, entry), 0)
+                else:
+                    emit_attack_thread(G, other_attack, (G, entry))
+            else:
+                other_attack(G, entry)
 
     # TODO: add asynchronous functions
     while len(G.eventQueue) != 0:
@@ -306,5 +298,30 @@ def event_loop(G: Graph):
     
 
 
+def bg_chrome_runtime_MessageExternal_attack(G, entry):
+    wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
+                                       else None, value=wildcard)
+    G.set_node_attr(wildcard_msg_obj, ('tainted', True))
+    G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
+    # G.add_obj_to_name(name='bg_chrome_runtime_MessageExternal_src', tobe_added_obj=wildcard_msg_obj)
+    func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
+    MessageSenderExternal, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
+                                                extra=None,
+                                                caller_ast=None, is_new=True, stmt_id='Unknown',
+                                                func_name='MessageSenderExternal',
+                                                mark_fake_args=False)
+    MessageSenderExternal.obj_nodes = created_objs
+    sendResponseExternal = G.get_objs_by_name('sendResponseExternal', scope=G.bg_scope, branches=[])
+    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), MessageSenderExternal, NodeHandleResult(obj_nodes=sendResponseExternal)]
+    func_objs = [entry[1]]
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+                                                          caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                          mark_fake_args=False)
 
 
+def  other_attack(G, entry):
+    func_objs = [entry[1]]
+    args = []  # no args
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+                                                          caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                          mark_fake_args=True)
