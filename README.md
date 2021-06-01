@@ -1,3 +1,5 @@
+In this branch we remove event loop, trigger event right away
+
 OPGen
 =======
 
@@ -24,7 +26,7 @@ generate_graph.py [-h] [-p] [-t VUL_TYPE] [-P] [-m] [-q] [-s] [-a]
 | `-t VUL_TYPE, --vul-type VUL_TYPE` | Set the vulnerability type to be checked. (See the Vulterability Types section.) |
 | `-P, --prototype-pollution, --pp` | Shortcut for checking prototype pollution. |
 | `-m, --module` | Module mode. Indicate the input is a module, instead of a script. This implies -a. |
-| `--export LEVEL` | export the graph to Neo4J. The value can be 'light' or 'all'. Run import2neo4j.sh after the generation. | 
+| `--export LEVEL` | export the graph to Neo4J. The value can be 'light' or 'all'. Run import2neo4j.sh after the generation. |
 | `-a, --run-all` | Run all exported functions in module.exports. By default, only main functions will be run. |
 | `-q, --exit` | Exit the analysis immediately when vulnerability is found. Do not use this if you need a complete graph. |
 | `-s, --single-branch` | Single branch mode (or single execution). Do not execute multiple branches in parallel. |

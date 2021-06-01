@@ -12,6 +12,7 @@ from src.core.logger import *
 from itertools import chain, product
 from math import isnan
 import math
+from src.plugins.internal.handlers.event_loop import event_loop, bg_chrome_tabs_onActivated, emit_event_thread, bg_chrome_runtime_MessageExternal_attack, other_attack
 
 from .utils import get_off_spring
 
@@ -42,10 +43,20 @@ def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
     func = args[1].obj_nodes[0]
     # print('inside register', G.get_obj_def_ast_node(func))
     # func = args[1].obj_nodes[0]
-    if event in G.eventRegisteredFuncs:
-        G.eventRegisteredFuncs[event].append(func)
+    # if this is bg_chrome_tabs_onActivated, trigger it now
+    if event == 'bg_chrome_tabs_onActivated':
+        if G.pq:
+            emit_event_thread(G, bg_chrome_tabs_onActivated, (G,))
+        else:
+            bg_chrome_tabs_onActivated(G)
     else:
-        G.eventRegisteredFuncs[event] = [func]
+        if event in G.eventRegisteredFuncs:
+            G.eventRegisteredFuncs[event].append(func)
+        else:
+            G.eventRegisteredFuncs[event] = [func]
+
+
+
     return NodeHandleResult()
 
 def UnregisterFunc(G: Graph, caller_ast, extra, _, *args):
@@ -70,7 +81,10 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
     # eventName = args[0].obj_nodes[0]
     info = args[1].obj_nodes[0]
     # used_objs.update(args[1].obj_nodes)
-    G.eventQueue.insert(0, {'eventName': eventName, 'info': info, 'extra':extra})
+    # G.eventQueue.insert(0, {'eventName': eventName, 'info': info, 'extra':extra})
+    event = {'eventName': eventName, 'info': info, 'extra':extra}
+    # trigger event right away
+    event_loop(G, event)
     return NodeHandleResult()
 
 def MarkSource(G: Graph, caller_ast, extra, _, *args):
@@ -106,7 +120,20 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = G.get_node_attr(args[0].obj_nodes[0]).get('code')
     listener = args[1].obj_nodes[0]
     print('MarkAttackEntry: ', type)
-    G.attackEntries.insert(0, [type, listener])
+    # G.attackEntries.insert(0, [type, listener])
+    #  attack right away!
+    if G.pq:
+        entry = [type, listener]
+        if entry[0]=='bg_chrome_runtime_MessageExternal':
+            emit_event_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))
+        else:
+            emit_event_thread(G, other_attack, (G, entry))
+    else:
+        entry = [type, listener]
+        if entry[0]=='bg_chrome_runtime_MessageExternal':
+            bg_chrome_runtime_MessageExternal_attack(G, entry)
+        else:
+            other_attack(G, entry)
     return NodeHandleResult()
     # return NodeHandleResult(used_objs=list(used_objs))
 

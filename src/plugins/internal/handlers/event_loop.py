@@ -26,104 +26,60 @@ def emit_event_thread(G, function, args):
         G.add_branch = False
         G.pq_event.clear()
 
-def event_loop(G: Graph):
-    # TODO: see what happens after the first round of event registering
+def event_loop(G: Graph, event):
+    # STEP1: see eventRegisteredFuncs right now
     print('========SEE eventRegisteredFuncs:========')
     for i in G.eventRegisteredFuncs:
         print(i, G.eventRegisteredFuncs[i])
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
-    print('========SEE original event queue:========')
-    cnt = 0
-    for i in G.eventQueue:
-        print('event ', cnt)
-        print('eventName:', i['eventName'])
-        print('info: ', i['info'])
-        print(G.get_node_attr(i['info']))
-        cnt += 1
-    # TODO: if there is bg_chrome_tabs_onActivated, trigger it now
-    if 'bg_chrome_tabs_onActivated' in G.eventRegisteredFuncs:
-        if G.pq:
-            emit_event_thread(G, bg_chrome_tabs_onActivated, (G, ))
-        else:
-            bg_chrome_tabs_onActivated(G)
 
-    # TODO: execute the attack entries, we assume there won't be more entries as the execution goes
-    print('========SEE attackEntries:========')
+    # STEP2: trigger event
     if G.pq:
-        while len(G.attackEntries) != 0:
-            entry = G.attackEntries.pop()
-            print('attack:', entry[0])
-            print('jianjia see attack ', G.running_thread_age, G.running_thread_id)
-            print(threading.get_ident())
-            # if the attack entry is the message from external, args are not []
-            if entry[0]=='bg_chrome_runtime_MessageExternal':
-                emit_event_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))
-            else:
-                emit_event_thread(G, other_attack, (G, entry))
+        print('processing eventName:', event['eventName'])
+        if event['eventName'] == 'cs_chrome_runtime_connect':
+            if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:
+                emit_event_thread(G, cs_chrome_runtime_connect, (G, event))
+        elif event['eventName'] == 'cs_port_postMessage':
+            if 'bg_port_onMessage' in G.eventRegisteredFuncs:
+                emit_event_thread(G, cs_port_postMessage, (G, event))
+        elif event['eventName'] == 'bg_port_postMessage':
+            if 'cs_port_onMessage' in G.eventRegisteredFuncs:
+                emit_event_thread(G, bg_port_postMessage, (G, event))
+        elif event['eventName'] == 'cs_chrome_runtime_sendMessage':
+            if 'bg_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
+                emit_event_thread(G, cs_chrome_runtime_sendMessage, (G, event))
+        elif event['eventName'] == 'bg_chrome_tabs_sendMessage':
+            if 'cs_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
+                emit_event_thread(G, bg_chrome_tabs_sendMessage, (G, event))
+        elif event['eventName'] == 'bg_chrome_runtime_onMessage_response':
+            if 'cs_chrome_runtime_sendMessage_onResponse' in G.eventRegisteredFuncs:
+                emit_event_thread(G, bg_chrome_runtime_onMessage_response, (G, event))
+        elif event['eventName'] == 'cs_chrome_tabs_onMessage_response':
+            if 'bg_chrome_tabs_sendMessage_onResponse' in G.eventRegisteredFuncs:
+                emit_event_thread(G, cs_chrome_tabs_onMessage_response, (G, event))
     else:
-        while len(G.attackEntries) != 0:
-            entry = G.attackEntries.pop()
-            print('attack:', entry[0])
-            print('jianjia see attack ', G.running_thread_age, G.running_thread_id)
-            print(threading.get_ident())
-            # if the attack entry is the message from external, args are not []
-            if entry[0]=='bg_chrome_runtime_MessageExternal':
-                bg_chrome_runtime_MessageExternal_attack(G, entry)
-            else:
-                other_attack(G, entry)
-
-
-    # TODO: add asynchronous functions
-    if G.pq:
-        while len(G.eventQueue) != 0 and not G.pq.empty():
-            event = G.eventQueue.pop()
-            print('processing eventName:', event['eventName'])
-            if event['eventName'] == 'cs_chrome_runtime_connect':
-                if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:
-                    emit_event_thread(G, cs_chrome_runtime_connect, (G, event))
-            elif event['eventName'] == 'cs_port_postMessage':
-                if 'bg_port_onMessage' in G.eventRegisteredFuncs:
-                    emit_event_thread(G, cs_port_postMessage, (G, event))
-            elif event['eventName'] == 'bg_port_postMessage':
-                if 'cs_port_onMessage' in G.eventRegisteredFuncs:
-                    emit_event_thread(G, bg_port_postMessage, (G, event))
-            elif event['eventName'] == 'cs_chrome_runtime_sendMessage':
-                if 'bg_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                    emit_event_thread(G, cs_chrome_runtime_sendMessage, (G, event))
-            elif event['eventName'] == 'bg_chrome_tabs_sendMessage':
-                if 'cs_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                    emit_event_thread(G, bg_chrome_tabs_sendMessage, (G, event))
-            elif event['eventName'] == 'bg_chrome_runtime_onMessage_response':
-                if 'cs_chrome_runtime_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                    emit_event_thread(G, bg_chrome_runtime_onMessage_response, (G, event))
-            elif event['eventName'] == 'cs_chrome_tabs_onMessage_response':
-                if 'bg_chrome_tabs_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                    emit_event_thread(G, cs_chrome_tabs_onMessage_response, (G, event))
-    else:
-        while len(G.eventQueue) != 0:
-            event = G.eventQueue.pop()
-            print('processing eventName:', event['eventName'])
-            if event['eventName'] == 'cs_chrome_runtime_connect':
-                if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:
-                    cs_chrome_runtime_connect(G, event)
-            elif event['eventName'] == 'cs_port_postMessage':
-                if 'bg_port_onMessage' in G.eventRegisteredFuncs:
-                    cs_port_postMessage(G, event)
-            elif event['eventName'] == 'bg_port_postMessage':
-                if 'cs_port_onMessage' in G.eventRegisteredFuncs:
-                    bg_port_postMessage(G, event)
-            elif event['eventName'] == 'cs_chrome_runtime_sendMessage':
-                if 'bg_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                    cs_chrome_runtime_sendMessage(G, event)
-            elif event['eventName'] == 'bg_chrome_tabs_sendMessage':
-                if 'cs_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                    bg_chrome_tabs_sendMessage(G, event)
-            elif event['eventName'] == 'bg_chrome_runtime_onMessage_response':
-                if 'cs_chrome_runtime_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                    bg_chrome_runtime_onMessage_response(G, event)
-            elif event['eventName'] == 'cs_chrome_tabs_onMessage_response':
-                if 'bg_chrome_tabs_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                    cs_chrome_tabs_onMessage_response(G, event)
+        print('processing eventName:', event['eventName'])
+        if event['eventName'] == 'cs_chrome_runtime_connect':
+            if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:
+                cs_chrome_runtime_connect(G, event)
+        elif event['eventName'] == 'cs_port_postMessage':
+            if 'bg_port_onMessage' in G.eventRegisteredFuncs:
+                cs_port_postMessage(G, event)
+        elif event['eventName'] == 'bg_port_postMessage':
+            if 'cs_port_onMessage' in G.eventRegisteredFuncs:
+                bg_port_postMessage(G, event)
+        elif event['eventName'] == 'cs_chrome_runtime_sendMessage':
+            if 'bg_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
+                cs_chrome_runtime_sendMessage(G, event)
+        elif event['eventName'] == 'bg_chrome_tabs_sendMessage':
+            if 'cs_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
+                bg_chrome_tabs_sendMessage(G, event)
+        elif event['eventName'] == 'bg_chrome_runtime_onMessage_response':
+            if 'cs_chrome_runtime_sendMessage_onResponse' in G.eventRegisteredFuncs:
+                bg_chrome_runtime_onMessage_response(G, event)
+        elif event['eventName'] == 'cs_chrome_tabs_onMessage_response':
+            if 'bg_chrome_tabs_sendMessage_onResponse' in G.eventRegisteredFuncs:
+                cs_chrome_tabs_onMessage_response(G, event)
 
     '''
     # see marked source

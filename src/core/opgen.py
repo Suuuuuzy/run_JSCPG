@@ -151,12 +151,14 @@ class OPGen:
         # (mark on the AST node, each node should search ancestors until branch is found)
         generate_branch_graph(G, entry_nodeid=entry_id)
         generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
+        """
         if vul_type in ['chrome_API_execution', 'chrome_data_exfiltration']:
             event_loop(G)
             # wait until the graph finishes
             if G.pq:
                 while not G.pq.empty():
                     continue
+        """
         if vul_type is not None:
             check_res = self.check_vuls(vul_type, G)
             if len(check_res) != 0:
