@@ -6,17 +6,25 @@ from src.plugins.internal.utils import get_df_callback, get_off_spring
 import threading
 from threading import Thread
 
-def emit_attack_thread(G, function, args):
-    t = Thread(target=function, args=args)
-    t.start()
-    while G.pq_event.isSet():
-        continue
-    G.add_branch = True
-    G.pq_event.set()
-    print(t.ident)
-    G.pq.put(((1, t.ident, t)))
-    G.add_branch = False
-    G.pq_event.clear()
+# event_loop_threads = False
+# emit_event_thread(G, other_attack, (G, entry), entry)
+def emit_event_thread(G, function, args):
+    global event_loop_threads
+    if G.pq.empty():
+        event_loop_threads = True
+        from src.core.opgen import admin_threads
+        admin_threads(G, function, args, 0)
+    else:
+        t = Thread(target=function, args=args)
+        t.start()
+        while G.pq_event.isSet():
+            continue
+        G.add_branch = True
+        G.pq_event.set()
+        print(t.ident)
+        G.pq.put(((1, t.ident, t)))
+        G.add_branch = False
+        G.pq_event.clear()
 
 def event_loop(G: Graph):
     # TODO: see what happens after the first round of event registering
@@ -29,197 +37,93 @@ def event_loop(G: Graph):
     for i in G.eventQueue:
         print('event ', cnt)
         print('eventName:', i['eventName'])
-        # print(G.get_obj_def_ast_node(i['eventName']))
-        # print(G.get_node_attr(i['eventName']))
         print('info: ', i['info'])
-        # print(G.get_obj_def_ast_node(i['info']))
         print(G.get_node_attr(i['info']))
         cnt += 1
     # TODO: if there is bg_chrome_tabs_onActivated, trigger it now
     if 'bg_chrome_tabs_onActivated' in G.eventRegisteredFuncs:
-        print('bg_chrome_tabs_onActivated')
-        func_objs = G.get_objs_by_name('ActiveInfo', scope=G.bg_scope, branches=[])
-        # print('debug func_objs ', G.get_node_attr(G.get_obj_def_ast_node(func_objs[0])))
-        ActiveInfo, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
-                                                    extra=None,
-                                                    caller_ast=None, is_new=True, stmt_id='Unknown',
-                                                    func_name='ActiveInfo',
-                                                    mark_fake_args=False)
-        ActiveInfo.obj_nodes = created_objs
-        print('ActiveInfo obj node:',created_objs[0],  G.get_node_attr(created_objs[0]))
-        args = [ActiveInfo]
-        func_objs = G.eventRegisteredFuncs['bg_chrome_tabs_onActivated']
-        returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
-                                                      extra=None,
-                                                      caller_ast=None, is_new=False, stmt_id='Unknown',
-                                                      mark_fake_args=False)
+        if G.pq:
+            emit_event_thread(G, bg_chrome_tabs_onActivated, (G, ))
+        else:
+            bg_chrome_tabs_onActivated(G)
+
     # TODO: execute the attack entries, we assume there won't be more entries as the execution goes
     print('========SEE attackEntries:========')
-    # for i in G.attackEntries:
-    #     print(i)
-    #     print(G.get_node_attr(G.get_obj_def_ast_node(i))) # a list of attack entries (function declaration objs)
-    while len(G.attackEntries) != 0:
-        entry = G.attackEntries.pop()
-        print('attack:', entry[0])
-        print('jianjia see attack ', G.running_thread_age, G.running_thread_id)
-        print(threading.get_ident())
-        # if the attack entry is the message from external, args are not []
-        if entry[0]=='bg_chrome_runtime_MessageExternal':
-            bg_chrome_runtime_MessageExternal_attack(G, entry)
-        else:
-            if G.pq:
-                if G.pq.empty():
-                    from src.core.opgen import admin_threads
-                    admin_threads(G, other_attack, (G, entry), 0)
-                else:
-                    emit_attack_thread(G, other_attack, (G, entry))
+    if G.pq:
+        while len(G.attackEntries) != 0:
+            entry = G.attackEntries.pop()
+            print('attack:', entry[0])
+            print('jianjia see attack ', G.running_thread_age, G.running_thread_id)
+            print(threading.get_ident())
+            # if the attack entry is the message from external, args are not []
+            if entry[0]=='bg_chrome_runtime_MessageExternal':
+                emit_event_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))
+            else:
+                emit_event_thread(G, other_attack, (G, entry))
+    else:
+        while len(G.attackEntries) != 0:
+            entry = G.attackEntries.pop()
+            print('attack:', entry[0])
+            print('jianjia see attack ', G.running_thread_age, G.running_thread_id)
+            print(threading.get_ident())
+            # if the attack entry is the message from external, args are not []
+            if entry[0]=='bg_chrome_runtime_MessageExternal':
+                bg_chrome_runtime_MessageExternal_attack(G, entry)
             else:
                 other_attack(G, entry)
 
+
     # TODO: add asynchronous functions
-    while len(G.eventQueue) != 0:
-        event = G.eventQueue.pop()
-        print('processing eventName:', event['eventName'])
-        # print('info: ', event['info'])
-        # print(G.get_node_attr(event['info']))
-
-        if event['eventName'] == 'cs_chrome_runtime_connect':
-            if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:
-                # handle the parameter of the callback function
-                # var port = new Port(info['connectInfo']);
-                connectInfo = G.get_child_nodes(event['info'], child_name='connectInfo')[0]
-                connectInfo = G.get_child_nodes(connectInfo, edge_type='NAME_TO_OBJ')[0]
-                args = [NodeHandleResult(obj_nodes=[connectInfo])]
-                func_objs = G.get_objs_by_name('Port', scope=G.bg_scope, branches=[])
-                returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
-                              caller_ast=None, is_new=True, stmt_id='Unknown', func_name='Port',
-                              mark_fake_args=False)
-                returned_result.obj_nodes = created_objs
-                # this obj should be a newed Port
-                # print('this should be Port obj')
-                # print(G.get_node_attr(returned_result.obj_nodes[0]))
-                # call the callback function
-                # myCallback(port);
-                func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onConnect']
-                args = [returned_result]
-                returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
-                                caller_ast=None, is_new=False, stmt_id='Unknown',
-                                mark_fake_args=False)
-                # callback = get_df_callback(G.get_obj_def_ast_node(func_objs[0]))
-
-                # this should be the result of the callback function, not important
-        elif event['eventName'] == 'cs_port_postMessage':
-            if 'bg_port_onMessage' in G.eventRegisteredFuncs:
-                message = G.get_child_nodes(event['info'], child_name='message')[0]
-                message = G.get_child_nodes(message, edge_type='NAME_TO_OBJ')[0]
-                message = G.copy_obj(message, ast_node=None, deep=True)
-                # print('message obj node:', G.get_node_attr(message))
-                args = [NodeHandleResult(obj_nodes=[message])]
-                func_objs = G.eventRegisteredFuncs['bg_port_onMessage']
-                returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
-                            caller_ast=None, is_new=False, stmt_id='Unknown',
-                            mark_fake_args=False)
-        elif event['eventName'] == 'bg_port_postMessage':
-            if 'cs_port_onMessage' in G.eventRegisteredFuncs:
-                message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
-                message = G.copy_obj(message, ast_node=None, deep=True)
-                # print('message obj node:', G.get_node_attr(message))
-                args = [NodeHandleResult(obj_nodes=[message])]
-                func_objs = G.eventRegisteredFuncs['cs_port_onMessage']
-                # print('bg_port_onMessage callback')
-                # print(func_objs[0])
-                # print(G.get_obj_def_ast_node(func_objs[0]))
-                returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
-                            caller_ast=None, is_new=False, stmt_id='Unknown',
-                            mark_fake_args=False)
-        elif event['eventName'] == 'cs_chrome_runtime_sendMessage':
-            if 'bg_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                # print('in runtime')
-                extra = event['extra']
-                message = G.get_prop_obj_nodes(event['info'], prop_name = 'message')[0]
-                message = G.copy_obj(message, ast_node=None, deep=True)
-                info_nodes = G.get_prop_name_nodes(event['info'])
-                func_objs = G.get_objs_by_name('MessageSender', scope=G.bg_scope, branches=[])
-                MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
-                              extra=None,
-                              caller_ast=None, is_new=True, stmt_id='Unknown',
-                              func_name='MessageSender',
-                              mark_fake_args=False)
-                MessageSender.obj_nodes = created_objs
-                sendResponse = G.get_objs_by_name('sendResponse', scope=G.bg_scope, branches=[])
-                args = [NodeHandleResult(obj_nodes=[message]), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
-                func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onMessage']
-                returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
-                              caller_ast=None, is_new=False, stmt_id='Unknown',
-                              mark_fake_args=False)
-                # register sender_responseCallback function to cs runtime.sendMessage's responseCallback
-                sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name = 'responseCallback')[0]
-                event = 'cs_chrome_runtime_sendMessage_onResponse' # cs on getting the response from bg
-                if event in G.eventRegisteredFuncs:
-                    G.eventRegisteredFuncs[event].append(sender_responseCallback)
-                else:
-                    G.eventRegisteredFuncs[event] = [sender_responseCallback]
-        elif event['eventName'] == 'bg_chrome_tabs_sendMessage':
-            if 'cs_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
-                message = G.copy_obj(message, ast_node=None, deep=True)
-                # print('message obj node:', message, G.get_node_attr(message))
-                func_objs = G.get_objs_by_name('MessageSender', scope=G.cs_scope['cs_0.js'], branches=[])
-                MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
-                                                            extra=None,
-                                                            caller_ast=None, is_new=True, stmt_id='Unknown',
-                                                            func_name='MessageSender',
-                                                            mark_fake_args=False)
-                MessageSender.obj_nodes = created_objs
-                # print('MessageSender obj', created_objs[0], G.get_node_attr(created_objs[0]))
-                sendResponse = G.get_objs_by_name('sendResponse', scope=G.cs_scope['cs_0.js'], branches=[])
-                # print('sendResponse obj', sendResponse[0], G.get_obj_def_ast_node(sendResponse[0]),
-                #       G.get_node_attr(sendResponse[0]))
-                args = [NodeHandleResult(obj_nodes=[message]), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
-                func_objs = G.eventRegisteredFuncs['cs_chrome_runtime_onMessage']
-                returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
-                                                              extra=None,
-                                                              caller_ast=None, is_new=False, stmt_id='Unknown',
-                                                              mark_fake_args=False)
-                # register sender_responseCallback function to cs runtime.sendMessage's responseCallback
-                sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name='responseCallback')[0]
-                event = 'bg_chrome_tabs_sendMessage_onResponse' # bg on getting the response from cs
-                if event in G.eventRegisteredFuncs:
-                    G.eventRegisteredFuncs[event].append(sender_responseCallback)
-                else:
-                    G.eventRegisteredFuncs[event] = [sender_responseCallback]
-        elif event['eventName'] == 'bg_chrome_runtime_onMessage_response':
-            if 'cs_chrome_runtime_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
-                message = G.copy_obj(message, ast_node=None, deep=True)
-                args = [NodeHandleResult(obj_nodes=[message])]
-                func_objs = G.eventRegisteredFuncs['cs_chrome_runtime_sendMessage_onResponse']
-                returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
-                                                              extra=None,
-                                                              caller_ast=None, is_new=False, stmt_id='Unknown',
-                                                              mark_fake_args=False)
-                # unregister this function
-                event = 'cs_chrome_runtime_sendMessage_onResponse'
-                if event in G.eventRegisteredFuncs:
-                    del G.eventRegisteredFuncs[event]
-                else:
-                    pass
-        elif event['eventName'] == 'cs_chrome_tabs_onMessage_response':
-            if 'bg_chrome_tabs_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
-                message = G.copy_obj(message, ast_node=None, deep=True)
-                args = [NodeHandleResult(obj_nodes=[message])]
-                func_objs = G.eventRegisteredFuncs['bg_chrome_tabs_sendMessage_onResponse']
-                returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
-                                                              extra=None,
-                                                              caller_ast=None, is_new=False, stmt_id='Unknown',
-                                                              mark_fake_args=False)
-                # unregister this function
-                event = 'bg_chrome_tabs_sendMessage_onResponse'
-                if event in G.eventRegisteredFuncs:
-                    del G.eventRegisteredFuncs[event]
-                else:
-                    pass
+    if G.pq:
+        while len(G.eventQueue) != 0 and not G.pq.empty():
+            event = G.eventQueue.pop()
+            print('processing eventName:', event['eventName'])
+            if event['eventName'] == 'cs_chrome_runtime_connect':
+                if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:
+                    emit_event_thread(G, cs_chrome_runtime_connect, (G, event))
+            elif event['eventName'] == 'cs_port_postMessage':
+                if 'bg_port_onMessage' in G.eventRegisteredFuncs:
+                    emit_event_thread(G, cs_port_postMessage, (G, event))
+            elif event['eventName'] == 'bg_port_postMessage':
+                if 'cs_port_onMessage' in G.eventRegisteredFuncs:
+                    emit_event_thread(G, bg_port_postMessage, (G, event))
+            elif event['eventName'] == 'cs_chrome_runtime_sendMessage':
+                if 'bg_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
+                    emit_event_thread(G, cs_chrome_runtime_sendMessage, (G, event))
+            elif event['eventName'] == 'bg_chrome_tabs_sendMessage':
+                if 'cs_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
+                    emit_event_thread(G, bg_chrome_tabs_sendMessage, (G, event))
+            elif event['eventName'] == 'bg_chrome_runtime_onMessage_response':
+                if 'cs_chrome_runtime_sendMessage_onResponse' in G.eventRegisteredFuncs:
+                    emit_event_thread(G, bg_chrome_runtime_onMessage_response, (G, event))
+            elif event['eventName'] == 'cs_chrome_tabs_onMessage_response':
+                if 'bg_chrome_tabs_sendMessage_onResponse' in G.eventRegisteredFuncs:
+                    emit_event_thread(G, cs_chrome_tabs_onMessage_response, (G, event))
+    else:
+        while len(G.eventQueue) != 0:
+            event = G.eventQueue.pop()
+            print('processing eventName:', event['eventName'])
+            if event['eventName'] == 'cs_chrome_runtime_connect':
+                if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:
+                    cs_chrome_runtime_connect(G, event)
+            elif event['eventName'] == 'cs_port_postMessage':
+                if 'bg_port_onMessage' in G.eventRegisteredFuncs:
+                    cs_port_postMessage(G, event)
+            elif event['eventName'] == 'bg_port_postMessage':
+                if 'cs_port_onMessage' in G.eventRegisteredFuncs:
+                    bg_port_postMessage(G, event)
+            elif event['eventName'] == 'cs_chrome_runtime_sendMessage':
+                if 'bg_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
+                    cs_chrome_runtime_sendMessage(G, event)
+            elif event['eventName'] == 'bg_chrome_tabs_sendMessage':
+                if 'cs_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
+                    bg_chrome_tabs_sendMessage(G, event)
+            elif event['eventName'] == 'bg_chrome_runtime_onMessage_response':
+                if 'cs_chrome_runtime_sendMessage_onResponse' in G.eventRegisteredFuncs:
+                    bg_chrome_runtime_onMessage_response(G, event)
+            elif event['eventName'] == 'cs_chrome_tabs_onMessage_response':
+                if 'bg_chrome_tabs_sendMessage_onResponse' in G.eventRegisteredFuncs:
+                    cs_chrome_tabs_onMessage_response(G, event)
 
     '''
     # see marked source
@@ -319,9 +223,155 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry):
                                                           mark_fake_args=False)
 
 
-def  other_attack(G, entry):
+def other_attack(G, entry):
     func_objs = [entry[1]]
     args = []  # no args
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
                                                           mark_fake_args=True)
+def cs_chrome_runtime_connect(G, event):
+    # handle the parameter of the callback function
+    # var port = new Port(info['connectInfo']);
+    connectInfo = G.get_child_nodes(event['info'], child_name='connectInfo')[0]
+    connectInfo = G.get_child_nodes(connectInfo, edge_type='NAME_TO_OBJ')[0]
+    args = [NodeHandleResult(obj_nodes=[connectInfo])]
+    func_objs = G.get_objs_by_name('Port', scope=G.bg_scope, branches=[])
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+                  caller_ast=None, is_new=True, stmt_id='Unknown', func_name='Port',
+                  mark_fake_args=False)
+    returned_result.obj_nodes = created_objs
+    func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onConnect']
+    args = [returned_result]
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
+                    caller_ast=None, is_new=False, stmt_id='Unknown',
+                    mark_fake_args=False)
+
+def cs_port_postMessage(G, event):
+    message = G.get_child_nodes(event['info'], child_name='message')[0]
+    message = G.get_child_nodes(message, edge_type='NAME_TO_OBJ')[0]
+    message = G.copy_obj(message, ast_node=None, deep=True)
+    # print('message obj node:', G.get_node_attr(message))
+    args = [NodeHandleResult(obj_nodes=[message])]
+    func_objs = G.eventRegisteredFuncs['bg_port_onMessage']
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
+                caller_ast=None, is_new=False, stmt_id='Unknown',
+                mark_fake_args=False)
+
+def bg_port_postMessage(G, event):
+    message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
+    message = G.copy_obj(message, ast_node=None, deep=True)
+    # print('message obj node:', G.get_node_attr(message))
+    args = [NodeHandleResult(obj_nodes=[message])]
+    func_objs = G.eventRegisteredFuncs['cs_port_onMessage']
+    # print('bg_port_onMessage callback')
+    # print(func_objs[0])
+    # print(G.get_obj_def_ast_node(func_objs[0]))
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
+                caller_ast=None, is_new=False, stmt_id='Unknown',
+                mark_fake_args=False)
+
+def cs_chrome_runtime_sendMessage(G, event):
+    # print('in runtime')
+    extra = event['extra']
+    message = G.get_prop_obj_nodes(event['info'], prop_name = 'message')[0]
+    message = G.copy_obj(message, ast_node=None, deep=True)
+    info_nodes = G.get_prop_name_nodes(event['info'])
+    func_objs = G.get_objs_by_name('MessageSender', scope=G.bg_scope, branches=[])
+    MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
+                  extra=None,
+                  caller_ast=None, is_new=True, stmt_id='Unknown',
+                  func_name='MessageSender',
+                  mark_fake_args=False)
+    MessageSender.obj_nodes = created_objs
+    sendResponse = G.get_objs_by_name('sendResponse', scope=G.bg_scope, branches=[])
+    args = [NodeHandleResult(obj_nodes=[message]), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
+    func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onMessage']
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
+                  caller_ast=None, is_new=False, stmt_id='Unknown',
+                  mark_fake_args=False)
+    # register sender_responseCallback function to cs runtime.sendMessage's responseCallback
+    sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name = 'responseCallback')[0]
+    event = 'cs_chrome_runtime_sendMessage_onResponse' # cs on getting the response from bg
+    if event in G.eventRegisteredFuncs:
+        G.eventRegisteredFuncs[event].append(sender_responseCallback)
+    else:
+        G.eventRegisteredFuncs[event] = [sender_responseCallback]
+
+def bg_chrome_tabs_sendMessage(G, event):
+    message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
+    message = G.copy_obj(message, ast_node=None, deep=True)
+    # print('message obj node:', message, G.get_node_attr(message))
+    func_objs = G.get_objs_by_name('MessageSender', scope=G.cs_scope['cs_0.js'], branches=[])
+    MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
+                                                extra=None,
+                                                caller_ast=None, is_new=True, stmt_id='Unknown',
+                                                func_name='MessageSender',
+                                                mark_fake_args=False)
+    MessageSender.obj_nodes = created_objs
+    # print('MessageSender obj', created_objs[0], G.get_node_attr(created_objs[0]))
+    sendResponse = G.get_objs_by_name('sendResponse', scope=G.cs_scope['cs_0.js'], branches=[])
+    # print('sendResponse obj', sendResponse[0], G.get_obj_def_ast_node(sendResponse[0]),
+    #       G.get_node_attr(sendResponse[0]))
+    args = [NodeHandleResult(obj_nodes=[message]), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
+    func_objs = G.eventRegisteredFuncs['cs_chrome_runtime_onMessage']
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
+                                                  extra=None,
+                                                  caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                  mark_fake_args=False)
+    # register sender_responseCallback function to cs runtime.sendMessage's responseCallback
+    sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name='responseCallback')[0]
+    event = 'bg_chrome_tabs_sendMessage_onResponse' # bg on getting the response from cs
+    if event in G.eventRegisteredFuncs:
+        G.eventRegisteredFuncs[event].append(sender_responseCallback)
+    else:
+        G.eventRegisteredFuncs[event] = [sender_responseCallback]
+
+
+def bg_chrome_runtime_onMessage_response(G, event):
+    message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
+    message = G.copy_obj(message, ast_node=None, deep=True)
+    args = [NodeHandleResult(obj_nodes=[message])]
+    func_objs = G.eventRegisteredFuncs['cs_chrome_runtime_sendMessage_onResponse']
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
+                                                  extra=None,
+                                                  caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                  mark_fake_args=False)
+    # unregister this function
+    event = 'cs_chrome_runtime_sendMessage_onResponse'
+    if event in G.eventRegisteredFuncs:
+        del G.eventRegisteredFuncs[event]
+    else:
+        pass
+
+def cs_chrome_tabs_onMessage_response(G, event):
+    message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
+    message = G.copy_obj(message, ast_node=None, deep=True)
+    args = [NodeHandleResult(obj_nodes=[message])]
+    func_objs = G.eventRegisteredFuncs['bg_chrome_tabs_sendMessage_onResponse']
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
+                                                  extra=None,
+                                                  caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                  mark_fake_args=False)
+    # unregister this function
+    event = 'bg_chrome_tabs_sendMessage_onResponse'
+    if event in G.eventRegisteredFuncs:
+        del G.eventRegisteredFuncs[event]
+    else:
+        pass
+
+def bg_chrome_tabs_onActivated(G):
+    print('bg_chrome_tabs_onActivated')
+    func_objs = G.get_objs_by_name('ActiveInfo', scope=G.bg_scope, branches=[])
+    ActiveInfo, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
+                                                extra=None,
+                                                caller_ast=None, is_new=True, stmt_id='Unknown',
+                                                func_name='ActiveInfo',
+                                                mark_fake_args=False)
+    ActiveInfo.obj_nodes = created_objs
+    print('ActiveInfo obj node:',created_objs[0],  G.get_node_attr(created_objs[0]))
+    args = [ActiveInfo]
+    func_objs = G.eventRegisteredFuncs['bg_chrome_tabs_onActivated']
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
+                                                  extra=None,
+                                                  caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                  mark_fake_args=False)

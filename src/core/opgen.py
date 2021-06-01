@@ -153,6 +153,10 @@ class OPGen:
         generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
         if vul_type in ['chrome_API_execution', 'chrome_data_exfiltration']:
             event_loop(G)
+            # wait until the graph finishes
+            if G.pq:
+                while not G.pq.empty():
+                    continue
         if vul_type is not None:
             check_res = self.check_vuls(vul_type, G)
             if len(check_res) != 0:
@@ -347,6 +351,7 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
 
 # the function to admin the threads, to use this, you have to pass G and the initial running thread
 def admin_threads(G, function, args, old_running_thread_id):
+    print('admin threads')
     t = Thread(target=function, args=args)
     t.start()
     # G.pq.put((1, t.ident, t))
