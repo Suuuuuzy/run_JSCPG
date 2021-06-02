@@ -269,6 +269,7 @@ class OPGen:
                 cur_list_path = os.path.join(options.run_env, "tmp_split_list", str(i))
                 tmp_args[list_idx + 1] = cur_list_path
                 cur_cmd = ' '.join(tmp_args)
+                print(f"screen -S runscreen_{i} -dm {cur_cmd}")
                 os.system(f"screen -S runscreen_{i} -dm {cur_cmd}")
             return 
 
