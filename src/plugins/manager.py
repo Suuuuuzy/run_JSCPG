@@ -112,6 +112,7 @@ class PluginManager(object):
             Returns:
                 NodeHandleResult: the handle result of the node
             """
+            handle_res = NodeHandleResult()
             if self.G.pq:
                 while True:
                     # step 1: check whether pq lock is set or this is the current thread
@@ -123,6 +124,15 @@ class PluginManager(object):
                         # self.G.reverse_pq_event.clear()
                         self.G.pq_event.set()
                         continue
+                    # step 3: if I have a dad and my dad ask me to die
+                    id = threading.get_ident()
+                    while self.G.branch_dad_son_event.is_set():
+                        continue
+                    self.G.branch_dad_son_event.set()
+                    if id in self.G.branch_dad_son and self.G.branch_dad_son[id]==False:
+                        self.G.branch_dad_son_event.clear()
+                        break
+                    self.G.branch_dad_son_event.clear()
                     # else, run!
                     # print('jianjia thread time', (time.time_ns()-self.G.running_time_ns)/1000000000)
                     # print(self.G.running_thread_age, threading.get_ident(), pq)

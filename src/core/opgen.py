@@ -96,6 +96,8 @@ class OPGen:
             list: the test result pathes of the chrome extension
         """
         # preprocess of the files in chrome extension
+        if pq:
+            G.pq = PriorityQueue()
         print('process chrome extension: ', extension_path)
         if not validate_chrome_extension(extension_path):
             print('not valid chrome extension')
@@ -126,8 +128,6 @@ class OPGen:
                 loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
         else:
             parse_chrome_extension(G, extension_path)
-            if pq:
-                G.pq = PriorityQueue()
             test_res = self._test_graph(G, vul_type=vul_type)
         # test_res = None
         return test_res
@@ -375,6 +375,16 @@ def admin_threads(G, function, args, old_running_thread_id):
         else:
             # if the event is not set, a former thread died, let it go
             if not G.pq_event.isSet():
+                # deal with the son and dad in branch
+                while G.branch_dad_son_event.is_set():
+                    continue
+                G.branch_dad_son_event.set()
+                id_tmp = G.running_thread.ident
+                if id_tmp in G.branch_dad_son:
+                    if G.branch_dad_son[id_tmp] == True:
+                        G.branch_dad_son[id_tmp] = False
+                    del G.branch_dad_son[id_tmp]
+                G.branch_dad_son_event.clear()
                 # if all the threads finish
                 if G.pq.empty():
                     return

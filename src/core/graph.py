@@ -149,6 +149,8 @@ class Graph:
         self.pq_event = Event()
         self.reverse_pq_event = Event()
         self.add_branch = None
+        self.branch_dad_son = {}
+        self.branch_dad_son_event = Event()
 
         self.running_thread_id=0
         self.running_thread_age = 0

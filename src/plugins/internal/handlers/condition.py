@@ -8,7 +8,7 @@ from ..utils import has_else, merge, get_df_callback
 from .blocks import simurun_block
 from src.core.timeout import timeout, TimeoutError
 from threading import Thread, Event
-
+import time
 
 class HandleIf(Handler):
     """
@@ -98,40 +98,56 @@ class HandleIf(Handler):
                 blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
             return True
 
-        for idx,if_elem in enumerate(if_elems):
-            if not G.pq:
+        if not G.pq:
+            for idx,if_elem in enumerate(if_elems):
                 print('jianjia see if_elem in dispatch: ', if_elem)
                 depth = G.get_node_attr(if_elem)['branch']
                 # print(depth)
                 result, else_is_deterministic, branch_num_counter = run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
                 if not result:
                     break
-            else:
-                print('jianjia see if_elem in dispatch: ', if_elem)
-                if idx!=0:
-                    print('jianjia see if_elem in dispatch pq: ', if_elem)
-                    depth = G.get_node_attr(if_elem)['branch']
-                    print(depth)
-                    t = Thread(target=run_if_elem_pq, args=(if_elem,))
-                    t.start()
-                    while G.pq_event.isSet():
-                        continue
-                    G.add_branch = True
-                    G.pq_event.set()
-                    print(t.ident)
-                    G.pq.put(((1, t.ident, t)))
-                    G.add_branch = False
-                    G.pq_event.clear()
-                else:
-                    run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
+            # When there is no "else", we still need to add a hidden else
+            if not has_else(G, node_id):
+                branch_num_counter += 1
+            # We always flatten edges
+            if not G.single_branch and not G.pq:
+                merge(G, stmt_id, branch_num_counter, parent_branch)
+        else:
+            sons = set()
+            for idx, if_elem in enumerate(if_elems):
+                # if idx!=0:
+                print('jianjia see if_elem in dispatch pq: ', if_elem)
+                depth = G.get_node_attr(if_elem)['branch']
+                print(depth)
+                t = Thread(target=run_if_elem_pq, args=(if_elem,))
+                t.start()
+                while G.pq_event.isSet():
+                    continue
+                G.add_branch = True
+                G.pq_event.set()
+                print(t.ident)
+                # son_age = G.running_thread_age/2
+                G.pq.put((1, t.ident, t))
+                sons.add(t)
+                G.add_branch = False
+                G.pq_event.clear()
+            # else:
+            #     run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
+            # while sons_all_alive(sons):
+            while len(G.branch_dad_son)!=0: # this is not right
+                continue
+            print('debug merge')
+            merge(G, stmt_id, len(if_elems), parent_branch)
 
-        # When there is no "else", we still need to add a hidden else
-        if not has_else(G, node_id):
-            branch_num_counter += 1
-        # We always flatten edges
-        if not G.single_branch and not G.pq:
-            merge(G, stmt_id, branch_num_counter, parent_branch)
         return NodeHandleResult()
+
+def sons_all_alive(sons):
+    alive = True
+    for son in sons:
+        if not son.is_alive():
+            alive = False
+            break
+    return alive
 
 class HandleConditional(Handler):
     def process(self):
