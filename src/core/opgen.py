@@ -103,7 +103,7 @@ class OPGen:
         if G is None:
             G = self.graph
         test_res = None
-        loggers.crx_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'run extension' + extension_path)
+        # loggers.crx_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'run extension' + extension_path)
         if timeout_s is not None:
             try:
                 with timeout(seconds=timeout_s,
@@ -113,16 +113,17 @@ class OPGen:
                     parse_chrome_extension(G, extension_path)
                     test_res = self._test_graph(G, vul_type=vul_type)
                     end_time = time.time()
-                    loggers.crx_logger.info(str(end_time-start_time) + 'second spent####')
+                    loggers.crx_logger.info("{} finish with {} seconds spent####". \
+                            format(extension_path, end_time-start_time))
             except TimeoutError as err:
                 loggers.error_logger.error(err)
-                loggers.res_logger.error(err)
-                loggers.crx_logger.error(err)
+                # loggers.res_logger.error(err)
+                # loggers.crx_logger.error(err)
                 if self.graph.get_total_num_statements()!=0:
                     covered_stat_rate = 100*len(self.graph.covered_stat) / self.graph.get_total_num_statements()
                 else:
                     covered_stat_rate = 0
-                loggers.crx_logger.info("{}% stmt covered####".format(covered_stat_rate))
+                loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
         else:
             parse_chrome_extension(G, extension_path)
             if pq:
