@@ -103,7 +103,7 @@ class OPGen:
         if G is None:
             G = self.graph
         test_res = None
-        loggers.crx_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'run extension' + extension_path)
+        # loggers.crx_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'run extension' + extension_path)
         if timeout_s is not None:
             try:
                 with timeout(seconds=timeout_s,
@@ -113,16 +113,17 @@ class OPGen:
                     parse_chrome_extension(G, extension_path)
                     test_res = self._test_graph(G, vul_type=vul_type)
                     end_time = time.time()
-                    loggers.crx_logger.info(str(end_time-start_time) + 'second spent####')
+                    loggers.crx_logger.info("{} finish with {} seconds spent####". \
+                            format(extension_path, end_time-start_time))
             except TimeoutError as err:
                 loggers.error_logger.error(err)
-                loggers.res_logger.error(err)
-                loggers.crx_logger.error(err)
+                # loggers.res_logger.error(err)
+                # loggers.crx_logger.error(err)
                 if self.graph.get_total_num_statements()!=0:
                     covered_stat_rate = 100*len(self.graph.covered_stat) / self.graph.get_total_num_statements()
                 else:
                     covered_stat_rate = 0
-                loggers.crx_logger.info("{}% stmt covered####".format(covered_stat_rate))
+                loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
         else:
             parse_chrome_extension(G, extension_path)
             if pq:
@@ -161,6 +162,7 @@ class OPGen:
         """
         if vul_type is not None:
             check_res = self.check_vuls(vul_type, G)
+            # print('check_res debug: ', check_res)
             if len(check_res) != 0:
                 self.graph.detection_res[vul_type].add(G.package_name)
         return check_res
@@ -271,6 +273,7 @@ class OPGen:
                 cur_list_path = os.path.join(options.run_env, "tmp_split_list", str(i))
                 tmp_args[list_idx + 1] = cur_list_path
                 cur_cmd = ' '.join(tmp_args)
+                # print(f"screen -S runscreen_{i} -dm {cur_cmd}")
                 os.system(f"screen -S runscreen_{i} -dm {cur_cmd}")
             return 
 
@@ -286,9 +289,12 @@ class OPGen:
             for package_path in package_list:
                 # init a new graph
                 self.get_new_graph(package_name=package_path)
-                self.test_nodejs_package(package_path, 
+                if options.chrome_extension:
+                    self.test_chrome_extension(package_path, options.vul_type, self.graph, timeout_s=timeout_s,
+                        pq=options.run_with_pq)
+                else:
+                    self.test_nodejs_package(package_path,
                         options.vul_type, self.graph, timeout_s=timeout_s)
-
                 if len(self.graph.detection_res[options.vul_type]) != 0:
                     loggers.res_logger.info("{} is detected in {}".format(
                         options.vul_type,
