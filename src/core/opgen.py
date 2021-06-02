@@ -113,7 +113,7 @@ class OPGen:
                     parse_chrome_extension(G, extension_path)
                     test_res = self._test_graph(G, vul_type=vul_type)
                     end_time = time.time()
-                    loggers.crx_logger.info("{} finish with {} seconds spent####". \
+                    loggers.res_logger.info("{} finish with {} seconds spent####". \
                             format(extension_path, end_time-start_time))
             except TimeoutError as err:
                 loggers.error_logger.error(err)
