@@ -549,7 +549,11 @@ def generate_branch_graph(G, entry_nodeid='0'):
 
 def DFS(G, nodeid, visited, depth):
     visited.add(nodeid)
-    node_type = G.get_node_attr(nodeid)['type']
+    if 'type' in G.get_node_attr(nodeid):
+        node_type = G.get_node_attr(nodeid)['type']
+    else:
+        loggers.res_logger.info("type error")
+        return 1
     if node_type in ['AST_IF_ELEM', 'AST_SWITCH_CASE']:
         G.set_node_attr(nodeid, ('branch', depth))
     for child in G.get_child_nodes(nodeid):
