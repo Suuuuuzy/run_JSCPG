@@ -371,12 +371,13 @@ def admin_threads(G, function, args, old_running_thread_id):
     while True:
         # if the current thread is not dead and the event is not set
         if G.running_thread.is_alive() and not G.pq_event.isSet():
+            # print('debug thread ', G.running_thread)
             continue
         else:
             # if the event is not set, a former thread died, let it go
             if not G.pq_event.isSet():
                 # deal with the son and dad in branch
-                while G.branch_dad_son_event.is_set():
+                """while G.branch_dad_son_event.is_set():
                     continue
                 G.branch_dad_son_event.set()
                 id_tmp = G.running_thread.ident
@@ -384,7 +385,7 @@ def admin_threads(G, function, args, old_running_thread_id):
                     if G.branch_dad_son[id_tmp] == True:
                         G.branch_dad_son[id_tmp] = False
                     del G.branch_dad_son[id_tmp]
-                G.branch_dad_son_event.clear()
+                G.branch_dad_son_event.clear()"""
                 # if all the threads finish
                 if G.pq.empty():
                     return
@@ -398,16 +399,24 @@ def admin_threads(G, function, args, old_running_thread_id):
                     G.running_time_ns = time.time_ns()
                     G.pq_event.clear()
             # else: G.pq_event.is_set(): either add branch or timeup
-            else:
-                # if add branch
-                if G.add_branch:
+            elif G.add_branch: # while add branch
+                while G.add_branch:
                     continue
+                G.pq_event.set()
+                result = G.pq.get()
+                G.running_thread = result[2]
+                G.running_thread_id = result[1]
+                G.running_thread_age = result[0]
+                G.running_time_ns = time.time_ns()
+                G.pq_event.clear()
+            else:
                 # if timeup
                 assert (G.running_thread.is_alive())
                 assert (not G.pq.empty())
                 # if only one thread running, do not add to the age, else, add
                 # if not G.pq.empty(): # switch
                 new_age = G.running_thread_age + 1
+                # G.pq_event.set()
                 G.pq.put((new_age, G.running_thread_id, G.running_thread))
                 result = G.pq.get()
                 G.running_thread = result[2]

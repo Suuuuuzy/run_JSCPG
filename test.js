@@ -10,6 +10,7 @@ if (x>z){
 }
 else{
     y = y-1;
+    z = z+1;
 }
 
 console.log(x)
