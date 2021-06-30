@@ -288,6 +288,18 @@ Chrome.prototype.downloads.getFileIcon = function(downloadId, callback){
     callback(results_source);
 };
 
+// Remove the downloaded file if it exists and the DownloadItem is complete
+Chrome.prototype.downloads.removeFile = function(downloadId, callback) {
+    chrome_downloads_removeFile_sink(downloadId);
+    // body...
+}
+
+// Erase matching DownloadItem from history without deleting the downloaded file.
+Chrome.prototype.downloads.erase = function(query, callback) {
+    chrome_downloads_erase_sink(query);
+    // body...
+}
+
 
 function BookmarkTreeNode(){
     this.children = [];

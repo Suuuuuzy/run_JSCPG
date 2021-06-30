@@ -1,217 +1,192 @@
 id:ID	labels:label	type	flags:string[]	lineno:int	code	childnum:int	funcid:int	classname	namespace	endlineno:int	name	doccomment	export	tainted
 0	Filesystem	File									test.js		True	
-1	AST	AST_TOPLEVEL	TOPLEVEL_FILE	1					1::17:14	17	test.js		True	
+1	AST	AST_TOPLEVEL	TOPLEVEL_FILE	33					33::43:15	43	test.js		True	
 2	Artificial	CFG_FUNC_ENTRY					1				test.js		True	
 3	Artificial	CFG_FUNC_EXIT					1				test.js		True	
-4	AST	AST_STMT_LIST		1		0	1		1::17:14	17			True	
-5	AST	AST_ASSIGN		1	x = 1	0	1		1:4:1:9	1			True	
-6	AST	AST_VAR	JS_DECL_VAR	1		0	1		1:4:1:5	1			True	
-7	AST	string		1	x	0	1		1:4:1:5	1	x		True	
-8	AST	integer		1	1	1	1		1:8:1:9	1			True	
-9	AST	AST_ASSIGN		2	y = 0	1	1		2:4:2:9	2			True	
-10	AST	AST_VAR	JS_DECL_VAR	2		0	1		2:4:2:5	2			True	
-11	AST	string		2	y	0	1		2:4:2:5	2	y		True	
-12	AST	integer		2	0	1	1		2:8:2:9	2			True	
-13	AST	AST_ASSIGN		3	z = -3	2	1		3:4:3:10	3			True	
-14	AST	AST_VAR	JS_DECL_VAR	3		0	1		3:4:3:5	3			True	
-15	AST	string		3	z	0	1		3:4:3:5	3	z		True	
-16	AST	AST_UNARY_OP	UNARY_MINUS	3	-3	1	1		3:8:3:10	3			True	
-17	AST	integer		3	3	0	1		3:9:3:10	3			True	
-18	AST	AST_IF		4		3	1		4::13:1	13			True	
-19	AST	AST_IF_ELEM		4		0	1		4::13:1	13			True	
-20	AST	AST_BINARY_OP		4	x>z	0	1		4:4:4:7	4			True	
-21	AST	AST_VAR		4		0	1		4:4:4:5	4			True	
-22	AST	string		4	x	0	1		4:4:4:5	4	x		True	
-23	AST	AST_VAR		4		1	1		4:6:4:7	4			True	
-24	AST	string		4	z	0	1		4:6:4:7	4	z		True	
-25	AST	AST_STMT_LIST		4		1	1		4:8:10:1	10			True	
-26	AST	AST_ASSIGN		5	y = y+1	0	1		5:4:5:11	5			True	
-27	AST	AST_VAR		5		0	1		5:4:5:5	5			True	
-28	AST	string		5	y	0	1		5:4:5:5	5	y		True	
-29	AST	AST_BINARY_OP	BINARY_ADD	5	y+1	1	1		5:8:5:11	5			True	
-30	AST	AST_VAR		5		0	1		5:8:5:9	5			True	
-31	AST	string		5	y	0	1		5:8:5:9	5	y		True	
-32	AST	integer		5	1	1	1		5:10:5:11	5			True	
-33	AST	AST_IF		6		1	1		6:4:9:16	9			True	
-34	AST	AST_IF_ELEM		6		0	1		6:4:9:16	9			True	
-35	AST	AST_BINARY_OP		6	x>z+2	0	1		6:7:6:12	6			True	
-36	AST	AST_VAR		6		0	1		6:7:6:8	6			True	
-37	AST	string		6	x	0	1		6:7:6:8	6	x		True	
-38	AST	AST_BINARY_OP	BINARY_ADD	6	z+2	1	1		6:9:6:12	6			True	
-39	AST	AST_VAR		6		0	1		6:9:6:10	6			True	
-40	AST	string		6	z	0	1		6:9:6:10	6	z		True	
-41	AST	integer		6	2	1	1		6:11:6:12	6			True	
-42	AST	AST_STMT_LIST		6		1	1		6:13:8:5	8			True	
-43	AST	AST_ASSIGN		7	y = y+3	0	1		7:8:7:15	7			True	
-44	AST	AST_VAR		7		0	1		7:8:7:9	7			True	
-45	AST	string		7	y	0	1		7:8:7:9	7	y		True	
-46	AST	AST_BINARY_OP	BINARY_ADD	7	y+3	1	1		7:12:7:15	7			True	
-47	AST	AST_VAR		7		0	1		7:12:7:13	7			True	
-48	AST	string		7	y	0	1		7:12:7:13	7	y		True	
-49	AST	integer		7	3	1	1		7:14:7:15	7			True	
-50	AST	AST_IF_ELEM		6		1	1		6:4:9:16	9			True	
-51	AST	NULL		6		0	1		6::6:				True	
-52	AST	AST_STMT_LIST		9		1	1		9:8:9:16	9			True	
-53	AST	AST_ASSIGN		9	y=y+1	0	1		9:9:9:14	9			True	
-54	AST	AST_VAR		9		0	1		9:9:9:10	9			True	
-55	AST	string		9	y	0	1		9:9:9:10	9	y		True	
-56	AST	AST_BINARY_OP	BINARY_ADD	9	y+1	1	1		9:11:9:14	9			True	
-57	AST	AST_VAR		9		0	1		9:11:9:12	9			True	
-58	AST	string		9	y	0	1		9:11:9:12	9	y		True	
-59	AST	integer		9	1	1	1		9:13:9:14	9			True	
-60	AST	AST_IF_ELEM		4		1	1		4::13:1	13			True	
-61	AST	NULL		4		0	1		4::4:				True	
-62	AST	AST_STMT_LIST		11		1	1		11:4:13:1	13			True	
-63	AST	AST_ASSIGN		12	y = y-1	0	1		12:4:12:11	12			True	
-64	AST	AST_VAR		12		0	1		12:4:12:5	12			True	
-65	AST	string		12	y	0	1		12:4:12:5	12	y		True	
-66	AST	AST_BINARY_OP	BINARY_SUB	12	y-1	1	1		12:8:12:11	12			True	
-67	AST	AST_VAR		12		0	1		12:8:12:9	12			True	
-68	AST	string		12	y	0	1		12:8:12:9	12	y		True	
-69	AST	integer		12	1	1	1		12:10:12:11	12			True	
-70	AST	AST_METHOD_CALL		15	console.log(x)	4	1		15::15:14	15			True	
-71	AST	AST_VAR		15		0	1		15::15:7	15			True	
-72	AST	string		15	console	0	1		15::15:7	15	console		True	
-73	AST	string		15	log	1	1		15:8:15:11	15			True	
-74	AST	AST_ARG_LIST		15	(x)	2	1		15::15:14	15			True	
-75	AST	AST_VAR		15		0	1		15:12:15:13	15			True	
-76	AST	string		15	x	0	1		15:12:15:13	15	x		True	
-77	AST	AST_METHOD_CALL		16	console.log(y)	5	1		16::16:14	16			True	
-78	AST	AST_VAR		16		0	1		16::16:7	16			True	
-79	AST	string		16	console	0	1		16::16:7	16	console		True	
-80	AST	string		16	log	1	1		16:8:16:11	16			True	
-81	AST	AST_ARG_LIST		16	(y)	2	1		16::16:14	16			True	
-82	AST	AST_VAR		16		0	1		16:12:16:13	16			True	
-83	AST	string		16	y	0	1		16:12:16:13	16	y		True	
-84	AST	AST_METHOD_CALL		17	console.log(z)	6	1		17::17:14	17			True	
-85	AST	AST_VAR		17		0	1		17::17:7	17			True	
-86	AST	string		17	console	0	1		17::17:7	17	console		True	
-87	AST	string		17	log	1	1		17:8:17:11	17			True	
-88	AST	AST_ARG_LIST		17	(z)	2	1		17::17:14	17			True	
-89	AST	AST_VAR		17		0	1		17:12:17:13	17			True	
-90	AST	string		17	z	0	1		17:12:17:13	17	z		True	
-91	Scope	BASE_SCOPE									Base		True	
-92	Name										global		True	
-93	Object	object											True	
-94	Name										null		True	
-95	Object	object			null								True	
-96	Name										null		True	
-97	Object	boolean			true								True	
-98	Name										true		True	
-99	Name										true		True	
-100	Object	boolean			false								True	
-101	Name										false		True	
-102	Name										false		True	
-1228	Object	undefined			undefined								True	
-1229	Name										undefined		True	
-1230	Name										undefined		True	
-1231	Object	number			Infinity								True	
-1232	Name										Infinity		True	
-1233	Name										Infinity		True	
-1234	Object	number			-Infinity								True	
-1235	Object	number			nan								True	
-1236	Name										NaN		True	
-1237	Name										NaN		True	
-1238	Artificial_AST	AST_CLOSURE											True	
-1239	Artificial_AST	string				0					RegisterFunc		True	
-1240	Artificial	CFG_FUNC_ENTRY											True	
-1241	Artificial	CFG_FUNC_EXIT											True	
-1242	Artificial_AST	AST_PARAM_LIST				1							True	
-1243	Object	function											True	
-1244	Name										prototype		True	
-1245	Object	object											True	
-1246	Name										__proto__		True	
-1247	Name										constructor		True	
-1248	Name										__proto__		True	
-1249	Name										constructor		True	
-1250	Name										RegisterFunc		True	
-1251	Name										RegisterFunc		True	
-1252	Artificial_AST	AST_CLOSURE											True	
-1253	Artificial_AST	string				0					TriggerEvent		True	
-1254	Artificial	CFG_FUNC_ENTRY											True	
-1255	Artificial	CFG_FUNC_EXIT											True	
-1256	Artificial_AST	AST_PARAM_LIST				1							True	
-1257	Object	function											True	
-1258	Name										prototype		True	
-1259	Object	object											True	
-1260	Name										__proto__		True	
-1261	Name										constructor		True	
-1262	Name										__proto__		True	
-1263	Name										constructor		True	
-1264	Name										TriggerEvent		True	
-1265	Name										TriggerEvent		True	
-1266	Artificial_AST	AST_CLOSURE											True	
-1267	Artificial_AST	string				0					MarkSource		True	
-1268	Artificial	CFG_FUNC_ENTRY											True	
-1269	Artificial	CFG_FUNC_EXIT											True	
-1270	Artificial_AST	AST_PARAM_LIST				1							True	
-1271	Object	function											True	
-1272	Name										prototype		True	
-1273	Object	object											True	
-1274	Name										__proto__		True	
-1275	Name										constructor		True	
-1276	Name										__proto__		True	
-1277	Name										constructor		True	
-1278	Name										MarkSource		True	
-1279	Name										MarkSource		True	
-1280	Artificial_AST	AST_CLOSURE											True	
-1281	Artificial_AST	string				0					MarkSink		True	
-1282	Artificial	CFG_FUNC_ENTRY											True	
-1283	Artificial	CFG_FUNC_EXIT											True	
-1284	Artificial_AST	AST_PARAM_LIST				1							True	
-1285	Object	function											True	
-1286	Name										prototype		True	
-1287	Object	object											True	
-1288	Name										__proto__		True	
-1289	Name										constructor		True	
-1290	Name										__proto__		True	
-1291	Name										constructor		True	
-1292	Name										MarkSink		True	
-1293	Name										MarkSink		True	
-1294	Artificial_AST	AST_CLOSURE											True	
-1295	Artificial_AST	string				0					MarkAttackEntry		True	
-1296	Artificial	CFG_FUNC_ENTRY											True	
-1297	Artificial	CFG_FUNC_EXIT											True	
-1298	Artificial_AST	AST_PARAM_LIST				1							True	
-1299	Object	function											True	
-1300	Name										prototype		True	
-1301	Object	object											True	
-1302	Name										__proto__		True	
-1303	Name										constructor		True	
-1304	Name										__proto__		True	
-1305	Name										constructor		True	
-1306	Name										MarkAttackEntry		True	
-1307	Name										MarkAttackEntry		True	
-1308	Object	function									test.js		True	
-1309	Name										prototype		True	
-1310	Object	object											True	
+4	AST	AST_STMT_LIST		33		0	1		33::43:15	43			True	
+5	AST	AST_ASSIGN		33	x = 1	0	1		33:4:33:9	33		"var x = 1;\nvar y_jianjia = 'jianjia';\nvar z = -3;\nif (x>z){\ny_jianjia += '1';\nif(x>z+2){\ny_jianjia += '2';\n}\nelse{\ny_jianjia +='3';\n}\n}\nelse{\ny_jianjia += '4';\nz = z+1;\n}\n\nconsole.log(x);\nconsole.log(y_jianjia);\nconsole.log(z);\nswitch(c){\ncase 1:\ny=5;\nbreak;\ncase 2:\ny=6;\nbreak;\ndefault:\ny=7;\n}"	True	
+6	AST	AST_VAR	JS_DECL_VAR	33		0	1		33:4:33:5	33			True	
+7	AST	string		33	x	0	1		33:4:33:5	33	x		True	
+8	AST	integer		33	1	1	1		33:8:33:9	33			True	
+9	AST	AST_ASSIGN		34	y_jianjia = 'jianjia'	1	1		34:4:34:25	34			True	
+10	AST	AST_VAR	JS_DECL_VAR	34		0	1		34:4:34:13	34			True	
+11	AST	string		34	y_jianjia	0	1		34:4:34:13	34	y_jianjia		True	
+12	AST	string		34	jianjia	1	1		34:16:34:25	34			True	
+13	AST	AST_ASSIGN		35	z = -3	2	1		35:4:35:10	35			True	
+14	AST	AST_VAR	JS_DECL_VAR	35		0	1		35:4:35:5	35			True	
+15	AST	string		35	z	0	1		35:4:35:5	35	z		True	
+16	AST	AST_UNARY_OP	UNARY_MINUS	35	-3	1	1		35:8:35:10	35			True	
+17	AST	integer		35	3	0	1		35:9:35:10	35			True	
+18	AST	AST_IF		36		3	1		36::39:1	39			True	
+19	AST	AST_IF_ELEM		36		0	1		36::39:1	39			True	
+20	AST	AST_BINARY_OP		36	x>z	0	1		36:4:36:7	36			True	
+21	AST	AST_VAR		36		0	1		36:4:36:5	36			True	
+22	AST	string		36	x	0	1		36:4:36:5	36	x		True	
+23	AST	AST_VAR		36		1	1		36:6:36:7	36			True	
+24	AST	string		36	z	0	1		36:6:36:7	36	z		True	
+25	AST	AST_STMT_LIST		36		1	1		36:8:39:1	39			True	
+26	AST	AST_ASSIGN_OP	BINARY_ADD	37	y_jianjia += '4'	0	1		37:4:37:20	37			True	
+27	AST	AST_VAR		37		0	1		37:4:37:13	37			True	
+28	AST	string		37	y_jianjia	0	1		37:4:37:13	37	y_jianjia		True	
+29	AST	string		37	4	1	1		37:17:37:20	37			True	
+30	AST	AST_ASSIGN		38	z = z+1	1	1		38:4:38:11	38			True	
+31	AST	AST_VAR		38		0	1		38:4:38:5	38			True	
+32	AST	string		38	z	0	1		38:4:38:5	38	z		True	
+33	AST	AST_BINARY_OP	BINARY_ADD	38	z+1	1	1		38:8:38:11	38			True	
+34	AST	AST_VAR		38		0	1		38:8:38:9	38			True	
+35	AST	string		38	z	0	1		38:8:38:9	38	z		True	
+36	AST	integer		38	1	1	1		38:10:38:11	38			True	
+37	AST	AST_METHOD_CALL		41	console.log(x)	4	1		41::41:14	41			True	
+38	AST	AST_VAR		41		0	1		41::41:7	41			True	
+39	AST	string		41	console	0	1		41::41:7	41	console		True	
+40	AST	string		41	log	1	1		41:8:41:11	41			True	
+41	AST	AST_ARG_LIST		41	(x)	2	1		41::41:14	41			True	
+42	AST	AST_VAR		41		0	1		41:12:41:13	41			True	
+43	AST	string		41	x	0	1		41:12:41:13	41	x		True	
+44	AST	AST_METHOD_CALL		42	console.log(y_jianjia)	5	1		42::42:22	42			True	
+45	AST	AST_VAR		42		0	1		42::42:7	42			True	
+46	AST	string		42	console	0	1		42::42:7	42	console		True	
+47	AST	string		42	log	1	1		42:8:42:11	42			True	
+48	AST	AST_ARG_LIST		42	(y_jianjia)	2	1		42::42:22	42			True	
+49	AST	AST_VAR		42		0	1		42:12:42:21	42			True	
+50	AST	string		42	y_jianjia	0	1		42:12:42:21	42	y_jianjia		True	
+51	AST	AST_METHOD_CALL		43	console.log(z)	6	1		43::43:14	43			True	
+52	AST	AST_VAR		43		0	1		43::43:7	43			True	
+53	AST	string		43	console	0	1		43::43:7	43	console		True	
+54	AST	string		43	log	1	1		43:8:43:11	43			True	
+55	AST	AST_ARG_LIST		43	(z)	2	1		43::43:14	43			True	
+56	AST	AST_VAR		43		0	1		43:12:43:13	43			True	
+57	AST	string		43	z	0	1		43:12:43:13	43	z		True	
+58	Scope	BASE_SCOPE									Base		True	
+59	Name										global		True	
+60	Object	object											True	
+61	Name										null		True	
+62	Object	object			null								True	
+63	Name										null		True	
+64	Object	boolean			true								True	
+65	Name										true		True	
+66	Name										true		True	
+67	Object	boolean			false								True	
+68	Name										false		True	
+69	Name										false		True	
+1195	Object	undefined			undefined								True	
+1196	Name										undefined		True	
+1197	Name										undefined		True	
+1198	Object	number			Infinity								True	
+1199	Name										Infinity		True	
+1200	Name										Infinity		True	
+1201	Object	number			-Infinity								True	
+1202	Object	number			nan								True	
+1203	Name										NaN		True	
+1204	Name										NaN		True	
+1205	Artificial_AST	AST_CLOSURE											True	
+1206	Artificial_AST	string				0					RegisterFunc		True	
+1207	Artificial	CFG_FUNC_ENTRY											True	
+1208	Artificial	CFG_FUNC_EXIT											True	
+1209	Artificial_AST	AST_PARAM_LIST				1							True	
+1210	Object	function											True	
+1211	Name										prototype		True	
+1212	Object	object											True	
+1213	Name										__proto__		True	
+1214	Name										constructor		True	
+1215	Name										__proto__		True	
+1216	Name										constructor		True	
+1217	Name										RegisterFunc		True	
+1218	Name										RegisterFunc		True	
+1219	Artificial_AST	AST_CLOSURE											True	
+1220	Artificial_AST	string				0					TriggerEvent		True	
+1221	Artificial	CFG_FUNC_ENTRY											True	
+1222	Artificial	CFG_FUNC_EXIT											True	
+1223	Artificial_AST	AST_PARAM_LIST				1							True	
+1224	Object	function											True	
+1225	Name										prototype		True	
+1226	Object	object											True	
+1227	Name										__proto__		True	
+1228	Name										constructor		True	
+1229	Name										__proto__		True	
+1230	Name										constructor		True	
+1231	Name										TriggerEvent		True	
+1232	Name										TriggerEvent		True	
+1233	Artificial_AST	AST_CLOSURE											True	
+1234	Artificial_AST	string				0					MarkSource		True	
+1235	Artificial	CFG_FUNC_ENTRY											True	
+1236	Artificial	CFG_FUNC_EXIT											True	
+1237	Artificial_AST	AST_PARAM_LIST				1							True	
+1238	Object	function											True	
+1239	Name										prototype		True	
+1240	Object	object											True	
+1241	Name										__proto__		True	
+1242	Name										constructor		True	
+1243	Name										__proto__		True	
+1244	Name										constructor		True	
+1245	Name										MarkSource		True	
+1246	Name										MarkSource		True	
+1247	Artificial_AST	AST_CLOSURE											True	
+1248	Artificial_AST	string				0					MarkSink		True	
+1249	Artificial	CFG_FUNC_ENTRY											True	
+1250	Artificial	CFG_FUNC_EXIT											True	
+1251	Artificial_AST	AST_PARAM_LIST				1							True	
+1252	Object	function											True	
+1253	Name										prototype		True	
+1254	Object	object											True	
+1255	Name										__proto__		True	
+1256	Name										constructor		True	
+1257	Name										__proto__		True	
+1258	Name										constructor		True	
+1259	Name										MarkSink		True	
+1260	Name										MarkSink		True	
+1261	Artificial_AST	AST_CLOSURE											True	
+1262	Artificial_AST	string				0					MarkAttackEntry		True	
+1263	Artificial	CFG_FUNC_ENTRY											True	
+1264	Artificial	CFG_FUNC_EXIT											True	
+1265	Artificial_AST	AST_PARAM_LIST				1							True	
+1266	Object	function											True	
+1267	Name										prototype		True	
+1268	Object	object											True	
+1269	Name										__proto__		True	
+1270	Name										constructor		True	
+1271	Name										__proto__		True	
+1272	Name										constructor		True	
+1273	Name										MarkAttackEntry		True	
+1274	Name										MarkAttackEntry		True	
+1275	Object	function									test.js		True	
+1276	Name										prototype		True	
+1277	Object	object											True	
+1278	Name										__proto__		True	
+1279	Name										constructor		True	
+1280	Name										__proto__		True	
+1281	Name										constructor		True	
+1282	Name										test.js		True	
+1283	Name										test.js		True	
+1284	Name										name		True	
+1285	Object	string			test.js								True	
+1286	Name										__proto__		True	
+1287	Name										constructor		True	
+1288	Name										length		True	
+1289	Object	number			7								True	
+1290	Name										length		True	
+1291	Object	number			0								True	
+1292	Scope	FILE_SCOPE									File1:0		True	
+1293	Scope	BLOCK_SCOPE									Block4:0		True	
+1294	Name										x		True	
+1295	Name										y_jianjia		True	
+1296	Name										z		True	
+1297	Object	number			1.0								True	
+1298	Object	string			jianjia								True	
+1299	Name										__proto__		True	
+1300	Name										constructor		True	
+1301	Name										length		True	
+1302	Object	number			7								True	
+1303	Object	number			-3.0								True	
+1304	Scope	BLOCK_SCOPE									Block25:0		True	
+1305	Object	string			4								True	
+1306	Name										__proto__		True	
+1307	Name										constructor		True	
+1308	Name										length		True	
+1309	Object	number			1								True	
+1310	Object	string			jianjia4								True	
 1311	Name										__proto__		True	
 1312	Name										constructor		True	
-1313	Name										__proto__		True	
-1314	Name										constructor		True	
-1315	Name										test.js		True	
-1316	Name										test.js		True	
-1317	Name										name		True	
-1318	Object	string			test.js								True	
-1319	Name										__proto__		True	
-1320	Name										constructor		True	
-1321	Name										length		True	
-1322	Object	number			7								True	
-1323	Name										length		True	
-1324	Object	number			0								True	
-1325	Scope	FILE_SCOPE									File1:0		True	
-1326	Scope	BLOCK_SCOPE									Block4:0		True	
-1327	Name										x		True	
-1328	Name										y		True	
-1329	Name										z		True	
-1330	Object	number			1.0								True	
-1331	Object	number			0.0								True	
-1332	Object	number			-3.0								True	
-1333	Scope	BLOCK_SCOPE									Block25:0		True	
-1334	Object	number			1.0								True	
-1335	Scope	BLOCK_SCOPE									Block42:0		True	
-1336	Object	number			4.0								True	
-1337	Scope	BLOCK_SCOPE									Block52:0		True	
-1338	Scope	BLOCK_SCOPE									Block62:0		True	
-1339	Object	number			-1.0								True	
-1340	Object	number			2.0								True	
+1313	Name										length		True	
+1314	Object	number			8								True	
+1315	Object	number			-2.0								True	

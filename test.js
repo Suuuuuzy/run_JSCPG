@@ -1,21 +1,23 @@
-var x = 1;
-var y = 0;
-var z = -3;
-if (x>z){
-    y = y+1;
-    if(x>z+2){
-        y = y+3;
-    }
-    else{y=y+1;}
-}
-else{
-    y = y-1;
-    z = z+1;
-}
-
-console.log(x)
-console.log(y)
-console.log(z)
+// var x = 1;
+// var y_jianjia = 'jianjia';
+// var z = -3;
+// if (x>z){
+//     y_jianjia += '1';
+//     if(x>z+2){
+//         y_jianjia += '2';
+//     }
+//     else{
+//         y_jianjia +='3';
+//     }
+// }
+// else{
+//     y_jianjia += '4';
+//     z = z+1;
+// }
+//
+// console.log(x);
+// console.log(y_jianjia);
+// console.log(z);
 
 // switch(c){
 //     case 1:
@@ -28,28 +30,14 @@ console.log(z)
 //         y=7;
 // }
 
+var x = 1;
+var y_jianjia = 'jianjia';
+var z = -3;
+if (x>z){
+    y_jianjia += '4';
+    z = z+1;
+}
 
-// console.log(y);
-//
-//
-// window.addEventListener('message', handleWebTooltabMessageEvent);
-//
-// function isWebTooltabMessage(message) {
-//   return toString(message).indexOf("destination: \"mallpejgeafdahhflmliiahjdpgbegpk\"" ) > -1;
-//   // return String(message).indexOf("\"destination\":\"" + chrome.runtime.id + "\"") > -1;
-// }
-//
-// var port = chrome.runtime.connect({ name: "knockknock"});
-// port.onMessage.addListener(onConnectMessage);
-// // port.postMessage('hello');
-//
-//
-// function onConnectMessage(response){
-//     window.postMessage(JSON.stringify(arguments[0]),
-//         response.url
-//         );
-// }
-//
-// function handleWebTooltabMessageEvent(e) {
-//     port.postMessage({ name: 'webtooltab', data: JSON.parse(e.data) });
-// }
+console.log(x);
+console.log(y_jianjia);
+console.log(z);

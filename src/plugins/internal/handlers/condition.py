@@ -69,35 +69,22 @@ class HandleIf(Handler):
                 blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
             return True, else_is_deterministic, branch_num_counter
 
-        def run_if_elem_pq(if_elem):
+        def run_if_elem_pq(if_elem, branch_num_counter):
             # for each if statement, we should make sure cfg starts from the
             # if condition stmt
             G.cfg_stmt = node_id
+
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
             if G.get_node_attr(condition).get('type') == 'NULL':  # else
                 # not deterministic, create branch
                 branch_tag = BranchTag(
-                    point=stmt_id, branch=str(''))
+                    point=stmt_id, branch=str(branch_num_counter))
                 blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
-                return False
                 # break
-            # check condition
-            possibility, deterministic = check_condition(G, condition, extra)
-            loggers.main_logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +G.get_node_attr(condition).get( 'code') + sty.rs.all,possibility, deterministic))
-            if deterministic and possibility == 1:
-                # if the condition is surely true
-                blocks.simurun_block(G, body, G.cur_scope, branches)
-                return False
-                # break
-            elif G.single_branch and possibility != 0:
-                simurun_block(G, body, G.cur_scope)
-            elif not deterministic or possibility is None or 0 < possibility < 1:
-                # if the condition is unsure
-                else_is_deterministic = False
+            else:
                 branch_tag = \
-                    BranchTag(point=stmt_id, branch=str(''))
+                    BranchTag(point=stmt_id, branch=str(branch_num_counter))
                 blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
-            return True
 
         if not G.pq:
             for idx,if_elem in enumerate(if_elems):
@@ -117,19 +104,19 @@ class HandleIf(Handler):
         else:
             sons = set()
             son_age = G.running_thread_age
-            while G.pq_event.isSet():
-                continue
-            G.pq_event.set()
+            G.pq_lock.acquire()
             G.add_branch = True
             for idx, if_elem in enumerate(if_elems):
-                # if idx!=0:
-                t = Thread(target=run_if_elem_pq, args=(if_elem,))
+                G.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
+                # loggers.main_logger.info(G.)
+                t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
                 t.start()
                 G.pq.put((son_age, t.ident, t))
                 print('jianjia see if_elem in dispatch pq: ', if_elem, t.ident)
+                G.branch_son_dad[t.ident] = threading.current_thread()
                 sons.add(t)
             # G.running_thread_age = 100*G.running_thread_age # make the father very low priority
-            G.pq_event.clear()
+            G.pq_lock.release()
             G.add_branch = False
             # else:
             #     run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
@@ -137,9 +124,12 @@ class HandleIf(Handler):
             # son_finish = Event()
             # son_finish.set()
             # son_finish.wait()
-            while sons_all_alive(sons):
+            # while sons_all_alive(sons):
+            #     continue
+            while G.running_thread_id!=threading.get_ident():
                 continue
-            # time.sleep(2)
+            depth = G.get_node_attr(if_elem)['branch']
+            # time.sleep(10/depth)
             # once a son finishes
             print('debug merge',threading.get_ident(), stmt_id, parent_branch)
             merge(G, stmt_id, len(if_elems), parent_branch)

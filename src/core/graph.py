@@ -12,7 +12,7 @@ import uuid
 from itertools import chain
 from collections import defaultdict
 from queue import PriorityQueue
-from threading import Thread, Event
+from threading import Thread, Event, Lock
 
 
 
@@ -146,11 +146,13 @@ class Graph:
         self.csv_dialect = joern_dialect
         # set a priority queue
         self.pq = None
-        self.pq_event = Event()
-        self.reverse_pq_event = Event()
+        self.pq_lock = Lock()
+        # self.pq_event = Event()
+        # self.reverse_pq_event = Event()
         self.add_branch = None
-        self.branch_dad_son = {}
+        self.branch_son_dad = {}
         self.branch_dad_son_event = Event()
+        self.timeup = False
 
         self.running_thread_id=0
         self.running_thread_age = 0
