@@ -128,7 +128,7 @@ class HandleIf(Handler):
             #     continue
             while G.running_thread_id!=threading.get_ident():
                 continue
-            depth = G.get_node_attr(if_elem)['branch']
+            # depth = G.get_node_attr(if_elem)['branch']
             # time.sleep(10/depth)
             # once a son finishes
             print('debug merge',threading.get_ident(), stmt_id, parent_branch)

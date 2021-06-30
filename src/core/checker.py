@@ -27,7 +27,7 @@ def get_path_text(G, path, caller):
         content = None
         cur_path_str2 += "$FilePath${}\n".format(G.get_node_file_path(node))
         try:
-            content = G.s(node)
+            content = G.get_node_file_content(node)
         except Exception as e:
             print(e)
         if content is not None:
