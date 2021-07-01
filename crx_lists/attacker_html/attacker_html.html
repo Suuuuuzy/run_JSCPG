@@ -6,7 +6,12 @@
 <body>
 <iframe src="frame_test.html" height="200" width="300" title="Iframe Example"></iframe>
 <script>
-    window.addEventListener('message', function(event){console.log(event.data)});
+    window.addEventListener('message', function(event){
+        console.log(window);
+        console.log(event.data)
+        console.log(event);
+    });
+        
 </script>
 </body>
 </html>

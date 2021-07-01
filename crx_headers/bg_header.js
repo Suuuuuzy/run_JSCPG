@@ -151,9 +151,9 @@ Chrome.prototype.tabs.query = function(queryInfo, callback){
 Chrome.prototype.tabs.onActivated = new Object();
 // the callback is called once a new tab is activated, we run the callback after all the others are set
 Chrome.prototype.tabs.onActivated.addListener = function(myCallback){
-    // var activeInfo = {tabId:99, windowId:80};
-    // myCallback(activeInfo);
-    RegisterFunc("bg_chrome_tabs_onActivated", myCallback);
+    var activeInfo = new ActiveInfo();
+    myCallback(activeInfo);
+    // RegisterFunc("bg_chrome_tabs_onActivated", myCallback);
 }
 
 // chrome.tabs.executeScript

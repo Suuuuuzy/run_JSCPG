@@ -313,19 +313,20 @@ def cs_chrome_tabs_onMessage_response(G, event):
     else:
         pass
 
-def bg_chrome_tabs_onActivated(G):
-    print('bg_chrome_tabs_onActivated')
-    func_objs = G.get_objs_by_name('ActiveInfo', scope=G.bg_scope, branches=[])
-    ActiveInfo, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
-                                                extra=None,
-                                                caller_ast=None, is_new=True, stmt_id='Unknown',
-                                                func_name='ActiveInfo',
-                                                mark_fake_args=False)
-    ActiveInfo.obj_nodes = created_objs
-    print('ActiveInfo obj node:',created_objs[0],  G.get_node_attr(created_objs[0]))
-    args = [ActiveInfo]
-    func_objs = G.eventRegisteredFuncs['bg_chrome_tabs_onActivated']
-    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
-                                                  extra=None,
-                                                  caller_ast=None, is_new=False, stmt_id='Unknown',
-                                                  mark_fake_args=False)
+# def bg_chrome_tabs_onActivated(G):
+#     print('bg_chrome_tabs_onActivated')
+#     func_objs = G.get_objs_by_name('ActiveInfo', scope=G.bg_scope, branches=[])
+#     ActiveInfo, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
+#                                                 extra=None,
+#                                                 caller_ast=None, is_new=True, stmt_id='Unknown',
+#                                                 func_name='ActiveInfo',
+#                                                 mark_fake_args=False)
+#     ActiveInfo.obj_nodes = created_objs
+#     print('ActiveInfo obj node:',created_objs[0],  G.get_node_attr(created_objs[0]))
+#     args = [ActiveInfo]
+#
+#     # func_objs = G.eventRegisteredFuncs['bg_chrome_tabs_onActivated']
+#     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
+#                                                   extra=None,
+#                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
+#                                                   mark_fake_args=False)

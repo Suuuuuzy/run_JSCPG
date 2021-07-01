@@ -12,7 +12,7 @@ from src.core.logger import *
 from itertools import chain, product
 from math import isnan
 import math
-from src.plugins.internal.handlers.event_loop import event_loop, bg_chrome_tabs_onActivated, emit_event_thread, bg_chrome_runtime_MessageExternal_attack, other_attack
+from src.plugins.internal.handlers.event_loop import event_loop, emit_event_thread, bg_chrome_runtime_MessageExternal_attack, other_attack
 
 from .utils import get_off_spring
 
@@ -44,16 +44,10 @@ def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
     # print('inside register', G.get_obj_def_ast_node(func))
     # func = args[1].obj_nodes[0]
     # if this is bg_chrome_tabs_onActivated, trigger it now
-    if event == 'bg_chrome_tabs_onActivated':
-        if G.pq:
-            emit_event_thread(G, bg_chrome_tabs_onActivated, (G,))
-        else:
-            bg_chrome_tabs_onActivated(G)
+    if event in G.eventRegisteredFuncs:
+        G.eventRegisteredFuncs[event].append(func)
     else:
-        if event in G.eventRegisteredFuncs:
-            G.eventRegisteredFuncs[event].append(func)
-        else:
-            G.eventRegisteredFuncs[event] = [func]
+        G.eventRegisteredFuncs[event] = [func]
 
 
 
@@ -200,73 +194,5 @@ def port_constructor(G: Graph, caller_ast, extra, _, *args):
     # used_objs = chain(*[arg.obj_nodes for arg in args])
     # add_contributes_to(G, used_objs, returned_obj)
     return NodeHandleResult(obj_nodes=[returned_obj])
-
-# def setup_messageEvent(G: Graph):
-#     messageEvent_cons = G.add_blank_func_to_scope('messageEvent', scope=G.BASE_SCOPE, python_func=this_returning_func)
-#     G.builtin_constructors.append(messageEvent_cons)
-#     G.port_cons = messageEvent_cons
-#     messageEvent_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=messageEvent_cons)[0]
-#     G.messageEvent_prototype = messageEvent_prototype
-#     # built-in properties for messageEvent
-#     G.add_obj_as_prop(prop_name='data', parent_obj=G.chrome_obj)
-#     G.('onMessage', messageEvent_prototype, None)
-#     G.add_blank_func_as_prop('postMessage', messageEvent_prototype, None)
-
-
-# TODO: need to implement
-#  has callback function in it
-def chrome_topSites_get(G: Graph, caller_ast, extra, _this, *_args):
-    # call the callback function
-    pass
-
-
-# add to G.msg_queue, no need to manage msg data flow now
-def chrome_tabs_sendMessage(G: Graph, caller_ast, extra, _this, *_args):
-    # TODO: add to G.msg_queue, no need to manage msg data flow now
-    # msg_queue EXAMPLE
-    # G.msg_queue = [
-    # ['cs2bg/bg2cs','single/longtime', args:[obj, message, options, responseCallback]
-    # ]
-    G.msg_queue.append(['bg2cs', 'single', extra])
-    # pass
-
-def chrome_runtime_sendMessage(G: Graph, caller_ast, extra, _this, *_args):
-    G.msg_queue.append(['cs2bg', 'single', extra])
-
-
-# TODO: create a port node, with functions like sendMessage, etc, and define parameters in the callback function
-# return port, should have some prototypes
-# python_func(G, caller_ast, ExtraInfo(extra, branches=next_branches), _this, *_args)
-def chrome_runtime_connect(G: Graph, caller_ast, extra, _this, *_args):
-    #     port_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=string_cons)[0]
-    #     setup_port(G)
-    objs = []
-    port1 = G.add_obj_node(ast_node=None, js_type='port', value=None)
-    objs.append(port1)
-    return NodeHandleResult(obj_nodes=objs)
-    pass
-
-def chrome_runtime_onConnect_addListener(G: Graph, caller_ast, extra, _this, *_args):
-    pass
-
-
-#  until now, we have to do nothing about the sink, just in case they are not defined
-def window_addEventListener(G: Graph, caller_ast, extra, this, *args):
-    # if second parameter is a function
-    # if second parameter is an object
-    return NodeHandleResult(obj_nodes=[])
-
-def window_postMessage(G: Graph, caller_ast, extra, this, *args):
-    return NodeHandleResult(obj_nodes=[])
-
-# def setup_string(G: Graph):
-#     string_cons = G.add_blank_func_to_scope('String', scope=G.BASE_SCOPE, python_func=this_returning_func)
-#     G.builtin_constructors.append(string_cons)
-#     G.string_cons = string_cons
-#     string_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=string_cons)[0]
-#     G.string_prototype = string_prototype
-#     # built-in functions for regexp
-#     G.add_blank_func_as_prop('match', string_prototype, None)
-#
 
 
