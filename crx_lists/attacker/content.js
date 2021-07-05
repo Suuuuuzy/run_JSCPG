@@ -5,7 +5,7 @@
 // });
 
 
-chrome.runtime.sendMessage("jcogobbdfcffleoaiihhepbkblfkjnig", {action:"install_collection", slug:"slug", collection:"collection"}, null, function(res){console.log(res)});
+chrome.runtime.sendMessage("cefodghgahhgomabocmlodpkldhkhipl", {regard:"thumbnails", issue:"getAll"}, function(msg){console.log(msg)})
 
 
 

