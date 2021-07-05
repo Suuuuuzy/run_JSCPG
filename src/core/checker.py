@@ -204,10 +204,10 @@ def vul_checking(G, pathes, vul_type):
         "chrome.downloads.showDefaultFolder",
         "chrome.downloads.erase",
         "chrome.downloads.removeFile",
-        "chrome.downloads.setShelfEnabled",
         "chrome.downloads.acceptDanger",
         "chrome.downloads.setShelfEnabled",
-        "XMLHttpRequest"
+        "XMLHttpRequest",
+        "eval"
     ]
     '''
 

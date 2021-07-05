@@ -50,7 +50,6 @@ chrome_API_execution_APIs = [
     "chrome.downloads.showDefaultFolder",
     "chrome.downloads.erase",
     "chrome.downloads.removeFile",
-    "chrome.downloads.setShelfEnabled",
     "chrome.downloads.acceptDanger",
     "chrome.downloads.setShelfEnabled",
     "XMLHttpRequest",
@@ -95,7 +94,7 @@ def crx_src_sink_filter(extension_dir):
 
     if attack and (exfiltration_APIs or execution_APIs):
         suspicous_list.append(extension_dir)
-        with open('crx_lists/suspicous_list.list', "w") as f:
+        with open('crx_lists/not_runned_suspicous_list.list', "w") as f:
             json.dump(suspicous_list, f)
 
 suspicous_list = []
@@ -106,6 +105,7 @@ with open(list_file) as f:
 with open('crx_src_sink.log') as f:
     filtered = f.read()
 for file in files:
+    # for continue from stop
     if file in filtered:
         continue
     crx_src_sink_filter(file)
