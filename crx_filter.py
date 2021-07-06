@@ -2,6 +2,8 @@ import sys
 import os
 from src.core.logger import loggers
 from src.core.helpers import generate_extension_files
+from src.core.multi_run_helper import validate_chrome_extension
+
 import json
 
 dispatchable_events = [
@@ -58,6 +60,8 @@ chrome_API_execution_APIs = [
 
 def crx_src_sink_filter(extension_dir):
     loggers.crx_src_sink_logger.info('==========='+extension_dir+'===========')
+    if not validate_chrome_extension(extension_dir):
+        return
     generated_extension_dir = generate_extension_files(extension_dir, header=False)
     content = ''
     for file in os.listdir(generated_extension_dir):
