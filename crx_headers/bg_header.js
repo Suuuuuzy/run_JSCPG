@@ -252,25 +252,25 @@ Chrome.prototype.storage.local.clear = function(callback){
 Chrome.prototype.history = new Object();
 Chrome.prototype.history.search = function(query, callback){
     var HistoryItem = {id:'id for history item' ,lastVisitTime:1000 ,title:'title of history page' , typedCount:3, url:'https://example.com' , visitCount:2   };
-    var results_source = [HistoryItem];
-    MarkSource(results_source);
-    callback(results_source);
+    var HistoryItem_source = [HistoryItem];
+    MarkSource(HistoryItem_source);
+    callback(HistoryItem_source);
 };
 
 
 Chrome.prototype.history.getVisits = function(details, callback){
     var VisitItem = {id:'id for the item' ,referringVisitId: 'referringVisitIdvfdsv', transition:'auto_bookmark' ,visitId:'visitIdvfsv', visitTime:1001};
-    var results_source = [VisitItem];
-    MarkSource(results_source);
-    callback(results_source);
+    var VisitItem_source = [VisitItem];
+    MarkSource(VisitItem_source);
+    callback(VisitItem_source);
 };
 
 Chrome.prototype.downloads = new Object();
 Chrome.prototype.downloads.search = function(query, callback){
     var DownloadItem = {byExtensionId:'id for the extension', byExtensionName:'name for the extension'};
-    var results_source = [DownloadItem];
-    MarkSource(results_source);
-    callback(results_source);
+    var DownloadItem_source = [DownloadItem];
+    MarkSource(DownloadItem_source);
+    callback(DownloadItem_source);
 };
 
 
@@ -283,9 +283,9 @@ Chrome.prototype.downloads.download = function(options, callback){
 
 Chrome.prototype.downloads.getFileIcon = function(downloadId, callback){
     var iconURL = 'https://example.com/image.png';
-    var results_source = iconURL;
-    MarkSource(results_source);
-    callback(results_source);
+    var iconURL_source = iconURL;
+    MarkSource(iconURL_source);
+    callback(iconURL_source);
 };
 
 // Remove the downloaded file if it exists and the DownloadItem is complete
@@ -317,9 +317,9 @@ function BookmarkTreeNode(){
 Chrome.prototype.bookmarks = new Object(); 
 Chrome.prototype.bookmarks.getTree = function(callback){
     var node = new BookmarkTreeNode();
-    var results_source = [node];
-    MarkSource(results_source);
-    callback(results_source);
+    var BookmarkTreeNode_source = [node];
+    MarkSource(BookmarkTreeNode_source);
+    callback(BookmarkTreeNode_source);
 }
 
 

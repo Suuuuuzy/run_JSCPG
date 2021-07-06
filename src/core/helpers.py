@@ -120,7 +120,8 @@ def parse_chrome_extension(G, path, start_node_id=0):
            path (str): the path to the extension
            start_node_id (int) 0: the start node id
     """
-    # path to generated files
+    # path to generated files, debug, make header=Fasle
+    # generated_extension_dir = generate_extension_files(path, header=False)
     generated_extension_dir = generate_extension_files(path)
     # TODO: popup files
     if generated_extension_dir:

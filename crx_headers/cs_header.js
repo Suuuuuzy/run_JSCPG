@@ -70,6 +70,10 @@ function sendResponse(message_back){
 };
 
 
+Chrome.prototype.runtime.getURL = function(para1){
+    return "http://www.example.com/" + para;
+}
+
 // // chrome.runtime.sendMessage(extensionId?: string, message: any, options: object, responseCallback: function)
 // Chrome.prototype.runtime.sendMessage = function(extensionId, message, options, responseCallback){
 //     var eventName = 'cs_chrome_runtime_sendMessage';

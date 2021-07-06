@@ -64,7 +64,18 @@ function $(a){
 };
 
 
+
 // jqXHR
+$.ajax = function(para){
+    if (para.url){
+        var jQuery_ajax_url_sink = para.url;
+    }
+    if (para.success){
+        var jQuery_ajax_result_source = 'data_form_jq_ajax';
+        var result = jQuery_ajax_result_source;
+        para.success(result);
+    }
+}
 // jQuery.get( url [, data ] [, success ] [, dataType ] )
 // data: Type: PlainObject or String
 // success: Type: Function( PlainObject data, String textStatus, jqXHR jqXHR )
@@ -193,6 +204,33 @@ $.extend = function(obj1, obj2){
 function Event(type){
     this.type = type;
 }
+
+
+// =========XMLHttpRequest======
+function XMLHttpRequest(){};
+
+XMLHttpRequest.prototype.open = function(method, url, async, user, psw){
+    XMLHttpRequest_url_sink(url);
+};
+
+// if msg is not none, used for POST requests
+XMLHttpRequest.prototype.send = function(msg){
+    if (msg!=undefined){
+        XMLHttpRequest_post_sink(msg);
+    }
+};
+
+
+XMLHttpRequest.prototype.responseText = 'sensitive_responseText';
+XMLHttpRequest.prototype.responseXML = 'sensitive_responseXML';
+var XMLHttpRequest_responseText_source = XMLHttpRequest.prototype.responseText;
+var XMLHttpRequest_responseXML_source = XMLHttpRequest.prototype.responseXML;
+
+
+
+
+
+
 
 
 

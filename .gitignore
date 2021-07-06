@@ -1,4 +1,7 @@
+exports/nodes.csv
+exports/rels.csv
 crx_lists/detected_both/
+crx_lists/error_both/
 try.py
 run_results.txt
 myout.txt

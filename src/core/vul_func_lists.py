@@ -54,9 +54,16 @@ crx_source_var_name = ['mostVisitedUrls_source',
                        'CookieStores_source',
                        'storage_sync_get_source',
                        'storage_local_get_source',
-                       'results_source',
+                       'HistoryItem_source',
+                       'VisitItem_source',
+                       'DownloadItem_source',
+                       'iconURL_source',
+                       'BookmarkTreeNode_source',
                         'jQuery_get_source',
-                        'jQuery_post_source'
+                        'jQuery_post_source',
+                       'jQuery_ajax_result_source',
+                       'XMLHttpRequest_responseText_source',
+                       'XMLHttpRequest_responseXML_source'
                        ]
 '''
 crx_source = [
@@ -83,6 +90,10 @@ crx_sink = [
         'jQuery_get_url_sink',
         'jQuery_post_data_sink',
         'jQuery_post_url_sink',
+        'jQuery_ajax_url_sink',
+        # XMLHttpRequest sinks
+        'XMLHttpRequest_url_sink',
+        'XMLHttpRequest_post_sink',
         # crx sinks
         'chrome_tabs_executeScript_sink',
         'chrome_cookies_set_sink',
@@ -109,7 +120,6 @@ crx_sink = [
         'chrome_downloads_setShelfEnabled_sink',
         'chrome_downloads_acceptDanger_sink',
         'chrome_downloads_setShelfEnabled_sink',
-        'XMLHttpRequest_sink',
         'eval'
 ]
 

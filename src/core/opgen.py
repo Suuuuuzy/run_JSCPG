@@ -554,6 +554,7 @@ def DFS(G, nodeid, visited, depth):
         node_type = G.get_node_attr(nodeid)['type']
     else:
         loggers.res_logger.info("type error")
+        # loggers.res_logger.info(str(G.get_node_attr(nodeid)))
         return 1
     if node_type in ['AST_IF_ELEM', 'AST_SWITCH_CASE']:
         G.set_node_attr(nodeid, ('branch', depth))

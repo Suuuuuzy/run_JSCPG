@@ -15,9 +15,13 @@ scp = SCPClient(ssh.get_transport())
 with open(sys.argv[1]) as f:
     content = f.read()
 lines = content.split('\n')
+cnt = 0
 for line in lines:
+    if cnt>10:
+        break
     name = line.split('/')[-1]
-    if os.path.isdir('detected_both/' + name):
+    if os.path.isdir('error_both/' + name):
         continue
-    scp.get(line, 'detected_both/' + name,recursive=True)
+    scp.get(line, 'error_both/' + name,recursive=True)
+    cnt+=1
 scp.close()

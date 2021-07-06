@@ -488,9 +488,8 @@ class Graph:
             for edge in edges:
                 edge_from, edge_to, _, attr = edge
 
-                if edge_from not in exported_nodes or \
-                        edge_to not in exported_nodes:
-                        continue
+                if edge_from not in exported_nodes or edge_to not in exported_nodes:
+                    continue
 
                 row = dict(attr)
                 row['start:START_ID'] = edge_from
