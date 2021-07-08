@@ -159,7 +159,7 @@ class Graph:
         self.running_time_ns = 0
         self.running_thread = None
 
-        # dictionary: {thread : its thread_info object}
+        # dictionary: {thread name: its thread_info object}
         self.thread_infos = {}
         # self.thread_info_lock = Lock()
 

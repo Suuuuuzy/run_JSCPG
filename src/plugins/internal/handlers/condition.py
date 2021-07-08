@@ -7,9 +7,10 @@ from ..utils import get_random_hex, check_condition, decl_vars_and_funcs
 from ..utils import has_else, merge, get_df_callback
 from .blocks import simurun_block
 from src.core.timeout import timeout, TimeoutError
-from threading import Thread, Event
+from threading import Thread, Condition
 import threading
 import time
+from src.core.thread_design import thread_info
 
 class HandleIf(Handler):
     """
@@ -106,32 +107,28 @@ class HandleIf(Handler):
             son_age = G.running_thread_age
             G.pq_lock.acquire()
             G.add_branch = True
+            cv = Condition()
             for idx, if_elem in enumerate(if_elems):
                 G.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
                 # loggers.main_logger.info(G.)
                 t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
-                t.start()
-                G.pq.put((son_age, t.ident, t))
-                print('jianjia see if_elem in dispatch pq: ', if_elem, t.ident)
-                G.branch_son_dad[t.ident] = threading.current_thread()
+                ######## add to thread infos
+                info = thread_info(thread=t, running_time_ns=time.time_ns(), running_thread_age=son_age)
+                G.thread_infos[t.name] = info
+                ########
+                G.pq.put((son_age, t.name, t))
+                print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
+                G.branch_son_dad[t.name] = [threading.current_thread(), cv]
                 sons.add(t)
+                t.start()
             # G.running_thread_age = 100*G.running_thread_age # make the father very low priority
             G.pq_lock.release()
             G.add_branch = False
-            # else:
-            #     run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
-            print('debug sons: ', sons)
-            # son_finish = Event()
-            # son_finish.set()
-            # son_finish.wait()
-            # while sons_all_alive(sons):
-            #     continue
-            while G.running_thread_id!=threading.get_ident():
-                continue
-            # depth = G.get_node_attr(if_elem)['branch']
-            # time.sleep(10/depth)
-            # once a son finishes
-            print('debug merge',threading.get_ident(), stmt_id, parent_branch)
+            with cv:
+                print(threading.current_thread().name + ': father waiting')
+                cv.wait()
+                print(threading.current_thread().name + ': father finish waiting')
+            print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
             merge(G, stmt_id, len(if_elems), parent_branch)
 
         return NodeHandleResult()

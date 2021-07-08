@@ -354,7 +354,7 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
         register_func(G, node[0])
     if G.pq:
         # print('jianjia pq')
-        admin_threads(G, internal_plugins.dispatch_node, (entry_nodeid), old_running_thread_id=0)
+        admin_threads(G, internal_plugins.dispatch_node, (entry_nodeid), old_running_thread_name=None)
     else:
         internal_plugins.dispatch_node(entry_nodeid)
     #add_edges_between_funcs(G)
@@ -363,59 +363,71 @@ def fetch_new_thread(G):
     with G.pq_lock:
         result = G.pq.get()
         G.running_thread = result[2]
-        G.running_thread_id = result[1]
+        G.running_thread_name = result[1]
         G.running_thread_age = result[0]
         G.running_time_ns = time.time_ns()
+        info = G.thread_infos[G.running_thread_name]
+        info.resume()
 
 def putback_fetch(G):
     with G.pq_lock:
         new_age = G.running_thread_age + 1
-        G.pq.put((new_age, G.running_thread_id, G.running_thread))
+        G.pq.put((new_age, G.running_thread_name, G.running_thread))
         result = G.pq.get()
         G.running_thread = result[2]
-        G.running_thread_id = result[1]
+        G.running_thread_name = result[1]
         G.running_thread_age = result[0]
         G.running_time_ns = time.time_ns()
+        info = G.thread_infos[G.running_thread_name]
+        info.resume()
 
 # the function to admin the threads, to use this, you have to pass G and the initial running thread
-def admin_threads(G, function, args, old_running_thread_id):
+def admin_threads(G, function, args, old_running_thread_name):
     print('admin threads')
     t = Thread(target=function, args=args)
-    t.start()
-    thread_info(thread=t, running_time_ns=time.time_ns(), running_thread_age=1)
-    G.thread_infos[t] = thread_info
+    info = thread_info(thread=t, running_time_ns=time.time_ns(), running_thread_age=1)
+    G.thread_infos[t.name] = info
     G.running_thread = t
-    G.running_thread_id = t.ident
+    G.running_thread_name = t.name
     G.running_thread_age = 1
     G.running_time_ns = time.time_ns()  # the start time of a thread
+    t.start()
     while True:
-        if old_running_thread_id != G.running_thread_id:
-            old_running_thread_id = G.running_thread_id
-            print('jianjia see thread ', G.running_thread_age, G.running_thread_id)
+        if old_running_thread_name != G.running_thread_name:
+            old_running_thread_name = G.running_thread_name
+            print('jianjia see '+ G.running_thread_name + ' runnning, age: ', G.running_thread_age)
         # if one thread use up the time
         if G.timeup:
+            print(G.running_thread_name + ' timeup')
             if G.running_thread.is_alive():
                 putback_fetch(G)
             elif not G.pq.empty():
+                del G.thread_infos[G.running_thread_name]
                 fetch_new_thread(G)
             G.timeup = False
         # if one thread is dead
         elif not G.running_thread.is_alive():
-            print('threading.active_count()', threading.active_count())
+            # print('threading.active_count()', threading.active_count())
+            print(G.running_thread_name + ' is dead')
+            del G.thread_infos[G.running_thread_name]
             if G.pq.empty():
                 return
             # if this has father, running change to father
-            if G.running_thread_id in G.branch_son_dad:
-                dad_thread = G.branch_son_dad[G.running_thread_id]
+            if G.running_thread_name in G.branch_son_dad:
+                dad_thread = G.branch_son_dad[G.running_thread_name][0]
                 sons = set()
                 for son in G.branch_son_dad:
-                    if G.branch_son_dad[son]==dad_thread:
+                    if G.branch_son_dad[son][0]==dad_thread:
                         sons.add(son)
+                cv = G.branch_son_dad[son][1]
                 for son in sons:
                     del G.branch_son_dad[son]
+                with cv:
+                    print('notify father ' + dad_thread.name)
+                    cv.notify()
                 G.running_thread = dad_thread
                 G.running_thread_age += 1
-                G.running_thread_id = dad_thread.ident
+                G.running_thread_name = dad_thread.name
                 G.running_time_ns = time.time_ns()  # the start time of a thread
             # else, fetch a new thread
             else:
@@ -423,6 +435,7 @@ def admin_threads(G, function, args, old_running_thread_id):
                     fetch_new_thread(G)
         # if one thread is adding branches
         elif G.add_branch:
+            print('adding branch')
             while G.add_branch:
                 continue
             if not G.pq.empty():
