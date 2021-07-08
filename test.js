@@ -1,22 +1,22 @@
 // var x = 1;
-// var y_jianjia = 'jianjia';
+// var y_test_string = 'test_string';
 // var z = -3;
 // if (x>z){
-//     y_jianjia += '1';
+//     y_test_string += '1';
 //     if(x>z+2){
-//         y_jianjia += '2';
+//         y_test_string += '2';
 //     }
 //     else{
-//         y_jianjia +='3';
+//         y_test_string +='3';
 //     }
 // }
 // else{
-//     y_jianjia += '4';
+//     y_test_string += '4';
 //     z = z+1;
 // }
 //
 // console.log(x);
-// console.log(y_jianjia);
+// console.log(y_test_string);
 // console.log(z);
 
 // switch(c){
@@ -31,13 +31,17 @@
 // }
 
 var x = 1;
-var y_jianjia = 'jianjia';
+var y_test_string = 'test_string';
 var z = -3;
 if (x>z){
-    y_jianjia += '4';
+    y_test_string += '4';
     z = z+1;
+}
+else{
+    y_test_string += '5';
+    z = z-1;
 }
 
 console.log(x);
-console.log(y_jianjia);
+console.log(y_test_string);
 console.log(z);
