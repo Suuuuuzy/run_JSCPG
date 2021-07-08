@@ -428,6 +428,8 @@ def admin_threads(G, function, args, old_running_thread_name):
                 G.running_thread_age += 1
                 G.running_thread_name = dad_thread.name
                 G.running_time_ns = time.time_ns()  # the start time of a thread
+                info = G.thread_infos[G.running_thread_name]
+                info.resume()
             # else, fetch a new thread
             elif not G.pq.empty():
                 fetch_new_thread(G)
