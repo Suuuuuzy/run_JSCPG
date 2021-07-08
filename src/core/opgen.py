@@ -359,24 +359,22 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     #add_edges_between_funcs(G)
 
 def fetch_new_thread(G):
-    G.pq_lock.acquire()
-    result = G.pq.get()
-    G.running_thread = result[2]
-    G.running_thread_id = result[1]
-    G.running_thread_age = result[0]
-    G.running_time_ns = time.time_ns()
-    G.pq_lock.release()
+    with G.pq_lock:
+        result = G.pq.get()
+        G.running_thread = result[2]
+        G.running_thread_id = result[1]
+        G.running_thread_age = result[0]
+        G.running_time_ns = time.time_ns()
 
 def putback_fetch(G):
-    G.pq_lock.acquire()
-    new_age = G.running_thread_age + 1
-    G.pq.put((new_age, G.running_thread_id, G.running_thread))
-    result = G.pq.get()
-    G.running_thread = result[2]
-    G.running_thread_id = result[1]
-    G.running_thread_age = result[0]
-    G.running_time_ns = time.time_ns()
-    G.pq_lock.release()
+    with G.pq_lock:
+        new_age = G.running_thread_age + 1
+        G.pq.put((new_age, G.running_thread_id, G.running_thread))
+        result = G.pq.get()
+        G.running_thread = result[2]
+        G.running_thread_id = result[1]
+        G.running_thread_age = result[0]
+        G.running_time_ns = time.time_ns()
 
 # the function to admin the threads, to use this, you have to pass G and the initial running thread
 def admin_threads(G, function, args, old_running_thread_id):
