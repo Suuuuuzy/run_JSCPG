@@ -410,8 +410,7 @@ def admin_threads(G, function, args, old_running_thread_name):
             # print('threading.active_count()', threading.active_count())
             print(G.running_thread_name + ' is dead')
             del G.thread_infos[G.running_thread_name]
-            if G.pq.empty():
-                return
+
             # if this has father, running change to father
             if G.running_thread_name in G.branch_son_dad:
                 dad_thread = G.branch_son_dad[G.running_thread_name][0]
@@ -430,9 +429,10 @@ def admin_threads(G, function, args, old_running_thread_name):
                 G.running_thread_name = dad_thread.name
                 G.running_time_ns = time.time_ns()  # the start time of a thread
             # else, fetch a new thread
+            elif not G.pq.empty():
+                fetch_new_thread(G)
             else:
-                if not G.pq.empty():
-                    fetch_new_thread(G)
+                return
         # if one thread is adding branches
         elif G.add_branch:
             print('adding branch')
