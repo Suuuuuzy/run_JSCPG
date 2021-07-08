@@ -17,6 +17,7 @@ import time
 from threading import Thread, Event
 import threading
 from queue import PriorityQueue
+from src.core.thread_design import thread_info
 
 
 class OPGen:
@@ -381,6 +382,8 @@ def admin_threads(G, function, args, old_running_thread_id):
     print('admin threads')
     t = Thread(target=function, args=args)
     t.start()
+    thread_info(thread=t, running_time_ns=time.time_ns(), running_thread_age=1)
+    G.thread_infos[t] = thread_info
     G.running_thread = t
     G.running_thread_id = t.ident
     G.running_thread_age = 1
@@ -396,7 +399,7 @@ def admin_threads(G, function, args, old_running_thread_id):
             elif not G.pq.empty():
                 fetch_new_thread(G)
             G.timeup = False
-        # if one thread is dead 
+        # if one thread is dead
         elif not G.running_thread.is_alive():
             print('threading.active_count()', threading.active_count())
             if G.pq.empty():

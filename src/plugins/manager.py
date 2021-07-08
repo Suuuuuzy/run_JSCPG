@@ -114,16 +114,18 @@ class PluginManager(object):
             """
             handle_res = NodeHandleResult()
             if self.G.pq:
-                while True:
-                    # step 1: check whether this is the current thread
-                    if self.G.running_thread_id!=threading.get_ident():
-                        continue
-                    # step 2: check running time of current thread, and there is other thread waiting in the pq
-                    if time.time_ns()-self.G.running_time_ns>100000000/self.G.running_thread_age and not self.G.pq.empty():
+                current_thread = threading.current_thread()
+                info = self.G.thread_infos[current_thread]
+                while info.running.isSet():
+                    info.flag.wait()
+                    # check running time of current thread, and there is other thread waiting in the pq
+                    if time.time_ns()-info.running_time_ns>100000000/info.running_thread_age and not self.G.pq.empty():
+                        info.pause()
                         self.G.timeup = True
                         continue
                     handle_res = self.inner_dispatch_node(node_id, extra)
                     break
+                    # info = self.G.thread_infos[current_thread]
             else:
                 handle_res = self.inner_dispatch_node(node_id, extra)
 
