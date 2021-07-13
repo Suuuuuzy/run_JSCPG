@@ -12,7 +12,7 @@ import uuid
 from itertools import chain
 from collections import defaultdict
 from queue import PriorityQueue
-from threading import Thread, Event, Lock
+from threading import Thread, Event, Lock, Condition
 
 
 
@@ -149,7 +149,8 @@ class Graph:
         self.pq_lock = Lock()
         # self.pq_event = Event()
         # self.reverse_pq_event = Event()
-        self.add_branch = None
+        self.add_branch = Condition()
+        self.add_branch_bool = False
         self.branch_son_dad = {}
         self.branch_dad_son_event = Event()
         self.timeup = False

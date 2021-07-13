@@ -3,6 +3,7 @@ var y_test_string = 'test_string';
 var z = -3;
 if (x>z){
     y_test_string += '1';
+    z += 1;
     if(x>z+2){
         y_test_string += '2';
     }
@@ -12,7 +13,7 @@ if (x>z){
 }
 else{
     y_test_string += '4';
-    z = z+1;
+    z += -1;
 }
 
 console.log(x);

@@ -18,11 +18,10 @@ def emit_event_thread(G, function, args):
         t = Thread(target=function, args=args)
         t.start()
         G.add_branch = True
-        G.pq_lock.acquire()
-        print(t.ident)
-        G.pq.put(((1, t.ident, t)))
-        G.add_branch = False
-        G.pq_lock.release()
+        with G.pq_lock:
+            print(t.ident)
+            G.pq.put(((1, t.ident, t)))
+            G.add_branch = False
 
 def event_loop(G: Graph, event):
     # STEP1: see eventRegisteredFuncs right now
