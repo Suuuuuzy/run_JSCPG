@@ -130,7 +130,7 @@ class HandleIf(Handler):
                 print(threading.current_thread().name + ': father waiting')
                 cv.wait()
                 print(threading.current_thread().name + ': father finish waiting')
-            # time.sleep(1)
+            time.sleep(0.5)
             print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
             merge(G, stmt_id, len(if_elems), parent_branch)
 
