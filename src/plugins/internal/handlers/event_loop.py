@@ -5,23 +5,21 @@ from src.core.utils import wildcard
 from src.plugins.internal.utils import get_df_callback, get_off_spring
 import threading
 from threading import Thread
+from src.core.thread_design import thread_info
+import time
 
-# event_loop_threads = False
 # emit_event_thread(G, other_attack, (G, entry), entry)
 def emit_event_thread(G, function, args):
-    global event_loop_threads
     if G.pq.empty():
-        event_loop_threads = True
         from src.core.opgen import admin_threads
         admin_threads(G, function, args, 0)
     else:
         t = Thread(target=function, args=args)
+        info = thread_info(thread=t, running_time_ns=time.time_ns(), running_thread_age=1)
+        G.thread_infos[t.name] = info
         t.start()
-        G.add_branch = True
         with G.pq_lock:
-            print(t.ident)
             G.pq.put(((1, t.ident, t)))
-            G.add_branch = False
 
 def event_loop(G: Graph, event):
     # STEP1: see eventRegisteredFuncs right now

@@ -107,22 +107,22 @@ class HandleIf(Handler):
             # mydata.sons = set()
             son_age = G.running_thread_age
             G.add_branch_bool = True
-            with G.pq_lock:
-                cv = Condition()
-                for idx, if_elem in enumerate(if_elems):
-                    G.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
-                    # loggers.main_logger.info(G.)
-                    t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
-                    ######## add to thread infos
-                    info = thread_info(thread=t, running_time_ns=time.time_ns(), running_thread_age=son_age)
-                    G.thread_infos[t.name] = info
-                    ########
+            cv = Condition()
+            for idx, if_elem in enumerate(if_elems):
+                G.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
+                # loggers.main_logger.info(G.)
+                t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
+                ######## add to thread infos
+                info = thread_info(thread=t, running_time_ns=time.time_ns(), running_thread_age=son_age)
+                G.thread_infos[t.name] = info
+                ########
+                with G.pq_lock:
                     G.pq.put((son_age, t.name, t))
-                    print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
-                    G.branch_son_dad[t.name] = [threading.current_thread(), cv]
-                    # mydata.sons.add(t)
-                    t.start()
-                    # G.running_thread_age = 100*G.running_thread_age # make the father very low priority
+                print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
+                G.branch_son_dad[t.name] = [threading.current_thread(), cv]
+                # mydata.sons.add(t)
+                t.start()
+                # G.running_thread_age = 100*G.running_thread_age # make the father very low priority
             with G.add_branch:
                 G.add_branch.notify()
                 print('notify finish adding branch ')
@@ -132,7 +132,10 @@ class HandleIf(Handler):
                 print(threading.current_thread().name + ': father finish waiting')
             time.sleep(0.5)
             print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
-            merge(G, stmt_id, len(if_elems), parent_branch)
+            branch_num_counter = len(if_elems)
+            if not has_else(G, node_id):
+                branch_num_counter += 1
+            merge(G, stmt_id, branch_num_counter, parent_branch)
 
         return NodeHandleResult()
 
