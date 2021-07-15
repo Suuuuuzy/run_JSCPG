@@ -437,7 +437,7 @@ def admin_threads(G, function, args, old_running_thread_name):
                 return
         # if one thread is adding branches
         elif G.add_branch_bool:
-            print('adding branch')
+            print('adding branch in ', G.running_thread_name)
             with G.add_branch:
                 G.add_branch.wait()
                 # print('finish adding branch ')

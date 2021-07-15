@@ -130,7 +130,7 @@ class HandleIf(Handler):
                 print(threading.current_thread().name + ': father waiting')
                 cv.wait()
                 print(threading.current_thread().name + ': father finish waiting')
-            time.sleep(0.5)
+            time.sleep(0.05)
             print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
             branch_num_counter = len(if_elems)
             if not has_else(G, node_id):
