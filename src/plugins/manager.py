@@ -115,18 +115,32 @@ class PluginManager(object):
             handle_res = NodeHandleResult()
             if self.G.pq:
                 current_thread = threading.current_thread()
-                info = self.G.thread_infos[current_thread.name]
+                with self.G.pq_lock:
+                    info = self.G.thread_infos[current_thread.name]
                 while info.running.isSet():
                     info.flag.wait()
                     # check running time of current thread, and there is other thread waiting in the pq
                     # if time.time_ns()-self.G.running_time_ns>100000000/self.G.running_thread_age and not self.G.pq.empty():
-                    if time.time_ns() - self.G.running_time_ns > 100000000 and not self.G.pq.empty():
+                    if time.time_ns() - info.last_start_time > 100000000 and not self.G.pq.empty():
                         info.pause()
-                        print('$$$$$$$$$in manager timeup ', current_thread.name, self.G.running_thread_name)
-                        self.G.timeup = True
+                        with self.G.work_queue_lock:
+                            self.G.work_queue.remove(current_thread)
+                        print('$$$$$$$$$in manager timeup ', current_thread.name)
+                        # emit new thread
+                        with self.G.pq_lock:
+                            new_age = info.thread_age + 1
+                            self.G.pq.put((new_age, current_thread.name, current_thread))
+                            result = self.G.pq.get()
+                            running_thread_name = result[1]
+                            running_thread = result[2]
+                            info_tmp = self.G.thread_infos[running_thread_name]
+                            info_tmp.resume()
+                            with self.G.work_queue_lock:
+                                self.G.work_queue.append(running_thread)
+                        # self.G.timeup = True
                         continue
                     info.resume()
-                    print('@@@@@running in manager: ' + current_thread.name)
+                    # print('@@@@@running in manager: ' + current_thread.name)
                     handle_res = self.inner_dispatch_node(node_id, extra)
                     break
             else:

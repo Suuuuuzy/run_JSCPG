@@ -108,31 +108,37 @@ class HandleIf(Handler):
             son_age = G.running_thread_age
             # G.add_branch_bool = True
             cv = Condition()
-            for idx, if_elem in enumerate(if_elems):
-                G.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
-                # loggers.main_logger.info(G.)
-                t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
-                ######## add to thread infos
-                info = thread_info(thread=t, running_time_ns=time.time_ns(), running_thread_age=son_age)
-                G.thread_infos[t.name] = info
-                ########
-                print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
-                with G.pq_lock:
+            with G.pq_lock:
+                for idx, if_elem in enumerate(if_elems):
+                    # G.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
+                    # loggers.main_logger.info(G.)
+                    t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
+                    ######## add to thread infos
+                    info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=son_age)
+                    info.pause()
+                    # with G.pq_lock:
+                    G.thread_infos[t.name] = info
+                    ########
+                    print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
+                    # with G.pq_lock:
                     G.pq.put((son_age, t.name, t))
-                G.branch_son_dad[t.name] = [threading.current_thread(), cv]
-                # mydata.sons.add(t)
-                t.start()
-                # G.running_thread_age = 100*G.running_thread_age # make the father very low priority
-            # with G.add_branch:
-            #     G.add_branch.notify()
-            #     print('finish adding branch, emit a branch')
-                # emit a branch
-            # from src.core.opgen import fetch_new_thread
-            # fetch_new_thread(G)
+                    with G.branch_son_dad_lock:
+                        G.branch_son_dad[t.name] = [threading.current_thread(), cv]
+                    t.start()
+
             with cv:
                 print(threading.current_thread().name + ': father waiting')
+                with G.wait_queue_lock:
+                    G.wait_queue.append(threading.current_thread())
+                with G.work_queue_lock:
+                    G.work_queue.remove(threading.current_thread())
+                print('father see pq', (G.pq.empty()), len(G.work_queue))
                 cv.wait()
                 print(threading.current_thread().name + ': father finish waiting')
+                with G.wait_queue_lock:
+                    G.wait_queue.remove(threading.current_thread())
+                with G.work_queue_lock:
+                    G.work_queue.append(threading.current_thread())
             time.sleep(0.05)
             print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
             branch_num_counter = len(if_elems)

@@ -4,15 +4,16 @@
 import threading
 
 class thread_info():
-    def __init__(self, thread, running_time_ns, running_thread_age):
+    def __init__(self, thread, last_start_time, thread_age):
         # self.thread_id = kwargs['id']
         self.thread_self = thread
         self.flag = threading.Event()     # 用于暂停线程的标识
         self.flag.set()       # 设置为True
         self.running = threading.Event()      # 用于停止线程的标识
         self.running.set()      # 将running设置为True
-        self.running_time_ns = running_time_ns
-        self.running_thread_age = running_thread_age
+        self.last_start_time = last_start_time
+        self.thread_age = thread_age
+
 
     def pause(self):
         self.flag.clear()     # 设置为False, 让线程阻塞

@@ -20,6 +20,7 @@ class Graph:
 
     def __init__(self):
         self.graph = nx.MultiDiGraph()
+        self.graph_lock = Lock()
         self.cur_objs = []
         self.cur_scope = None
         self.cur_file_scope = None
@@ -147,12 +148,16 @@ class Graph:
         # set a priority queue
         self.pq = None
         self.pq_lock = Lock()
+        self.work_queue = []
+        self.work_queue_lock = Lock()
+        self.wait_queue = []
+        self.wait_queue_lock = Lock()
         # self.pq_event = Event()
         # self.reverse_pq_event = Event()
         self.add_branch = Condition()
         self.add_branch_bool = False
         self.branch_son_dad = {}
-        self.branch_dad_son_event = Event()
+        self.branch_son_dad_lock = Lock()
         self.timeup = False
 
         self.running_thread_id=0
@@ -231,6 +236,7 @@ class Graph:
         """
         get a list of node by key and value
         """
+        # with self.graph_lock:
         return [node[0] for node in self.graph.nodes(data = True) if key in node[1] and node[1][key] == value]
 
     def remove_nodes_from(self, remove_list):
@@ -522,7 +528,6 @@ class Graph:
         """
         with open(file_path, 'r') as fp:
             dict_graph = json.load(fp)
-            
         self.graph = nx.Graph(dict_graph)
 
     def recount_cur_id(self):
