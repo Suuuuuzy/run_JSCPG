@@ -395,7 +395,7 @@ def admin_threads(G, function, args, old_running_thread_name):
     while True:
         if old_running_thread_name != G.running_thread_name:
             old_running_thread_name = G.running_thread_name
-            print('jianjia see '+ G.running_thread_name + ' runnning, age: ', G.running_thread_age)
+            print('======running: '+ G.running_thread_name + ' , age: ', G.running_thread_age)
         # if one thread use up the time
         if G.timeup:
             print(G.running_thread_name + ' timeup')
@@ -436,14 +436,14 @@ def admin_threads(G, function, args, old_running_thread_name):
             else:
                 return
         # if one thread is adding branches
-        elif G.add_branch_bool:
-            print('adding branch in ', G.running_thread_name)
-            with G.add_branch:
-                G.add_branch.wait()
-                # print('finish adding branch ')
-            G.add_branch_bool = False
-            if not G.pq.empty():
-                fetch_new_thread(G)
+        # elif G.add_branch_bool:
+        #     print('adding branch in ', G.running_thread_name)
+        #     with G.add_branch:
+        #         G.add_branch.wait()
+        #         # print('finish adding branch ')
+        #     G.add_branch_bool = False
+        #     if not G.pq.empty():
+        #         fetch_new_thread(G)
         else:
             continue
 

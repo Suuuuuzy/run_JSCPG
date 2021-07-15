@@ -122,9 +122,11 @@ class PluginManager(object):
                     # if time.time_ns()-self.G.running_time_ns>100000000/self.G.running_thread_age and not self.G.pq.empty():
                     if time.time_ns() - self.G.running_time_ns > 100000000 and not self.G.pq.empty():
                         info.pause()
+                        print('$$$$$$$$$in manager timeup ', current_thread.name, self.G.running_thread_name)
                         self.G.timeup = True
                         continue
                     info.resume()
+                    print('@@@@@running in manager: ' + current_thread.name)
                     handle_res = self.inner_dispatch_node(node_id, extra)
                     break
             else:
