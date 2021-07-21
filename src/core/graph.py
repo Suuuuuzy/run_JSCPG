@@ -237,7 +237,8 @@ class Graph:
         get a list of node by key and value
         """
         # with self.graph_lock:
-        return [node[0] for node in self.graph.nodes(data = True) if key in node[1] and node[1][key] == value]
+        tmp = list(self.graph.nodes(data = True))
+        return [node[0] for node in tmp if key in node[1] and node[1][key] == value]
 
     def remove_nodes_from(self, remove_list):
         """
