@@ -115,7 +115,7 @@ class PluginManager(object):
             handle_res = NodeHandleResult()
             if self.G.pq!=None:
                 current_thread = threading.current_thread()
-                with self.G.pq_lock:
+                with self.G.thread_info_lock:
                     cur_info = self.G.thread_infos[current_thread.name]
                 while cur_info.running.isSet():
                     cur_info.flag.wait()
@@ -124,22 +124,18 @@ class PluginManager(object):
                         with self.G.work_queue_lock:
                             self.G.work_queue.remove(cur_info)
                         print('$$$$$$$$$in manager timeup ', current_thread.name)
-                        # put self back and emit new thread
+                        cur_info.thread_age += 1
+                        cur_info.pause()
                         with self.G.pq_lock:
-                            new_age = cur_info.thread_age + 1
-                            cur_info.thread_age = new_age
                             self.G.pq.append(cur_info)
-                            cur_info.pause()
                             self.G.pq.sort(key=lambda x: x.thread_age, reverse=False)
-                            result = self.G.pq[0]
-                            del self.G.pq[0]
-                            # running_thread_name = result.thread_self.name
-                            # running_thread = result[2]
-                            # info_tmp = self.G.thread_infos[running_thread_name]
+                        if len(self.G.work_queue)<1:
+                            with self.G.pq_lock:
+                                result = self.G.pq[0]
+                                del self.G.pq[0]
                             with self.G.work_queue_lock:
                                 self.G.work_queue.append(result)
                             result.resume()
-                        # self.G.timeup = True
                         continue
                     cur_info.resume()
                     # print('@@@@@running in manager: ' + current_thread.name)
