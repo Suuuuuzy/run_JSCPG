@@ -167,7 +167,7 @@ class Graph:
 
         # dictionary: {thread name: its thread_info object}
         self.thread_infos = {}
-        # self.thread_info_lock = Lock()
+        self.thread_info_lock = Lock()
 
     # Basic graph operations
     # node

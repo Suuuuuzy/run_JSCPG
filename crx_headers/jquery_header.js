@@ -25,6 +25,13 @@ Document.prototype.body.appendChild = function(){};
 
 var document = new Document();
 
+
+Document.prototype.addEventListener = function(type, listener,  [ options]){
+    var type = 'document_event_listener';
+    MarkAttackEntry(type, listener);
+};
+
+
 //  ========= JQuery ========= 
 // $(this).hide() - hides the current element.
 // $("p").hide() - hides all <p> elements.

@@ -87,7 +87,7 @@ class HandleIf(Handler):
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
                 blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
 
-        if not G.pq:
+        if G.pq==None:
             for idx,if_elem in enumerate(if_elems):
                 print('jianjia see if_elem in dispatch: ', if_elem)
                 depth = G.get_node_attr(if_elem)['branch']
@@ -105,40 +105,44 @@ class HandleIf(Handler):
         else:
             # mydata = threading.local()
             # mydata.sons = set()
-            son_age = G.running_thread_age
+            current_thread = threading.current_thread()
+            with G.thread_info_lock:
+                cur_info = self.G.thread_infos[current_thread.name]
+            son_age = cur_info.thread_age
             # G.add_branch_bool = True
             cv = Condition()
-            with G.pq_lock:
-                for idx, if_elem in enumerate(if_elems):
-                    # G.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
-                    # loggers.main_logger.info(G.)
-                    t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
-                    ######## add to thread infos
-                    info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=son_age)
-                    info.pause()
-                    # with G.pq_lock:
-                    G.thread_infos[t.name] = info
-                    ########
-                    print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
-                    # with G.pq_lock:
-                    G.pq.put((son_age, t.name, t))
-                    with G.branch_son_dad_lock:
-                        G.branch_son_dad[t.name] = [threading.current_thread(), cv]
-                    t.start()
 
+            for idx, if_elem in enumerate(if_elems):
+                # G.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
+                t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
+                ######## add to thread infos
+                info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=son_age)
+                with G.thread_info_lock:
+                    G.thread_infos[t.name] = info
+                ########
+                print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
+                # with G.pq_lock:
+                info.pause()
+                with G.pq_lock:
+                    G.pq.append(info)
+                    G.pq.sort(key=lambda x: x.thread_age, reverse=False)
+                t.start()
+                with G.branch_son_dad_lock:
+                    G.branch_son_dad[t.name] = [threading.current_thread(), cv]
             with cv:
-                print(threading.current_thread().name + ': father waiting')
                 with G.wait_queue_lock:
-                    G.wait_queue.append(threading.current_thread())
+                    G.wait_queue.append(cur_info)
                 with G.work_queue_lock:
-                    G.work_queue.remove(threading.current_thread())
-                print('father see pq', (G.pq.empty()), len(G.work_queue))
+                    G.work_queue.remove(cur_info)
+                print(threading.current_thread().name + ': father waiting')
                 cv.wait()
                 print(threading.current_thread().name + ': father finish waiting')
                 with G.wait_queue_lock:
-                    G.wait_queue.remove(threading.current_thread())
+                    G.wait_queue.remove(cur_info)
                 with G.work_queue_lock:
-                    G.work_queue.append(threading.current_thread())
+                    G.work_queue.append(cur_info)
+                tmp = [i.thread_self for i in G.work_queue]
+                print('%%%%%%%%%work: ', tmp)
             time.sleep(0.05)
             print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
             branch_num_counter = len(if_elems)
