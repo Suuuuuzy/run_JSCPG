@@ -169,6 +169,18 @@ function ActiveInfo(){
 };
 
 
+// chrome.tabs.create
+Chrome.prototype.tabs.create = function(createProperties, callback){
+    chrome_tabs_create_sink(createProperties.url);
+    callback();
+}
+// chrome.tabs.update
+Chrome.prototype.tabs.update = function(tabId, updateProperties, callback){
+    chrome_tabs_update_sink(updateProperties.url);
+    callback();
+}
+
+
 
 Chrome.prototype.cookies = new Object();
 // chrome.cookies.get(details: CookieDetails, callback: function)
