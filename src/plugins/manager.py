@@ -120,10 +120,10 @@ class PluginManager(object):
                 while cur_info.running.isSet():
                     cur_info.flag.wait()
                     # check running time of current thread, and there is other thread waiting in the pq
-                    if time.time_ns() - cur_info.last_start_time > 100000000 and len(self.G.pq)>0:
+                    if time.time_ns() - cur_info.last_start_time > 10000000000 and len(self.G.pq)>0:
                         with self.G.work_queue_lock:
                             self.G.work_queue.remove(cur_info)
-                        print('$$$$$$$$$in manager timeup ', current_thread.name)
+                        print('$$$$$$$$$in manager timeup ', current_thread.name, self.G.pq[0].thread_self.name)
                         cur_info.thread_age += 1
                         cur_info.pause()
                         with self.G.pq_lock:
