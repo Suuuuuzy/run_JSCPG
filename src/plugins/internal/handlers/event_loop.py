@@ -10,7 +10,7 @@ import time
 
 # emit_event_thread(G, other_attack, (G, entry), entry)
 def emit_event_thread(G, function, args):
-    if len(G.pq)==0:
+    if len(threading.enumerate())==1:
         from src.core.opgen import admin_threads
         admin_threads(G, function, args)
     else:
