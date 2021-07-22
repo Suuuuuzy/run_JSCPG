@@ -10,16 +10,18 @@ import time
 
 # emit_event_thread(G, other_attack, (G, entry), entry)
 def emit_event_thread(G, function, args):
-    if G.pq.empty():
+    if len(G.pq)==0:
         from src.core.opgen import admin_threads
-        admin_threads(G, function, args, 0)
+        admin_threads(G, function, args)
     else:
         t = Thread(target=function, args=args)
-        info = thread_info(thread=t, running_time_ns=time.time_ns(), running_thread_age=1)
-        G.thread_infos[t.name] = info
-        t.start()
+        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=1)
+        info.pause()
+        with G.thread_info_lock:
+            G.thread_infos[t.name] = info
         with G.pq_lock:
-            G.pq.put(((1, t.ident, t)))
+            G.pq.append(info)
+        t.start()
 
 def event_loop(G: Graph, event):
     # STEP1: see eventRegisteredFuncs right now
@@ -29,7 +31,7 @@ def event_loop(G: Graph, event):
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
 
     # STEP2: trigger event
-    if G.pq:
+    if G.pq!=None:
         print('processing eventName:', event['eventName'])
         if event['eventName'] == 'cs_chrome_runtime_connect':
             if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:

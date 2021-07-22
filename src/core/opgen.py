@@ -365,9 +365,9 @@ def admin_threads(G, function, args):
     info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=1)
     with G.thread_info_lock:
         G.thread_infos[t.name] = info
-    t.start()
     with G.work_queue_lock:
         G.work_queue.append(info)
+    t.start()
     old_queue = []
     old_len = 0
     while True:
