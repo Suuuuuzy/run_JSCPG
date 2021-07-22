@@ -70,7 +70,7 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     print('MarkAttackEntry: ', type)
     # G.attackEntries.insert(0, [type, listener])
     #  attack right away!
-    if G.pq:
+    if G.pq!=None:
         entry = [type, listener]
         if entry[0]=='bg_chrome_runtime_MessageExternal':
             emit_event_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))
