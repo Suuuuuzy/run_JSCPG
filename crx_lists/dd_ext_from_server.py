@@ -17,11 +17,9 @@ with open(sys.argv[1]) as f:
 lines = content.split('\n')
 cnt = 0
 for line in lines:
-    if cnt>10:
-        break
     name = line.split('/')[-1]
-    if os.path.isdir('error_both/' + name):
+    if os.path.isdir('detected_either/' + name):
         continue
-    scp.get(line, 'error_both/' + name,recursive=True)
+    scp.get(line, 'detected_either/' + name,recursive=True)
     cnt+=1
 scp.close()

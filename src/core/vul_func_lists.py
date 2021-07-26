@@ -96,6 +96,8 @@ crx_sink = [
         'XMLHttpRequest_post_sink',
         # crx sinks
         'chrome_tabs_executeScript_sink',
+        'chrome_tabs_create_sink',
+        'chrome_tabs_update_sink',
         'chrome_cookies_set_sink',
         'chrome_cookies_remove_sink',
         'chrome_storage_sync_set_sink',

@@ -5,24 +5,23 @@ from src.core.utils import wildcard
 from src.plugins.internal.utils import get_df_callback, get_off_spring
 import threading
 from threading import Thread
+from src.core.thread_design import thread_info
+import time
 
-# event_loop_threads = False
 # emit_event_thread(G, other_attack, (G, entry), entry)
 def emit_event_thread(G, function, args):
-    global event_loop_threads
-    if G.pq.empty():
-        event_loop_threads = True
+    if len(threading.enumerate())==1:
         from src.core.opgen import admin_threads
-        admin_threads(G, function, args, 0)
+        admin_threads(G, function, args)
     else:
         t = Thread(target=function, args=args)
+        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=1)
+        info.pause()
+        with G.thread_info_lock:
+            G.thread_infos[t.name] = info
+        with G.pq_lock:
+            G.pq.append(info)
         t.start()
-        G.add_branch = True
-        G.pq_lock.acquire()
-        print(t.ident)
-        G.pq.put(((1, t.ident, t)))
-        G.add_branch = False
-        G.pq_lock.release()
 
 def event_loop(G: Graph, event):
     # STEP1: see eventRegisteredFuncs right now
@@ -32,7 +31,7 @@ def event_loop(G: Graph, event):
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
 
     # STEP2: trigger event
-    if G.pq:
+    if G.pq!=None:
         print('processing eventName:', event['eventName'])
         if event['eventName'] == 'cs_chrome_runtime_connect':
             if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:

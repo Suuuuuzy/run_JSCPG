@@ -7,9 +7,10 @@ from ..utils import get_random_hex, check_condition, decl_vars_and_funcs
 from ..utils import has_else, merge, get_df_callback
 from .blocks import simurun_block
 from src.core.timeout import timeout, TimeoutError
-from threading import Thread, Event
+from threading import Thread, Condition
 import threading
 import time
+from src.core.thread_design import thread_info
 
 class HandleIf(Handler):
     """
@@ -86,7 +87,7 @@ class HandleIf(Handler):
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
                 blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
 
-        if not G.pq:
+        if G.pq==None:
             for idx,if_elem in enumerate(if_elems):
                 print('jianjia see if_elem in dispatch: ', if_elem)
                 depth = G.get_node_attr(if_elem)['branch']
@@ -102,37 +103,46 @@ class HandleIf(Handler):
                 print('debug merge no pq', stmt_id, parent_branch)
                 merge(G, stmt_id, branch_num_counter, parent_branch)
         else:
-            sons = set()
-            son_age = G.running_thread_age
-            G.pq_lock.acquire()
-            G.add_branch = True
+            # mydata = threading.local()
+            # mydata.sons = set()
+            current_thread = threading.current_thread()
+            with G.thread_info_lock:
+                cur_info = self.G.thread_infos[current_thread.name]
+            son_age = cur_info.thread_age
+            cv = Condition()
             for idx, if_elem in enumerate(if_elems):
-                G.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
-                # loggers.main_logger.info(G.)
                 t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
+                info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=son_age)
+                info.pause()
+                with G.thread_info_lock:
+                    G.thread_infos[t.name] = info
+                print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
+                with G.pq_lock:
+                    G.pq.append(info)
+                    G.pq.sort(key=lambda x: x.thread_age, reverse=False)
                 t.start()
-                G.pq.put((son_age, t.ident, t))
-                print('jianjia see if_elem in dispatch pq: ', if_elem, t.ident)
-                G.branch_son_dad[t.ident] = threading.current_thread()
-                sons.add(t)
-            # G.running_thread_age = 100*G.running_thread_age # make the father very low priority
-            G.pq_lock.release()
-            G.add_branch = False
-            # else:
-            #     run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
-            print('debug sons: ', sons)
-            # son_finish = Event()
-            # son_finish.set()
-            # son_finish.wait()
-            # while sons_all_alive(sons):
-            #     continue
-            while G.running_thread_id!=threading.get_ident():
-                continue
-            # depth = G.get_node_attr(if_elem)['branch']
-            # time.sleep(10/depth)
-            # once a son finishes
-            print('debug merge',threading.get_ident(), stmt_id, parent_branch)
-            merge(G, stmt_id, len(if_elems), parent_branch)
+                with G.branch_son_dad_lock:
+                    G.branch_son_dad[t.name] = [threading.current_thread(), cv]
+            with cv:
+                with G.wait_queue_lock:
+                    G.wait_queue.append(cur_info)
+                with G.work_queue_lock:
+                    G.work_queue.remove(cur_info)
+                print(threading.current_thread().name + ': father waiting')
+                cv.wait()
+                print(threading.current_thread().name + ': father finish waiting')
+                with G.wait_queue_lock:
+                    G.wait_queue.remove(cur_info)
+                with G.work_queue_lock:
+                    G.work_queue.append(cur_info)
+                tmp = [i.thread_self for i in G.work_queue]
+                print('%%%%%%%%%work in condition: ', tmp)
+            time.sleep(0.05)
+            print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
+            branch_num_counter = len(if_elems)
+            if not has_else(G, node_id):
+                branch_num_counter += 1
+            merge(G, stmt_id, branch_num_counter, parent_branch)
 
         return NodeHandleResult()
 
