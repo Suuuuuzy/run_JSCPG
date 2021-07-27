@@ -146,8 +146,9 @@ class Graph:
             escapechar = '\\'
         self.csv_dialect = joern_dialect
         # set a priority queue
-        self.pq = None
+        self.pq = []
         self.pq_lock = Lock()
+        self.thread_version = False
         self.work_queue = []
         self.work_queue_lock = Lock()
         self.wait_queue = []

@@ -25,6 +25,7 @@ def setup_utils(G: Graph):
 def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
     func = args[1].obj_nodes[0]
+    print('register event: ', event)
     if event in G.eventRegisteredFuncs:
         G.eventRegisteredFuncs[event].append(func)
     else:
@@ -49,6 +50,7 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
     info = args[1].obj_nodes[0]
     event = {'eventName': eventName, 'info': info, 'extra':extra}
     # trigger event right away
+    print('trigger event: ', event)
     event_loop(G, event)
     return NodeHandleResult()
 
@@ -70,7 +72,7 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     print('MarkAttackEntry: ', type)
     # G.attackEntries.insert(0, [type, listener])
     #  attack right away!
-    if G.pq!=None:
+    if G.thread_version:
         entry = [type, listener]
         if entry[0]=='bg_chrome_runtime_MessageExternal':
             emit_event_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))

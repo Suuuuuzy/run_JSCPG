@@ -31,7 +31,7 @@ def event_loop(G: Graph, event):
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
 
     # STEP2: trigger event
-    if G.pq!=None:
+    if G.thread_version:
         print('processing eventName:', event['eventName'])
         if event['eventName'] == 'cs_chrome_runtime_connect':
             if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:

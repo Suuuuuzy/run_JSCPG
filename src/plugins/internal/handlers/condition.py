@@ -87,9 +87,9 @@ class HandleIf(Handler):
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
                 blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
 
-        if G.pq==None:
+        if not G.thread_version:
             for idx,if_elem in enumerate(if_elems):
-                print('jianjia see if_elem in dispatch: ', if_elem)
+                # print('jianjia see if_elem in dispatch: ', if_elem)
                 depth = G.get_node_attr(if_elem)['branch']
                 # print(depth)
                 result, else_is_deterministic, branch_num_counter = run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
@@ -116,7 +116,7 @@ class HandleIf(Handler):
                 info.pause()
                 with G.thread_info_lock:
                     G.thread_infos[t.name] = info
-                print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
+                # print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
                 with G.pq_lock:
                     G.pq.append(info)
                     G.pq.sort(key=lambda x: x.thread_age, reverse=False)
@@ -128,17 +128,17 @@ class HandleIf(Handler):
                     G.wait_queue.append(cur_info)
                 with G.work_queue_lock:
                     G.work_queue.remove(cur_info)
-                print(threading.current_thread().name + ': father waiting')
+                # print(threading.current_thread().name + ': father waiting')
                 cv.wait()
-                print(threading.current_thread().name + ': father finish waiting')
+                # print(threading.current_thread().name + ': father finish waiting')
                 with G.wait_queue_lock:
                     G.wait_queue.remove(cur_info)
                 with G.work_queue_lock:
                     G.work_queue.append(cur_info)
                 tmp = [i.thread_self for i in G.work_queue]
-                print('%%%%%%%%%work in condition: ', tmp)
+                # print('%%%%%%%%%work in condition: ', tmp)
             time.sleep(0.05)
-            print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
+            # print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
             branch_num_counter = len(if_elems)
             if not has_else(G, node_id):
                 branch_num_counter += 1

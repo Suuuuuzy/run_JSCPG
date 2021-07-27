@@ -113,7 +113,7 @@ class PluginManager(object):
                 NodeHandleResult: the handle result of the node
             """
             handle_res = NodeHandleResult()
-            if self.G.pq!=None:
+            if self.G.thread_version:
                 current_thread = threading.current_thread()
                 with self.G.thread_info_lock:
                     cur_info = self.G.thread_infos[current_thread.name]
@@ -123,7 +123,7 @@ class PluginManager(object):
                     if time.time_ns() - cur_info.last_start_time > 10000000000 and len(self.G.pq)>0:
                         with self.G.work_queue_lock:
                             self.G.work_queue.remove(cur_info)
-                        print('$$$$$$$$$in manager timeup ', current_thread.name, self.G.pq[0].thread_self.name)
+                        # print('$$$$$$$$$in manager timeup ', current_thread.name, self.G.pq[0].thread_self.name)
                         cur_info.thread_age += 1
                         cur_info.pause()
                         with self.G.pq_lock:

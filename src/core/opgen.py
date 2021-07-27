@@ -82,7 +82,7 @@ class OPGen:
             G = self.graph
         parse_file(G, file_path)
         if pq:
-            G.pq = []
+            G.thread_version = True
         test_res = self._test_graph(G, vul_type=vul_type)
         return test_res
 
@@ -98,7 +98,7 @@ class OPGen:
         """
         # preprocess of the files in chrome extension
         if pq:
-            G.pq = []
+            G.thread_version=True
         print('process chrome extension: ', extension_path)
         if not validate_chrome_extension(extension_path):
             print('not valid chrome extension')
@@ -343,7 +343,7 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
     for node in obj_nodes:
         register_func(G, node[0])
-    if G.pq!=None:
+    if G.thread_version:
         # print('jianjia pq')
         admin_threads(G, internal_plugins.dispatch_node, (entry_nodeid))
     else:
@@ -379,7 +379,7 @@ def admin_threads(G, function, args):
             G.work_queue = [i for i in G.work_queue if not i.handled]
         for t in dead:
             # if this thread is dead
-            print(t.thread_self.name + ' is dead')
+            # print(t.thread_self.name + ' is dead')
             # if this thread has a father thread
             if t.thread_self.name in G.branch_son_dad:
                 with G.branch_son_dad_lock:
@@ -392,12 +392,12 @@ def admin_threads(G, function, args):
                     for son in sons:
                         del G.branch_son_dad[son]
                     with cv:
-                        print('notify father ' + dad_thread.name)
+                        # print('notify father ' + dad_thread.name)
                         cv.notify()
         while len(G.work_queue)<1 and len(G.pq)>0:
             fetch_new_thread(G)
             tmp = [i.thread_self for i in G.work_queue]
-            print('%%%%%%%%%work in admin: ', tmp)
+            # print('%%%%%%%%%work in admin: ', tmp)
         # if len(threading.enumerate()) != len(G.wait_queue) + len(G.work_queue) + len(G.pq) + 1:
         #     print('%%%%%%%%%all: ', threading.enumerate())
         #     tmp = [i.thread_self for i in G.wait_queue]
