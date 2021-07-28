@@ -15,7 +15,10 @@ def emit_event_thread(G, function, args):
         admin_threads(G, function, args)
     else:
         t = Thread(target=function, args=args)
-        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=1)
+        current_thread = threading.current_thread()
+        with G.thread_info_lock:
+            cur_info = G.thread_infos[current_thread.name]
+        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=cur_info.thread_age)
         info.pause()
         with G.thread_info_lock:
             G.thread_infos[t.name] = info
@@ -33,126 +36,18 @@ def event_loop(G: Graph, event):
     # STEP2: trigger event
     if G.thread_version:
         print('processing eventName:', event['eventName'])
-        if event['eventName'] == 'cs_chrome_runtime_connect':
-            if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:
-                emit_event_thread(G, cs_chrome_runtime_connect, (G, event))
-        elif event['eventName'] == 'cs_port_postMessage':
-            if 'bg_port_onMessage' in G.eventRegisteredFuncs:
-                emit_event_thread(G, cs_port_postMessage, (G, event))
-        elif event['eventName'] == 'bg_port_postMessage':
-            if 'cs_port_onMessage' in G.eventRegisteredFuncs:
-                emit_event_thread(G, bg_port_postMessage, (G, event))
-        elif event['eventName'] == 'cs_chrome_runtime_sendMessage':
-            if 'bg_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                emit_event_thread(G, cs_chrome_runtime_sendMessage, (G, event))
-        elif event['eventName'] == 'bg_chrome_tabs_sendMessage':
-            if 'cs_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                emit_event_thread(G, bg_chrome_tabs_sendMessage, (G, event))
-        elif event['eventName'] == 'bg_chrome_runtime_onMessage_response':
-            if 'cs_chrome_runtime_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                emit_event_thread(G, bg_chrome_runtime_onMessage_response, (G, event))
-        elif event['eventName'] == 'cs_chrome_tabs_onMessage_response':
-            if 'bg_chrome_tabs_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                emit_event_thread(G, cs_chrome_tabs_onMessage_response, (G, event))
+        if event['eventName'] in event_listener_dic:
+            if event_listener_dic[event['eventName']][0] in G.eventRegisteredFuncs:
+                func = event_listener_dic[event['eventName']][1]
+                emit_event_thread(G, func, (G, event))
+            # else:
+
     else:
         print('processing eventName:', event['eventName'])
-        if event['eventName'] == 'cs_chrome_runtime_connect':
-            if 'bg_chrome_runtime_onConnect' in G.eventRegisteredFuncs:
-                cs_chrome_runtime_connect(G, event)
-        elif event['eventName'] == 'cs_port_postMessage':
-            if 'bg_port_onMessage' in G.eventRegisteredFuncs:
-                cs_port_postMessage(G, event)
-        elif event['eventName'] == 'bg_port_postMessage':
-            if 'cs_port_onMessage' in G.eventRegisteredFuncs:
-                bg_port_postMessage(G, event)
-        elif event['eventName'] == 'cs_chrome_runtime_sendMessage':
-            if 'bg_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                cs_chrome_runtime_sendMessage(G, event)
-        elif event['eventName'] == 'bg_chrome_tabs_sendMessage':
-            if 'cs_chrome_runtime_onMessage' in G.eventRegisteredFuncs:
-                bg_chrome_tabs_sendMessage(G, event)
-        elif event['eventName'] == 'bg_chrome_runtime_onMessage_response':
-            if 'cs_chrome_runtime_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                bg_chrome_runtime_onMessage_response(G, event)
-        elif event['eventName'] == 'cs_chrome_tabs_onMessage_response':
-            if 'bg_chrome_tabs_sendMessage_onResponse' in G.eventRegisteredFuncs:
-                cs_chrome_tabs_onMessage_response(G, event)
-
-    '''
-    # see marked source
-    print('SEE sensitiveSource:####')
-    print(len(G.sensitiveSource))
-    for i in G.sensitiveSource:
-        print('OBJ: ', i)
-        # if G.get_obj_def_ast_node(i)!=None:
-        #     print('AST: ', G.get_node_attr(G.get_obj_def_ast_node(i)))
-    # see marked sinks
-    sinks = list(G.sinks)
-    sinks = [x for x in sinks if G.get_obj_def_ast_node(x) != None]
-    G.sinks = set(sinks)
-    print('####SEE sinks:####')
-    print(len(G.sinks))
-    for i in G.sinks:
-        print('OBJ: ', i)
-        # if G.get_obj_def_ast_node(i) != None:
-        #     print('AST: ', G.get_node_attr(G.get_obj_def_ast_node(i)))
-
-    from src.core.checker import get_path_text
-    ret_pathes = []
-    res_path = ''
-    all_res_path = ''
-    all_paths = []
-    sinks = set()
-    for sink in G.sinks:
-        sink = G.get_obj_def_ast_node(sink)
-        sinks.add(sink)
-    print('try to trace back from sinks to see')
-    for sink in sinks:
-        print(sink)
-        print(G.get_node_attr(sink))
-        sink = G.find_nearest_upper_CPG_node(sink)
-        if sink == None:
-            continue
-        pathes = G._dfs_upper_by_edge_type(sink, "OBJ_REACHES")
-        # if pathes==[]:
-
-        for path in pathes:
-            path.reverse()
-            all_paths.append(path)
-    print('===============all_paths===============\n', all_paths)
-    for path in all_paths:
-        print('===============check start objs for path: ', path, '=============')
-        # check start point's obj
-        start_objs = set()
-        hit = False
-        print(G.get_node_attr(path[0]))
-        for item in G.get_edge_attr(path[0],  path[1]):
-            start_obj = G.get_edge_attr(path[0],  path[1])[item].get('obj')
-            if start_obj!=None:
-                start_objs.add(start_obj)
-            # start_objs.update(get_off_spring(G, start_obj))
-        print('start_objs')
-        for obj in start_objs:
-            att = G.get_node_attr(G.get_obj_def_ast_node(obj))
-            print('obj', obj, 'lineno:int:', att.get('lineno:int'), 'code', att.get('code'))
-            # if obj in G.sensitiveSource or obj is the offspring of attacker input obj, mark it as hit
-            if obj in G.sensitiveSource:
-                print('hit', obj, G.get_node_attr(obj))
-                res_path += get_path_text(G, path, sink)
-                hit = True
-                # break # comment this to see all the hits
-            all_res_path += get_path_text(G, path, sink)
-        if hit:
-            continue
-
-    print('===========ret_pathes==========\n', res_path)
-    with open('path_out.txt', 'w') as path_out:
-        path_out.write(res_path)
-    with open('all_path_out.txt', 'w') as path_out:
-        path_out.write(all_res_path)
-    '''
-
-    
+        if event['eventName'] in event_listener_dic:
+            if event_listener_dic[event['eventName']][0] in G.eventRegisteredFuncs:
+                func = event_listener_dic[event['eventName']][1]
+                func(G, event)
 
 
 def bg_chrome_runtime_MessageExternal_attack(G, entry):
@@ -312,20 +207,12 @@ def cs_chrome_tabs_onMessage_response(G, event):
     else:
         pass
 
-# def bg_chrome_tabs_onActivated(G):
-#     print('bg_chrome_tabs_onActivated')
-#     func_objs = G.get_objs_by_name('ActiveInfo', scope=G.bg_scope, branches=[])
-#     ActiveInfo, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
-#                                                 extra=None,
-#                                                 caller_ast=None, is_new=True, stmt_id='Unknown',
-#                                                 func_name='ActiveInfo',
-#                                                 mark_fake_args=False)
-#     ActiveInfo.obj_nodes = created_objs
-#     print('ActiveInfo obj node:',created_objs[0],  G.get_node_attr(created_objs[0]))
-#     args = [ActiveInfo]
-#
-#     # func_objs = G.eventRegisteredFuncs['bg_chrome_tabs_onActivated']
-#     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
-#                                                   extra=None,
-#                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
-#                                                   mark_fake_args=False)
+event_listener_dic = {
+    "cs_chrome_runtime_connect": ("bg_chrome_runtime_onConnect", cs_chrome_runtime_connect),
+    "cs_port_postMessage":("bg_port_onMessage", cs_port_postMessage),
+    "bg_port_postMessage":("cs_port_onMessage", bg_port_postMessage),
+    "cs_chrome_runtime_sendMessage":("bg_chrome_runtime_onMessage", cs_chrome_runtime_sendMessage),
+    "bg_chrome_tabs_sendMessage":("cs_chrome_runtime_onMessage", bg_chrome_tabs_sendMessage),
+    "bg_chrome_runtime_onMessage_response":("cs_chrome_runtime_sendMessage_onResponse", bg_chrome_runtime_onMessage_response),
+    "cs_chrome_tabs_onMessage_response":("bg_chrome_tabs_sendMessage_onResponse", cs_chrome_tabs_onMessage_response)
+}
