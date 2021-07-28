@@ -1,8 +1,8 @@
 from src.core.graph import Graph
 from src.core.utils import *
 from src.core.logger import *
-from src.plugins.internal.handlers.event_loop import event_loop, emit_event_thread, bg_chrome_runtime_MessageExternal_attack, other_attack
-from .utils import get_off_spring
+from src.plugins.internal.handlers.event_loop import event_loop, event_loop_threading, bg_chrome_runtime_MessageExternal_attack, other_attack
+from .utils import get_off_spring, emit_thread
 
 logger = create_logger("main_logger", output_type="file")
 
@@ -25,11 +25,18 @@ def setup_utils(G: Graph):
 def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
     func = args[1].obj_nodes[0]
-    # print('register event: ', event)
+    print('register event: ', event)
     if event in G.eventRegisteredFuncs:
         G.eventRegisteredFuncs[event].append(func)
     else:
         G.eventRegisteredFuncs[event] = [func]
+    if G.thread_version:
+        with G.event_listener_dic_lock:
+            if event in G.event_listener_dic:
+                cv = G.event_listener_dic[event]
+                with cv:
+                    cv.notify()
+                del G.event_listener_dic[event]
     return NodeHandleResult()
 
 def UnregisterFunc(G: Graph, caller_ast, extra, _, *args):
@@ -51,7 +58,10 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
     event = {'eventName': eventName, 'info': info, 'extra':extra}
     # trigger event right away
     # print('trigger event: ', eventName)
-    event_loop(G, event)
+    if G.thread_version:
+        emit_thread(G, event_loop_threading, (G, event))
+    else:
+        event_loop(G, event)
     return NodeHandleResult()
 
 def MarkSource(G: Graph, caller_ast, extra, _, *args):
@@ -75,9 +85,9 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     if G.thread_version:
         entry = [type, listener]
         if entry[0]=='bg_chrome_runtime_MessageExternal':
-            emit_event_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))
+            emit_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))
         else:
-            emit_event_thread(G, other_attack, (G, entry))
+            emit_thread(G, other_attack, (G, entry))
     else:
         entry = [type, listener]
         if entry[0]=='bg_chrome_runtime_MessageExternal':
@@ -85,5 +95,4 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
         else:
             other_attack(G, entry)
     return NodeHandleResult()
-    # return NodeHandleResult(used_objs=list(used_objs))
 

@@ -6,6 +6,10 @@ from typing import Callable, List, Iterable
 from collections import defaultdict
 from src.core.logger import *
 import secrets
+import threading
+from threading import Thread
+import time
+from src.core.thread_design import thread_info
 
 def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
     scope_parent_scope=None):
@@ -820,3 +824,20 @@ def get_off_spring(G: Graph, node_id):
         for son in sons:
             offspring = offspring.union(get_off_spring(G, son))
     return offspring
+
+def emit_thread(G, function, args):
+    if len(threading.enumerate())==1:
+        from src.core.opgen import admin_threads
+        admin_threads(G, function, args)
+    else:
+        t = Thread(target=function, args=args)
+        current_thread = threading.current_thread()
+        with G.thread_info_lock:
+            cur_info = G.thread_infos[current_thread.name]
+        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=cur_info.thread_age)
+        info.pause()
+        with G.thread_info_lock:
+            G.thread_infos[t.name] = info
+        with G.pq_lock:
+            G.pq.append(info)
+        t.start()

@@ -170,6 +170,9 @@ class Graph:
         self.thread_infos = {}
         self.thread_info_lock = Lock()
 
+        self.event_listener_dic = {}
+        self.event_listener_dic_lock = Lock()
+
     # Basic graph operations
     # node
 

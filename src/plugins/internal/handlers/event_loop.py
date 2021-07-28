@@ -4,29 +4,11 @@ from src.core.graph import Graph
 from src.core.utils import wildcard
 from src.plugins.internal.utils import get_df_callback, get_off_spring
 import threading
-from threading import Thread
+from threading import Condition, Lock
 from src.core.thread_design import thread_info
 import time
 
-# emit_event_thread(G, other_attack, (G, entry), entry)
-def emit_event_thread(G, function, args):
-    if len(threading.enumerate())==1:
-        from src.core.opgen import admin_threads
-        admin_threads(G, function, args)
-    else:
-        t = Thread(target=function, args=args)
-        current_thread = threading.current_thread()
-        with G.thread_info_lock:
-            cur_info = G.thread_infos[current_thread.name]
-        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=cur_info.thread_age)
-        info.pause()
-        with G.thread_info_lock:
-            G.thread_infos[t.name] = info
-        with G.pq_lock:
-            G.pq.append(info)
-        t.start()
-
-def event_loop(G: Graph, event):
+def event_loop_threading(G: Graph, event):
     # STEP1: see eventRegisteredFuncs right now
     print('========SEE eventRegisteredFuncs:========')
     for i in G.eventRegisteredFuncs:
@@ -34,20 +16,43 @@ def event_loop(G: Graph, event):
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
 
     # STEP2: trigger event
-    if G.thread_version:
-        print('processing eventName:', event['eventName'])
-        if event['eventName'] in event_listener_dic:
-            if event_listener_dic[event['eventName']][0] in G.eventRegisteredFuncs:
-                func = event_listener_dic[event['eventName']][1]
-                emit_event_thread(G, func, (G, event))
-            # else:
+    print('processing eventName:', event['eventName'])
+    if event['eventName'] in event_listener_dic:
+        listener = event_listener_dic[event['eventName']][0]
+        if listener not in G.eventRegisteredFuncs:
+            # print()
+            cv = Condition()
+            with G.event_listener_dic_lock:
+                G.event_listener_dic[listener]=cv
+            current_thread = threading.current_thread()
+            with G.thread_info_lock:
+                cur_info = G.thread_infos[current_thread.name]
+            with cv:
+                with G.wait_queue_lock:
+                    G.wait_queue.append(cur_info)
+                with G.work_queue_lock:
+                    G.work_queue.remove(cur_info)
+                print(threading.current_thread().name + ': event waiting')
+                cv.wait()
+                print(threading.current_thread().name + ': event finish waiting')
+                with G.wait_queue_lock:
+                    G.wait_queue.remove(cur_info)
+                with G.work_queue_lock:
+                    G.work_queue.append(cur_info)
+        func = event_listener_dic[event['eventName']][1]
+        func(G, event)
 
-    else:
-        print('processing eventName:', event['eventName'])
-        if event['eventName'] in event_listener_dic:
-            if event_listener_dic[event['eventName']][0] in G.eventRegisteredFuncs:
-                func = event_listener_dic[event['eventName']][1]
-                func(G, event)
+
+def event_loop(G: Graph, event):
+    print('========SEE eventRegisteredFuncs:========')
+    for i in G.eventRegisteredFuncs:
+        print(i, G.eventRegisteredFuncs[i])
+        print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
+    print('processing eventName:', event['eventName'])
+    if event['eventName'] in event_listener_dic:
+        if event_listener_dic[event['eventName']][0] in G.eventRegisteredFuncs:
+            func = event_listener_dic[event['eventName']][1]
+            func(G, event)
 
 
 def bg_chrome_runtime_MessageExternal_attack(G, entry):
@@ -208,11 +213,11 @@ def cs_chrome_tabs_onMessage_response(G, event):
         pass
 
 event_listener_dic = {
-    "cs_chrome_runtime_connect": ("bg_chrome_runtime_onConnect", cs_chrome_runtime_connect),
-    "cs_port_postMessage":("bg_port_onMessage", cs_port_postMessage),
-    "bg_port_postMessage":("cs_port_onMessage", bg_port_postMessage),
-    "cs_chrome_runtime_sendMessage":("bg_chrome_runtime_onMessage", cs_chrome_runtime_sendMessage),
-    "bg_chrome_tabs_sendMessage":("cs_chrome_runtime_onMessage", bg_chrome_tabs_sendMessage),
-    "bg_chrome_runtime_onMessage_response":("cs_chrome_runtime_sendMessage_onResponse", bg_chrome_runtime_onMessage_response),
-    "cs_chrome_tabs_onMessage_response":("bg_chrome_tabs_sendMessage_onResponse", cs_chrome_tabs_onMessage_response)
+    "cs_chrome_runtime_connect": ["bg_chrome_runtime_onConnect", cs_chrome_runtime_connect],
+    "cs_port_postMessage":["bg_port_onMessage", cs_port_postMessage],
+    "bg_port_postMessage":["cs_port_onMessage", bg_port_postMessage],
+    "cs_chrome_runtime_sendMessage":["bg_chrome_runtime_onMessage", cs_chrome_runtime_sendMessage],
+    "bg_chrome_tabs_sendMessage":["cs_chrome_runtime_onMessage", bg_chrome_tabs_sendMessage],
+    "bg_chrome_runtime_onMessage_response":["cs_chrome_runtime_sendMessage_onResponse", bg_chrome_runtime_onMessage_response],
+    "cs_chrome_tabs_onMessage_response":["bg_chrome_tabs_sendMessage_onResponse", cs_chrome_tabs_onMessage_response]
 }

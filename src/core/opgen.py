@@ -397,7 +397,7 @@ def admin_threads(G, function, args):
         while len(G.work_queue)<1 and len(G.pq)>0:
             fetch_new_thread(G)
             tmp = [i.thread_self for i in G.work_queue]
-            # print('%%%%%%%%%work in admin: ', tmp)
+            print('%%%%%%%%%work in admin: ', tmp)
         # if len(threading.enumerate()) != len(G.wait_queue) + len(G.work_queue) + len(G.pq) + 1:
         #     print('%%%%%%%%%all: ', threading.enumerate())
         #     tmp = [i.thread_self for i in G.wait_queue]
