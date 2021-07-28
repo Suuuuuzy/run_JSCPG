@@ -52,7 +52,9 @@ Chrome.prototype.runtime = new Object();
 Chrome.prototype.runtime.onInstalled = new Object();
 // this function be called righrt after all the 
 Chrome.prototype.runtime.onInstalled.addListener = function(myCallback) {
-  RegisterFunc("bg_chrome_runtime_onInstalled", myCallback);
+    var details = {id: 99, previousVersion: "0.0.1", reason: "install"};
+    myCallback(details);
+  // RegisterFunc("bg_chrome_runtime_onInstalled", myCallback);
 };
 
 
