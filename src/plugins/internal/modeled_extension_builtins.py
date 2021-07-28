@@ -25,7 +25,7 @@ def setup_utils(G: Graph):
 def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
     func = args[1].obj_nodes[0]
-    print('register event: ', event)
+    # print('register event: ', event)
     if event in G.eventRegisteredFuncs:
         G.eventRegisteredFuncs[event].append(func)
     else:
@@ -50,7 +50,7 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
     info = args[1].obj_nodes[0]
     event = {'eventName': eventName, 'info': info, 'extra':extra}
     # trigger event right away
-    print('trigger event: ', event)
+    # print('trigger event: ', eventName)
     event_loop(G, event)
     return NodeHandleResult()
 
