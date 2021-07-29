@@ -834,17 +834,20 @@ def emit_thread(G: Graph, function, args, is_event = False):
         current_thread = threading.current_thread()
         with G.thread_info_lock:
             cur_info = G.thread_infos[current_thread.name]
-        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=cur_info.thread_age)
+        # info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=cur_info.thread_age)
+        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=1)
         print('jianjia see new thread in emit_thread: ', args[1], t.name)
         if is_event:
             with G.thread_info_lock:
                 G.thread_infos[t.name] = info
+            t.start()
             with G.work_queue_lock:
                 G.work_queue.add(info)
         else:
             info.pause()
             with G.thread_info_lock:
                 G.thread_infos[t.name] = info
+            t.start()
             with G.pq_lock:
                 G.pq.append(info)
-        t.start()
+

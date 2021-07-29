@@ -16,9 +16,9 @@ Port.prototype.onMessage.addListener = function(myCallback){
 };
 
 Port.prototype.postMessage = function(msg){
-        var eventName = 'cs_port_postMessage';
+        // var eventName = 'cs_port_postMessage';
         var info =  {message:msg};
-        TriggerEvent(eventName, info);
+        TriggerEvent('cs_port_postMessage', info);
 };
 
 
@@ -26,21 +26,20 @@ Port.prototype.postMessage = function(msg){
 function Chrome(){}
 
 Chrome.prototype.runtime = new Object();
-// chrome.runtime.sendMessage(extensionId?: string, message: any, options: object, responseCallback: function)
 Chrome.prototype.runtime.sendMessage = function(message, responseCallback){
-    var eventName = 'cs_chrome_runtime_sendMessage';
+    // var eventName = 'cs_chrome_runtime_sendMessage';
     var info = {message: message,responseCallback: responseCallback};
-    TriggerEvent(eventName, info);
+    TriggerEvent('cs_chrome_runtime_sendMessage', info);
 };
 
 Chrome.prototype.runtime.connect = function(extensionId, connectInfo){
-    var eventName = 'cs_chrome_runtime_connect';
+    // var eventName = 'cs_chrome_runtime_connect';
     if (connectInfo===undefined){
         var connectInfo = extensionId;
         var extensionId = undefined;
     }
     var info = {extensionId:extensionId, connectInfo:connectInfo};
-    TriggerEvent(eventName, info);    
+    TriggerEvent('cs_chrome_runtime_connect', info);    
     return new Port(connectInfo);
 };
 
@@ -64,9 +63,9 @@ MessageSender = function(){
     this.url = 'url';
 };
 function sendResponse(message_back){
-    var eventName = 'cs_chrome_runtime_onMessage_response';
+    // var eventName = 'cs_chrome_runtime_onMessage_response';
     var info = {message: message_back};
-    TriggerEvent(eventName, info);
+    TriggerEvent('cs_chrome_runtime_onMessage_response', info);
 };
 
 

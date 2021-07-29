@@ -165,13 +165,13 @@ class Graph:
         self.thread_infos = {}
         self.thread_info_lock = Lock()
 
-        self.event_listener_dic = {}
+        self.event_condition_dic = {}
         # a dic of events and their registered funcs
         # {event1: cv1},
         #  event2: cv2},
         #  ...
         #  }
-        self.event_listener_dic_lock = Lock()
+        self.event_condition_dic_lock = Lock()
 
         self.eventRegisteredFuncs = {}
         # a dic of events and their registered funcs

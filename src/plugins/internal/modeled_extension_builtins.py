@@ -34,13 +34,13 @@ def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
                 G.eventRegisteredFuncs[event].append(func)
             else:
                 G.eventRegisteredFuncs[event] = [func]
-        with G.event_listener_dic_lock:
-            if event in G.event_listener_dic:
-                cv = G.event_listener_dic[event]
+        with G.event_condition_dic_lock:
+            if event in G.event_condition_dic:
+                cv = G.event_condition_dic[event]
                 with cv:
                     cv.notify()
                     print('notify event')
-                del G.event_listener_dic[event]
+                del G.event_condition_dic[event]
     else:
         if event in G.eventRegisteredFuncs:
             G.eventRegisteredFuncs[event].append(func)
@@ -65,11 +65,13 @@ def UnregisterFunc(G: Graph, caller_ast, extra, _, *args):
 # trigger the events in turn after all the events entered the queue
 # NOTE: the eventName and info we store are both obj node ID in graph
 def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
-    eventName = G.get_node_attr(args[0].obj_nodes[0])['code']
+    print(args)
+    # eventName = G.get_node_attr(args[0].obj_nodes[0])['code']
+    eventName = args[0].values[0]
     info = args[1].obj_nodes[0]
     event = {'eventName': eventName, 'info': info, 'extra':extra}
     # trigger event right away
-    # print('trigger event: ', eventName)
+    print('trigger event: ', eventName)
     if G.thread_version:
         emit_thread(G, event_loop_threading, (G, event))
         # tmp = [i.thread_self for i in G.work_queue]

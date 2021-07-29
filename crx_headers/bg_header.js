@@ -15,9 +15,9 @@ Port.prototype.onMessage.addListener = function(myCallback){
 };
 
 Port.prototype.postMessage = function(msg){
-    var eventName = 'bg_port_postMessage';
+    // var eventName = 'bg_port_postMessage';
     var info =  {message:msg};
-    TriggerEvent(eventName, info);
+    TriggerEvent('bg_port_postMessage', info);
 };
 
 // ========= tab ========= 
@@ -82,9 +82,9 @@ MessageSender = function(){
     this.url = 'url';
 };
 function sendResponse(message_back){
-    var eventName = 'bg_chrome_runtime_onMessage_response';
+    // var eventName = 'bg_chrome_runtime_onMessage_response';
     var info = {message: message_back};
-    TriggerEvent(eventName, info);
+    TriggerEvent('bg_chrome_runtime_onMessage_response', info);
 };
 
 
@@ -135,9 +135,9 @@ Chrome.prototype.topSites.get = function(myCallback){
 // 
 Chrome.prototype.tabs = new Object();
 Chrome.prototype.tabs.sendMessage = function(tabId, message, responseCallback){
-    var eventName = 'bg_chrome_tabs_sendMessage';
+    // var eventName = 'bg_chrome_tabs_sendMessage';
     var info =  {tabId:tabId, message:message, responseCallback:responseCallback};
-    TriggerEvent(eventName, info);
+    TriggerEvent('bg_chrome_tabs_sendMessage', info);
 };
 
 // chrome.tabs.query(queryInfo: object, callback: function)

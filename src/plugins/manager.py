@@ -118,13 +118,13 @@ class PluginManager(object):
                 with self.G.thread_info_lock:
                     cur_info = self.G.thread_infos[current_thread.name]
                 while cur_info.running.isSet():
+                    # print('manager wait in thread: ', current_thread.name)
                     cur_info.flag.wait()
                     # check running time of current thread, and there is other thread waiting in the pq
                     if time.time_ns() - cur_info.last_start_time > 10000000000 and len(self.G.pq)>0:
                         with self.G.work_queue_lock:
                             if cur_info in self.G.work_queue:
                                 self.G.work_queue.remove(cur_info)
-                        # print('$$$$$$$$$in manager timeup ', current_thread.name, self.G.pq[0].thread_self.name)
                         cur_info.thread_age += 1
                         cur_info.pause()
                         with self.G.pq_lock:
@@ -133,19 +133,10 @@ class PluginManager(object):
                         if len(self.G.work_queue)<1:
                             from src.core.opgen import fetch_new_thread
                             fetch_new_thread(self.G)
-                            # with self.G.pq_lock:
-                            #     result = self.G.pq[0]
-                            #     del self.G.pq[0]
-                            # with self.G.work_queue_lock:
-                            #     self.G.work_queue.add(result)
-                            # # tmp = [i.thread_self for i in self.G.work_queue]
-                            # # print('%%%%%%%%%work in manager: ', tmp)
-                            # result.resume()
                         continue
-                    cur_info.resume()
-                    # print('@@@@@running in manager: ' + current_thread.name)
-                    handle_res = self.inner_dispatch_node(node_id, extra)
-                    break
+                    else:
+                        handle_res = self.inner_dispatch_node(node_id, extra)
+                        break
             else:
                 handle_res = self.inner_dispatch_node(node_id, extra)
 

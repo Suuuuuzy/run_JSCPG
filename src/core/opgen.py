@@ -341,8 +341,8 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     entry_nodeid = str(entry_nodeid)
     loggers.main_logger.info(sty.fg.green + "GENERATE OBJECT GRAPH" + sty.rs.all + ": " + entry_nodeid)
     obj_nodes = G.get_nodes_by_type("AST_FUNC_DECL")
-    for node in obj_nodes:
-        register_func(G, node[0])
+    # for node in obj_nodes:
+    #     register_func(G, node[0])
     if G.thread_version:
         # print('jianjia pq')
         admin_threads(G, internal_plugins.dispatch_node, (entry_nodeid))
@@ -358,6 +358,7 @@ def fetch_new_thread(G):
             result = G.pq[0]
             del G.pq[0]
     if result not in G.work_queue:
+        print('fetch new thread: ', result.thread_self.name)
         result.last_start_time = time.time_ns()
         with G.work_queue_lock:
             G.work_queue.add(result)
@@ -370,9 +371,9 @@ def admin_threads(G, function, args):
     info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=1)
     with G.thread_info_lock:
         G.thread_infos[t.name] = info
+    t.start()
     with G.work_queue_lock:
         G.work_queue.add(info)
-    t.start()
     old_queue = []
     old_len = 0
     while True:
@@ -382,9 +383,19 @@ def admin_threads(G, function, args):
                     t.handled = True
             dead = [i for i in G.work_queue if i.handled]
             G.work_queue = set([i for i in G.work_queue if not i.handled])
+            tmp = [i.thread_self for i in G.work_queue]
+            # print('%%%%%%%%%work in admin: ', tmp)
         for t in dead:
             # if this thread is dead
             print(t.thread_self.name + ' is dead')
+            print('%%%%%%%%%all: ', threading.enumerate())
+            tmp = [i.thread_self for i in G.wait_queue]
+            print('%%%%%%%%%wait: ', tmp)
+            tmp = [i.thread_self for i in G.work_queue]
+            print('%%%%%%%%%work: ', tmp)
+            tmp = [i.thread_self for i in G.pq]
+            print('%%%%%%%%%pq: ', tmp)
+
             # if this thread has a father thread
             if t.thread_self.name in G.branch_son_dad:
                 with G.branch_son_dad_lock:
@@ -399,6 +410,17 @@ def admin_threads(G, function, args):
                     with cv:
                         # print('notify father ' + dad_thread.name)
                         cv.notify()
+        # with G.wait_queue_lock:
+        #     for t in G.wait_queue:
+        #         if not t.thread_self.is_alive():
+        #             t.handled = True
+        #     G.wait_queue = set([i for i in G.wait_queue if not i.handled])
+        # with G.pq_lock:
+        #     for t in G.pq:
+        #         if not t.thread_self.is_alive():
+        #             t.handled = True
+        #     G.pq = [i for i in G.pq if not i.handled]
+        #     G.pq.sort(key=lambda x: x.thread_age, reverse=False)
         while len(G.work_queue)<1 and len(G.pq)>0:
             fetch_new_thread(G)
             # tmp = [i.thread_self for i in G.work_queue]

@@ -117,10 +117,10 @@ class HandleIf(Handler):
                 with G.thread_info_lock:
                     G.thread_infos[t.name] = info
                 print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
+                t.start()
                 with G.pq_lock:
                     G.pq.append(info)
                     G.pq.sort(key=lambda x: x.thread_age, reverse=False)
-                t.start()
                 with G.branch_son_dad_lock:
                     G.branch_son_dad[t.name] = [threading.current_thread(), cv]
             with cv:
@@ -137,7 +137,7 @@ class HandleIf(Handler):
                 # print(threading.current_thread().name + ': father finish waiting')
                 with G.wait_queue_lock:
                     G.wait_queue.remove(cur_info)
-                cur_info.last_start_time = time.time_ns()
+                # cur_info.last_start_time = time.time_ns()
                 with G.work_queue_lock:
                     G.work_queue.add(cur_info)
                 # tmp = [i.thread_self for i in G.work_queue]
