@@ -26,11 +26,12 @@ def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
     func = args[1].obj_nodes[0]
     print('register listener: ', event)
-    if event in G.eventRegisteredFuncs:
-        G.eventRegisteredFuncs[event].append(func)
-    else:
-        G.eventRegisteredFuncs[event] = [func]
     if G.thread_version:
+        with G.eventRegisteredFuncs_lock:
+            if event in G.eventRegisteredFuncs:
+                G.eventRegisteredFuncs[event].append(func)
+            else:
+                G.eventRegisteredFuncs[event] = [func]
         with G.event_listener_dic_lock:
             if event in G.event_listener_dic:
                 cv = G.event_listener_dic[event]
@@ -38,15 +39,23 @@ def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
                     cv.notify()
                     print('notify event')
                 del G.event_listener_dic[event]
+    else:
+        if event in G.eventRegisteredFuncs:
+            G.eventRegisteredFuncs[event].append(func)
+        else:
+            G.eventRegisteredFuncs[event] = [func]
     return NodeHandleResult()
 
 def UnregisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
     func = args[1].obj_nodes[0]
-    if event in G.eventRegisteredFuncs:
-        del G.eventRegisteredFuncs[event]
+    if G.thread_version:
+        with G.eventRegisteredFuncs_lock:
+            if event in G.eventRegisteredFuncs:
+                del G.eventRegisteredFuncs[event]
     else:
-        pass
+        if event in G.eventRegisteredFuncs:
+            del G.eventRegisteredFuncs[event]
     return NodeHandleResult()
 
 

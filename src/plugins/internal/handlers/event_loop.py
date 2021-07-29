@@ -11,9 +11,10 @@ import time
 def event_loop_threading(G: Graph, event):
     # STEP1: see eventRegisteredFuncs right now
     print('========SEE eventRegisteredFuncs:========')
-    for i in G.eventRegisteredFuncs:
-        print(i, G.eventRegisteredFuncs[i])
-        print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
+    with G.eventRegisteredFuncs_lock:
+        for i in G.eventRegisteredFuncs:
+            print(i, G.eventRegisteredFuncs[i])
+            print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
 
     # STEP2: trigger event
     print('processing eventName:', event['eventName'])
@@ -36,9 +37,9 @@ def event_loop_threading(G: Graph, event):
                     if cur_info in G.work_queue:
                         G.work_queue.remove(cur_info)
                 print(threading.current_thread().name + ': event waiting')
-                cv.wait()
                 tmp = [i.thread_self for i in G.work_queue]
                 print('%%%%%%%%%work in event loop: ', tmp)
+                cv.wait()
                 print(threading.current_thread().name + ': event finish waiting')
                 with G.wait_queue_lock:
                     G.wait_queue.remove(cur_info)
@@ -151,10 +152,17 @@ def cs_chrome_runtime_sendMessage(G, event):
     # register sender_responseCallback function to cs runtime.sendMessage's responseCallback
     sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name = 'responseCallback')[0]
     event = 'cs_chrome_runtime_sendMessage_onResponse' # cs on getting the response from bg
-    if event in G.eventRegisteredFuncs:
-        G.eventRegisteredFuncs[event].append(sender_responseCallback)
+    if G.thread_version:
+        with G.eventRegisteredFuncs_lock:
+            if event in G.eventRegisteredFuncs:
+                G.eventRegisteredFuncs[event].append(sender_responseCallback)
+            else:
+                G.eventRegisteredFuncs[event] = [sender_responseCallback]
     else:
-        G.eventRegisteredFuncs[event] = [sender_responseCallback]
+        if event in G.eventRegisteredFuncs:
+            G.eventRegisteredFuncs[event].append(sender_responseCallback)
+        else:
+            G.eventRegisteredFuncs[event] = [sender_responseCallback]
 
 def bg_chrome_tabs_sendMessage(G, event):
     message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
@@ -180,10 +188,17 @@ def bg_chrome_tabs_sendMessage(G, event):
     # register sender_responseCallback function to cs runtime.sendMessage's responseCallback
     sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name='responseCallback')[0]
     event = 'bg_chrome_tabs_sendMessage_onResponse' # bg on getting the response from cs
-    if event in G.eventRegisteredFuncs:
-        G.eventRegisteredFuncs[event].append(sender_responseCallback)
+    if G.thread_version:
+        with G.eventRegisteredFuncs_lock:
+            if event in G.eventRegisteredFuncs:
+                G.eventRegisteredFuncs[event].append(sender_responseCallback)
+            else:
+                G.eventRegisteredFuncs[event] = [sender_responseCallback]
     else:
-        G.eventRegisteredFuncs[event] = [sender_responseCallback]
+        if event in G.eventRegisteredFuncs:
+            G.eventRegisteredFuncs[event].append(sender_responseCallback)
+        else:
+            G.eventRegisteredFuncs[event] = [sender_responseCallback]
 
 
 def bg_chrome_runtime_onMessage_response(G, event):

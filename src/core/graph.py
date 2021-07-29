@@ -49,11 +49,6 @@ class Graph:
         self.msg_receivers = []
         '''
 
-        self.eventRegisteredFuncs = {} # a dic of events and their registered funcs
-        # {event1: [function1_ID,...],
-        #  event2: [function2_ID],
-        #  ...
-        #  }
         self.eventQueue = []  # a queue of events
         self.sensitiveSource = set() # a list of sensitive source objs
         self.attackEntries = [] # a list of attack entries (function declaration objs)
@@ -171,7 +166,21 @@ class Graph:
         self.thread_info_lock = Lock()
 
         self.event_listener_dic = {}
+        # a dic of events and their registered funcs
+        # {event1: cv1},
+        #  event2: cv2},
+        #  ...
+        #  }
         self.event_listener_dic_lock = Lock()
+
+        self.eventRegisteredFuncs = {}
+        # a dic of events and their registered funcs
+        # {event1: [function1_ID,...],,
+        #  event2: [function2_ID,...],
+        #  ...
+        #  }
+        self.eventRegisteredFuncs_lock = Lock()
+
 
     # Basic graph operations
     # node
