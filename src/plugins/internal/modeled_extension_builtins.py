@@ -25,7 +25,7 @@ def setup_utils(G: Graph):
 def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
     func = args[1].obj_nodes[0]
-    print('register event: ', event)
+    print('register listener: ', event)
     if event in G.eventRegisteredFuncs:
         G.eventRegisteredFuncs[event].append(func)
     else:
@@ -36,6 +36,7 @@ def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
                 cv = G.event_listener_dic[event]
                 with cv:
                     cv.notify()
+                    print('notify event')
                 del G.event_listener_dic[event]
     return NodeHandleResult()
 
@@ -57,9 +58,11 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
     info = args[1].obj_nodes[0]
     event = {'eventName': eventName, 'info': info, 'extra':extra}
     # trigger event right away
-    # print('trigger event: ', eventName)
+    print('trigger event: ', eventName)
     if G.thread_version:
         emit_thread(G, event_loop_threading, (G, event))
+        # tmp = [i.thread_self for i in G.work_queue]
+        # print('%%%%%%%%%work in trigger event: ', tmp)
     else:
         event_loop(G, event)
     return NodeHandleResult()
@@ -79,7 +82,7 @@ def MarkSink(G: Graph, caller_ast, extra, _, *args):
 def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = G.get_node_attr(args[0].obj_nodes[0]).get('code')
     listener = args[1].obj_nodes[0]
-    print('MarkAttackEntry: ', type)
+    print('Perform Attack: ', type)
     # G.attackEntries.insert(0, [type, listener])
     #  attack right away!
     if G.thread_version:
@@ -88,6 +91,8 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
             emit_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))
         else:
             emit_thread(G, other_attack, (G, entry))
+        # tmp = [i.thread_self for i in G.work_queue]
+        # print('%%%%%%%%%work in MarkAttackEntry: ', tmp)
     else:
         entry = [type, listener]
         if entry[0]=='bg_chrome_runtime_MessageExternal':

@@ -17,6 +17,8 @@ def event_loop_threading(G: Graph, event):
 
     # STEP2: trigger event
     print('processing eventName:', event['eventName'])
+    # current_thread = threading.current_thread()
+    # print('in thread: ', current_thread.name)
     if event['eventName'] in event_listener_dic:
         listener = event_listener_dic[event['eventName']][0]
         if listener not in G.eventRegisteredFuncs:
@@ -29,16 +31,19 @@ def event_loop_threading(G: Graph, event):
                 cur_info = G.thread_infos[current_thread.name]
             with cv:
                 with G.wait_queue_lock:
-                    G.wait_queue.append(cur_info)
+                    G.wait_queue.add(cur_info)
                 with G.work_queue_lock:
-                    G.work_queue.remove(cur_info)
+                    if cur_info in G.work_queue:
+                        G.work_queue.remove(cur_info)
                 print(threading.current_thread().name + ': event waiting')
                 cv.wait()
+                tmp = [i.thread_self for i in G.work_queue]
+                print('%%%%%%%%%work in event loop: ', tmp)
                 print(threading.current_thread().name + ': event finish waiting')
                 with G.wait_queue_lock:
                     G.wait_queue.remove(cur_info)
                 with G.work_queue_lock:
-                    G.work_queue.append(cur_info)
+                    G.work_queue.add(cur_info)
         func = event_listener_dic[event['eventName']][1]
         func(G, event)
 
@@ -73,10 +78,11 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry):
     func_objs = [entry[1]]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
-                                                          mark_fake_args=False)
+                                                         mark_fake_args=False)
 
 
 def other_attack(G, entry):
+    print('in attack: ', entry[0])
     func_objs = [entry[1]]
     args = []  # no args
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,

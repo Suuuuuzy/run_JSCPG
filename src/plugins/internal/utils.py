@@ -825,7 +825,7 @@ def get_off_spring(G: Graph, node_id):
             offspring = offspring.union(get_off_spring(G, son))
     return offspring
 
-def emit_thread(G, function, args):
+def emit_thread(G: Graph, function, args, is_event = False):
     if len(threading.enumerate())==1:
         from src.core.opgen import admin_threads
         admin_threads(G, function, args)
@@ -835,9 +835,16 @@ def emit_thread(G, function, args):
         with G.thread_info_lock:
             cur_info = G.thread_infos[current_thread.name]
         info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=cur_info.thread_age)
-        info.pause()
-        with G.thread_info_lock:
-            G.thread_infos[t.name] = info
-        with G.pq_lock:
-            G.pq.append(info)
+
+        if is_event:
+            with G.thread_info_lock:
+                G.thread_infos[t.name] = info
+            with G.work_queue_lock:
+                G.work_queue.add(info)
+        else:
+            info.pause()
+            with G.thread_info_lock:
+                G.thread_infos[t.name] = info
+            with G.pq_lock:
+                G.pq.append(info)
         t.start()

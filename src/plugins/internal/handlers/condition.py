@@ -125,17 +125,18 @@ class HandleIf(Handler):
                     G.branch_son_dad[t.name] = [threading.current_thread(), cv]
             with cv:
                 with G.wait_queue_lock:
-                    G.wait_queue.append(cur_info)
+                    G.wait_queue.add(cur_info)
                 with G.work_queue_lock:
-                    G.work_queue.remove(cur_info)
+                    if cur_info in G.work_queue:
+                        G.work_queue.remove(cur_info)
                 # print(threading.current_thread().name + ': father waiting')
                 cv.wait()
                 # print(threading.current_thread().name + ': father finish waiting')
                 with G.wait_queue_lock:
                     G.wait_queue.remove(cur_info)
                 with G.work_queue_lock:
-                    G.work_queue.append(cur_info)
-                tmp = [i.thread_self for i in G.work_queue]
+                    G.work_queue.add(cur_info)
+                # tmp = [i.thread_self for i in G.work_queue]
                 # print('%%%%%%%%%work in condition: ', tmp)
             time.sleep(0.05)
             # print('debug merge',threading.current_thread().name, stmt_id, parent_branch)

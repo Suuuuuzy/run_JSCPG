@@ -149,9 +149,9 @@ class Graph:
         self.pq = []
         self.pq_lock = Lock()
         self.thread_version = False
-        self.work_queue = []
+        self.work_queue = set()
         self.work_queue_lock = Lock()
-        self.wait_queue = []
+        self.wait_queue = set()
         self.wait_queue_lock = Lock()
         # self.pq_event = Event()
         # self.reverse_pq_event = Event()

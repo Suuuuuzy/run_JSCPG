@@ -354,9 +354,13 @@ def fetch_new_thread(G):
     with G.pq_lock:
         result = G.pq[0]
         del G.pq[0]
-    with G.work_queue_lock:
-        G.work_queue.append(result)
-    result.resume()
+        while result in G.work_queue and len(G.pq)>0:
+            result = G.pq[0]
+            del G.pq[0]
+    if result not in G.work_queue:
+        with G.work_queue_lock:
+            G.work_queue.add(result)
+        result.resume()
 
 # the function to admin the threads, to use this, you have to pass G and the initial running thread
 def admin_threads(G, function, args):
@@ -366,7 +370,7 @@ def admin_threads(G, function, args):
     with G.thread_info_lock:
         G.thread_infos[t.name] = info
     with G.work_queue_lock:
-        G.work_queue.append(info)
+        G.work_queue.add(info)
     t.start()
     old_queue = []
     old_len = 0
@@ -376,7 +380,7 @@ def admin_threads(G, function, args):
                 if not t.thread_self.is_alive():
                     t.handled = True
             dead = [i for i in G.work_queue if i.handled]
-            G.work_queue = [i for i in G.work_queue if not i.handled]
+            G.work_queue = set([i for i in G.work_queue if not i.handled])
         for t in dead:
             # if this thread is dead
             # print(t.thread_self.name + ' is dead')
@@ -396,8 +400,8 @@ def admin_threads(G, function, args):
                         cv.notify()
         while len(G.work_queue)<1 and len(G.pq)>0:
             fetch_new_thread(G)
-            tmp = [i.thread_self for i in G.work_queue]
-            print('%%%%%%%%%work in admin: ', tmp)
+            # tmp = [i.thread_self for i in G.work_queue]
+            # print('%%%%%%%%%work in admin: ', tmp)
         # if len(threading.enumerate()) != len(G.wait_queue) + len(G.work_queue) + len(G.pq) + 1:
         #     print('%%%%%%%%%all: ', threading.enumerate())
         #     tmp = [i.thread_self for i in G.wait_queue]
@@ -406,7 +410,7 @@ def admin_threads(G, function, args):
         #     print('%%%%%%%%%work: ', tmp)
         #     tmp = [i.thread_self for i in G.pq]
         #     print('%%%%%%%%%pq: ', tmp)
-        if len(threading.enumerate())==1:
+        if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
             print('finish')
             return 1
 
