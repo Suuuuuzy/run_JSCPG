@@ -358,6 +358,7 @@ def fetch_new_thread(G):
             result = G.pq[0]
             del G.pq[0]
     if result not in G.work_queue:
+        result.last_start_time = time.time_ns()
         with G.work_queue_lock:
             G.work_queue.add(result)
         result.resume()
@@ -383,7 +384,7 @@ def admin_threads(G, function, args):
             G.work_queue = set([i for i in G.work_queue if not i.handled])
         for t in dead:
             # if this thread is dead
-            # print(t.thread_self.name + ' is dead')
+            print(t.thread_self.name + ' is dead')
             # if this thread has a father thread
             if t.thread_self.name in G.branch_son_dad:
                 with G.branch_son_dad_lock:
@@ -549,4 +550,3 @@ def DFS(G, nodeid, visited, depth):
         if child not in visited:
             DFS(G, child, visited, depth+1)
 
-# def first_thread():

@@ -17,9 +17,8 @@ def event_loop_threading(G: Graph, event):
             print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
 
     # STEP2: trigger event
-    print('processing eventName:', event['eventName'])
-    # current_thread = threading.current_thread()
-    # print('in thread: ', current_thread.name)
+    cur_thread = threading.current_thread()
+    print('=========processing eventName:' + event['eventName'] + ' in ' + cur_thread.name)
     if event['eventName'] in event_listener_dic:
         listener = event_listener_dic[event['eventName']][0]
         if listener not in G.eventRegisteredFuncs:
@@ -36,13 +35,21 @@ def event_loop_threading(G: Graph, event):
                 with G.work_queue_lock:
                     if cur_info in G.work_queue:
                         G.work_queue.remove(cur_info)
+                with G.pq_lock:
+                    if cur_info in G.pq:
+                        G.pq.remove(cur_info)
                 print(threading.current_thread().name + ': event waiting')
                 tmp = [i.thread_self for i in G.work_queue]
-                print('%%%%%%%%%work in event loop: ', tmp)
+                # print('%%%%%%%%%work in event loop: ', tmp)
+                # tmp = [i.thread_self for i in G.pq]
+                # print('%%%%%%%%%pq in event loop: ', tmp)
+                # tmp = [i.thread_self for i in G.wait_queue]
+                # print('%%%%%%%%%wait in event loop: ', tmp)
                 cv.wait()
                 print(threading.current_thread().name + ': event finish waiting')
                 with G.wait_queue_lock:
                     G.wait_queue.remove(cur_info)
+                cur_info.last_start_time = time.time_ns()
                 with G.work_queue_lock:
                     G.work_queue.add(cur_info)
         func = event_listener_dic[event['eventName']][1]
@@ -54,7 +61,6 @@ def event_loop(G: Graph, event):
     for i in G.eventRegisteredFuncs:
         print(i, G.eventRegisteredFuncs[i])
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
-    print('processing eventName:', event['eventName'])
     if event['eventName'] in event_listener_dic:
         if event_listener_dic[event['eventName']][0] in G.eventRegisteredFuncs:
             func = event_listener_dic[event['eventName']][1]
@@ -83,7 +89,8 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry):
 
 
 def other_attack(G, entry):
-    print('in attack: ', entry[0])
+    cur_thread = threading.current_thread()
+    print('=========Perform attack:' + entry[0] + ' in ' + cur_thread.name)
     func_objs = [entry[1]]
     args = []  # no args
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,

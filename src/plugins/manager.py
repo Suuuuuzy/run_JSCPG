@@ -131,14 +131,16 @@ class PluginManager(object):
                             self.G.pq.append(cur_info)
                             self.G.pq.sort(key=lambda x: x.thread_age, reverse=False)
                         if len(self.G.work_queue)<1:
-                            with self.G.pq_lock:
-                                result = self.G.pq[0]
-                                del self.G.pq[0]
-                            with self.G.work_queue_lock:
-                                self.G.work_queue.add(result)
-                            # tmp = [i.thread_self for i in self.G.work_queue]
-                            # print('%%%%%%%%%work in manager: ', tmp)
-                            result.resume()
+                            from src.core.opgen import fetch_new_thread
+                            fetch_new_thread(self.G)
+                            # with self.G.pq_lock:
+                            #     result = self.G.pq[0]
+                            #     del self.G.pq[0]
+                            # with self.G.work_queue_lock:
+                            #     self.G.work_queue.add(result)
+                            # # tmp = [i.thread_self for i in self.G.work_queue]
+                            # # print('%%%%%%%%%work in manager: ', tmp)
+                            # result.resume()
                         continue
                     cur_info.resume()
                     # print('@@@@@running in manager: ' + current_thread.name)

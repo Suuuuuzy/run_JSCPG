@@ -3,6 +3,7 @@ from src.core.utils import *
 from src.core.logger import *
 from src.plugins.internal.handlers.event_loop import event_loop, event_loop_threading, bg_chrome_runtime_MessageExternal_attack, other_attack
 from .utils import get_off_spring, emit_thread
+import threading
 
 logger = create_logger("main_logger", output_type="file")
 
@@ -25,7 +26,8 @@ def setup_utils(G: Graph):
 def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
     func = args[1].obj_nodes[0]
-    print('register listener: ', event)
+    cur_thread = threading.current_thread()
+    print('=========Register listener: '+ event+ ' in ' + cur_thread.name)
     if G.thread_version:
         with G.eventRegisteredFuncs_lock:
             if event in G.eventRegisteredFuncs:
@@ -67,7 +69,7 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
     info = args[1].obj_nodes[0]
     event = {'eventName': eventName, 'info': info, 'extra':extra}
     # trigger event right away
-    print('trigger event: ', eventName)
+    # print('trigger event: ', eventName)
     if G.thread_version:
         emit_thread(G, event_loop_threading, (G, event))
         # tmp = [i.thread_self for i in G.work_queue]
@@ -91,7 +93,7 @@ def MarkSink(G: Graph, caller_ast, extra, _, *args):
 def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = G.get_node_attr(args[0].obj_nodes[0]).get('code')
     listener = args[1].obj_nodes[0]
-    print('Perform Attack: ', type)
+    # print('Perform Attack: ', type)
     # G.attackEntries.insert(0, [type, listener])
     #  attack right away!
     if G.thread_version:
