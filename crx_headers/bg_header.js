@@ -52,7 +52,8 @@ Chrome.prototype.runtime = new Object();
 Chrome.prototype.runtime.onInstalled = new Object();
 // this function be called righrt after all the 
 Chrome.prototype.runtime.onInstalled.addListener = function(myCallback) {
-  RegisterFunc("bg_chrome_runtime_onInstalled", myCallback);
+    var details = {is:99, previousVersion:'0.0.1', reason:'install'};
+    myCallback(details);
 };
 
 
@@ -96,7 +97,6 @@ Chrome.prototype.runtime.onMessage.removeListener = function(myCallback) {
 Chrome.prototype.runtime.onMessageExternal = new Object();
 // myCallback parameters: (message: any, sender: MessageSender, sendResponse: function) => {...}
 Chrome.prototype.runtime.onMessageExternal.addListener = function(myCallback){
-    // ("bg_chrome_runtime_onMessageExternal", myCallback);
     var type = 'bg_chrome_runtime_MessageExternal';
     MarkAttackEntry(type, myCallback);
 }
@@ -153,7 +153,6 @@ Chrome.prototype.tabs.onActivated = new Object();
 Chrome.prototype.tabs.onActivated.addListener = function(myCallback){
     var activeInfo = new ActiveInfo();
     myCallback(activeInfo);
-    // RegisterFunc("bg_chrome_tabs_onActivated", myCallback);
 }
 
 // chrome.tabs.executeScript
