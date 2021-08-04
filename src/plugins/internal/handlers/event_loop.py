@@ -107,7 +107,7 @@ def cs_chrome_runtime_connect(G, event):
                   caller_ast=None, is_new=True, stmt_id='Unknown', func_name='Port',
                   mark_fake_args=False)
     returned_result.obj_nodes = created_objs
-    with G.eventRegisteredFuncs_Lock:
+    with G.eventRegisteredFuncs_lock:
         func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onConnect']
     args = [returned_result]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,

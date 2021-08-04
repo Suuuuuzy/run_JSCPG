@@ -90,7 +90,7 @@ class HandleIf(Handler):
         if not G.thread_version:
             for idx,if_elem in enumerate(if_elems):
                 # print('jianjia see if_elem in dispatch: ', if_elem)
-                depth = G.get_node_attr(if_elem)['branch']
+                # depth = G.get_node_attr(if_elem)['branch']
                 # print(depth)
                 result, else_is_deterministic, branch_num_counter = run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
                 if not result:
@@ -100,7 +100,7 @@ class HandleIf(Handler):
                 branch_num_counter += 1
             # We always flatten edges
             if not G.single_branch:
-                print('debug merge no pq', stmt_id, parent_branch)
+                # print('debug merge no pq', stmt_id, parent_branch)
                 merge(G, stmt_id, branch_num_counter, parent_branch)
         else:
             # mydata = threading.local()

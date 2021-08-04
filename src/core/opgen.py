@@ -119,9 +119,6 @@ class OPGen:
                     loggers.res_logger.info("{} finish with {} seconds spent####". \
                             format(extension_path, end_time-start_time))
             except TimeoutError as err:
-                loggers.error_logger.error(err)
-                # loggers.res_logger.error(err)
-                # loggers.crx_logger.error(err)
                 if self.graph.get_total_num_statements()!=0:
                     covered_stat_rate = 100*len(self.graph.covered_stat) / self.graph.get_total_num_statements()
                 else:
@@ -151,7 +148,7 @@ class OPGen:
         entry_id = '0'
         # jianjia: generate branch graph before we fully run
         # (mark on the AST node, each node should search ancestors until branch is found)
-        generate_branch_graph(G, entry_nodeid=entry_id)
+        # generate_branch_graph(G, entry_nodeid=entry_id)
         generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
         if vul_type is not None:
             check_res = self.check_vuls(vul_type, G)
@@ -190,7 +187,6 @@ class OPGen:
                     parse_string(G, js_call_templete)
                     test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
             except TimeoutError as err:
-                loggers.error_logger.error(err)
                 loggers.res_logger.error(err)
         else:
             parse_string(G, js_call_templete)
