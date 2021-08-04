@@ -77,9 +77,9 @@ class Graph:
 
         # for evaluation
         self.covered_num_stat = 0
-        self.total_num_stat = 0
         self.covered_stat = {} #set()
         self.all_stat = set()
+        self.header_stat = set()
         self.all_func = set()
         self.covered_func = set()
 
@@ -1873,9 +1873,41 @@ class Graph:
             if 'type' in all_nodes[n]:
                 if 'AST_' in all_nodes[n]['type'] and self.is_statement(n):
                     self.all_stat.add(n)
-                    self.total_num_stat += 1
-        # print(len(set(self.all_stat_list)), len(set(self.covered_list)), len(self.covered_list))
+        # print('len(self.all_stat): ', len(self.all_stat))
         return len(self.all_stat)
+
+    def get_all_stat(self):
+        self.get_total_num_statements()
+        return self.all_stat
+
+    def get_header_stat(self):
+        if len(self.header_stat)>0:
+            return self.header_stat
+        all_nodes = self.get_all_nodes()
+        for n in all_nodes:
+            if 'type' in all_nodes[n] and 'AST_' in all_nodes[n]['type'] and self.is_statement(n):
+                filepath = self.get_node_file_path(n)
+                if filepath == "crx_tmp/eopg_generated_files/bg.js":
+                    threshold = 620
+                else:
+                    threshold = 436
+                cur_node_attr = self.get_node_attr(n)
+                if cur_node_attr.get('lineno:int') is None:
+                    continue
+                else:
+                    try:
+                        line_num = int(cur_node_attr.get('lineno:int'))
+                        if line_num< threshold:
+                            self.header_stat.add(n)
+                    except:
+                        pass
+        return self.header_stat
+
+    def get_header_num_statements(self):
+        header_stat = self.get_header_stat()
+        # print('len(header_stat): ', len(header_stat))
+        # print( self.all_stat-(header_stat))
+        return len(header_stat)
 
     def get_total_num_functions(self):
         """

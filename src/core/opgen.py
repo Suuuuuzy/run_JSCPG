@@ -120,7 +120,7 @@ class OPGen:
                             format(extension_path, end_time-start_time))
             except TimeoutError as err:
                 if self.graph.get_total_num_statements()!=0:
-                    covered_stat_rate = 100*len(self.graph.covered_stat) / self.graph.get_total_num_statements()
+                    covered_stat_rate = 100*len(self.graph.covered_stat) / (self.graph.get_total_num_statements()- self.graph.get_header_num_statements())
                 else:
                     covered_stat_rate = 0
                 loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))

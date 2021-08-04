@@ -151,14 +151,17 @@ class PluginManager(object):
             if self.G.is_statement(node_id):
                 line_mark = self.G.get_node_attr(node_id)['namespace'].split(":")
                 loggers.main_logger.info(f"Running Line {line_mark[0]} to {line_mark[2]}")
-                if node_id not in self.G.covered_stat:
-                    self.G.covered_stat[node_id] = 0
-                    loggers.progress_logger.info(
-                        "{}% stmt covered.".format(100 * len(self.G.covered_stat) / self.G.get_total_num_statements()))
-                # elif self.G.covered_stat[node_id] > 300:
-                #    return NodeHandleResult()
-                else:
-                    self.G.covered_stat[node_id] += 1
+                header_stat = self.G.get_header_stat()
+                all_stat = self.G.get_all_stat()
+                if node_id  in all_stat-header_stat:
+                    if node_id not in self.G.covered_stat:
+                        self.G.covered_stat[node_id] = 0
+                        loggers.progress_logger.info(
+                            "{}% stmt covered.".format(100 * len(self.G.covered_stat) / (self.G.get_total_num_statements()-self.G.get_header_num_statements())))
+                    # elif self.G.covered_stat[node_id] > 300:
+                    #    return NodeHandleResult()
+                    else:
+                        self.G.covered_stat[node_id] += 1
 
             node_attr = self.G.get_node_attr(node_id)
             loggers.debug_logger.info("processing {}".format(node_id) + str(node_attr));
