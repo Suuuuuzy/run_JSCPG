@@ -90,7 +90,7 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry):
 
 def other_attack(G, entry):
     cur_thread = threading.current_thread()
-    print('=========Perform attack: ' + entry[0] + ' in ' + cur_thread.name)
+    print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
     func_objs = [entry[1]]
     args = []  # no args
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
@@ -152,6 +152,13 @@ def cs_chrome_runtime_sendMessage(G, event):
                 G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
             else:
                 G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
+        with G.event_condition_dic_lock:
+            if new_event in G.event_condition_dic:
+                cv = G.event_condition_dic[new_event]
+                with cv:
+                    cv.notify()
+                    print('notify event')
+                del G.event_condition_dic[new_event]
     else:
         if new_event in G.eventRegisteredFuncs:
             G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
@@ -186,6 +193,13 @@ def bg_chrome_tabs_sendMessage(G, event):
                 G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
             else:
                 G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
+        with G.event_condition_dic_lock:
+            if new_event in G.event_condition_dic:
+                cv = G.event_condition_dic[new_event]
+                with cv:
+                    cv.notify()
+                    print('notify event')
+                del G.event_condition_dic[new_event]
     else:
         if new_event in G.eventRegisteredFuncs:
             G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
