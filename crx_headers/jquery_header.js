@@ -27,8 +27,8 @@ var document = new Document();
 
 
 Document.prototype.addEventListener = function(type, listener,  [ options]){
-    var type = 'document_event_listener';
-    MarkAttackEntry(type, listener);
+    // var type = 'document_event_listener';
+    MarkAttackEntry('document_event_listener', listener);
 };
 
 
