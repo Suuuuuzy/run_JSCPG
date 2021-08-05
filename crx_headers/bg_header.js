@@ -16,8 +16,8 @@ Port.prototype.onMessage.addListener = function(myCallback){
 
 Port.prototype.postMessage = function(msg){
     // var eventName = 'bg_port_postMessage';
-    var info =  {message:msg};
-    TriggerEvent('bg_port_postMessage', info);
+    // var info =  {message:msg};
+    TriggerEvent('bg_port_postMessage', {message:msg});
 };
 
 // ========= tab ========= 
@@ -83,8 +83,8 @@ MessageSender = function(){
 };
 function sendResponse(message_back){
     // var eventName = 'bg_chrome_runtime_onMessage_response';
-    var info = {message: message_back};
-    TriggerEvent('bg_chrome_runtime_onMessage_response', info);
+    // var info = {message: message_back};
+    TriggerEvent('bg_chrome_runtime_onMessage_response', {message: message_back});
 };
 
 
@@ -97,8 +97,8 @@ Chrome.prototype.runtime.onMessage.removeListener = function(myCallback) {
 Chrome.prototype.runtime.onMessageExternal = new Object();
 // myCallback parameters: (message: any, sender: MessageSender, sendResponse: function) => {...}
 Chrome.prototype.runtime.onMessageExternal.addListener = function(myCallback){
-    var type = 'bg_chrome_runtime_MessageExternal';
-    MarkAttackEntry(type, myCallback);
+    // var type = 'bg_chrome_runtime_MessageExternal';
+    MarkAttackEntry('bg_chrome_runtime_MessageExternal', myCallback);
 }
 MessageSenderExternal = function(){
     this.frameId = 123;
@@ -136,8 +136,8 @@ Chrome.prototype.topSites.get = function(myCallback){
 Chrome.prototype.tabs = new Object();
 Chrome.prototype.tabs.sendMessage = function(tabId, message, responseCallback){
     // var eventName = 'bg_chrome_tabs_sendMessage';
-    var info =  {tabId:tabId, message:message, responseCallback:responseCallback};
-    TriggerEvent('bg_chrome_tabs_sendMessage', info);
+    // var info =  {tabId:tabId, message:message, responseCallback:responseCallback};
+    TriggerEvent('bg_chrome_tabs_sendMessage', {tabId:tabId, message:message, responseCallback:responseCallback});
 };
 
 // chrome.tabs.query(queryInfo: object, callback: function)

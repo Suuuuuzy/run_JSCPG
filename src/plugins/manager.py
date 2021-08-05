@@ -122,6 +122,7 @@ class PluginManager(object):
                     cur_info.flag.wait()
                     # check running time of current thread, and there is other thread waiting in the pq
                     if time.time_ns() - cur_info.last_start_time > 10000000000 and len(self.G.pq)>0:
+                        print(str(current_thread) + 'timeout')
                         with self.G.work_queue_lock:
                             if cur_info in self.G.work_queue:
                                 self.G.work_queue.remove(cur_info)

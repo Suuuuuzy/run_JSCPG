@@ -17,8 +17,8 @@ Port.prototype.onMessage.addListener = function(myCallback){
 
 Port.prototype.postMessage = function(msg){
         // var eventName = 'cs_port_postMessage';
-        var info =  {message:msg};
-        TriggerEvent('cs_port_postMessage', info);
+        // var info =  {message:msg};
+        TriggerEvent('cs_port_postMessage', {message:msg});
 };
 
 
@@ -26,10 +26,10 @@ Port.prototype.postMessage = function(msg){
 function Chrome(){}
 
 Chrome.prototype.runtime = new Object();
-Chrome.prototype.runtime.sendMessage = function(message, responseCallback){
+Chrome.prototype.runtime.sendMessage = function(msg, rspCallback){
     // var eventName = 'cs_chrome_runtime_sendMessage';
-    var info = {message: message,responseCallback: responseCallback};
-    TriggerEvent('cs_chrome_runtime_sendMessage', info);
+    // var info = {message: msg,responseCallback: rspCallback};
+    TriggerEvent('cs_chrome_runtime_sendMessage', {message: msg,responseCallback: rspCallback});
 };
 
 Chrome.prototype.runtime.connect = function(extensionId, connectInfo){
@@ -38,8 +38,8 @@ Chrome.prototype.runtime.connect = function(extensionId, connectInfo){
         var connectInfo = extensionId;
         var extensionId = undefined;
     }
-    var info = {extensionId:extensionId, connectInfo:connectInfo};
-    TriggerEvent('cs_chrome_runtime_connect', info);    
+    // var info = {extensionId:extensionId, connectInfo:connectInfo};
+    TriggerEvent('cs_chrome_runtime_connect', {extensionId:extensionId, connectInfo:connectInfo});    
     return new Port(connectInfo);
 };
 
@@ -64,8 +64,8 @@ MessageSender = function(){
 };
 function sendResponse(message_back){
     // var eventName = 'cs_chrome_runtime_onMessage_response';
-    var info = {message: message_back};
-    TriggerEvent('cs_chrome_runtime_onMessage_response', info);
+    // var info = {message: message_back};
+    TriggerEvent('cs_chrome_runtime_onMessage_response',  {message: message_back});
 };
 
 
@@ -154,8 +154,8 @@ Window.prototype.postMessage = function(message, targetOrigin, [transfer]){
 // target.addEventListener(type, listener [, options]);
 // the 'e' parameter passed to listener can be ignored, otherwise, it is the event object
 Window.prototype.addEventListener = function(type, listener,  [ options]){
-    var type = 'cs_window_postMessage';
-    MarkAttackEntry(type, listener);
+    // var type = 'cs_window_postMessage';
+    MarkAttackEntry('cs_window_postMessage', listener);
 };
 
 Window.prototype.top = new Object();
