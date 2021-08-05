@@ -95,11 +95,10 @@ def MarkSink(G: Graph, caller_ast, extra, _, *args):
 def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = args[0].values[0]
     listener = args[1].obj_nodes[0]
-    # print('Perform Attack: ', type)
     # G.attackEntries.insert(0, [type, listener])
     #  attack right away!
+    entry = [type, listener]
     if G.thread_version:
-        entry = [type, listener]
         if entry[0]=='bg_chrome_runtime_MessageExternal':
             emit_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))
         else:
@@ -107,7 +106,6 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in MarkAttackEntry: ', tmp)
     else:
-        entry = [type, listener]
         if entry[0]=='bg_chrome_runtime_MessageExternal':
             bg_chrome_runtime_MessageExternal_attack(G, entry)
         else:
