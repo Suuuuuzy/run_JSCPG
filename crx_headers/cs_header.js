@@ -11,8 +11,8 @@ function Port(info){
 Port.prototype.onMessage = new Object();
 
 
-Port.prototype.onMessage.addListener = function(myCallback){
-        RegisterFunc("cs_port_onMessage", myCallback);
+Port.prototype.onMessage.addListener = function(content_myCallback){
+        RegisterFunc("cs_port_onMessage", content_myCallback);
 };
 
 Port.prototype.postMessage = function(msg){
@@ -47,8 +47,8 @@ Chrome.prototype.runtime.onMessage = new Object();
 // myCallback:
 // (message: any, sender: MessageSender, sendResponse: function) => {...}
 // get message from chrome.runtime.sendMessage or chrome.tabs.sendMessage
-Chrome.prototype.runtime.onMessage.addListener = function(myCallback){
-    RegisterFunc('cs_chrome_runtime_onMessage', myCallback);
+Chrome.prototype.runtime.onMessage.addListener = function(content_myCallback){
+    RegisterFunc('cs_chrome_runtime_onMessage', content_myCallback);
 };
 
 MessageSender = function(){
