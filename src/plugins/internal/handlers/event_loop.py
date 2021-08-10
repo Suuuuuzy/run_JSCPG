@@ -4,9 +4,6 @@ from src.core.graph import Graph
 from src.core.utils import wildcard
 from src.plugins.internal.utils import get_df_callback, get_off_spring
 import threading
-from threading import Condition, Lock
-from src.core.thread_design import thread_info
-import time
 
 def event_loop_threading(G: Graph, event):
     # STEP1: see eventRegisteredFuncs right now
@@ -22,41 +19,40 @@ def event_loop_threading(G: Graph, event):
     if event['eventName'] in event_listener_dic:
         listener = event_listener_dic[event['eventName']][0]
         with G.eventRegisteredFuncs_lock:
-            if listener not in G.eventRegisteredFuncs:
-                listener_not_registered = True
-            else:
-                listener_not_registered = False
+            listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
         if listener_not_registered:
-            cv = Condition()
-            with G.event_condition_dic_lock:
-                G.event_condition_dic[listener]=cv
-            current_thread = threading.current_thread()
-            with G.thread_info_lock:
-                cur_info = G.thread_infos[current_thread.name]
-            with cv:
-                with G.wait_queue_lock:
-                    G.wait_queue.add(cur_info)
-                with G.work_queue_lock:
-                    if cur_info in G.work_queue:
-                        G.work_queue.remove(cur_info)
-                with G.pq_lock:
-                    if cur_info in G.pq:
-                        G.pq.remove(cur_info)
-                print(threading.current_thread().name + ': event waiting')
-                tmp = [i.thread_self for i in G.work_queue]
-                print('%%%%%%%%%work in event loop: ', tmp)
-                cv.wait()
-                print(threading.current_thread().name + ': event finish waiting')
-                with G.wait_queue_lock:
-                    G.wait_queue.remove(cur_info)
-                # cur_info.last_start_time = time.time_ns()
-                with G.work_queue_lock:
-                    G.work_queue.add(cur_info)
+            print(event['eventName'] , ': event listener not rregistered')
+            return
+            # cv = Condition()
+            # with G.event_condition_dic_lock:
+            #     G.event_condition_dic[listener]=cv
+            # current_thread = threading.current_thread()
+            # with G.thread_info_lock:
+            #     cur_info = G.thread_infos[current_thread.name]
+            # with cv:
+            #     with G.wait_queue_lock:
+            #         G.wait_queue.add(cur_info)
+            #     with G.work_queue_lock:
+            #         if cur_info in G.work_queue:
+            #             G.work_queue.remove(cur_info)
+            #     with G.pq_lock:
+            #         if cur_info in G.pq:
+            #             G.pq.remove(cur_info)
+            #     print(threading.current_thread().name + ': event waiting')
+            #     tmp = [i.thread_self for i in G.work_queue]
+            #     print('%%%%%%%%%work in event loop: ', tmp)
+            #     cv.wait()
+            #     print(threading.current_thread().name + ': event finish waiting')
+            #     with G.wait_queue_lock:
+            #         G.wait_queue.remove(cur_info)
+            #     # cur_info.last_start_time = time.time_ns()
+            #     with G.work_queue_lock:
+            #         G.work_queue.add(cur_info)
         func = event_listener_dic[event['eventName']][1]
         func(G, event)
 
 
-def event_loop(G: Graph, event):
+def event_loop_no_threading(G: Graph, event):
     print('========SEE eventRegisteredFuncs:========')
     for i in G.eventRegisteredFuncs:
         print(i, G.eventRegisteredFuncs[i])
@@ -147,18 +143,20 @@ def cs_chrome_runtime_sendMessage(G, event):
     sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name='responseCallback')[0]
     new_event = 'cs_chrome_runtime_sendMessage_onResponse'  # cs on getting the response from bg
     if G.thread_version:
-        with G.eventRegisteredFuncs_lock:
-            if new_event in G.eventRegisteredFuncs:
-                G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
-            else:
-                G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
-        with G.event_condition_dic_lock:
-            if new_event in G.event_condition_dic:
-                cv = G.event_condition_dic[new_event]
-                with cv:
-                    cv.notify()
-                    print('notify event')
-                del G.event_condition_dic[new_event]
+        from src.plugins.internal.modeled_extension_builtins import register_event_check
+        register_event_check(G, new_event, sender_responseCallback)
+        # with G.eventRegisteredFuncs_lock:
+        #     if new_event in G.eventRegisteredFuncs:
+        #         G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
+        #     else:
+        #         G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
+        # with G.event_condition_dic_lock:
+        #     if new_event in G.event_condition_dic:
+        #         cv = G.event_condition_dic[new_event]
+        #         with cv:
+        #             cv.notify()
+        #             print('notify event')
+        #         del G.event_condition_dic[new_event]
     else:
         if new_event in G.eventRegisteredFuncs:
             G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
@@ -188,18 +186,20 @@ def bg_chrome_tabs_sendMessage(G, event):
     sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name='responseCallback')[0]
     new_event = 'bg_chrome_tabs_sendMessage_onResponse'  # bg on getting the response from cs
     if G.thread_version:
-        with G.eventRegisteredFuncs_lock:
-            if new_event in G.eventRegisteredFuncs:
-                G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
-            else:
-                G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
-        with G.event_condition_dic_lock:
-            if new_event in G.event_condition_dic:
-                cv = G.event_condition_dic[new_event]
-                with cv:
-                    cv.notify()
-                    print('notify event')
-                del G.event_condition_dic[new_event]
+        from src.plugins.internal.modeled_extension_builtins import register_event_check
+        register_event_check(G, new_event, sender_responseCallback)
+        # with G.eventRegisteredFuncs_lock:
+        #     if new_event in G.eventRegisteredFuncs:
+        #         G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
+        #     else:
+        #         G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
+        # with G.event_condition_dic_lock:
+        #     if new_event in G.event_condition_dic:
+        #         cv = G.event_condition_dic[new_event]
+        #         with cv:
+        #             cv.notify()
+        #             print('notify event')
+        #         del G.event_condition_dic[new_event]
     else:
         if new_event in G.eventRegisteredFuncs:
             G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
@@ -267,5 +267,5 @@ event_listener_dic = {
     "cs_chrome_runtime_sendMessage":["bg_chrome_runtime_onMessage", cs_chrome_runtime_sendMessage],
     "bg_chrome_tabs_sendMessage":["cs_chrome_runtime_onMessage", bg_chrome_tabs_sendMessage],
     "bg_chrome_runtime_onMessage_response":["cs_chrome_runtime_sendMessage_onResponse", bg_chrome_runtime_onMessage_response],
-    "cs_chrome_tabs_onMessage_response":["bg_chrome_tabs_sendMessage_onResponse", cs_chrome_tabs_onMessage_response]
+    "cs_chrome_runtime_onMessage_response":["bg_chrome_tabs_sendMessage_onResponse", cs_chrome_tabs_onMessage_response]
 }

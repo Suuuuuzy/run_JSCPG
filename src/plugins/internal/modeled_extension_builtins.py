@@ -1,7 +1,7 @@
 from src.core.graph import Graph
 from src.core.utils import *
 from src.core.logger import *
-from src.plugins.internal.handlers.event_loop import event_loop, event_loop_threading, bg_chrome_runtime_MessageExternal_attack, other_attack
+from src.plugins.internal.handlers.event_loop import event_loop_no_threading, event_loop_threading, bg_chrome_runtime_MessageExternal_attack, other_attack
 from .utils import get_off_spring, emit_thread
 import threading
 
@@ -24,30 +24,31 @@ def setup_utils(G: Graph):
 # event is a string
 # func is the function's declaration node ID
 def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
-    event = args[0].values[0]
+    listener = args[0].values[0]
     func = args[1].obj_nodes[0]
     cur_thread = threading.current_thread()
     # print(args)
-    print('=========Register listener: '+ event + ' in ' + cur_thread.name)
+    print('=========Register listener: '+ listener + ' in ' + cur_thread.name)
     if G.thread_version:
-        with G.eventRegisteredFuncs_lock:
-            if event in G.eventRegisteredFuncs:
-                G.eventRegisteredFuncs[event].append(func)
-            else:
-                G.eventRegisteredFuncs[event] = [func]
-        with G.event_condition_dic_lock:
-            if event in G.event_condition_dic:
-                cv = G.event_condition_dic[event]
-                with cv:
-                    cv.notify()
-                    print('notify event')
-                del G.event_condition_dic[event]
+        register_event_check(G, listener, func)
     else:
-        if event in G.eventRegisteredFuncs:
-            G.eventRegisteredFuncs[event].append(func)
+        if listener in G.eventRegisteredFuncs:
+            G.eventRegisteredFuncs[listener].append(func)
         else:
-            G.eventRegisteredFuncs[event] = [func]
+            G.eventRegisteredFuncs[listener] = [func]
     return NodeHandleResult()
+
+def register_event_check(G:Graph, listener, func):
+    with G.eventRegisteredFuncs_lock:
+        if listener in G.eventRegisteredFuncs:
+            G.eventRegisteredFuncs[listener].append(func)
+        else:
+            G.eventRegisteredFuncs[listener] = [func]
+    event = G.listener_event_dic[listener]
+    with G.event_loop_lock:
+        # names = [i['eventName'] for i in G.event_loop]
+        if event in G.event_loop:
+            emit_thread(G, event_loop_threading, (G, G.event_loop[event]))
 
 def UnregisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
@@ -73,13 +74,22 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
     event = {'eventName': eventName, 'info': info, 'extra':extra}
     # trigger event right away
     print('trigger event: ', eventName)
+    listener = G.event_listener_dic[eventName]
     if G.thread_version:
-        emit_thread(G, event_loop_threading, (G, event))
+        with G.eventRegisteredFuncs_lock:
+            listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
+        if listener_not_registered:
+            print('listener not registered, store ' , event['eventName'], ' to loop')
+            with G.event_loop_lock:
+                G.event_loop[eventName] = (event)
+        else:
+            emit_thread(G, event_loop_threading, (G, event))
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in trigger event: ', tmp)
     else:
-        event_loop(G, event)
+        event_loop_no_threading(G, event)
     return NodeHandleResult()
+
 
 def MarkSource(G: Graph, caller_ast, extra, _, *args):
     sensitiveSource = args[0].obj_nodes[0]

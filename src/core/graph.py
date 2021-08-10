@@ -176,13 +176,9 @@ class Graph:
         self.thread_infos = {}
         self.thread_info_lock = Lock()
 
-        self.event_condition_dic = {}
-        # a dic of events and their registered funcs
-        # {event1: cv1},
-        #  event2: cv2},
-        #  ...
-        #  }
-        self.event_condition_dic_lock = Lock()
+        self.event_loop = {}
+        # a list of events
+        self.event_loop_lock = Lock()
 
         self.eventRegisteredFuncs = {}
         # a dic of events and their registered funcs
@@ -191,6 +187,19 @@ class Graph:
         #  ...
         #  }
         self.eventRegisteredFuncs_lock = Lock()
+
+        self.event_listener_dic = {
+            "cs_chrome_runtime_connect": "bg_chrome_runtime_onConnect",
+            "cs_port_postMessage": "bg_port_onMessage",
+            "bg_port_postMessage": "cs_port_onMessage",
+            "cs_chrome_runtime_sendMessage": "bg_chrome_runtime_onMessage",
+            "bg_chrome_tabs_sendMessage": "cs_chrome_runtime_onMessage",
+            "bg_chrome_runtime_onMessage_response": "cs_chrome_runtime_sendMessage_onResponse",
+            "cs_chrome_runtime_onMessage_response": "bg_chrome_tabs_sendMessage_onResponse"
+        }
+
+        self.listener_event_dic = {value: key for (key, value) in self.event_listener_dic.items()}
+
 
 
 

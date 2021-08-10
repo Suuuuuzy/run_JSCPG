@@ -12,7 +12,6 @@ import os
 import shutil
 import sys
 from tqdm import tqdm
-from ..plugins.internal.handlers.event_loop import event_loop
 import time
 from threading import Thread, Event
 import threading
