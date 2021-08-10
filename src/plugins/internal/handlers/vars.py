@@ -18,9 +18,12 @@ class HandleVar(Handler):
 def handle_var(G: Graph, ast_node, side=None, extra=None):
     cur_node_attr = G.get_node_attr(ast_node)
     var_name = G.get_name_from_child(ast_node)
-
-    if var_name == 'this' and G.cur_objs:
-        now_objs = G.cur_objs
+    if G.thread_version:
+        tmp_cur_objs = G.cur_objs if not G.thread_version else G.mydata.cur_objs
+    else:
+        tmp_cur_objs = G.mydata.cur_objs
+    if var_name == 'this' and tmp_cur_objs:
+        now_objs = tmp_cur_objs
         name_node = None
     elif var_name == '__filename':
         return NodeHandleResult(name=var_name, values=[
@@ -48,13 +51,13 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
                                 scope=G.find_ancestor_scope())
             elif cur_node_attr.get('flags:string[]') in [
                 'JS_DECL_LET', 'JS_DECL_CONST']:
-                # we use the block scope                
-                name_node = G.add_name_node(var_name, scope=G.cur_scope)
+                # we use the block scope
+                name_node = G.add_name_node(var_name, scope=G.mydata.cur_scope if G.thread_version else G.cur_scope)
             else:
                 # only if the variable is not defined and doesn't have
                 # 'var', 'let' or 'const', we define it in the global scope
                 # TODO: define in file scope, done
-                name_node = G.add_name_node(var_name, scope=G.cur_file_scope)
+                name_node = G.add_name_node(var_name, scope=G.mydata.cur_file_scope if G.thread_version else G.cur_file_scope)
         # else:
         #     now_objs = [G.undefined_obj]
 

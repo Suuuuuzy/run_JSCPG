@@ -32,9 +32,9 @@ def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
     '''
 
     if obj_parent_scope is None:
-        obj_parent_scope = G.cur_scope
+        obj_parent_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
     if scope_parent_scope is None:
-        scope_parent_scope = G.cur_scope
+        scope_parent_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
     if func_name is None:
         func_name = G.get_name_from_child(node_id)
 
@@ -443,7 +443,7 @@ def add_contributes_to(G: Graph, sources: Iterable, target,
 
 def get_df_callback(G, ast_node=None):
     if ast_node is None:
-        cpg_node = G.cur_stmt
+        cpg_node = G.cur_stmt if not G.thread_version else G.mydata.cur_stmt
     else:
         cpg_node = G.find_nearest_upper_CPG_node(ast_node)
     return lambda result: build_df_by_def_use(G, cpg_node, result.used_objs)

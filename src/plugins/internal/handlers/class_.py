@@ -60,7 +60,7 @@ def simurun_class_body(G, ast_node, extra):
     else:
         branches = extra.branches
 
-    loggers.main_logger.info('BLOCK {} STARTS, SCOPE {}'.format(ast_node, G.cur_scope))
+    # loggers.main_logger.info('BLOCK {} STARTS, SCOPE {}'.format(ast_node, G.cur_scope))
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     # control flows
     for last_stmt in G.last_stmts:
@@ -72,7 +72,10 @@ def simurun_class_body(G, ast_node, extra):
         for last_stmt in G.last_stmts:
             G.add_edge(last_stmt, stmt, {'type:TYPE': 'FLOWS_TO'})
         G.last_stmts = [stmt]
-        G.cur_stmt = stmt
+        if G.thread_version:
+            G.mydata.cur_stmt = stmt
+        else:
+            G.cur_stmt = stmt
         internal_manager.dispatch_node(stmt,
             ExtraInfo(extra, branches=branches))
 

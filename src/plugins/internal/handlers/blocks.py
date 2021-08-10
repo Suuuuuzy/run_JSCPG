@@ -18,20 +18,27 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     returned_objs = set()
     used_objs = set()
     if parent_scope == None:
-        parent_scope = G.cur_scope
+        parent_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
     if block_scope:
-        G.cur_scope = \
-            G.add_scope('BLOCK_SCOPE', decl_ast=ast_node,
-                        scope_name=G.scope_counter.gets(f'Block{ast_node}'))
-    loggers.main_logger.log(ATTENTION, 'BLOCK {} STARTS, SCOPE {}'.format(ast_node, G.cur_scope))
+        if G.thread_version:
+            G.mydata.cur_scope = \
+                G.add_scope('BLOCK_SCOPE', decl_ast=ast_node,
+                            scope_name=G.scope_counter.gets(f'Block{ast_node}'))
+        else:
+            G.cur_scope = \
+                G.add_scope('BLOCK_SCOPE', decl_ast=ast_node,
+                            scope_name=G.scope_counter.gets(f'Block{ast_node}'))
+    # loggers.main_logger.log(ATTENTION, 'BLOCK {} STARTS, SCOPE {}'.format(ast_node, G.cur_scope))
     decl_vars_and_funcs(G, ast_node, var=decl_var)
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     # simulate statements
     for stmt in stmts:
         if G.cfg_stmt is not None:
             G.add_edge_if_not_exist(G.cfg_stmt, stmt, {"type:TYPE": "FLOWS_TO"})
-
-        G.cur_stmt = stmt
+        if G.thread_version:
+            G.mydata.cur_stmt = stmt
+        else:
+            G.cur_stmt = stmt
         G.cfg_stmt = stmt
         # add control flow edges here
         handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
@@ -40,8 +47,10 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     returned_objs = G.function_returns[G.find_ancestor_scope()][1]
     
     if block_scope:
-
-        G.cur_scope = parent_scope
+        if G.thread_version:
+            G.mydata.cur_scope = parent_scope
+        else:
+            G.cur_scope = parent_scope
 
 
     return list(returned_objs), list(used_objs)

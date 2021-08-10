@@ -22,7 +22,10 @@ def setup_opg(G):
     # else:
     G.BASE_OBJ = G.add_obj_to_scope(name='global',
                         scope=G.BASE_SCOPE, combined=False)
-    G.cur_objs = [G.BASE_OBJ]
+    if G.thread_version:
+        G.mydata.cur_objs = [G.BASE_OBJ]
+    else:
+        G.cur_objs = [G.BASE_OBJ]
 
     # setup JavaScript built-in values
     G.null_obj = G.add_obj_to_scope(name='null', value='null',

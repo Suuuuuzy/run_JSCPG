@@ -25,8 +25,8 @@ class OPGen:
     """
 
     def __init__(self):
-        self.graph = Graph()
         self.options = options
+        self.graph = Graph(options.run_with_pq)
         self.graph.package_name = options.input_file
         setup_graph_env(self.graph)
 
@@ -212,16 +212,16 @@ class OPGen:
 
         loggers.detail_logger.info(f"{G.package_name} started")
         for entrance_file in entrance_files:
-            G = self.get_new_graph(package_name=package_path)
+            G = self.get_new_graph(package_name=package_path, thread_version = options.run_with_pq)
             test_res = self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
             if len(test_res) != 0:
                 break
     
-    def get_new_graph(self, package_name=None):
+    def get_new_graph(self,  package_name=None , thread_version=False):
         """
         set up a new graph
         """
-        self.graph = Graph()
+        self.graph = Graph(thread_version = thread_version)
         if not package_name:
             self.graph.package_name = options.input_file
         else:
@@ -277,7 +277,7 @@ class OPGen:
 
             for package_path in package_list:
                 # init a new graph
-                self.get_new_graph(package_name=package_path)
+                self.get_new_graph(package_name=package_path, thread_version = options.run_with_pq)
                 if options.chrome_extension:
                     self.test_chrome_extension(package_path, options.vul_type, self.graph, timeout_s=timeout_s,
                         pq=options.run_with_pq)
@@ -383,14 +383,14 @@ def admin_threads(G, function, args):
             # print('%%%%%%%%%work in admin: ', tmp)
         for t in dead:
             # if this thread is dead
-            print(t.thread_self.name + ' is dead')
+            """print(t.thread_self.name + ' is dead')
             print('%%%%%%%%%all: ', threading.enumerate())
             tmp = [i.thread_self for i in G.wait_queue]
             print('%%%%%%%%%wait: ', tmp)
             tmp = [i.thread_self for i in G.work_queue]
             print('%%%%%%%%%work: ', tmp)
             tmp = [i.thread_self for i in G.pq]
-            print('%%%%%%%%%pq: ', tmp)
+            print('%%%%%%%%%pq: ', tmp)"""
 
             # if this thread has a father thread
             if t.thread_self.name in G.branch_son_dad:

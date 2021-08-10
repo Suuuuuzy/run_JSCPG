@@ -13,21 +13,32 @@ from itertools import chain
 from collections import defaultdict
 from queue import PriorityQueue
 from threading import Thread, Event, Lock, Condition
+import threading
 
-
-
-class Graph:
-
+class MyData(threading.local):
     def __init__(self):
-        self.graph = nx.MultiDiGraph()
-        self.graph_lock = Lock()
         self.cur_objs = []
         self.cur_scope = None
         self.cur_file_scope = None
         self.cur_func = None
+        self.cur_stmt = None  # for building data flows
+        self.cur_file_path = None  # deprecated, use G.get_cur_file_path()
+class Graph:
+
+    def __init__(self, thread_version):
+        self.thread_version = thread_version
+        self.graph = nx.MultiDiGraph()
+        if self.thread_version:
+            self.mydata = MyData()
+        else:
+            self.cur_objs = []
+            self.cur_scope = None
+            self.cur_file_scope = None
+            self.cur_func = None
+            self.cur_stmt = None  # for building data flows
+            self.cur_file_path = None  # deprecated, use G.get_cur_file_path()
         self.cur_id = 0
         self.entry_file_path = None
-        self.cur_file_path = None # deprecated, use G.get_cur_file_path()
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
         self.registered_funcs = {}
@@ -114,7 +125,7 @@ class Graph:
         self.call_limit = 3
         self.file_stack = []
         self.require_obj_stack = []
-        self.cur_stmt = None # for building data flows
+
         self.function_returns = defaultdict(lambda: [[], []])
 
         # Python-modeled built-in modules
@@ -143,7 +154,7 @@ class Graph:
         # set a priority queue
         self.pq = []
         self.pq_lock = Lock()
-        self.thread_version = False
+
         self.work_queue = set()
         self.work_queue_lock = Lock()
         self.wait_queue = set()
@@ -862,7 +873,10 @@ class Graph:
         helper function
         add a namenode to scope
         """
-        cur_scope = self.cur_scope
+        if self.thread_version:
+            cur_scope = self.mydata.cur_scope
+        else:
+            cur_scope = self.cur_scope
         if scope != None:
             cur_scope = scope 
 
@@ -924,7 +938,10 @@ class Graph:
         return the added node id
         """
         if scope == None:
-            scope = self.cur_scope 
+            if self.thread_version:
+                scope = self.mydata.cur_scope
+            else:
+                scope = self.cur_scope
         # check if the name node exists first
         name_node = self.get_name_node(name, scope=scope, follow_scope_chain=False)
         if name_node == None:
@@ -983,7 +1000,10 @@ class Graph:
         Get the name node of a name based on scope.
         """
         if scope == None:
-            scope = self.cur_scope
+            if self.thread_version:
+                scope = self.mydata.cur_scope
+            else:
+                scope = self.cur_scope
 
         while True:
             var_edges = self.get_out_edges(scope, data = True, keys = True, edge_type = "SCOPE_TO_VAR")
@@ -1334,11 +1354,18 @@ class Graph:
             self.add_edge(new_scope_node, decl_ast,
                 {'type:TYPE': 'SCOPE_TO_AST'})
         if parent_scope is None:
-            if self.cur_scope is not None:
-                self.add_edge(self.cur_scope, new_scope_node,
+            if self.thread_version:
+                tmp_scope = self.mydata.cur_scope
+            else:
+                tmp_scope = self.cur_scope
+            if tmp_scope is not None:
+                self.add_edge(tmp_scope, new_scope_node,
                     {'type:TYPE': 'PARENT_SCOPE_OF'})
             else:
-                self.cur_scope = new_scope_node
+                if self.thread_version:
+                    self.mydata.cur_scope = new_scope_node
+                else:
+                    self.cur_scope = new_scope_node
         else:
             self.add_edge(parent_scope, new_scope_node,
                 {'type:TYPE': 'PARENT_SCOPE_OF'})
@@ -1359,7 +1386,10 @@ class Graph:
         scope.
         '''
         if cur_scope is None:
-            cur_scope = self.cur_scope
+            if self.thread_version:
+                cur_scope = self.mydata.cur_scope
+            else:
+                cur_scope = self.cur_scope
         while True:
             if self.get_node_attr(cur_scope).get('type') in scope_types:
                 return cur_scope
@@ -1613,7 +1643,10 @@ class Graph:
 
         self.BASE_OBJ = self.add_obj_to_scope(name='global',
                             scope=self.BASE_SCOPE, combined=False)
-        self.cur_objs = [self.BASE_OBJ]
+        if self.thread_version:
+            self.mydata.cur_objs = [self.BASE_OBJ]
+        else:
+            self.cur_objs = [self.BASE_OBJ]
 
         # setup JavaScript built-in values
         self.null_obj = self.add_obj_to_scope(name='null', value='null',

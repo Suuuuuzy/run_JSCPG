@@ -34,17 +34,17 @@ class HandleIf(Handler):
             # for each if statement, we should make sure cfg starts from the
             # if condition stmt
             G.cfg_stmt = node_id
-
+            tmp_cur_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
             if G.get_node_attr(condition).get('type') == 'NULL':  # else
                 if else_is_deterministic or G.single_branch:
-                    blocks.simurun_block(G, body, G.cur_scope, branches)
+                    blocks.simurun_block(G, body, tmp_cur_scope, branches)
                 else:
                     # not deterministic, create branch
                     branch_tag = BranchTag(
                         point=stmt_id, branch=str(branch_num_counter))
                     branch_num_counter += 1
-                    blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
+                    blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
                 return False, else_is_deterministic, branch_num_counter
                 # break
             # check condition
@@ -55,37 +55,37 @@ class HandleIf(Handler):
                                                                                 possibility, deterministic))
             if deterministic and possibility == 1:
                 # if the condition is surely true
-                blocks.simurun_block(G, body, G.cur_scope, branches)
+                blocks.simurun_block(G, body, tmp_cur_scope, branches)
                 return False, else_is_deterministic, branch_num_counter
                 # break
 
             elif G.single_branch and possibility != 0:
-                simurun_block(G, body, G.cur_scope)
+                simurun_block(G, body, tmp_cur_scope)
             elif not deterministic or possibility is None or 0 < possibility < 1:
                 # if the condition is unsure
                 else_is_deterministic = False
                 branch_tag = \
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
                 branch_num_counter += 1
-                blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
+                blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
             return True, else_is_deterministic, branch_num_counter
 
         def run_if_elem_pq(if_elem, branch_num_counter):
             # for each if statement, we should make sure cfg starts from the
             # if condition stmt
             G.cfg_stmt = node_id
-
+            tmp_cur_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
             if G.get_node_attr(condition).get('type') == 'NULL':  # else
                 # not deterministic, create branch
                 branch_tag = BranchTag(
                     point=stmt_id, branch=str(branch_num_counter))
-                blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
+                blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
                 # break
             else:
                 branch_tag = \
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
-                blocks.simurun_block(G, body, G.cur_scope, branches + [branch_tag])
+                blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
 
         if not G.thread_version:
             for idx,if_elem in enumerate(if_elems):

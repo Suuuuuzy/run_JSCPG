@@ -21,10 +21,16 @@ class HandleFor(Handler):
                 loggers.error_logger.error(n, G.get_node_attr(n))
                 return None
         cond = G.get_ordered_ast_child_nodes(cond)[0]
-        # switch scopes
-        parent_scope = G.cur_scope
-        G.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
-                      scope_name=G.scope_counter.gets(f'Block{body}'))
+        if G.thread_version:
+            # switch scopes
+            parent_scope = G.mydata.cur_scope
+            G.mydata.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
+                                      scope_name=G.scope_counter.gets(f'Block{body}'))
+        else:
+            # switch scopes
+            parent_scope = G.cur_scope
+            G.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
+                          scope_name=G.scope_counter.gets(f'Block{body}'))
         result = self.internal_manager.dispatch_node(init, extra) # init loop variables
 
         counter = 0
@@ -49,8 +55,12 @@ class HandleFor(Handler):
             simurun_block(G, body, branches=extra.branches) # run the body
             result = self.internal_manager.dispatch_node(inc, extra) # do the inc
             counter += 1
-        # switch back the scope
-        G.cur_scope = parent_scope
+        if G.thread_version:
+            # switch back the scope
+            G.mydata.cur_scope = parent_scope
+        else:
+            # switch back the scope
+            G.cur_scope = parent_scope
 
 class HandleForEach(Handler):
     """
@@ -65,11 +75,18 @@ class HandleForEach(Handler):
 
         obj, value, key, body = G.get_ordered_ast_child_nodes(node_id)
         handled_obj = handle_node(obj, extra)
-        # switch scopes
-        parent_scope = G.cur_scope
-        G.cur_scope = \
-            G.add_scope('BLOCK_SCOPE', decl_ast=body,
-                        scope_name=G.scope_counter.gets(f'Block{body}'))
+        if G.thread_version:
+            # switch scopes
+            parent_scope = G.mydata.cur_scope
+            G.mydata.cur_scope = \
+                G.add_scope('BLOCK_SCOPE', decl_ast=body,
+                            scope_name=G.scope_counter.gets(f'Block{body}'))
+        else:
+            # switch scopes
+            parent_scope = G.cur_scope
+            G.cur_scope = \
+                G.add_scope('BLOCK_SCOPE', decl_ast=body,
+                            scope_name=G.scope_counter.gets(f'Block{body}'))
         has_branches = (len(handled_obj.obj_nodes) > 1)
         # print(sty.fg.li_green, handled_obj.obj_nodes, sty.rs.all)
         for obj in handled_obj.obj_nodes:
@@ -158,8 +175,12 @@ class HandleForEach(Handler):
                 simurun_block(G, body, branches=extra.branches)
                 G.for_stack.pop()
                 logger.debug('For-of loop {} finished'.format(node_id))
-        # switch back the scope
-        G.cur_scope = parent_scope
+        if G.thread_version:
+            # switch back the scope
+            G.mydata.cur_scope = parent_scope
+        else:
+            # switch back the scope
+            G.cur_scope = parent_scope
 
 class HandleWhile(Handler):
     def process(self):
@@ -173,10 +194,16 @@ class HandleWhile(Handler):
             for n in G.get_ordered_ast_child_nodes(node_id):
                 logger.error(n, G.get_node_attr(n))
         # test = G.get_ordered_ast_child_nodes(test)[0] # wrongly influenced by for?
-        # switch scopes
-        parent_scope = G.cur_scope
-        G.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
-                      scope_name=G.scope_counter.gets(f'Block{body}'))
+        if G.thread_version:
+            # switch scopes
+            parent_scope = G.mydata.cur_scope
+            G.mydata.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
+                          scope_name=G.scope_counter.gets(f'Block{body}'))
+        else:
+            # switch scopes
+            parent_scope = G.cur_scope
+            G.cur_scope = G.add_scope('BLOCK_SCOPE', decl_ast=body,
+                                      scope_name=G.scope_counter.gets(f'Block{body}'))
         counter = 0
         while True:
             # check if the condition is met
@@ -191,8 +218,12 @@ class HandleWhile(Handler):
                 break
             simurun_block(G, body, branches=extra.branches) # run the body
             counter += 1
-        # switch back the scope
-        G.cur_scope = parent_scope
+        if G.thread_version:
+            # switch back the scope
+            G.mydata.cur_scope = parent_scope
+        else:
+            # switch back the scope
+            G.cur_scope = parent_scope
 
 class HandleBreak(Handler):
     def process(self):

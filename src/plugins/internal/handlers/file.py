@@ -60,8 +60,12 @@ def run_toplevel_file(G: Graph, node_id):
         return [] 
     G.file_stack.append(file_path)
     print('G.file_stack', G.file_stack)
-    previous_file_path = G.cur_file_path
-    G.cur_file_path = file_path
+    if G.thread_version:
+        previous_file_path = G.mydata.cur_file_path
+        G.mydata.cur_file_path = file_path
+    else:
+        previous_file_path = G.cur_file_path
+        G.cur_file_path = file_path
     if G.entry_file_path is None:
         G.entry_file_path = file_path
     loggers.main_logger.info(sty.fg(173) + sty.ef.inverse + 'FILE {} BEGINS'.format(file_path) + sty.rs.all)
@@ -72,12 +76,18 @@ def run_toplevel_file(G: Graph, node_id):
     func_scope = G.add_scope(scope_type='FILE_SCOPE', decl_ast=node_id,
         scope_name=G.scope_counter.gets(f'File{node_id}'),
         decl_obj=func_decl_obj, func_name=file_path, parent_scope=G.BASE_SCOPE)
-
-    backup_scope = G.cur_scope
-    G.cur_scope = func_scope
-    # update cur_file_scope
-    G.cur_file_scope = func_scope
-    backup_stmt = G.cur_stmt
+    if G.thread_version:
+        backup_scope = G.mydata.cur_scope
+        G.mydata.cur_scope = func_scope
+        # update cur_file_scope
+        G.mydata.cur_file_scope = func_scope
+        backup_stmt = G.mydata.cur_stmt
+    else:
+        backup_scope = G.cur_scope
+        G.cur_scope = func_scope
+        # update cur_file_scope
+        G.cur_file_scope = func_scope
+        backup_stmt = G.cur_stmt
 
     # cs_0.js, bg.js
     if 'bg.js' in file_path:
@@ -124,12 +134,18 @@ def run_toplevel_file(G: Graph, node_id):
             print('exported', G.get_node_attr(o))
     """
 
-
-    # switch back scope, object, path and statement AST node id
-    G.cur_scope = backup_scope
-    # G.cur_objs = backup_objs
-    G.cur_file_path = previous_file_path
-    G.cur_stmt = backup_stmt
+    if G.thread_version:
+        # switch back scope, object, path and statement AST node id
+        G.mydata.cur_scope = backup_scope
+        # G.cur_objs = backup_objs
+        G.mydata.cur_file_path = previous_file_path
+        G.mydata.cur_stmt = backup_stmt
+    else:
+        # switch back scope, object, path and statement AST node id
+        G.cur_scope = backup_scope
+        # G.cur_objs = backup_objs
+        G.cur_file_path = previous_file_path
+        G.cur_stmt = backup_stmt
 
     G.file_stack.pop(-1)
 

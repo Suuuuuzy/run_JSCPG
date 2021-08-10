@@ -174,18 +174,25 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
     func_objs = G.get_func_decl_objs_by_ast_node(func_ast)
     func_obj = func_objs[0] if func_objs else '?'
     func_name = G.get_node_attr(func_obj).get('name') if func_objs else '?'
-    loggers.main_logger.info(sty.ef.inverse + sty.fg.green +
-        "FUNCTION {} {} STARTS, SCOPE {}, DECL OBJ {}, this OBJs {}, branches {}"
-        .format(func_ast, func_name or '{anonymous}',
-        G.cur_scope, func_obj, G.cur_objs,
-        branches) + sty.rs.all)
+    # loggers.main_logger.info(sty.ef.inverse + sty.fg.green +
+    #     "FUNCTION {} {} STARTS, SCOPE {}, DECL OBJ {}, this OBJs {}, branches {}"
+    #     .format(func_ast, func_name or '{anonymous}',
+    #     G.cur_scope, func_obj, G.cur_objs,
+    #     branches) + sty.rs.all)
     returned_objs, used_objs = [], []
     # update graph register for cur_func
-    G.cur_func = G.get_cur_function_decl()
+    if G.thread_version:
+        G.mydata.cur_func = G.get_cur_function_decl()
+    else:
+        G.cur_func = G.get_cur_function_decl()
 
     for child in G.get_child_nodes(func_ast, child_type='AST_STMT_LIST'):
+        if G.thread_version:
+            tmp_scope = G.mydata.cur_scope
+        else:
+            tmp_scope = G.cur_scope
         returned_objs, used_objs = simurun_block(G, child,
-            parent_scope=G.cur_scope, branches=branches,
+            parent_scope=tmp_scope, branches=branches,
             block_scope=block_scope, decl_var=True)
         break
 
@@ -326,14 +333,22 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     # build the prototype chain
     G.build_proto(created_obj)
 
-    # update current object (this)
-    backup_objs = G.cur_objs
-    G.cur_objs = [created_obj]
+    if G.thread_version:
+        # update current object (this)
+        backup_objs = G.mydata.cur_objs
+        G.mydata.cur_objs = [created_obj]
+    else:
+        # update current object (this)
+        backup_objs = G.cur_objs
+        G.cur_objs = [created_obj]
 
     returned_objs, _ = simurun_function(G, constructor_decl, branches=branches,
         caller_ast=exp_ast_node)
 
-    G.cur_objs = backup_objs
+    if G.thread_version:
+        G.mydata.cur_objs = backup_objs
+    else:
+        G.cur_objs = backup_objs
 
     # finally add call edge from caller to callee
     # added in call_function, no need to add here
@@ -449,6 +464,7 @@ def run_exported_functions(G, module_exports_objs, extra):
         if G.get_node_attr(obj).get('type') != 'function':
             continue
         loggers.main_logger.info('Run exported function {} {}'.format(obj, cur_obj_name))
+
         G.cur_source_name = cur_obj_name
         # func_timeout may cause threading problems
         G.time_limit_reached = False
@@ -824,10 +840,16 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             #     next_branches.extend(for_tags)
             # logger.debug(f'next branch tags: {next_branches}')
 
-            # switch scopes ("new" will swtich scopes and object by itself)
-            backup_scope = G.cur_scope
-            G.cur_scope = func_scope
-            backup_stmt = G.cur_stmt
+            if G.thread_version:
+                # switch scopes ("new" will swtich scopes and object by itself)
+                backup_scope = G.mydata.cur_scope
+                G.mydata.cur_scope = func_scope
+                backup_stmt = G.mydata.cur_stmt
+            else:
+                # switch scopes ("new" will swtich scopes and object by itself)
+                backup_scope = G.cur_scope
+                G.cur_scope = func_scope
+                backup_stmt = G.cur_stmt
 
             # call the Python callback function
             if python_callback is not None:
@@ -837,18 +859,32 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                 branch_created_obj, branch_returned_objs = instantiate_obj(G,
                     caller_ast, func_ast, branches=next_branches)
             else:
-                backup_objs = G.cur_objs
-                if _this:
-                    G.cur_objs = _this.obj_nodes
+                backup_objs = G.mydata.cur_objs if G.thread_version else G.cur_objs
+                if G.thread_version:
+                    if _this:
+                        G.mydata.cur_objs = _this.obj_nodes
+                    else:
+                        G.mydata.cur_objs = [G.BASE_OBJ]
                 else:
-                    G.cur_objs = [G.BASE_OBJ]
+                    if _this:
+                        G.cur_objs = _this.obj_nodes
+                    else:
+                        G.cur_objs = [G.BASE_OBJ]
                 branch_returned_objs, branch_used_objs = simurun_function(
                     G, func_ast, branches=next_branches, caller_ast=caller_ast)
-                G.cur_objs = backup_objs
+                if G.thread_version:
+                    G.mydata.cur_objs = backup_objs
+                else:
+                    G.cur_objs = backup_objs
             func_return_handle_res = G.function_returns[G.find_ancestor_scope()][0]
-            # switch back scopes
-            G.cur_scope = backup_scope
-            G.cur_stmt = backup_stmt
+            if G.thread_version:
+                # switch back scopes
+                G.mydata.cur_scope = backup_scope
+                G.mydata.cur_stmt = backup_stmt
+            else:
+                # switch back scopes
+                G.cur_scope = backup_scope
+                G.cur_stmt = backup_stmt
 
             # delete "arguments" (avoid parent explosion)
             for name_node in G.get_prop_name_nodes(arguments_obj):

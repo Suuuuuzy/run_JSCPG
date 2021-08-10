@@ -37,9 +37,9 @@ def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
     #     return None
 
     if obj_parent_scope is None:
-        obj_parent_scope = G.cur_scope
+        obj_parent_scope = G.mydata.cur_scope if G.thread_version else G.cur_scope
     if scope_parent_scope is None:
-        scope_parent_scope = G.cur_scope
+        scope_parent_scope = G.mydata.cur_scope if G.thread_version else G.cur_scope
     if func_name is None:
         func_name = G.get_name_from_child(node_id)
 
@@ -53,7 +53,8 @@ def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
     # scope should be put under where it is defined, we need to memorize
     # its original parent scope.
     G.set_node_attr(added_obj, ('parent_scope', scope_parent_scope))
-    G.set_node_attr(added_obj, ('parent_scope_this', G.cur_objs))
+    tmp_cur_objs = G.mydata.cur_objs if G.thread_version else G.cur_objs
+    G.set_node_attr(added_obj, ('parent_scope_this', tmp_cur_objs))
 
     if func_name is not None and func_name != '{anon}' and add_to_scope:
         G.add_obj_to_scope(name=func_name, scope=obj_parent_scope,

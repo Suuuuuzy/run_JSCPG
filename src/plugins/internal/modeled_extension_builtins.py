@@ -27,6 +27,7 @@ def RegisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
     func = args[1].obj_nodes[0]
     cur_thread = threading.current_thread()
+    # print(args)
     print('=========Register listener: '+ event + ' in ' + cur_thread.name)
     if G.thread_version:
         with G.eventRegisteredFuncs_lock:
@@ -65,7 +66,7 @@ def UnregisterFunc(G: Graph, caller_ast, extra, _, *args):
 # trigger the events in turn after all the events entered the queue
 # NOTE: the eventName and info we store are both obj node ID in graph
 def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
-    print(args)
+    # print(args)
     # eventName = G.get_node_attr(args[0].obj_nodes[0])['code']
     eventName = args[0].values[0]
     info = args[1].obj_nodes[0]
