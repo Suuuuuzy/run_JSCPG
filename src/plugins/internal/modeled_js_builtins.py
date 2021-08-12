@@ -258,7 +258,8 @@ def array_p_for_each_value(G: Graph, caller_ast, extra, array=NodeHandleResult()
                 nonlocal name, name_nodes, array
                 # full functional for-stack
                 # (type, ast node, scope, loop var name, loop var value, loop var value list, loop var origin list)
-                G.for_stack.append(('array for each', caller_ast, G.cur_scope, loop_var_name, name, G.get_prop_obj_nodes(arr, numeric_only=True), array.obj_nodes))
+                tmp_cur_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
+                G.for_stack.append(('array for each', caller_ast, tmp_cur_scope, loop_var_name, name, G.get_prop_obj_nodes(arr, numeric_only=True), array.obj_nodes))
             call_function(G, callback.obj_nodes,
                 args=[NodeHandleResult(name_nodes=[name_node], name=name,
                     obj_nodes=obj_nodes), index_arg, 

@@ -214,7 +214,7 @@ def vul_checking(G, pathes, vul_type):
     # ('start_with_func', dispatchable_events),
     chrome_data_exfiltration = [
         [ ('start_with_var', crx_source_var_name),('end_with_func', user_sink)],
-        [('start_with_sensitiveSource', None), ('end_with_func', user_sink)], # this one should be able to replace the above one
+        # [('start_with_sensitiveSource', None), ('end_with_func', user_sink)], # this one should be able to replace the above one
         # first combine them together
         [('has_user_input', None), ('end_with_func', crx_sink)],
         # [('end_with_func', ctrl_sink)]

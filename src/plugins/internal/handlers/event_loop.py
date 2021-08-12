@@ -5,14 +5,14 @@ from src.core.utils import wildcard
 from src.plugins.internal.utils import get_df_callback, get_off_spring
 import threading
 
-def event_loop_threading(G: Graph, event):
+def event_loop_threading(G: Graph, event, mydata):
+    G.mydata.unpickle_up(mydata)
     # STEP1: see eventRegisteredFuncs right now
     print('========SEE eventRegisteredFuncs:========')
     with G.eventRegisteredFuncs_lock:
         for i in G.eventRegisteredFuncs:
             print(i, G.eventRegisteredFuncs[i])
             print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
-
     # STEP2: trigger event
     cur_thread = threading.current_thread()
     print('=========processing eventName: ' + event['eventName'] + ' in ' + cur_thread.name)
@@ -23,31 +23,6 @@ def event_loop_threading(G: Graph, event):
         if listener_not_registered:
             print(event['eventName'] , ': event listener not rregistered')
             return
-            # cv = Condition()
-            # with G.event_condition_dic_lock:
-            #     G.event_condition_dic[listener]=cv
-            # current_thread = threading.current_thread()
-            # with G.thread_info_lock:
-            #     cur_info = G.thread_infos[current_thread.name]
-            # with cv:
-            #     with G.wait_queue_lock:
-            #         G.wait_queue.add(cur_info)
-            #     with G.work_queue_lock:
-            #         if cur_info in G.work_queue:
-            #             G.work_queue.remove(cur_info)
-            #     with G.pq_lock:
-            #         if cur_info in G.pq:
-            #             G.pq.remove(cur_info)
-            #     print(threading.current_thread().name + ': event waiting')
-            #     tmp = [i.thread_self for i in G.work_queue]
-            #     print('%%%%%%%%%work in event loop: ', tmp)
-            #     cv.wait()
-            #     print(threading.current_thread().name + ': event finish waiting')
-            #     with G.wait_queue_lock:
-            #         G.wait_queue.remove(cur_info)
-            #     # cur_info.last_start_time = time.time_ns()
-            #     with G.work_queue_lock:
-            #         G.work_queue.add(cur_info)
         func = event_listener_dic[event['eventName']][1]
         func(G, event)
 
@@ -63,7 +38,8 @@ def event_loop_no_threading(G: Graph, event):
             func(G, event)
 
 
-def bg_chrome_runtime_MessageExternal_attack(G, entry):
+def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata):
+    G.mydata.unpickle_up(mydata)
     wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
                                        else None, value=wildcard)
     G.set_node_attr(wildcard_msg_obj, ('tainted', True))
@@ -84,7 +60,8 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry):
                                                          mark_fake_args=False)
 
 
-def other_attack(G, entry):
+def other_attack(G, entry, mydata):
+    G.mydata.unpickle_up(mydata)
     cur_thread = threading.current_thread()
     print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
     func_objs = [entry[1]]

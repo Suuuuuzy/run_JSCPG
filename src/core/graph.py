@@ -23,6 +23,24 @@ class MyData(threading.local):
         self.cur_func = None
         self.cur_stmt = None  # for building data flows
         self.cur_file_path = None  # deprecated, use G.get_cur_file_path()
+    def pickle_up(self):
+        dic = {
+            "cur_objs":self.cur_objs,
+            "cur_scope": self.cur_scope,
+            "cur_file_scope": self.cur_file_scope,
+            "cur_func": self.cur_func,
+            "cur_stmt": self.cur_stmt,
+            "cur_file_path": self.cur_file_path
+            }
+        return dic
+    def unpickle_up(self, dic):
+        self.cur_objs = dic['cur_objs']
+        self.cur_scope = dic['cur_scope']
+        self.cur_file_scope = dic['cur_file_scope']
+        self.cur_func = dic['cur_func']
+        self.cur_stmt = dic['cur_stmt']  # for building data flows
+        self.cur_file_path = dic['cur_file_path']  # deprecated, use G.get_cur_file_path()
+
 class Graph:
 
     def __init__(self, thread_version):
@@ -38,6 +56,7 @@ class Graph:
             self.cur_stmt = None  # for building data flows
             self.cur_file_path = None  # deprecated, use G.get_cur_file_path()
         self.cur_id = 0
+        self.cur_id_lock = Lock()
         self.entry_file_path = None
         self.file_contents = {}
         self.logger = create_logger("graph_logger", output_type="file")
@@ -211,8 +230,10 @@ class Graph:
         """
         return a nodeid
         """
-        self.cur_id += 1
-        return str(self.cur_id - 1)
+        with self.cur_id_lock:
+            self.cur_id += 1
+            tmp = self.cur_id - 1
+        return str(tmp)
         # return str(uuid.uuid4().int)
 
     def add_node(self, node_for_adding, attr={}):
@@ -467,7 +488,8 @@ class Graph:
 
         # self.relabel_nodes()
         # reset cur_id
-        self.cur_id = self.graph.number_of_nodes()
+        with self.cur_id_lock:
+            self.cur_id = self.graph.number_of_nodes()
 
     def import_from_CSV(self, nodes_file_name, rels_file_name, offset=0):
         with open(nodes_file_name) as fp:
@@ -492,7 +514,8 @@ class Graph:
     
         # self.relabel_nodes()
         # reset cur_id
-        self.cur_id = self.graph.number_of_nodes()
+        with self.cur_id_lock:
+            self.cur_id = self.graph.number_of_nodes()
 
     def export_to_CSV(self, nodes_file_name, rels_file_name, light = False):
         """
@@ -567,11 +590,13 @@ class Graph:
         self.graph = nx.Graph(dict_graph)
 
     def recount_cur_id(self):
-        self.cur_id = 0
+        with self.cur_id_lock:
+            self.cur_id = 0
         for node in self.graph.nodes:
             node_id = int(self.get_node_attr(node).get('id:ID'))
-            if node_id >= self.cur_id:
-                self.cur_id = node_id + 1
+            with self.cur_id_lock:
+                if node_id >= self.cur_id:
+                    self.cur_id = node_id + 1
 
     # AST & CPG
 
@@ -882,10 +907,7 @@ class Graph:
         helper function
         add a namenode to scope
         """
-        if self.thread_version:
-            cur_scope = self.mydata.cur_scope
-        else:
-            cur_scope = self.cur_scope
+        cur_scope = self.mydata.cur_scope if self.thread_version else self.cur_scope
         if scope != None:
             cur_scope = scope 
 
@@ -947,10 +969,7 @@ class Graph:
         return the added node id
         """
         if scope == None:
-            if self.thread_version:
-                scope = self.mydata.cur_scope
-            else:
-                scope = self.cur_scope
+            scope = self.mydata.cur_scope if self.thread_version else self.cur_scope
         # check if the name node exists first
         name_node = self.get_name_node(name, scope=scope, follow_scope_chain=False)
         if name_node == None:

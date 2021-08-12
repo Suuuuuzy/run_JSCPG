@@ -18,10 +18,7 @@ class HandleVar(Handler):
 def handle_var(G: Graph, ast_node, side=None, extra=None):
     cur_node_attr = G.get_node_attr(ast_node)
     var_name = G.get_name_from_child(ast_node)
-    if G.thread_version:
-        tmp_cur_objs = G.cur_objs if not G.thread_version else G.mydata.cur_objs
-    else:
-        tmp_cur_objs = G.mydata.cur_objs
+    tmp_cur_objs = G.cur_objs if not G.thread_version else G.mydata.cur_objs
     if var_name == 'this' and tmp_cur_objs:
         now_objs = tmp_cur_objs
         name_node = None

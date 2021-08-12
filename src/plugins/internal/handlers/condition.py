@@ -11,7 +11,7 @@ from threading import Thread, Condition
 import threading
 import time
 from src.core.thread_design import thread_info
-
+import copy
 class HandleIf(Handler):
     """
     handle the if ast
@@ -34,7 +34,7 @@ class HandleIf(Handler):
             # for each if statement, we should make sure cfg starts from the
             # if condition stmt
             G.cfg_stmt = node_id
-            tmp_cur_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
+            tmp_cur_scope = G.cur_scope
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
             if G.get_node_attr(condition).get('type') == 'NULL':  # else
                 if else_is_deterministic or G.single_branch:
@@ -44,6 +44,7 @@ class HandleIf(Handler):
                     branch_tag = BranchTag(
                         point=stmt_id, branch=str(branch_num_counter))
                     branch_num_counter += 1
+                    # print('test tmp_cur_scope: ', body, tmp_cur_scope, branches + [branch_tag])
                     blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
                 return False, else_is_deterministic, branch_num_counter
                 # break
@@ -67,31 +68,34 @@ class HandleIf(Handler):
                 branch_tag = \
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
                 branch_num_counter += 1
+                # print('test tmp_cur_scope: ', body, tmp_cur_scope, branches + [branch_tag])
                 blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
             return True, else_is_deterministic, branch_num_counter
 
-        def run_if_elem_pq(if_elem, branch_num_counter):
+        def run_if_elem_pq(if_elem, branch_num_counter, mydata):
             # for each if statement, we should make sure cfg starts from the
             # if condition stmt
+            G.mydata.unpickle_up(mydata)
+            # G.mydata = copy.copy(mydata)
+            # print('run_if_elem_pq mydata: ',  G.mydata.cur_scope)
             G.cfg_stmt = node_id
-            tmp_cur_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
+            tmp_cur_scope = G.mydata.cur_scope
             condition, body = G.get_ordered_ast_child_nodes(if_elem)
             if G.get_node_attr(condition).get('type') == 'NULL':  # else
                 # not deterministic, create branch
                 branch_tag = BranchTag(
                     point=stmt_id, branch=str(branch_num_counter))
+                # print('test tmp_cur_scope: ', body, tmp_cur_scope, branches + [branch_tag])
                 blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
                 # break
             else:
                 branch_tag = \
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
+                # print('test tmp_cur_scope: ', body, tmp_cur_scope, branches + [branch_tag])
                 blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
 
         if not G.thread_version:
-            for idx,if_elem in enumerate(if_elems):
-                # print('jianjia see if_elem in dispatch: ', if_elem)
-                # depth = G.get_node_attr(if_elem)['branch']
-                # print(depth)
+            for idx, if_elem in enumerate(if_elems):
                 result, else_is_deterministic, branch_num_counter = run_if_elem(if_elem, else_is_deterministic, branch_num_counter)
                 if not result:
                     break
@@ -111,7 +115,7 @@ class HandleIf(Handler):
             son_age = cur_info.thread_age
             cv = Condition()
             for idx, if_elem in enumerate(if_elems):
-                t = Thread(target=run_if_elem_pq, args=(if_elem, idx))
+                t = Thread(target=run_if_elem_pq, args=(if_elem, idx, G.mydata.pickle_up()))
                 info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=son_age)
                 info.pause()
                 with G.thread_info_lock:

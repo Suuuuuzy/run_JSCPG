@@ -280,7 +280,8 @@ def handle_require(G: Graph, caller_ast, extra, _, module_names):
 
                 # following code is copied from analyze_files,
                 # consider combining in future.
-                start_id = str(G.cur_id)
+                with G.cur_id_lock:
+                    start_id = str(G.cur_id)
                 result = esprima_parse(file_path, ['-n', start_id, '-o', '-'],
                     print_func=logger.info)
                 G.import_from_string(result)

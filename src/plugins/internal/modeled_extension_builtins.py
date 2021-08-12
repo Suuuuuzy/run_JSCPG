@@ -20,6 +20,7 @@ def setup_utils(G: Graph):
     G.add_blank_func_to_scope('MarkSource', scope=G.BASE_SCOPE, python_func=MarkSource)
     G.add_blank_func_to_scope('MarkSink', scope=G.BASE_SCOPE, python_func=MarkSink)
     G.add_blank_func_to_scope('MarkAttackEntry', scope=G.BASE_SCOPE, python_func=MarkAttackEntry)
+    G.add_blank_func_to_scope('debug_sink', scope=G.BASE_SCOPE, python_func=debug_sink)
 
 # event is a string
 # func is the function's declaration node ID
@@ -48,7 +49,7 @@ def register_event_check(G:Graph, listener, func):
     with G.event_loop_lock:
         # names = [i['eventName'] for i in G.event_loop]
         if event in G.event_loop:
-            emit_thread(G, event_loop_threading, (G, G.event_loop[event]))
+            emit_thread(G, event_loop_threading, (G, G.event_loop[event], G.mydata.pickle_up()))
 
 def UnregisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
@@ -83,7 +84,7 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
             with G.event_loop_lock:
                 G.event_loop[eventName] = (event)
         else:
-            emit_thread(G, event_loop_threading, (G, event))
+            emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()))
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in trigger event: ', tmp)
     else:
@@ -111,9 +112,9 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     entry = [type, listener]
     if G.thread_version:
         if entry[0]=='bg_chrome_runtime_MessageExternal':
-            emit_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry))
+            emit_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry, G.mydata.pickle_up()))
         else:
-            emit_thread(G, other_attack, (G, entry))
+            emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()))
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in MarkAttackEntry: ', tmp)
     else:
@@ -123,3 +124,7 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
             other_attack(G, entry)
     return NodeHandleResult()
 
+def debug_sink(G: Graph, caller_ast, extra, _, *args):
+    print('sink reached')
+    print(args)
+    return NodeHandleResult()

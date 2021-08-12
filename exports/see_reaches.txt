@@ -1,28 +1,112 @@
-['2809', '709']
-[['2809', 'AST', 'AST_CALL', '', '501', 'resp({historyAllUrls: urls})', '2', '2756', '', '501:1:501:29', '501', '', '', 'True', '']]
-[['709', 'AST', 'AST_CALL', '', '117', 'sendResponseExternal_sink(message_out)', '0', '698', '', '117:4:117:42', '117', '', '', 'True', '']]
+['1185', '3561']
+[['1185', 'AST', 'AST_ASSIGN', '', '199', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1169', '', '199:8:199:245', '199', '', 'details does not matter for now', 'True', '']]
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
 
-['2846', '1711']
-[['2846', 'AST', 'AST_METHOD_CALL', '', '507', '', '1', '2822', '', '507:4:528:6', '528', '', '', 'True', '']]
-[['1711', 'AST', 'AST_CALL', '', '281', 'chrome_browsingData_remove_sink(para1, prara2, para3)', '0', '1691', '', '281:4:281:57', '281', '', '', 'True', '']]
+['1185', '3561']
+[['1185', 'AST', 'AST_ASSIGN', '', '199', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1169', '', '199:8:199:245', '199', '', 'details does not matter for now', 'True', '']]
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
 
-['2846', '1711']
-[['2846', 'AST', 'AST_METHOD_CALL', '', '507', '', '1', '2822', '', '507:4:528:6', '528', '', '', 'True', '']]
-[['1711', 'AST', 'AST_CALL', '', '281', 'chrome_browsingData_remove_sink(para1, prara2, para3)', '0', '1691', '', '281:4:281:57', '281', '', '', 'True', '']]
+['1185', '3561']
+[['1185', 'AST', 'AST_ASSIGN', '', '199', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1169', '', '199:8:199:245', '199', '', 'details does not matter for now', 'True', '']]
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
 
-['2846', '1711']
-[['2846', 'AST', 'AST_METHOD_CALL', '', '507', '', '1', '2822', '', '507:4:528:6', '528', '', '', 'True', '']]
-[['1711', 'AST', 'AST_CALL', '', '281', 'chrome_browsingData_remove_sink(para1, prara2, para3)', '0', '1691', '', '281:4:281:57', '281', '', '', 'True', '']]
+['1185', '3561']
+[['1185', 'AST', 'AST_ASSIGN', '', '199', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1169', '', '199:8:199:245', '199', '', 'details does not matter for now', 'True', '']]
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
 
-['2949', '709']
-[['2949', 'AST', 'AST_CALL', '', '529', "resp({success: 'removed'})", '2', '2822', '', '529:1:529:27', '529', '', '', 'True', '']]
-[['709', 'AST', 'AST_CALL', '', '117', 'sendResponseExternal_sink(message_out)', '0', '698', '', '117:4:117:42', '117', '', '', 'True', '']]
+['1185', '3561']
+[['1185', 'AST', 'AST_ASSIGN', '', '199', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1169', '', '199:8:199:245', '199', '', 'details does not matter for now', 'True', '']]
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
 
-['2959', '2990']
-[['2959', 'AST', 'AST_METHOD_CALL', '', '533', '', '86', '2', '', '533::541:2', '541', '', '', 'True', '']]
-[['2990', 'AST', 'AST_BINARY_OP', 'BINARY_IS_NOT_EQUAL', '535', "request.type != 'remove'", '0', '2968', '', '535:5:535:29', '535', '', '', 'True', '']]
+['1185', '3561']
+[['1185', 'AST', 'AST_ASSIGN', '', '199', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1169', '', '199:8:199:245', '199', '', 'details does not matter for now', 'True', '']]
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
 
-['2988', '2990']
-[['2988', 'AST', 'AST_IF', '', '535', '', '0', '2968', '', '535:2:539:3', '539', '', '', 'True', '']]
-[['2990', 'AST', 'AST_BINARY_OP', 'BINARY_IS_NOT_EQUAL', '535', "request.type != 'remove'", '0', '2968', '', '535:5:535:29', '535', '', '', 'True', '']]
+['1185', '3561']
+[['1185', 'AST', 'AST_ASSIGN', '', '199', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1169', '', '199:8:199:245', '199', '', 'details does not matter for now', 'True', '']]
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
+
+['1185', '3561']
+[['1185', 'AST', 'AST_ASSIGN', '', '199', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1169', '', '199:8:199:245', '199', '', 'details does not matter for now', 'True', '']]
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
+
+['1230', '3561']
+[['1230', 'AST', 'AST_ASSIGN', '', '201', 'cookies_source = [cookie_source]', '1', '1169', '', '201:8:201:40', '201', '', 'assume there is only one cookie', 'True', '']]
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
+
+['3561', '5916']
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
+[['5916', 'AST', 'AST_METHOD_CALL', '', '513', 'console.log(a)', '0', '5896', '', '513:4:513:18', '513', '', '', 'True', '']]
+
+['3561', '5930']
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
+[['5930', 'AST', 'AST_CALL', '', '515', 'SendMessageToMainPage(a, a, JSON.stringify(a))', '2', '5896', '', '515:4:515:50', '515', '', '', 'True', '']]
+
+['3561', '5652']
+[['3561', 'AST', 'AST_ASSIGN', '', '664', 'a.Data = JSON.stringify(c)', '0', '3549', '', '664:8:664:34', '664', '', '', 'True', '']]
+[['5652', 'AST', 'AST_CALL', '', '400', 'window_postMessage_sink(message)', '0', '5632', '', '400:4:400:36', '400', '', '', 'True', '']]
+
+['3973', '4285']
+[['3973', 'AST', 'AST_RETURN', '', '72', 'return new JQ_obj(a, array_in);', '1', '3846', '', '72:4:72:35', '72', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4279', '4285']
+[['4279', 'AST', 'AST_FOR', '', '134', '', '3', '4245', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4285', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4245', '', '134:14:134:31', '134', '', '', 'True', '']]
 

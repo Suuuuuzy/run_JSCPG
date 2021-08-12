@@ -136,7 +136,7 @@ JQ_obj = function(a, array_in){
 }
 
 JQ_obj.prototype.val = function(first_argument) {
-    if (arguments.length>0){
+    if (first_argument!=undefined){
         JQ_obj_val_sink(first_argument);
         this[0].value = first_argument;
     }
