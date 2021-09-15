@@ -99,7 +99,7 @@ class OPGen:
         if pq:
             G.thread_version=True
         print('process chrome extension: ', extension_path)
-        if not validate_chrome_extension(extension_path):
+        if not validate_chrome_extension(extension_path, dx):
             print('not valid chrome extension')
             return -1
         if G is None:

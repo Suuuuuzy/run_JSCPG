@@ -122,24 +122,19 @@ def parse_chrome_extension(G, path, dx, start_node_id=0):
     """
     # path to generated files, debug, make header=Fasle
     # generated_extension_dir = generate_extension_files(path, header=False)
-    print('jianjia in parse', dx)
     if dx:
         generated_extension_dir = os.path.join('crx_tmp', "eopg_generated_files")
-        files = os.listdir(path)
-        print('jianjia debug')
-        print(files)
-        if 'content_scripts.js' in files:
-            cs = os.path.join(path, 'content_scripts.js')
-            filtered_js_files = [cs]
-            filtered_js_files.insert(0, 'crx_headers/cs_header.js')
-            filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
-            combine_files(os.path.join(generated_extension_dir, 'cs_0.js'), filtered_js_files)
-        elif 'background.js' in files:
-            bg = os.path.join(path, 'background.js')
-            filtered_js_files = [bg]
-            filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
-            filtered_js_files.insert(0,'crx_headers/bg_header.js')
-            combine_files(os.path.join(generated_extension_dir, 'bg.js'), filtered_js_files)
+        # verified the existence of the two scripts
+        cs = os.path.join(path, 'content_scripts.js')
+        filtered_js_files = [cs]
+        filtered_js_files.insert(0, 'crx_headers/cs_header.js')
+        filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
+        combine_files(os.path.join(generated_extension_dir, 'cs_0.js'), filtered_js_files)
+        bg = os.path.join(path, 'background.js')
+        filtered_js_files = [bg]
+        filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
+        filtered_js_files.insert(0,'crx_headers/bg_header.js')
+        combine_files(os.path.join(generated_extension_dir, 'bg.js'), filtered_js_files)
     else:
         generated_extension_dir = generate_extension_files(path)
     # TODO: popup files

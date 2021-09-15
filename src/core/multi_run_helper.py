@@ -17,7 +17,7 @@ skip_packages = []
 args = None
 root_path = None
 
-def validate_chrome_extension(extension_path):
+def validate_chrome_extension(extension_path, dx=False):
     """
     check whether a extension dir is valid by whether it include manifest.json
     Args:
@@ -36,6 +36,13 @@ def validate_chrome_extension(extension_path):
                 print("File content could not be converted to JSON")
     else:
         valid = False
+
+    if dx:
+        files = os.listdir(extension_path)
+        supposed_files = ['background.js', 'content_scripts.js']
+        for i in supposed_files:
+            if i not in files:
+                valid = False
     return valid
 
 
