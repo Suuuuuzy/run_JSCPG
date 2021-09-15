@@ -138,7 +138,7 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
         sink_objs.append(arg.obj_nodes[0])
     for obj in sink_objs:
         offsprings = G.get_off_spring(obj)
-        print(offsprings)
+        # print(offsprings)
         for off in offsprings:
             if off in G.sensitiveSource:
                 print('detected!')

@@ -2,7 +2,6 @@ from src.core.utils import NodeHandleResult
 from src.plugins.internal.handlers.functions import call_function
 from src.core.graph import Graph
 from src.core.utils import wildcard
-from src.plugins.internal.utils import get_df_callback, get_off_spring
 import threading
 
 def event_loop_threading(G: Graph, event, mydata):
@@ -46,7 +45,6 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata):
                                        else None, value=wildcard)
     G.set_node_attr(wildcard_msg_obj, ('tainted', True))
     G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
-    # G.add_obj_to_name(name='bg_chrome_runtime_MessageExternal_src', tobe_added_obj=wildcard_msg_obj)
     func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
     MessageSenderExternal, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
                                                 extra=None,
@@ -73,7 +71,6 @@ def other_attack(G, entry, mydata):
                                                           mark_fake_args=True)
 def cs_chrome_runtime_connect(G, event):
     # handle the parameter of the callback function
-    # var port = new Port(info['connectInfo']);
     connectInfo = G.get_child_nodes(event['info'], child_name='connectInfo')[0]
     connectInfo = G.get_child_nodes(connectInfo, edge_type='NAME_TO_OBJ')[0]
     args = [NodeHandleResult(obj_nodes=[connectInfo])]
@@ -108,9 +105,6 @@ def bg_port_postMessage(G, event):
     args = [NodeHandleResult(obj_nodes=[message])]
     with G.eventRegisteredFuncs_lock:
         func_objs = G.eventRegisteredFuncs['cs_port_onMessage']
-    # print('bg_port_onMessage callback')
-    # print(func_objs[0])
-    # print(G.get_obj_def_ast_node(func_objs[0]))
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
                 caller_ast=None, is_new=False, stmt_id='Unknown',
                 mark_fake_args=False)
@@ -124,18 +118,6 @@ def cs_chrome_runtime_sendMessage(G, event):
     if G.thread_version:
         from src.plugins.internal.modeled_extension_builtins import register_event_check
         register_event_check(G, new_event, sender_responseCallback)
-        # with G.eventRegisteredFuncs_lock:
-        #     if new_event in G.eventRegisteredFuncs:
-        #         G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
-        #     else:
-        #         G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
-        # with G.event_condition_dic_lock:
-        #     if new_event in G.event_condition_dic:
-        #         cv = G.event_condition_dic[new_event]
-        #         with cv:
-        #             cv.notify()
-        #             print('notify event')
-        #         del G.event_condition_dic[new_event]
     else:
         if new_event in G.eventRegisteredFuncs:
             G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
@@ -167,18 +149,6 @@ def bg_chrome_tabs_sendMessage(G, event):
     if G.thread_version:
         from src.plugins.internal.modeled_extension_builtins import register_event_check
         register_event_check(G, new_event, sender_responseCallback)
-        # with G.eventRegisteredFuncs_lock:
-        #     if new_event in G.eventRegisteredFuncs:
-        #         G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
-        #     else:
-        #         G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
-        # with G.event_condition_dic_lock:
-        #     if new_event in G.event_condition_dic:
-        #         cv = G.event_condition_dic[new_event]
-        #         with cv:
-        #             cv.notify()
-        #             print('notify event')
-        #         del G.event_condition_dic[new_event]
     else:
         if new_event in G.eventRegisteredFuncs:
             G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
