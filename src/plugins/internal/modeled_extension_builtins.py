@@ -21,6 +21,7 @@ def setup_utils(G: Graph):
     G.add_blank_func_to_scope('MarkSink', scope=G.BASE_SCOPE, python_func=MarkSink)
     G.add_blank_func_to_scope('MarkAttackEntry', scope=G.BASE_SCOPE, python_func=MarkAttackEntry)
     G.add_blank_func_to_scope('debug_sink', scope=G.BASE_SCOPE, python_func=debug_sink)
+    G.add_blank_func_to_scope('sink_function', scope=G.BASE_SCOPE, python_func=sink_function)
 
 # event is a string
 # func is the function's declaration node ID
@@ -125,6 +126,27 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     return NodeHandleResult()
 
 def debug_sink(G: Graph, caller_ast, extra, _, *args):
-    print('sink reached')
+    print('code reached')
     print(args)
     return NodeHandleResult()
+
+def sink_function(G: Graph, caller_ast, extra, _, *args):
+    sink_objs= []
+    print('sink function reached')
+    for arg in args:
+        # print(arg)
+        sink_objs.append(arg.obj_nodes[0])
+    for obj in sink_objs:
+        offsprings = G.get_off_spring(obj)
+        print(offsprings)
+        for off in offsprings:
+            if off in G.sensitiveSource:
+                print('detected!')
+    return NodeHandleResult()
+
+# from src.core.vul_func_lists import crx_sink, user_sink, ctrl_sink
+# defined_sinkd = crx_sink
+# defined_sinkd.extend(user_sink)
+# defined_sinkd.extend(ctrl_sink)
+# for i in defined_sinkd:
+#     i = sink_function

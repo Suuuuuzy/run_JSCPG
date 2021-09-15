@@ -120,7 +120,7 @@ class HandleIf(Handler):
                 info.pause()
                 with G.thread_info_lock:
                     G.thread_infos[t.name] = info
-                print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
+                # print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
                 t.start()
                 with G.pq_lock:
                     G.pq.append(info)

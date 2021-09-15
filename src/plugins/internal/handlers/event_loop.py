@@ -39,6 +39,8 @@ def event_loop_no_threading(G: Graph, event):
 
 
 def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata):
+    cur_thread = threading.current_thread()
+    print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
     G.mydata.unpickle_up(mydata)
     wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
                                        else None, value=wildcard)

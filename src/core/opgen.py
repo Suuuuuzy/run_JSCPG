@@ -85,7 +85,7 @@ class OPGen:
         test_res = self._test_graph(G, vul_type=vul_type)
         return test_res
 
-    def test_chrome_extension(self, extension_path, vul_type, G=None,  timeout_s=None, pq=False):
+    def test_chrome_extension(self, extension_path, vul_type, G=None,  timeout_s=None, pq=False, dx=False):
         """
         test a dir of files as an chrome extension
         Args:
@@ -112,7 +112,7 @@ class OPGen:
                              error_message="{} timeout after {} seconds". \
                                      format(extension_path, timeout_s)):
                     start_time = time.time()
-                    parse_chrome_extension(G, extension_path)
+                    parse_chrome_extension(G, extension_path, dx)
                     test_res = self._test_graph(G, vul_type=vul_type)
                     end_time = time.time()
                     loggers.res_logger.info("{} finish with {} seconds spent####". \
@@ -124,9 +124,9 @@ class OPGen:
                     covered_stat_rate = 0
                 loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
         else:
-            parse_chrome_extension(G, extension_path)
+            parse_chrome_extension(G, extension_path, dx)
             test_res = self._test_graph(G, vul_type=vul_type)
-        # test_res = None
+        # test_res = Nhone
         return test_res
 
 
@@ -279,7 +279,7 @@ class OPGen:
                 self.get_new_graph(package_name=package_path, thread_version = options.run_with_pq)
                 if options.chrome_extension:
                     self.test_chrome_extension(package_path, options.vul_type, self.graph, timeout_s=timeout_s,
-                        pq=options.run_with_pq)
+                        pq=options.run_with_pq, dx = options.dx)
                 else:
                     self.test_nodejs_package(package_path,
                         options.vul_type, self.graph, timeout_s=timeout_s)
@@ -298,7 +298,8 @@ class OPGen:
                 self.test_nodejs_package(options.input_file, 
                         options.vul_type, G=self.graph, timeout_s=timeout_s)
             elif options.chrome_extension:
-                self.test_chrome_extension(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, pq=options.run_with_pq)
+                self.test_chrome_extension(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s,
+                                           pq=options.run_with_pq, dx = options.dx)
             else:
                 # analyze from JS source code files
                 self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, pq=options.run_with_pq)
@@ -352,7 +353,7 @@ def fetch_new_thread(G):
             result = G.pq[0]
             del G.pq[0]
     if result not in G.work_queue:
-        print('fetch new thread: ', result.thread_self.name)
+        # print('fetch new thread: ', result.thread_self.name)
         result.last_start_time = time.time_ns()
         with G.work_queue_lock:
             G.work_queue.add(result)

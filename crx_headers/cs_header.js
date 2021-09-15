@@ -148,6 +148,7 @@ function Window(){}
 
 // targetWindow.postMessage(message, targetOrigin, [transfer]);
 Window.prototype.postMessage = function(message, targetOrigin, [transfer]){
+    sink_function(message);
     window_postMessage_sink(message);
 };
 

@@ -313,7 +313,7 @@ Chrome.prototype.downloads.erase = function(query, callback) {
 
 
 function BookmarkTreeNode(){
-    this.children = [];
+    // this.children = [];
     this.dataAdded= 10;
     this.dateGroupModified=1;
     this.id='id for the node';
@@ -324,11 +324,14 @@ function BookmarkTreeNode(){
     this.url = 'http://www.example.com';
 }
 
+
 // chrome.bookmarks.getTree(function(data)
 Chrome.prototype.bookmarks = new Object(); 
 Chrome.prototype.bookmarks.getTree = function(callback){
     var node = new BookmarkTreeNode();
+    node.children = [new BookmarkTreeNode()];
     var BookmarkTreeNode_source = [node];
+    debug_sink(BookmarkTreeNode_source[0].children, node, node.children, child);
     MarkSource(BookmarkTreeNode_source);
     callback(BookmarkTreeNode_source);
 }
