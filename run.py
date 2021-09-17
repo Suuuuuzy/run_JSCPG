@@ -12,5 +12,5 @@ for file in files:
     if os.path.isdir(file):
         count+=1
         print('run extension ' + file + ' starts')
-        os.system('./generate_opg.py -t chrome_data_exfiltration -crx --timeout 60 ' + file)
+        os.system('./generate_opg.py -t chrome_data_exfiltration -crx -pq -dx --timeout 60 ' + file)
         

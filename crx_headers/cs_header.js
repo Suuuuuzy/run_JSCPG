@@ -26,6 +26,7 @@ Port.prototype.postMessage = function(msg){
 function Chrome(){}
 
 Chrome.prototype.runtime = new Object();
+Chrome.prototype.extension = Chrome.prototype.runtime;  // for deprecated APIs
 Chrome.prototype.runtime.sendMessage = function(msg, rspCallback){
     // var eventName = 'cs_chrome_runtime_sendMessage';
     // var info = {message: msg,responseCallback: rspCallback};

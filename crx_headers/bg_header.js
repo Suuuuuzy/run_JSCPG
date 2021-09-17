@@ -49,6 +49,7 @@ function Tab(){
 function Chrome(){}
 
 Chrome.prototype.runtime = new Object();
+Chrome.prototype.extension = Chrome.prototype.runtime;  // for deprecated APIs
 Chrome.prototype.runtime.onInstalled = new Object();
 // this function be called righrt after all the 
 Chrome.prototype.runtime.onInstalled.addListener = function(myCallback) {

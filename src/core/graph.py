@@ -89,7 +89,6 @@ class Graph:
         self.bg_scope = None
 
         self.detection_res = {}
-        self.detection_res = {}
         self.num_removed = 0
         self.dont_quit = None
         self.last_stmts = []

@@ -262,6 +262,7 @@ def print_success_pathes(G, success_pathes):
         path_id += 1
         print("Attack Path: ")
         print(res_text_path + sty.rs.all)
+        loggers.res_logger.info(res_text_path)
 
 
 def traceback_crx(G, vul_type, start_node=None):
