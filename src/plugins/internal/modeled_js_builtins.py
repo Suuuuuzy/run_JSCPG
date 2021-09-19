@@ -510,7 +510,8 @@ def array_p_splice(G: Graph, caller_ast, extra, arrays: NodeHandleResult, starts
             name_node, _, k, data = e
             if name_node in arrays.name_nodes:
                 if delete and copies:
-                    G.graph.remove_edge(name_node, arr, k)
+                    with G.graph_lock:
+                        G.graph.remove_edge(name_node, arr, k)
                 for obj in copies:
                     G.add_edge(name_node, obj, data)
     used_objs.update(arrays.obj_nodes + list(filter(lambda x: x != wildcard,

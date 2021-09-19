@@ -46,6 +46,7 @@ class Graph:
     def __init__(self, thread_version):
         self.thread_version = thread_version
         self.graph = nx.MultiDiGraph()
+        self.graph_lock = Lock()
         if self.thread_version:
             self.mydata = MyData()
         else:
@@ -299,7 +300,8 @@ class Graph:
         """
         remove a list of nodes from the graph
         """
-        self.graph.remove_nodes_from(remove_list)
+        with self.graph_lock:
+            self.graph.remove_nodes_from(remove_list)
 
     def relabel_nodes(self):
         """
@@ -377,7 +379,8 @@ class Graph:
     def remove_all_edges_between(self, u, v):
         while True:
             try:
-                self.graph.remove_edge(u, v)
+                with self.graph_lock:
+                    self.graph.remove_edge(u, v)
             except nx.NetworkXError:
                 break
 
@@ -1261,7 +1264,8 @@ class Graph:
                         tag = edge_attr.get('branch', BranchTag())
                         if tag == BranchTag(branch, mark='A'):
                             # if addition exists, delete the addition edge
-                            self.graph.remove_edge(name_node, obj, key)
+                            with self.graph_lock:
+                                self.graph.remove_edge(name_node, obj, key)
                             flag = True
                     if not flag:
                         # if no addition, add a deletion edge

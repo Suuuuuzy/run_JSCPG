@@ -26,7 +26,7 @@ Port.prototype.postMessage = function(msg){
 function Chrome(){}
 
 Chrome.prototype.runtime = new Object();
-Chrome.prototype.extension = Chrome.prototype.runtime;  // for deprecated APIs
+
 Chrome.prototype.runtime.sendMessage = function(msg, rspCallback){
     // var eventName = 'cs_chrome_runtime_sendMessage';
     // var info = {message: msg,responseCallback: rspCallback};
@@ -73,6 +73,11 @@ function sendResponse(message_back){
 Chrome.prototype.runtime.getURL = function(para1){
     return "http://www.example.com/" + para;
 }
+
+// for deprecated APIs
+Chrome.prototype.extension = Chrome.prototype.runtime;  
+Chrome.prototype.extension.sendRequest = Chrome.prototype.runtime.sendMessage;
+
 
 // // chrome.runtime.sendMessage(extensionId?: string, message: any, options: object, responseCallback: function)
 // Chrome.prototype.runtime.sendMessage = function(extensionId, message, options, responseCallback){

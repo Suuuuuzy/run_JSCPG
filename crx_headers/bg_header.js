@@ -156,6 +156,10 @@ Chrome.prototype.tabs.onActivated.addListener = function(myCallback){
     myCallback(activeInfo);
 }
 
+// for deprecated APIs
+Chrome.prototype.tabs.onActiveChanged = Chrome.prototype.tabs.onActivated
+
+
 // chrome.tabs.executeScript
 Chrome.prototype.tabs.executeScript = function(tabid, details, callback){
     chrome_tabs_executeScript_sink(details);

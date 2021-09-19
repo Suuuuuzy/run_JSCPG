@@ -135,6 +135,14 @@ JQ_obj = function(a, array_in){
     this.length = array_in.length;
 }
 
+// events [,selector] [,data], handler
+JQ_obj.prototype.on = function(){
+    debug_sink('jq_obj');
+    if (this[0]==document){
+        MarkAttackEntry('document_on_event', arguments[-1]);
+    }  
+}
+
 JQ_obj.prototype.val = function(first_argument) {
     if (first_argument!=undefined){
         JQ_obj_val_sink(first_argument);

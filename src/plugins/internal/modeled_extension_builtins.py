@@ -83,7 +83,10 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
         if listener_not_registered:
             print('listener not registered, store ' , event['eventName'], ' to loop')
             with G.event_loop_lock:
-                G.event_loop[eventName] = (event)
+                if eventName in G.event_loop:
+                    G.event_loop[eventName].appand(event)
+                else:
+                    G.event_loop[eventName] = [event]
         else:
             emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()))
         # tmp = [i.thread_self for i in G.work_queue]

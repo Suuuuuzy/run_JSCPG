@@ -149,11 +149,11 @@ class OPGen:
         # (mark on the AST node, each node should search ancestors until branch is found)
         # generate_branch_graph(G, entry_nodeid=entry_id)
         generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
-        if vul_type is not None:
-            check_res = self.check_vuls(vul_type, G)
-            # print('check_res debug: ', check_res)
-            if len(check_res) != 0:
-                self.graph.detection_res[vul_type].add(G.package_name)
+        # if vul_type is not None:
+        #     check_res = self.check_vuls(vul_type, G)
+        #     # print('check_res debug: ', check_res)
+        #     if len(check_res) != 0:
+        #         self.graph.detection_res[vul_type].add(G.package_name)
         return check_res
 
     def test_module(self, module_path, vul_type='os_command', G=None, 
@@ -283,6 +283,7 @@ class OPGen:
                 else:
                     self.test_nodejs_package(package_path,
                         options.vul_type, self.graph, timeout_s=timeout_s)
+                # finish test, print the result
                 if len(self.graph.detection_res[options.vul_type]) != 0:
                     loggers.res_logger.info("{} is detected in {}".format(
                         options.vul_type,
@@ -339,7 +340,6 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
     # for node in obj_nodes:
     #     register_func(G, node[0])
     if G.thread_version:
-        # print('jianjia pq')
         admin_threads(G, internal_plugins.dispatch_node, (entry_nodeid))
     else:
         internal_plugins.dispatch_node(entry_nodeid)

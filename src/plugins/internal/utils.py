@@ -386,7 +386,8 @@ def copy_objs_for_parameters(G: Graph, handle_result: NodeHandleResult,
             name_node, obj_node, k, data = e
             if name_node in handle_result.name_nodes:
                 if delete_original:
-                    G.graph.remove_edge(name_node, obj_node, k)
+                    with G.graph_lock:
+                        G.graph.remove_edge(name_node, obj_node, k)
                 for copied_obj in copied_objs:
                     G.add_edge(name_node, copied_obj, data)
         returned_objs.append(copied_objs)
@@ -741,6 +742,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
         for v in G.get_child_nodes(u, 'NAME_TO_OBJ'):
             created = [False] * num_of_branches
             deleted = [False] * num_of_branches
+
             for key, edge_attr in G.graph[u][v].items():
                 branch_tag = edge_attr.get('branch')
                 if branch_tag and branch_tag.point == stmt:
@@ -768,7 +770,8 @@ def merge(G, stmt, num_of_branches, parent_branch):
             for key, edge_attr in edges:
                 branch_tag = edge_attr.get('branch', BranchTag())
                 if branch_tag.point == stmt:
-                    G.graph.remove_edge(u, v, key)
+                    with G.graph_lock:
+                        G.graph.remove_edge(u, v, key)
 
             # flatten Addition edges
             if flag_created:
@@ -790,7 +793,8 @@ def merge(G, stmt, num_of_branches, parent_branch):
                         branch_tag = edge_attr.get('branch', BranchTag())
                         if branch_tag == BranchTag(parent_branch, mark='A'):
                             # logger.debug(f'delete edge {u}->{v}')
-                            G.graph.remove_edge(u, v, key)
+                            with G.graph_lock:
+                                G.graph.remove_edge(u, v, key)
                             flag = True
                     # if there is not
                     if not flag:
@@ -802,7 +806,8 @@ def merge(G, stmt, num_of_branches, parent_branch):
                     for key, edge_attr in list(G.graph[u][v].items()):
                         if 'branch' not in edge_attr:
                             # logger.debug(f'delete edge {u}->{v}')
-                            G.graph.remove_edge(u, v, key)
+                            with G.graph_lock:
+                                G.graph.remove_edge(u, v, key)
 
 
 def get_off_spring(G: Graph, node_id):

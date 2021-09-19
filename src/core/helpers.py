@@ -535,7 +535,8 @@ def copy_objs_for_parameters(G: Graph, handle_result: NodeHandleResult,
             name_node, obj_node, k, data = e
             if name_node in handle_result.name_nodes:
                 if delete_original:
-                    G.graph.remove_edge(name_node, obj_node, k)
+                    with G.graph_lock:
+                        G.graph.remove_edge(name_node, obj_node, k)
                 for copied_obj in copied_objs:
                     G.add_edge(name_node, copied_obj, data)
         returned_objs.append(copied_objs)

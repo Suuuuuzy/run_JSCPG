@@ -42,6 +42,7 @@ def cleanup_scope(G, scope_node, exceptions=[]):
     #    print(G.get_node_attr(nn))
     inside_objs = get_inside_reachable_childern(G, child_name_nodes)
     inside_objs = [obj for obj in inside_objs if obj not in exceptions]
-    G.remove_nodes_from(list(inside_objs))
+    with G.graph_lock:
+        G.remove_nodes_from(list(inside_objs))
     G.num_removed += len(inside_objs)
     loggers.main_logger.info("removed {} for garbage collection".format(inside_objs))
