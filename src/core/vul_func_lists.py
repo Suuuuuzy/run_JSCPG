@@ -65,25 +65,7 @@ crx_source_var_name = ['mostVisitedUrls_source',
                        'XMLHttpRequest_responseText_source',
                        'XMLHttpRequest_responseXML_source'
                        ]
-'''
-crx_source = [
-        # chrome extension built-in get sensitive data APIs
-        'chrome_topSites_get_source',
-        'chrome_cookies_get_source',
-        'chrome_cookies_getAll_source',
-        'chrome_cookies_getAllCookieStores_source',
-        # 'chrome_cookies_onChanged_addListener_source'
-        'chrome_storage_sync_get_source',
-        'chrome_storage_local_get_source'
-        'chrome_history_search_source',
-        'chrome_history_getVisits_source',
-        'chrome_downloads_search_source',
-        'chrome_downloads_getFileIcon_source'
-        # jQuery source
-        'jQuery_get_source',
-        'jQuery_post_source'
-]
-'''
+
 
 crx_sink = [
         # jQuery sinks
@@ -131,16 +113,15 @@ ctrl_sink = [
         'chrome_storage_sync_clear_sink'
 ]
 
-user_sink = [
-    # to document
-    'JQ_obj_val_sink',
-    'JQ_obj_html_sink',
-    # to window
-    'window_postMessage_sink',
-    'sendResponseExternal_sink'
-]
-
-
+# change to sink_function
+# user_sink = [
+#     # to document
+#     'JQ_obj_val_sink',
+#     'JQ_obj_html_sink',
+#     # to window
+#     'window_postMessage_sink',
+#     'sendResponseExternal_sink'
+# ]
 
 
 

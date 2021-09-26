@@ -145,7 +145,8 @@ JQ_obj.prototype.on = function(){
 
 JQ_obj.prototype.val = function(first_argument) {
     if (first_argument!=undefined){
-        JQ_obj_val_sink(first_argument);
+        sink_function(first_argument);
+        // JQ_obj_val_sink(first_argument);
         this[0].value = first_argument;
     }
     else{
@@ -155,7 +156,8 @@ JQ_obj.prototype.val = function(first_argument) {
 
 JQ_obj.prototype.html = function(first_argument) {
     if (arguments.length >0){
-        JQ_obj_html_sink(first_argument);
+        sink_function(first_argument);
+        // JQ_obj_html_sink(first_argument);
         this[0].html = first_argument;
     }
     else{

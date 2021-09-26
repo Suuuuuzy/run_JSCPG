@@ -1,28 +1,64 @@
-['3648', '3663']
-[['3648', 'AST', 'AST_ASSIGN', '', '648', 'xhr = new XMLHttpRequest()', '0', '3628', '', '648:8:648:34', '648', '', '', 'True', '']]
-[['3663', 'AST', 'AST_METHOD_CALL', '', '650', "xhr.setRequestHeader('Content-Type', 'application/json')", '2', '3628', '', '650:4:650:60', '650', '', '', 'True', '']]
+['1215', '3656']
+[['1215', 'AST', 'AST_ASSIGN', '', '205', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1199', '', '205:8:205:245', '205', '', 'details does not matter for now', 'True', '']]
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
 
-['3765', '3441']
-[['3765', 'AST', 'AST_METHOD_CALL', '', '666', 'xhr.send(JSON.stringify(data))', '4', '3628', '', '666:4:666:34', '666', '', '', 'True', '']]
-[['3441', 'AST', 'AST_CALL', '', '603', 'XMLHttpRequest_post_sink(msg)', '0', '3421', '', '603:8:603:37', '603', '', '', 'True', '']]
+['1215', '3656']
+[['1215', 'AST', 'AST_ASSIGN', '', '205', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1199', '', '205:8:205:245', '205', '', 'details does not matter for now', 'True', '']]
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
 
-['4331', '6814']
-[['4331', 'AST', 'AST_ASSIGN', '', '28', 'document = new Document()', '7', '4168', '', '28:4:28:29', '28', '', '', 'True', '']]
-[['6814', 'AST', 'AST_ASSIGN', '', '513', "isInstalledNode = document.createElement('div')", '81', '4168', '', '513:4:513:51', '513', '', '', 'True', '']]
+['1215', '3656']
+[['1215', 'AST', 'AST_ASSIGN', '', '205', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1199', '', '205:8:205:245', '205', '', 'details does not matter for now', 'True', '']]
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
 
-['4331', '6829']
-[['4331', 'AST', 'AST_ASSIGN', '', '28', 'document = new Document()', '7', '4168', '', '28:4:28:29', '28', '', '', 'True', '']]
-[['6829', 'AST', 'AST_ASSIGN', '', '515', 'att = document.createAttribute(\\"data-version\\")', '83', '4168', '', '515:4:515:50', '515', '', '', 'True', '']]
+['1215', '3656']
+[['1215', 'AST', 'AST_ASSIGN', '', '205', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1199', '', '205:8:205:245', '205', '', 'details does not matter for now', 'True', '']]
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
 
-['6798', '6179']
-[['6798', 'AST', 'AST_METHOD_CALL', '', '509', 'window.postMessage({from:\\"from_launchmenu_content_script\\",bookmarks: bookmarks},\\"*\\")', '4', '6723', '', '509:8:509:92', '509', '', 'var bookmarks = transformFormat(data[0].children,[],[\\"title\\",\\"dateAdded\\",\\"url\\",\\"id\\"]);', 'True', '']]
-[['6179', 'AST', 'AST_CALL', '', '400', 'window_postMessage_sink(message)', '0', '6159', '', '400:4:400:36', '400', '', '', 'True', '']]
+['1215', '3656']
+[['1215', 'AST', 'AST_ASSIGN', '', '205', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1199', '', '205:8:205:245', '205', '', 'details does not matter for now', 'True', '']]
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
 
-['6814', '6844']
-[['6814', 'AST', 'AST_ASSIGN', '', '513', "isInstalledNode = document.createElement('div')", '81', '4168', '', '513:4:513:51', '513', '', '', 'True', '']]
-[['6844', 'AST', 'AST_METHOD_CALL', '', '517', 'isInstalledNode.setAttributeNode(att)', '85', '4168', '', '517::517:37', '517', '', '', 'True', '']]
+['1215', '3656']
+[['1215', 'AST', 'AST_ASSIGN', '', '205', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1199', '', '205:8:205:245', '205', '', 'details does not matter for now', 'True', '']]
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
 
-['6829', '6844']
-[['6829', 'AST', 'AST_ASSIGN', '', '515', 'att = document.createAttribute(\\"data-version\\")', '83', '4168', '', '515:4:515:50', '515', '', '', 'True', '']]
-[['6844', 'AST', 'AST_METHOD_CALL', '', '517', 'isInstalledNode.setAttributeNode(att)', '85', '4168', '', '517::517:37', '517', '', '', 'True', '']]
+['1215', '3656']
+[['1215', 'AST', 'AST_ASSIGN', '', '205', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1199', '', '205:8:205:245', '205', '', 'details does not matter for now', 'True', '']]
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
+
+['1215', '3656']
+[['1215', 'AST', 'AST_ASSIGN', '', '205', "cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' }", '0', '1199', '', '205:8:205:245', '205', '', 'details does not matter for now', 'True', '']]
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
+
+['1260', '3656']
+[['1260', 'AST', 'AST_ASSIGN', '', '207', 'cookies_source = [cookie_source]', '1', '1199', '', '207:8:207:40', '207', '', 'assume there is only one cookie', 'True', '']]
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
+
+['3656', '6082']
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
+[['6082', 'AST', 'AST_METHOD_CALL', '', '530', 'console.log(a)', '0', '6062', '', '530:4:530:18', '530', '', '', 'True', '']]
+
+['3656', '6096']
+[['3656', 'AST', 'AST_ASSIGN', '', '684', 'a.Data = JSON.stringify(c)', '0', '3644', '', '684:8:684:34', '684', '', '', 'True', '']]
+[['6096', 'AST', 'AST_CALL', '', '532', 'SendMessageToMainPage(a, a, JSON.stringify(a))', '2', '6062', '', '532:4:532:50', '532', '', '', 'True', '']]
+
+['4374', '4380']
+[['4374', 'AST', 'AST_FOR', '', '134', '', '3', '4340', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4380', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4340', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4374', '4380']
+[['4374', 'AST', 'AST_FOR', '', '134', '', '3', '4340', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4380', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4340', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4374', '4380']
+[['4374', 'AST', 'AST_FOR', '', '134', '', '3', '4340', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4380', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4340', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4374', '4380']
+[['4374', 'AST', 'AST_FOR', '', '134', '', '3', '4340', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4380', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4340', '', '134:14:134:31', '134', '', '', 'True', '']]
+
+['4374', '4380']
+[['4374', 'AST', 'AST_FOR', '', '134', '', '3', '4340', '', '134:4:136:5', '136', '', '', 'True', '']]
+[['4380', 'AST', 'AST_BINARY_OP', 'BINARY_IS_SMALLER', '134', 'i<array_in.length', '0', '4340', '', '134:14:134:31', '134', '', '', 'True', '']]
 

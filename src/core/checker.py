@@ -161,68 +161,17 @@ def vul_checking(G, pathes, vul_type):
             ]
             ]
 
-    '''
-    chrome_data_exfiltration_APIs = [
-        "chrome.cookies.get",
-        "chrome.cookies.getAll",
-        "chrome.cookies.getAllCookieStores",
-        "chrome.cookies.onChanged.addListener"
-        "chrome.topSites.get",
-        "chrome.storage.sync.get",
-        "chrome.storage.local.get"
-        "chrome.history.search",
-        "chrome.history.getVisits",
-        "chrome.downloads.search",
-        "chrome.downloads.getFileIcon"
-    ]
-
-
-    dispatchable_events = [
-        "window.postMessage",
-        "chrome.runtime.sendMessage",
-        "window.dispathEvent",
-        "document.dispathEvent",
-        "element.dispathEvent"
-    ]
-
-    chrome_API_execution_APIs = [
-        "chrome.tabs.executeScript",
-        "chrome.cookies.set",
-        "chrome.cookies.remove",
-        "chrome.storage.sync.set",
-        "chrome.storage.local.set",
-        "chrome.history.addUrl",
-        "chrome.history.deleteUrl",
-        "chrome.history.deleteRange",
-        "chrome.history.deleteAll",
-        "chrome.downloads.download",
-        "chrome.downloads.pause",
-        "chrome.downloads.resume",
-        "chrome.downloads.cancel",
-        "chrome.downloads.open",
-        "chrome.downloads.show",
-        "chrome.downloads.showDefaultFolder",
-        "chrome.downloads.erase",
-        "chrome.downloads.removeFile",
-        "chrome.downloads.acceptDanger",
-        "chrome.downloads.setShelfEnabled",
-        "XMLHttpRequest",
-        "eval"
-    ]
-    '''
-
     # ('start_with_func', dispatchable_events),
     chrome_data_exfiltration = [
+        # information leak
         [ ('start_with_var', crx_source_var_name),('end_with_func', user_sink)],
         [('start_with_sensitiveSource', None), ('end_with_func', user_sink)],
-        # first combine them together
+        # privilege escalation
         [('has_user_input', None), ('end_with_func', crx_sink)],
-        # [('end_with_func', ctrl_sink)]
     ]
     # has_user_input means tainted
     chrome_API_execution = [
         [('has_user_input', None), ('end_with_func', crx_sink)],
-        # [('start_with_var_offspring', external_source_var_name), ('end_with_func', crx_sink)]
     ]
 
     vul_type_map = {
@@ -279,7 +228,7 @@ def traceback_crx(G, vul_type, start_node=None):
     res_path_text = ""
     sink = []
     sink.extend(crx_sink)
-    sink.extend(user_sink)
+    # sink.extend(user_sink)
     sink.extend(ctrl_sink)
     # func_nodes: the entries of traceback, which are all the CALLs of functions
     func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')
@@ -313,7 +262,40 @@ def traceback_crx(G, vul_type, start_node=None):
     # res_path_text: source 2 sink texts
     return ret_paths, res_path_text, caller_list
 
+def get_obj_defs(G, obj_nodes=[]):
+    """
+    input a list of objs and return a list of def asts
+    """
+    cur_creater = []
+    for node in obj_nodes:
+        # for each objects, store the creater of the obj and used obj
+        ast_node = G.get_obj_def_ast_node(node)
+        cur_creater.append(ast_node)
+    return cur_creater
 
+
+def obj_traceback(G, start_node):
+    """
+    traceback from the target object node, based on obj level dependency
+    Args:
+        G: the graph
+        start_node: the start object node
+    Returns:
+        pathes(list): the pathes to the target object
+        def pathes(list): AST nodes that defines the objects in the pathes
+        text pathes(str): the human-friendly text pathes
+    """
+    text_path = ""
+    ast_pathes = []
+    obj_pathes = G._dfs_upper_by_edge_type(source=start_node, edge_type="CONTRIBUTES_TO")
+
+    for obj_p in obj_pathes:
+        obj_def = get_obj_defs(G, obj_p)
+        ast_pathes.append(obj_def)
+        text_path += get_path_text(G, obj_def)
+    return obj_pathes, ast_pathes, text_path
+
+'''
 def obj_traceback(G, vul_type, start_node=None):
     """
     traceback from the sink function, based on obj level dependency
@@ -366,7 +348,7 @@ def obj_traceback(G, vul_type, start_node=None):
     # print(pathes, creaters, text_path)
     return pathes, text_path, creaters
 
-
+'''
 def obj_traceback_crx(G, vul_type, start_node=None):
     """
     traceback from the sink function, based on obj level dependency

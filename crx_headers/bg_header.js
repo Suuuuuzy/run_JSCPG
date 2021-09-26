@@ -113,7 +113,8 @@ MessageSenderExternal = function(){
     this.url = 'url';
 };
 function sendResponseExternal(message_out){
-    sendResponseExternal_sink(message_out);
+    data_out_function(message_out);
+    // sendResponseExternal_sink(message_out);
 };
 
 
