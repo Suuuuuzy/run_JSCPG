@@ -75,7 +75,7 @@ function $(a){
 // jqXHR
 $.ajax = function(para){
     if (para.url){
-        var jQuery_ajax_url_sink = para.url;
+        sink_function(para.url, 'jQuery_ajax_url_sink');
     }
     if (para.success){
         var jQuery_ajax_result_source = 'data_form_jq_ajax';
@@ -90,8 +90,7 @@ $.ajax = function(para){
 $.get = function(url , success){
     var responseText = 'data_from_url_by_get';
     var jQuery_get_source = responseText;
-    // jQuery_get_source(responseText);
-    jQuery_get_url_sink(url);
+    sink_function(url, 'jQuery_get_url_sink');
     success(responseText);
     return new jqXHR();
 }
@@ -100,8 +99,8 @@ $.post = function( url , data, success){
     var responseText = 'data_from_url_by_post';
     var jQuery_post_source = responseText;
     // jQuery_post_source(responseText);
-    jQuery_post_data_sink(data);
-    jQuery_post_url_sink(url);
+    sink_function(data, 'jQuery_post_data_sink');
+    sink_function(url, 'jQuery_post_url_sink');
     success(responseText);
     return new jqXHR();
 }
@@ -137,7 +136,6 @@ JQ_obj = function(a, array_in){
 
 // events [,selector] [,data], handler
 JQ_obj.prototype.on = function(){
-    debug_sink('jq_obj');
     if (this[0]==document){
         MarkAttackEntry('document_on_event', arguments[-1]);
     }  
@@ -145,8 +143,7 @@ JQ_obj.prototype.on = function(){
 
 JQ_obj.prototype.val = function(first_argument) {
     if (first_argument!=undefined){
-        sink_function(first_argument);
-        // JQ_obj_val_sink(first_argument);
+        sink_function(first_argument, 'JQ_obj_val_sink');
         this[0].value = first_argument;
     }
     else{
@@ -156,8 +153,7 @@ JQ_obj.prototype.val = function(first_argument) {
 
 JQ_obj.prototype.html = function(first_argument) {
     if (arguments.length >0){
-        sink_function(first_argument);
-        // JQ_obj_html_sink(first_argument);
+        sink_function(first_argument, 'JQ_obj_html_sink');
         this[0].html = first_argument;
     }
     else{
@@ -227,13 +223,13 @@ function Event(type){
 function XMLHttpRequest(){};
 
 XMLHttpRequest.prototype.open = function(method, url, async, user, psw){
-    XMLHttpRequest_url_sink(url);
+    sink_function(url, 'XMLHttpRequest_url_sink');
 };
 
 // if msg is not none, used for POST requests
 XMLHttpRequest.prototype.send = function(msg){
     if (msg!=undefined){
-        XMLHttpRequest_post_sink(msg);
+        sink_function(msg, 'XMLHttpRequest_post_sink');
     }
 };
 

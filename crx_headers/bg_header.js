@@ -113,8 +113,7 @@ MessageSenderExternal = function(){
     this.url = 'url';
 };
 function sendResponseExternal(message_out){
-    data_out_function(message_out);
-    // sendResponseExternal_sink(message_out);
+    sink_function(message_out, 'sendResponseExternal_sink');
 };
 
 
@@ -123,7 +122,6 @@ Chrome.prototype.topSites = new Object();
 Chrome.prototype.topSites.get = function(myCallback){
     var mostVisitedUrls_source = {title:'title', url:'url'};
     // mostVisitedUrls is sensitive data!
-    // chrome_topSites_get_source(mostVisitedUrls);
     MarkSource(mostVisitedUrls_source);
     myCallback(mostVisitedUrls_source);
 };
@@ -163,7 +161,7 @@ Chrome.prototype.tabs.onActiveChanged = Chrome.prototype.tabs.onActivated
 
 // chrome.tabs.executeScript
 Chrome.prototype.tabs.executeScript = function(tabid, details, callback){
-    chrome_tabs_executeScript_sink(details);
+    sink_function(details, 'chrome_tabs_executeScript_sink');
     callback();
 }
 
@@ -176,12 +174,12 @@ function ActiveInfo(){
 
 // chrome.tabs.create
 Chrome.prototype.tabs.create = function(createProperties, callback){
-    chrome_tabs_create_sink(createProperties.url);
+    sink_function(createProperties.url, 'chrome_tabs_create_sink');
     callback();
 }
 // chrome.tabs.update
 Chrome.prototype.tabs.update = function(tabId, updateProperties, callback){
-    chrome_tabs_update_sink(updateProperties.url);
+    sink_function(updateProperties.url, 'chrome_tabs_update_sink');
     callback();
 }
 
@@ -190,20 +188,15 @@ Chrome.prototype.tabs.update = function(tabId, updateProperties, callback){
 Chrome.prototype.cookies = new Object();
 // chrome.cookies.get(details: CookieDetails, callback: function)
 Chrome.prototype.cookies.get = function(details, callback){
-    // details does not matter for now
     var cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' };
-    // chrome_cookies_get_source(cookie_source);
     MarkSource(cookie_source)
     callback(cookie_source);
 };
 
 // chrome.cookies.getAll(details: object, callback: function)
 Chrome.prototype.cookies.getAll = function(details, callback){
-    // details does not matter for now
     var cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' };
-    // assume there is only one cookie
     var cookies_source = [cookie_source];
-    // chrome_cookies_getAll_source(cookies_source);
     MarkSource(cookies_source)
     callback(cookies_source);
 };
@@ -227,17 +220,17 @@ Chrome.prototype.storage.sync.get = function(key, callback){
 };
 
 Chrome.prototype.storage.sync.set = function(key, callback){
-    chrome_storage_sync_set_sink(key);
+    sink_function(key, 'chrome_storage_sync_set_sink');
     callback();
 };
 
 Chrome.prototype.storage.sync.remove = function(key, callback){
-    chrome_storage_sync_remove_sink(key);
+    sink_function(key, 'chrome_storage_sync_remove_sink');
     callback();
 };
 
 Chrome.prototype.storage.sync.clear = function(callback){
-    chrome_storage_sync_clear_sink();
+    sink_function('chrome_storage_sync_clear_sink');
     callback();
 };
 
@@ -250,17 +243,17 @@ Chrome.prototype.storage.local.get = function(key, callback){
 };
 
 Chrome.prototype.storage.local.set = function(key, callback){
-    chrome_storage_local_set_sink(key);
+    sink_function(key, 'chrome_storage_local_set_sink');
     callback();
 };
 
 Chrome.prototype.storage.local.remove = function(key, callback){
-    chrome_storage_local_remove_sink(key);
+    sink_function(key, 'chrome_storage_local_remove_sink');
     callback();
 };
 
 Chrome.prototype.storage.local.clear = function(callback){
-    chrome_storage_local_clear_sink();
+    sink_function('chrome_storage_local_clear_sink');
     callback();
 };
 
@@ -292,10 +285,7 @@ Chrome.prototype.downloads.search = function(query, callback){
 
 
 Chrome.prototype.downloads.download = function(options, callback){
-    chrome_downloads_download_sink(options);
-    // chrome_downloads_download_sink(options.url);
-    // chrome_downloads_download_sink(options.body);
-    // chrome_downloads_download_sink(options.filename);
+    sink_function(options, 'chrome_downloads_download_sink');
 }
 
 Chrome.prototype.downloads.getFileIcon = function(downloadId, callback){
@@ -307,13 +297,13 @@ Chrome.prototype.downloads.getFileIcon = function(downloadId, callback){
 
 // Remove the downloaded file if it exists and the DownloadItem is complete
 Chrome.prototype.downloads.removeFile = function(downloadId, callback) {
-    chrome_downloads_removeFile_sink(downloadId);
+    sink_function(downloadId, 'chrome_downloads_removeFile_sink');
     // body...
 }
 
 // Erase matching DownloadItem from history without deleting the downloaded file.
 Chrome.prototype.downloads.erase = function(query, callback) {
-    chrome_downloads_erase_sink(query);
+    sink_function(query, 'chrome_downloads_erase_sink');
     // body...
 }
 
@@ -337,7 +327,6 @@ Chrome.prototype.bookmarks.getTree = function(callback){
     var node = new BookmarkTreeNode();
     node.children = [new BookmarkTreeNode()];
     var BookmarkTreeNode_source = [node];
-    debug_sink(BookmarkTreeNode_source[0].children, node, node.children, child);
     MarkSource(BookmarkTreeNode_source);
     callback(BookmarkTreeNode_source);
 }
@@ -369,7 +358,7 @@ Chrome.prototype.webRequest.onBeforeSendHeaders.addListener = function(myCallbac
 
 Chrome.prototype.browsingData = new Object();
 Chrome.prototype.browsingData.remove = function(para1, prara2, para3){
-    chrome_browsingData_remove_sink(para1, prara2, para3);
+    sink_function(para1, prara2, para3, 'chrome_browsingData_remove_sink');
 }
 
 

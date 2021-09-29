@@ -109,17 +109,17 @@ Chrome.prototype.storage.sync.get = function(key, callback){
 };
 
 Chrome.prototype.storage.sync.set = function(key, callback){
-    chrome_storage_sync_set_sink(key);
+    sink_function(key, 'chrome_storage_sync_set_sink');
     callback();
 };
 
 Chrome.prototype.storage.sync.remove = function(key, callback){
-    chrome_storage_sync_remove_sink(key);
+    sink_function(key, 'chrome_storage_sync_remove_sink');
     callback();
 };
 
 Chrome.prototype.storage.sync.clear = function(callback){
-    chrome_storage_sync_clear_sink();
+    sink_function('chrome_storage_sync_clear_sink');
     callback();
 };
 
@@ -132,17 +132,17 @@ Chrome.prototype.storage.local.get = function(key, callback){
 };
 
 Chrome.prototype.storage.local.set = function(key, callback){
-    chrome_storage_local_set_sink(key);
+    sink_function(key,'chrome_storage_local_set_sink');
     callback();
 };
 
 Chrome.prototype.storage.local.remove = function(key, callback){
-    chrome_storage_local_remove_sink(key);
+    sink_function(key, 'chrome_storage_local_remove_sink');
     callback();
 };
 
 Chrome.prototype.storage.local.clear = function(callback){
-    chrome_storage_local_clear_sink();
+    sink_function('chrome_storage_local_clear_sink');
     callback();
 };
 
@@ -154,8 +154,7 @@ function Window(){}
 
 // targetWindow.postMessage(message, targetOrigin, [transfer]);
 Window.prototype.postMessage = function(message, targetOrigin, [transfer]){
-    sink_function(message);
-    window_postMessage_sink(message);
+    sink_function(message, 'window_postMessage_sink out');
 };
 
 // target.addEventListener(type, listener [, options]);

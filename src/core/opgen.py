@@ -391,7 +391,7 @@ def admin_threads(G, function, args):
             tmp = [i.thread_self for i in G.pq]
             print('%%%%%%%%%pq: ', tmp)"""
 
-            # if this thread has a father thread
+            # if this thread has a father thread, ## VERSION1: if one son finishes, the father stops waiting
             if t.thread_self.name in G.branch_son_dad:
                 with G.branch_son_dad_lock:
                     dad_thread = G.branch_son_dad[t.thread_self.name][0]

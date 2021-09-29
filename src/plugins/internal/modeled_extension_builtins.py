@@ -170,19 +170,24 @@ def data_out_function(G: Graph, caller_ast, extra, _, *args):
 def sink_function(G: Graph, caller_ast, extra, _, *args):
     sus_objs = set()
     print('sink function reached')
-    for arg in args:
-        sus_objs.add(arg.obj_nodes[0])
-    print(sus_objs)
-    print('tainted objs: ')
+    if len(args)>1:
+        for i in range(len(args)-1):
+            sus_objs.add(args[i].obj_nodes[0])
+    sink_name = args[-1].values[0]
+    # print(sus_objs)
+    # print('tainted objs: ')
+    """
     for node in G.graph:
         attrs = G.get_node_attr(node)
         if 'tainted' in attrs and attrs['tainted']:
             print(node)
             print(G.get_obj_def_ast_node((node)))
+    """
     for obj in sus_objs:
         attrs = G.get_node_attr(obj)
         if 'tainted' in attrs and attrs['tainted']:
-            print('detected!~~~')
+            print('~~~tainted detected!~~~')
+            print(sink_name)
     return NodeHandleResult()
 
 # from src.core.vul_func_lists import crx_sink, user_sink, ctrl_sink
