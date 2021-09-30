@@ -3,7 +3,7 @@ from .vul_func_lists import *
 from .logger import loggers
 import sty
 
-def get_path_text(G, path, caller):
+def get_path_text(G, path, caller= None):
     """
     get the code by ast number
     Args:
@@ -13,13 +13,13 @@ def get_path_text(G, path, caller):
         str: a string with text path
     """
     res_path = ""
-    cur_path_str1 = ""
+    # cur_path_str1 = ""
     cur_path_str2 = ""
     for node in path:
         cur_node_attr = G.get_node_attr(node)
         if cur_node_attr.get('lineno:int') is None:
             continue
-        cur_path_str1 += cur_node_attr['lineno:int'] + '->'
+        # cur_path_str1 += cur_node_attr['lineno:int'] + '->'
         start_lineno = int(cur_node_attr['lineno:int'])
         end_lineno = int(cur_node_attr['endlineno:int']
                         or start_lineno)
@@ -33,8 +33,8 @@ def get_path_text(G, path, caller):
         if content is not None:
             cur_path_str2 += "Line {}\t{}".format(start_lineno,
                     ''.join(content[start_lineno:end_lineno + 1]))
-    cur_path_str1 += G.get_node_attr(caller)['lineno:int']
-    G.logger.debug(cur_path_str1)
+    # cur_path_str1 += G.get_node_attr(caller)['lineno:int']
+    # G.logger.debug(cur_path_str1)
 
     res_path += "==========================\n"
     res_path += cur_path_str2
@@ -164,8 +164,8 @@ def vul_checking(G, pathes, vul_type):
     # ('start_with_func', dispatchable_events),
     chrome_data_exfiltration = [
         # information leak
-        [ ('start_with_var', crx_source_var_name),('end_with_func', user_sink)],
-        [('start_with_sensitiveSource', None), ('end_with_func', user_sink)],
+        # [ ('start_with_var', crx_source_var_name),('end_with_func', user_sink)],
+        # [('start_with_sensitiveSource', None), ('end_with_func', user_sink)],
         # privilege escalation
         [('has_user_input', None), ('end_with_func', crx_sink)],
     ]
@@ -291,6 +291,7 @@ def obj_traceback(G, start_node):
 
     for obj_p in obj_pathes:
         obj_def = get_obj_defs(G, obj_p)
+        obj_def.reverse()
         ast_pathes.append(obj_def)
         text_path += get_path_text(G, obj_def)
     return obj_pathes, ast_pathes, text_path
@@ -368,7 +369,7 @@ def obj_traceback_crx(G, vul_type, start_node=None):
 
     sink = []
     sink.extend(crx_sink)
-    sink.extend(user_sink)
+    # sink.extend(user_sink)
     sink.extend(ctrl_sink)
     # func_nodes: the entries of traceback, which are all the CALLs of functions
     func_nodes = G.get_node_by_attr('type', 'AST_METHOD_CALL')

@@ -113,7 +113,7 @@ MessageSenderExternal = function(){
     this.url = 'url';
 };
 function sendResponseExternal(message_out){
-    sink_function(message_out, 'sendResponseExternal_sink');
+    sink_function(message_out, 'sendResponseExternal_sink out');
 };
 
 
@@ -122,7 +122,7 @@ Chrome.prototype.topSites = new Object();
 Chrome.prototype.topSites.get = function(myCallback){
     var mostVisitedUrls_source = {title:'title', url:'url'};
     // mostVisitedUrls is sensitive data!
-    MarkSource(mostVisitedUrls_source);
+    MarkSource(mostVisitedUrls_source, 'mostVisitedUrls_source');
     myCallback(mostVisitedUrls_source);
 };
 
@@ -189,7 +189,7 @@ Chrome.prototype.cookies = new Object();
 // chrome.cookies.get(details: CookieDetails, callback: function)
 Chrome.prototype.cookies.get = function(details, callback){
     var cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' };
-    MarkSource(cookie_source)
+    MarkSource(cookie_source, 'cookie_source')
     callback(cookie_source);
 };
 
@@ -197,7 +197,7 @@ Chrome.prototype.cookies.get = function(details, callback){
 Chrome.prototype.cookies.getAll = function(details, callback){
     var cookie_source = {domain:'cookie_domain', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' };
     var cookies_source = [cookie_source];
-    MarkSource(cookies_source)
+    MarkSource(cookies_source, 'cookies_source')
     callback(cookies_source);
 };
 
@@ -206,7 +206,7 @@ Chrome.prototype.cookies.getAll = function(details, callback){
 Chrome.prototype.cookies.getAllCookieStores = function(callback){
     var CookieStore_source = {id:'cookiestore_id', tabIds:[0,1,2,3]};
     var CookieStores_source = [CookieStore_source];
-    MarkSource(CookieStores_source)
+    MarkSource(CookieStores_source, 'CookieStores_source')
     callback(CookieStores_source);
 };
 
@@ -215,7 +215,7 @@ Chrome.prototype.storage = new Object();
 Chrome.prototype.storage.sync = new Object();
 Chrome.prototype.storage.sync.get = function(key, callback){
     var storage_sync_get_source = {'key':'value'};
-    MarkSource(storage_sync_get_source);
+    MarkSource(storage_sync_get_source, 'storage_sync_get_source');
     callback(storage_sync_get_source);
 };
 
@@ -238,7 +238,7 @@ Chrome.prototype.storage.sync.clear = function(callback){
 Chrome.prototype.storage.local = new Object();
 Chrome.prototype.storage.local.get = function(key, callback){
     var storage_local_get_source = {'key':'value'};
-    MarkSource(storage_local_get_source);
+    MarkSource(storage_local_get_source, 'storage_local_get_source');
     callback(storage_local_get_source);
 };
 
@@ -263,7 +263,7 @@ Chrome.prototype.history = new Object();
 Chrome.prototype.history.search = function(query, callback){
     var HistoryItem = {id:'id for history item' ,lastVisitTime:1000 ,title:'title of history page' , typedCount:3, url:'https://example.com' , visitCount:2   };
     var HistoryItem_source = [HistoryItem];
-    MarkSource(HistoryItem_source);
+    MarkSource(HistoryItem_source, 'HistoryItem_source');
     callback(HistoryItem_source);
 };
 
@@ -271,7 +271,7 @@ Chrome.prototype.history.search = function(query, callback){
 Chrome.prototype.history.getVisits = function(details, callback){
     var VisitItem = {id:'id for the item' ,referringVisitId: 'referringVisitIdvfdsv', transition:'auto_bookmark' ,visitId:'visitIdvfsv', visitTime:1001};
     var VisitItem_source = [VisitItem];
-    MarkSource(VisitItem_source);
+    MarkSource(VisitItem_source, 'VisitItem_source');
     callback(VisitItem_source);
 };
 
@@ -279,7 +279,7 @@ Chrome.prototype.downloads = new Object();
 Chrome.prototype.downloads.search = function(query, callback){
     var DownloadItem = {byExtensionId:'id for the extension', byExtensionName:'name for the extension'};
     var DownloadItem_source = [DownloadItem];
-    MarkSource(DownloadItem_source);
+    MarkSource(DownloadItem_source, 'DownloadItem_source');
     callback(DownloadItem_source);
 };
 
@@ -291,7 +291,7 @@ Chrome.prototype.downloads.download = function(options, callback){
 Chrome.prototype.downloads.getFileIcon = function(downloadId, callback){
     var iconURL = 'https://example.com/image.png';
     var iconURL_source = iconURL;
-    MarkSource(iconURL_source);
+    MarkSource(iconURL_source, 'iconURL_source');
     callback(iconURL_source);
 };
 
@@ -327,7 +327,7 @@ Chrome.prototype.bookmarks.getTree = function(callback){
     var node = new BookmarkTreeNode();
     node.children = [new BookmarkTreeNode()];
     var BookmarkTreeNode_source = [node];
-    MarkSource(BookmarkTreeNode_source);
+    MarkSource(BookmarkTreeNode_source, 'BookmarkTreeNode_source');
     callback(BookmarkTreeNode_source);
 }
 

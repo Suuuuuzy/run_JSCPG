@@ -597,10 +597,17 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
     assert not isinstance(sources, (str, bytes))
     tainted = False
     random = get_random_hex()
+    taint_flow = []
     for i, source in enumerate(sources):
         _source = str(source)
-        if G.get_node_attr(source).get('tainted'):
+        attrs = G.get_node_attr(source)
+        if 'tainted' in attrs and attrs['tainted']:
             _source += ' tainted'
+            # copy source's ancestors
+            if 'taint_flow' in attrs:
+                taint_flow.extend(attrs['taint_flow'])
+            # add source to target
+            taint_flow.append([source, target])
         source_name = ', '.join(G.reverse_names[source])
         if not source_name:
             source_name = repr(G.get_node_attr(source).get('code'))
@@ -624,6 +631,7 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
         tainted = tainted or G.get_node_attr(source).get('tainted', False)
     if chain_tainted and tainted:
         G.set_node_attr(target, ('tainted', True))
+        G.set_node_attr(target, ('taint_flow', taint_flow))
 
 
 def analyze_json(G, json_str, start_node_id=0, extra=None):

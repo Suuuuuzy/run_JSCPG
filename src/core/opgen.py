@@ -126,7 +126,7 @@ class OPGen:
         else:
             parse_chrome_extension(G, extension_path, dx)
             test_res = self._test_graph(G, vul_type=vul_type)
-        # test_res = Nhone
+        # test_res = None
         return test_res
 
 
@@ -284,13 +284,13 @@ class OPGen:
                     self.test_nodejs_package(package_path,
                         options.vul_type, self.graph, timeout_s=timeout_s)
                 # finish test, print the result
-                if len(self.graph.detection_res[options.vul_type]) != 0:
-                    loggers.res_logger.info("{} is detected in {}".format(
-                        options.vul_type,
-                        package_path))
-                else:
-                    loggers.res_logger.info("No vuls found in {}".format(
-                        package_path))
+                # if len(self.graph.detection_res[options.vul_type]) != 0:
+                #     loggers.res_logger.info("{} is detected in {}".format(
+                #         options.vul_type,
+                #         package_path))
+                # else:
+                #     loggers.res_logger.info("No vuls found in {}".format(
+                #         package_path))
 
         else:
             if options.module:
@@ -305,13 +305,13 @@ class OPGen:
                 # analyze from JS source code files
                 self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, pq=options.run_with_pq)
 
-            if len(self.graph.detection_res[options.vul_type]) != 0:
-                print(sty.fg.li_green + sty.ef.inverse +
-                    f'{options.vul_type} detected at {options.input_file}'
-                    + sty.rs.all)
-                loggers.res_logger.info("{} is detected in {}".format(
-                    options.vul_type,
-                    options.input_file))
+            # if len(self.graph.detection_res[options.vul_type]) != 0:
+            #     print(sty.fg.li_green + sty.ef.inverse +
+            #         f'{options.vul_type} detected at {options.input_file}'
+            #         + sty.rs.all)
+            #     loggers.res_logger.info("{} is detected in {}".format(
+            #         options.vul_type,
+            #         options.input_file))
         print("Graph size: {}, GC removed {} nodes".format(self.graph.get_graph_size(), self.graph.num_removed))
         print("Cleaning up tmp dirs")
         #shutil.rmtree(options.run_env)

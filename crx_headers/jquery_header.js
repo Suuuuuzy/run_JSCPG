@@ -79,8 +79,8 @@ $.ajax = function(para){
     }
     if (para.success){
         var jQuery_ajax_result_source = 'data_form_jq_ajax';
-        var result = jQuery_ajax_result_source;
-        para.success(result);
+        MarkSource(jQuery_ajax_result_source, 'jQuery_ajax_result_source');
+        para.success(jQuery_ajax_result_source);
     }
 }
 // jQuery.get( url [, data ] [, success ] [, dataType ] )
@@ -89,7 +89,7 @@ $.ajax = function(para){
 // dataType: Type: String
 $.get = function(url , success){
     var responseText = 'data_from_url_by_get';
-    var jQuery_get_source = responseText;
+    MarkSource(responseText, 'jQuery_get_source');
     sink_function(url, 'jQuery_get_url_sink');
     success(responseText);
     return new jqXHR();
@@ -97,8 +97,7 @@ $.get = function(url , success){
 // jQuery.post( url [, data ] [, success ] [, dataType ] )
 $.post = function( url , data, success){
     var responseText = 'data_from_url_by_post';
-    var jQuery_post_source = responseText;
-    // jQuery_post_source(responseText);
+    MarkSource(responseText, 'jQuery_post_source');
     sink_function(data, 'jQuery_post_data_sink');
     sink_function(url, 'jQuery_post_url_sink');
     success(responseText);
@@ -236,9 +235,8 @@ XMLHttpRequest.prototype.send = function(msg){
 
 XMLHttpRequest.prototype.responseText = 'sensitive_responseText';
 XMLHttpRequest.prototype.responseXML = 'sensitive_responseXML';
-var XMLHttpRequest_responseText_source = XMLHttpRequest.prototype.responseText;
-var XMLHttpRequest_responseXML_source = XMLHttpRequest.prototype.responseXML;
-
+// MarkSource(XMLHttpRequest.prototype.responseText, 'XMLHttpRequest_responseText_source');
+// MarkSource(XMLHttpRequest.prototype.responseXML, 'XMLHttpRequest_responseXML_source');
 
 
 

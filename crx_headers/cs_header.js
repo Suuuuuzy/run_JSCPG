@@ -104,7 +104,7 @@ Chrome.prototype.storage = new Object();
 Chrome.prototype.storage.sync = new Object();
 Chrome.prototype.storage.sync.get = function(key, callback){
     var storage_sync_get_source = {'key':'value'};
-    MarkSource(storage_sync_get_source);
+    MarkSource(storage_sync_get_source, 'storage_sync_get_source');
     callback(storage_sync_get_source);
 };
 
@@ -127,7 +127,7 @@ Chrome.prototype.storage.sync.clear = function(callback){
 Chrome.prototype.storage.local = new Object();
 Chrome.prototype.storage.local.get = function(key, callback){
     var storage_local_get_source = {'key':'value'};
-    MarkSource(storage_local_get_source);
+    MarkSource(storage_local_get_source, 'storage_local_get_source');
     callback(storage_local_get_source);
 };
 
@@ -160,7 +160,6 @@ Window.prototype.postMessage = function(message, targetOrigin, [transfer]){
 // target.addEventListener(type, listener [, options]);
 // the 'e' parameter passed to listener can be ignored, otherwise, it is the event object
 Window.prototype.addEventListener = function(type, listener,  [ options]){
-    // var type = 'cs_window_postMessage';
     MarkAttackEntry('cs_window_postMessage', listener);
 };
 

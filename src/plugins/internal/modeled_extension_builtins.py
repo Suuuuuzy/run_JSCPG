@@ -105,12 +105,12 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
 
 def MarkSource(G: Graph, caller_ast, extra, _, *args):
     sensitiveSource = args[0].obj_nodes[0]
+    source_name = args[1].values[0]
     sons = G.get_off_spring(sensitiveSource)
     sons.add(sensitiveSource)
     for son in sons:
         G.set_node_attr(son, ('tainted',True))
-    G.sensitiveSource.add(sensitiveSource)
-    G.sensitiveSource.update(sons)
+        # G.set_node_attr(son, ('taint_flow', source_name + '$'))
     return NodeHandleResult()
 
 def MarkSink(G: Graph, caller_ast, extra, _, *args):
@@ -169,25 +169,38 @@ def data_out_function(G: Graph, caller_ast, extra, _, *args):
 # check whether the parameters are tainted
 def sink_function(G: Graph, caller_ast, extra, _, *args):
     sus_objs = set()
-    print('sink function reached')
+    # print('sink function reached')
     if len(args)>1:
         for i in range(len(args)-1):
-            sus_objs.add(args[i].obj_nodes[0])
+            obj = args[i].obj_nodes[0]
+            sus_objs.add(obj)
+            sus_objs.update(G.get_off_spring(obj))
     sink_name = args[-1].values[0]
     # print(sus_objs)
     # print('tainted objs: ')
-    """
-    for node in G.graph:
-        attrs = G.get_node_attr(node)
-        if 'tainted' in attrs and attrs['tainted']:
-            print(node)
-            print(G.get_obj_def_ast_node((node)))
-    """
+
+    with G.graph_lock:
+        for node in G.graph:
+            attrs = G.get_node_attr(node)
+            """if 'tainted' in attrs and attrs['tainted']:
+                # print(node)
+                # print(G.get_obj_def_ast_node((node)))
+                if 'taint_flow' in attrs:
+                    print(node)
+                    print(attrs['taint_flow'])"""
+
     for obj in sus_objs:
         attrs = G.get_node_attr(obj)
         if 'tainted' in attrs and attrs['tainted']:
-            print('~~~tainted detected!~~~')
-            print(sink_name)
+            print(sty.fg.li_green + sty.ef.inverse +f'~~~tainted detected!~~~in extension: '\
+                  + G.package_name +' with '+ sink_name + sty.rs.all)
+            loggers.res_logger.info("~~~tainted detected!~~~in extension: {} with {}".format(
+                G.package_name , sink_name))
+            print(obj)
+            if 'taint_flow' in attrs:
+                print(attrs['taint_flow'])
+            obj_pathes, ast_pathes, text_path = obj_traceback(G, obj)
+            print(sty.fg.li_green + sty.ef.inverse +f'{text_path}' + sty.rs.all)
     return NodeHandleResult()
 
 # from src.core.vul_func_lists import crx_sink, user_sink, ctrl_sink
