@@ -91,7 +91,7 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
             print('listener not registered, store ' , event['eventName'], ' to loop')
             with G.event_loop_lock:
                 if eventName in G.event_loop:
-                    G.event_loop[eventName].appand(event)
+                    G.event_loop[eventName].append(event)
                 else:
                     G.event_loop[eventName] = [event]
         else:
@@ -179,15 +179,15 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
     # print(sus_objs)
     # print('tainted objs: ')
 
-    with G.graph_lock:
-        for node in G.graph:
-            attrs = G.get_node_attr(node)
-            """if 'tainted' in attrs and attrs['tainted']:
-                # print(node)
-                # print(G.get_obj_def_ast_node((node)))
-                if 'taint_flow' in attrs:
-                    print(node)
-                    print(attrs['taint_flow'])"""
+    # with G.graph_lock:
+    #     for node in G.graph:
+    #         attrs = G.get_node_attr(node)
+    #         if 'tainted' in attrs and attrs['tainted']:
+    #             # print(node)
+    #             # print(G.get_obj_def_ast_node((node)))
+    #             if 'taint_flow' in attrs:
+    #                 print(node)
+    #                 print(attrs['taint_flow'])
 
     for obj in sus_objs:
         attrs = G.get_node_attr(obj)
@@ -197,6 +197,7 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
             loggers.res_logger.info("~~~tainted detected!~~~in extension: {} with {}".format(
                 G.package_name , sink_name))
             print(obj)
+            print(G.get_node_attr(G.get_obj_def_ast_node(obj)))
             if 'taint_flow' in attrs:
                 print(attrs['taint_flow'])
             obj_pathes, ast_pathes, text_path = obj_traceback(G, obj)

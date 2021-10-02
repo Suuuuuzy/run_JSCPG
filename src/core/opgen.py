@@ -312,8 +312,8 @@ class OPGen:
             #     loggers.res_logger.info("{} is detected in {}".format(
             #         options.vul_type,
             #         options.input_file))
-        print("Graph size: {}, GC removed {} nodes".format(self.graph.get_graph_size(), self.graph.num_removed))
-        print("Cleaning up tmp dirs")
+        # print("Graph size: {}, GC removed {} nodes".format(self.graph.get_graph_size(), self.graph.num_removed))
+        # print("Cleaning up tmp dirs")
         #shutil.rmtree(options.run_env)
         #export to csv
         if options.export is not None:

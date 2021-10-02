@@ -241,7 +241,9 @@ XMLHttpRequest.prototype.responseXML = 'sensitive_responseXML';
 
 
 
-
+eval = function(para1){
+    sink_function(para1, 'eval_sink');
+}
 
 
 
