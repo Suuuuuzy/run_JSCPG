@@ -1324,7 +1324,8 @@ class Graph:
         attr = self.get_node_attr(new_obj_node)
         if 'taint_flow' in attr:
             taint_flow = attr['taint_flow']
-            taint_flow.append([obj_node, new_obj_node])
+            for flow in taint_flow:
+                flow[0].append(new_obj_node)
             self.set_node_attr(new_obj_node, ('taint_flow', taint_flow))
         # copy properties
         for i in self.get_out_edges(obj_node, edge_type='OBJ_TO_PROP'):

@@ -160,7 +160,7 @@ Window.prototype.postMessage = function(message, targetOrigin, [transfer]){
 // target.addEventListener(type, listener [, options]);
 // the 'e' parameter passed to listener can be ignored, otherwise, it is the event object
 Window.prototype.addEventListener = function(type, listener,  [ options]){
-    MarkAttackEntry('cs_window_postMessage', listener);
+    MarkAttackEntry('cs_window_eventListener', listener);
 };
 
 Window.prototype.top = new Object();

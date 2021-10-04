@@ -1,8 +1,8 @@
 from src.core.graph import Graph
 from src.core.utils import *
 from src.core.logger import *
-from src.plugins.internal.handlers.event_loop import event_loop_no_threading, event_loop_threading, bg_chrome_runtime_MessageExternal_attack, other_attack
-from .utils import get_off_spring, emit_thread
+from src.plugins.internal.handlers.event_loop import event_loop_no_threading, event_loop_threading, bg_chrome_runtime_MessageExternal_attack, other_attack, window_eventListener_attack
+from .utils import emit_thread
 import threading
 from src.core.checker import obj_traceback
 
@@ -110,7 +110,8 @@ def MarkSource(G: Graph, caller_ast, extra, _, *args):
     sons.add(sensitiveSource)
     for son in sons:
         G.set_node_attr(son, ('tainted',True))
-        # G.set_node_attr(son, ('taint_flow', source_name + '$'))
+        # every path is a tuple with (path, source_name)
+        G.set_node_attr(son, ('taint_flow', [([son],source_name)]))
     return NodeHandleResult()
 
 def MarkSink(G: Graph, caller_ast, extra, _, *args):
@@ -127,6 +128,8 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     if G.thread_version:
         if entry[0]=='bg_chrome_runtime_MessageExternal':
             emit_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry, G.mydata.pickle_up()))
+        elif entry[0]=='cs_window_eventListener':
+            emit_thread(G, window_eventListener_attack, (G, entry, G.mydata.pickle_up()))
         else:
             emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()))
         # tmp = [i.thread_self for i in G.work_queue]
@@ -196,8 +199,12 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
                   + G.package_name +' with '+ sink_name + sty.rs.all)
             loggers.res_logger.info("~~~tainted detected!~~~in extension: {} with {}".format(
                 G.package_name , sink_name))
-            print(obj)
-            print(G.get_node_attr(G.get_obj_def_ast_node(obj)))
+            # print(obj)
+            # from src.core.checker import get_path_text
+            # def_node = G.get_obj_def_ast_node(obj)
+            # path = [G.find_nearest_upper_CPG_node(def_node)]
+            # print(get_path_text(G, path))
+            # print(G.get_node_attr(G.get_obj_def_ast_node(obj)))
             if 'taint_flow' in attrs:
                 print(attrs['taint_flow'])
             obj_pathes, ast_pathes, text_path = obj_traceback(G, obj)

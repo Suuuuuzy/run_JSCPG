@@ -607,7 +607,7 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
             if 'taint_flow' in attrs:
                 taint_flow.extend(attrs['taint_flow'])
             # add source to target
-            taint_flow.append([source, target])
+            # taint_flow.append([source, target])
         source_name = ', '.join(G.reverse_names[source])
         if not source_name:
             source_name = repr(G.get_node_attr(source).get('code'))
@@ -629,6 +629,10 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
                 attr['opt'] = (operation, random, i)
         G.add_edge(source, target, attr)
         tainted = tainted or G.get_node_attr(source).get('tainted', False)
+    # add taint flow
+    # flow: ([path], source_name)
+    for flow in taint_flow:
+        flow[0].append(target)
     if chain_tainted and tainted:
         G.set_node_attr(target, ('tainted', True))
         G.set_node_attr(target, ('taint_flow', taint_flow))
