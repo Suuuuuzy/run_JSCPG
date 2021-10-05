@@ -65,12 +65,7 @@ def window_eventListener_attack(G, entry, mydata=None):
     cur_thread = threading.current_thread()
     print('in window attack=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
     func_objs = [entry[1]]
-    # wildcard_event_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
-    #                                     else None, value=wildcard)
-    # G.set_node_attr(wildcard_event_obj, ('tainted', True))
-    # # G.set_node_attr(wildcard_event_obj, ('fake_arg', True))
-    # G.set_node_attr(wildcard_event_obj, ('taint_flow', [([wildcard_event_obj], entry[0])]))
-    # args = [NodeHandleResult(obj_nodes=[wildcard_event_obj])]  # no args
+    # since there is only one parameter in this function, which is fake, we can use the mark_fake_args in call_function
     returned_result, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
                                                           mark_fake_args=True, fake_arg_srcs=[entry[0]])

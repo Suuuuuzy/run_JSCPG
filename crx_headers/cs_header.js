@@ -163,7 +163,6 @@ Window.prototype.addEventListener = function(type, listener,  [ options]){
     MarkAttackEntry('cs_window_eventListener', listener);
 };
 
-MarkAttackEntry('cs_window_eventListener', Window.prototype.onmessage);
 
 Window.prototype.top = new Object();
 Window.prototype.top.addEventListener = Window.prototype.addEventListener;

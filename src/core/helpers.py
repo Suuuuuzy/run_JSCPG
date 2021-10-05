@@ -129,6 +129,7 @@ def parse_chrome_extension(G, path, dx, start_node_id=0):
         filtered_js_files = [cs]
         filtered_js_files.insert(0, 'crx_headers/cs_header.js')
         filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
+        filtered_js_files.append('crx_headers/cs_tail.js')
         combine_files(os.path.join(generated_extension_dir, 'cs_0.js'), filtered_js_files)
         bg = os.path.join(path, 'background.js')
         filtered_js_files = [bg]
@@ -200,6 +201,7 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
         if 'cs' in newname and header:
             filtered_js_files.insert(0, 'crx_headers/cs_header.js')
             filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
+            filtered_js_files.append('crx_headers/cs_tail.js')
         elif 'bg' in newname and header:
             filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
             filtered_js_files.insert(0,'crx_headers/bg_header.js')

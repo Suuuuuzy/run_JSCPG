@@ -122,23 +122,24 @@ def MarkSink(G: Graph, caller_ast, extra, _, *args):
 def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = args[0].values[0]
     listener = args[1].obj_nodes[0]
-    # G.attackEntries.insert(0, [type, listener])
-    #  attack right away!
-    entry = [type, listener]
-    if G.thread_version:
-        if entry[0]=='bg_chrome_runtime_MessageExternal':
-            emit_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry, G.mydata.pickle_up()))
-        elif entry[0]=='cs_window_eventListener':
-            emit_thread(G, window_eventListener_attack, (G, entry, G.mydata.pickle_up()))
+    if listener!=G.undefined_obj:
+        # G.attackEntries.insert(0, [type, listener])
+        #  attack right away!
+        entry = [type, listener]
+        if G.thread_version:
+            if entry[0]=='bg_chrome_runtime_MessageExternal':
+                emit_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry, G.mydata.pickle_up()))
+            elif entry[0]=='cs_window_eventListener':
+                emit_thread(G, window_eventListener_attack, (G, entry, G.mydata.pickle_up()))
+            else:
+                emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()))
+            # tmp = [i.thread_self for i in G.work_queue]
+            # print('%%%%%%%%%work in MarkAttackEntry: ', tmp)
         else:
-            emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()))
-        # tmp = [i.thread_self for i in G.work_queue]
-        # print('%%%%%%%%%work in MarkAttackEntry: ', tmp)
-    else:
-        if entry[0]=='bg_chrome_runtime_MessageExternal':
-            bg_chrome_runtime_MessageExternal_attack(G, entry)
-        else:
-            other_attack(G, entry)
+            if entry[0]=='bg_chrome_runtime_MessageExternal':
+                bg_chrome_runtime_MessageExternal_attack(G, entry)
+            else:
+                other_attack(G, entry)
     return NodeHandleResult()
 
 def debug_sink(G: Graph, caller_ast, extra, _, *args):
