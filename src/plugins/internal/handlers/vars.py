@@ -72,7 +72,12 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
     # tricky fix, we don't really link name nodes to the undefined object
     if not now_objs:
         now_objs = [G.undefined_obj]
-    loggers.main_logger.info("Var {} handle result -> {}".format(var_name, now_objs))
+
+    if ast_node is not None:
+        for obj in now_objs:
+            G.add_edge_if_not_exist( obj , ast_node, {"type:TYPE": "OBJ_TO_AST"})
+
+    loggers.main_logger.info("Var {} handle result -> {} ast:{}".format(var_name, now_objs, ast_node))
     for now_obj in now_objs:
         loggers.main_logger.info(f"\t{now_obj}: {G.get_node_attr(now_obj)}")
 

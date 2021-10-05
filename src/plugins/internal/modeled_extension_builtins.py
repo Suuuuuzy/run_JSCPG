@@ -179,19 +179,6 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
             sus_objs.add(obj)
             sus_objs.update(G.get_off_spring(obj))
     sink_name = args[-1].values[0]
-    # print(sus_objs)
-    # print('tainted objs: ')
-
-    # with G.graph_lock:
-    #     for node in G.graph:
-    #         attrs = G.get_node_attr(node)
-    #         if 'tainted' in attrs and attrs['tainted']:
-    #             # print(node)
-    #             # print(G.get_obj_def_ast_node((node)))
-    #             if 'taint_flow' in attrs:
-    #                 print(node)
-    #                 print(attrs['taint_flow'])
-
     for obj in sus_objs:
         attrs = G.get_node_attr(obj)
         if 'tainted' in attrs and attrs['tainted']:
@@ -199,21 +186,22 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
                   + G.package_name +' with '+ sink_name + sty.rs.all)
             loggers.res_logger.info("~~~tainted detected!~~~in extension: {} with {}".format(
                 G.package_name , sink_name))
-            # print(obj)
-            # from src.core.checker import get_path_text
-            # def_node = G.get_obj_def_ast_node(obj)
-            # path = [G.find_nearest_upper_CPG_node(def_node)]
-            # print(get_path_text(G, path))
-            # print(G.get_node_attr(G.get_obj_def_ast_node(obj)))
-            if 'taint_flow' in attrs:
-                print(attrs['taint_flow'])
-            obj_pathes, ast_pathes, text_path = obj_traceback(G, obj)
-            print(sty.fg.li_green + sty.ef.inverse +f'{text_path}' + sty.rs.all)
+            print_taint_flow(G, attrs, sink_name)
+            # obj_pathes, ast_pathes, text_path = obj_traceback(G, obj)
+            # print(sty.fg.li_green + sty.ef.inverse +f'{text_path}' + sty.rs.all)
     return NodeHandleResult()
 
-# from src.core.vul_func_lists import crx_sink, user_sink, ctrl_sink
-# defined_sinkd = crx_sink
-# defined_sinkd.extend(user_sink)
-# defined_sinkd.extend(ctrl_sink)
-# for i in defined_sinkd:
-#     i = sink_function
+
+def print_taint_flow(G, attrs, sink_name):
+    if 'taint_flow' in attrs:
+        print(attrs['taint_flow'])
+    for flow in attrs['taint_flow']:
+        path = flow[0]
+        ast_path = [G.get_obj_def_ast_node(node) for node in path]
+        ast_path = [node for node in ast_path if node]
+        from src.core.checker import get_path_text
+        print('from ' + flow[1] + ' to ' + sink_name)
+        print(ast_path)
+        print(get_path_text(G, ast_path))
+
+

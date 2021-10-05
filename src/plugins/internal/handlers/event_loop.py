@@ -63,12 +63,12 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata=None):
 def window_eventListener_attack(G, entry, mydata=None):
     G.mydata.unpickle_up(mydata)
     cur_thread = threading.current_thread()
-    print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+    print('in window attack=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
     func_objs = [entry[1]]
     wildcard_event_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
                                         else None, value=wildcard)
     G.set_node_attr(wildcard_event_obj, ('tainted', True))
-    G.set_node_attr(wildcard_event_obj, ('fake_arg', True))
+    # G.set_node_attr(wildcard_event_obj, ('fake_arg', True))
     G.set_node_attr(wildcard_event_obj, ('taint_flow', [([wildcard_event_obj], entry[0])]))
     args = [NodeHandleResult(obj_nodes=[wildcard_event_obj])]  # no args
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
