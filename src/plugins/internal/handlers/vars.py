@@ -73,11 +73,11 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
     if not now_objs:
         now_objs = [G.undefined_obj]
 
-    if ast_node is not None:
-        for obj in now_objs:
-            #  if the obj is not linked to ast node
-            if not G.get_obj_def_ast_node(obj):
-                G.add_edge( obj , ast_node, {"type:TYPE": "OBJ_TO_AST"})
+    # if ast_node is not None:
+    #     for obj in now_objs:
+    #         #  if the obj is not linked to ast node
+    #         if not G.get_obj_def_ast_node(obj):
+    #             G.add_edge( obj , ast_node, {"type:TYPE": "OBJ_TO_AST"})
 
     loggers.main_logger.info("Var {} handle result -> {} ast:{}".format(var_name, now_objs, ast_node))
     for now_obj in now_objs:
