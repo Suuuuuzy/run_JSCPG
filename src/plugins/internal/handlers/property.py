@@ -340,6 +340,13 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 added_obj))
             if G.get_node_attr(parent_obj).get('tainted'):
                 G.set_node_attr(added_obj, ('tainted', True))
+                attr = G.get_node_attr(parent_obj)
+                # add taint_flow from wildcard parent to wildcard child
+                if 'taint_flow' in attr:
+                    taint_flow = attr['taint_flow']
+                    for flow in taint_flow:
+                        flow[0].append(added_obj)
+                    G.set_node_attr(added_obj, ('taint_flow', taint_flow))
                 loggers.main_logger.debug("{} marked as tainted 1".format(added_obj))
             for s in prop_name_sources:
                 add_contributes_to(G, [s], added_obj)
