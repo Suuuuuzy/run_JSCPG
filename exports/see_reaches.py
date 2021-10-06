@@ -16,7 +16,7 @@ def main():
     reaches_list = []
     for row in rels_reader: 
         # if row[2] =='OBJ_REACHES':
-        if row[2] =='CONTRIBUTES_TO':
+        if row[2] =='PARENT_SCOPE_OF':
             reaches_list.append([row[0], row[1]])
     # print(reaches_list)
 

@@ -19,13 +19,13 @@
 //     y_test_string += '4';
 //     z += -1;
 // }
-function x(){
-    content_a = 1;
-    content_a+= 2;
-}
-x();
-console.log(content_a);
-// console.log(x);
+global.gvar = 5;
+console.log(gvar);
+
+var gvar2 = 6;
+console.log(global.gvar2);
+
+// console.log(x)
 // console.log(y_test_string);
 // console.log(z);
 

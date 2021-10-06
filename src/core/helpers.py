@@ -133,8 +133,8 @@ def parse_chrome_extension(G, path, dx, start_node_id=0):
         combine_files(os.path.join(generated_extension_dir, 'cs_0.js'), filtered_js_files)
         bg = os.path.join(path, 'background.js')
         filtered_js_files = [bg]
-        filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
         filtered_js_files.insert(0,'crx_headers/bg_header.js')
+        filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
         combine_files(os.path.join(generated_extension_dir, 'bg.js'), filtered_js_files)
     else:
         generated_extension_dir = generate_extension_files(path)
@@ -203,8 +203,8 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
             filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
             filtered_js_files.append('crx_headers/cs_tail.js')
         elif 'bg' in newname and header:
-            filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
             filtered_js_files.insert(0,'crx_headers/bg_header.js')
+            filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
         combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
     with open(os.path.join(extension_path, 'manifest.json'), encoding='ascii', errors='ignore') as f:
         manifest = json.load(f)
