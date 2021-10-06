@@ -112,7 +112,7 @@ class OPGen:
                              error_message="{} timeout after {} seconds". \
                                      format(extension_path, timeout_s)):
                     start_time = time.time()
-                    parse_chrome_extension(G, extension_path, dx)
+                    parse_chrome_extension(G, extension_path, dx, easy_test = options.easy_test)
                     test_res = self._test_graph(G, vul_type=vul_type)
                     end_time = time.time()
                     loggers.res_logger.info("{} finish with {} seconds spent####". \
@@ -124,7 +124,7 @@ class OPGen:
                     covered_stat_rate = 0
                 loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
         else:
-            parse_chrome_extension(G, extension_path, dx)
+            parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
             test_res = self._test_graph(G, vul_type=vul_type)
         # test_res = None
         return test_res

@@ -112,7 +112,7 @@ def add_edges_between_funcs(G):
 
     G.add_edges_from_list_if_not_exist(added_edge_list)
 
-def parse_chrome_extension(G, path, dx, start_node_id=0):
+def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
     """
        parse a chrome extension, from a path to a AST by esprima
        Args:
@@ -137,7 +137,11 @@ def parse_chrome_extension(G, path, dx, start_node_id=0):
         filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
         combine_files(os.path.join(generated_extension_dir, 'bg.js'), filtered_js_files)
     else:
-        generated_extension_dir = generate_extension_files(path)
+        if easy_test:
+            header_path = 'crx_headers_easy'
+        else:
+            header_path = 'crx_headers'
+        generated_extension_dir = generate_extension_files(path, header_path)
     # TODO: popup files
     if generated_extension_dir:
         result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],
@@ -145,13 +149,13 @@ def parse_chrome_extension(G, path, dx, start_node_id=0):
         G.import_from_string(result)
 
 
-def generate_extension_files(extension_path, header=True):
+def generate_extension_files(extension_path, header_path, header=True):
     generated_extension_dir = os.path.join('crx_tmp', "eopg_generated_files")
     os.makedirs(generated_extension_dir, exist_ok=True)
     # clean the old directory, if any file exists
     for file in os.listdir(generated_extension_dir):
         os.remove(os.path.join(generated_extension_dir,file))
-    if(preprocess_cs_bg_war(extension_path, generated_extension_dir, header)):
+    if(preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, header)):
         return generated_extension_dir
     else:
         return False
@@ -183,7 +187,7 @@ def js_file_filter(files):
             re.append(file)
     return re
 
-def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
+def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, header):
     def processFile(files, newname, relative_path = extension_path):
         filtered_js_files = []
         for file in files:
@@ -199,12 +203,12 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
             filtered_js_files.extend(filelist)
         # print('filtered_js_files', filtered_js_files)
         if 'cs' in newname and header:
-            filtered_js_files.insert(0, 'crx_headers/cs_header.js')
-            filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
-            filtered_js_files.append('crx_headers/cs_tail.js')
+            filtered_js_files.insert(0, os.path.join(header_path, 'cs_header.js'))
+            filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
+            filtered_js_files.append(os.path.join(header_path, 'cs_tail.js'))
         elif 'bg' in newname and header:
-            filtered_js_files.insert(0,'crx_headers/bg_header.js')
-            filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
+            filtered_js_files.insert(0,os.path.join(header_path, 'bg_header.js'))
+            filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
         combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
     with open(os.path.join(extension_path, 'manifest.json'), encoding='ascii', errors='ignore') as f:
         manifest = json.load(f)

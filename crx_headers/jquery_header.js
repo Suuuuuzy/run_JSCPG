@@ -58,13 +58,13 @@ Document.prototype.getElementById = function(id){
 
 Document.prototype.body.appendChild = function(){};
 
-var document = new Document();
-
 
 Document.prototype.addEventListener = function(type, listener,  [ options]){
     // var type = 'document_event_listener';
     MarkAttackEntry('document_event_listener', listener);
 };
+
+document = new Document();
 
 
 //  ========= JQuery ========= 
