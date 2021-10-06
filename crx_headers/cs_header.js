@@ -180,6 +180,8 @@ Window.prototype.localStorage.getItem = function(a, b){
 
 };
 
+Window.prototype.eval = eval;
+
 window = new Window();
 
 

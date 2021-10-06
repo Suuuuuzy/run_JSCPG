@@ -63,7 +63,7 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata=None):
 def window_eventListener_attack(G, entry, mydata=None):
     G.mydata.unpickle_up(mydata)
     cur_thread = threading.current_thread()
-    print('in window attack=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+    print('========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
     func_objs = [entry[1]]
     # since there is only one parameter in this function, which is fake, we can use the mark_fake_args in call_function
     returned_result, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
@@ -148,6 +148,13 @@ def cs_chrome_runtime_sendMessage(G, event):
     args = [NodeHandleResult(obj_nodes=[message]), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
     with G.eventRegisteredFuncs_lock:
         func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onMessage']
+    # switch cur scope
+    if G.thread_version:
+        G.mydata.cur_scope = G.bg_scope
+        G.mydata.cur_file_scope = G.bg_scope
+    else:
+        G.cur_scope = G.bg_scope
+        G.cur_file_scope = G.bg_scope
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),extra=None,
                   caller_ast=None, is_new=False, stmt_id='Unknown',
                   mark_fake_args=False)
