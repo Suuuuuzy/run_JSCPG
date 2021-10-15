@@ -208,6 +208,7 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
         combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
     with open(os.path.join(extension_path, 'manifest.json'), encoding='ascii', errors='ignore') as f:
         manifest = json.load(f)
+        version = manifest['manifest_version']
         if 'content_scripts' in manifest:
             count = 0
             for j in manifest['content_scripts']:
@@ -219,23 +220,28 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header):
         #     warfiles = manifest['web_accessible_resources']
         #     processFile(warfiles, 'war.js')
         if 'background' in manifest:
-            if 'scripts' in manifest['background']:
-                bgfiles = manifest['background']['scripts']
-                processFile(bgfiles, 'bg.js')
-            elif 'page' in manifest['background']:
-                bgpage = manifest['background']['page']
-                if bgpage.startswith('/'):
-                    bgpage = '.' + bgpage
-                try:
-                    with open(os.path.join(extension_path, bgpage), encoding='ascii', errors='ignore') as f:
-                        content = f.read()
-                        # pattern = re.compile('<script .*src=".*"></script>')
-                        pattern = re.compile('<script .*?src=["|\']([^["|\']*?)"')
-                        scripts = pattern.findall(content)
-                        bg_last = os.path.abspath(os.path.join(extension_path, bgpage, '..'))
-                        processFile(scripts, 'bg.js', relative_path = bg_last)
-                except OSError as e:
-                    print(e)
+            if version==2:
+                if 'scripts' in manifest['background']:
+                    bgfiles = manifest['background']['scripts']
+                    processFile(bgfiles, 'bg.js')
+                elif 'page' in manifest['background']:
+                    bgpage = manifest['background']['page']
+                    if bgpage.startswith('/'):
+                        bgpage = '.' + bgpage
+                    try:
+                        with open(os.path.join(extension_path, bgpage), encoding='ascii', errors='ignore') as f:
+                            content = f.read()
+                            pattern = re.compile('<script .*?src=["|\']([^["|\']*?)"')
+                            scripts = pattern.findall(content)
+                            bg_last = os.path.abspath(os.path.join(extension_path, bgpage, '..'))
+                            processFile(scripts, 'bg.js', relative_path = bg_last)
+                    except OSError as e:
+                        print(e)
+            # if manifest.json verion is 3
+            elif version==3:
+                if 'service_worker' in manifest['background']:
+                    bgfiles = [manifest['background']['service_worker']]
+                    processFile(bgfiles, 'bg.js')
     return True
 
 
