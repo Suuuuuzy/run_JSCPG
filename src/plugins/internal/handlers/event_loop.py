@@ -79,7 +79,7 @@ def other_attack(G, entry, mydata=None):
     args = []  # no args
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
-                                                          mark_fake_args=True)
+                                                          mark_fake_args=True, fake_arg_srcs=[entry[0]])
 def cs_chrome_runtime_connect(G, event):
     # handle the parameter of the callback function
     connectInfo = G.get_child_nodes(event['info'], child_name='connectInfo')[0]
