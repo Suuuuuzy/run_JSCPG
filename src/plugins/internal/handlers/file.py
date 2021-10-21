@@ -7,7 +7,7 @@ from .functions import simurun_function
 from ..utils import decl_function, decl_vars_and_funcs
 from src.plugins.handler import Handler
 from src.plugins.internal.handlers.class_ import handle_class
-
+from src.plugins.internal.setup_env import setup_opg_window
 
 class HandleFile(Handler):
 
@@ -97,6 +97,7 @@ def run_toplevel_file(G: Graph, node_id):
             G.bg_scope = func_scope
             window_obj = G.add_obj_to_scope(name='window', scope=func_scope, combined=False)
             G.bg_window = window_obj
+            setup_opg_window(G, func_scope, window_obj)
         else:
             pattern = re.compile('cs_\d.js')
             # try:
@@ -107,6 +108,7 @@ def run_toplevel_file(G: Graph, node_id):
                 #     pass
                 window_obj = G.add_obj_to_scope(name='window', scope=func_scope, combined=False)
                 G.cs_window[func_scope] = window_obj
+                setup_opg_window(G, func_scope, window_obj)
 
     '''
     # add module object to the current file's scope

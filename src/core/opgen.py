@@ -141,7 +141,7 @@ class OPGen:
             list: the test result pathes of the module
         """
         check_res = None
-        # setup_opg(G)
+        setup_opg(G)
         G.export_node = True
         internal_plugins = PluginManager(G, init=True)
         entry_id = '0'

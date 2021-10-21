@@ -1,37 +1,36 @@
 //  ========= window ========= 
-function Window(){}
 
 // targetWindow.postMessage(message, targetOrigin, [transfer]);
-Window.prototype.postMessage = function(message, targetOrigin, [transfer]){
+window.postMessage = function(message, targetOrigin, [transfer]){
     sink_function(message, 'window_postMessage_sink out');
 };
 
 // target.addEventListener(type, listener [, options]);
 // the 'e' parameter passed to listener can be ignored, otherwise, it is the event object
-Window.prototype.addEventListener = function(type, listener,  [ options]){
+window.addEventListener = function(type, listener,  [ options]){
     MarkAttackEntry('cs_window_eventListener', listener);
 };
 
 
-Window.prototype.top = new Object();
-Window.prototype.top.addEventListener = Window.prototype.addEventListener;
+window.top = new Object();
+window.top.addEventListener = window.addEventListener;
 
-Window.prototype.localStorage = new Object();
-Window.prototype.localStorage.removeItem = function(a){
-
-};
-
-Window.prototype.localStorage.setItem = function(a, b){
+window.localStorage = new Object();
+window.localStorage.removeItem = function(a){
 
 };
 
-Window.prototype.localStorage.getItem = function(a, b){
+window.localStorage.setItem = function(a, b){
 
 };
 
-Window.prototype.eval = eval;
+window.localStorage.getItem = function(a, b){
 
-window = new Window();
+};
+
+// Window.prototype.eval = eval;
+
+// window = new Window();
 
 //  ========= the document and its elements are all objects ========= 
 
@@ -276,7 +275,7 @@ XMLHttpRequest.prototype.responseXML = 'sensitive_responseXML';
 
 
 
-eval = function(para1){
+function eval(para1){
     sink_function(para1, 'eval_sink');
 }
 

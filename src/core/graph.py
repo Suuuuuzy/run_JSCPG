@@ -127,6 +127,7 @@ class Graph:
 
         self.reverse_names = defaultdict(set)
 
+        self.internal_objs_list = []
         # JS internal values
         self.function_prototype = None
         self.object_prototype = None
@@ -1993,3 +1994,23 @@ class Graph:
             for son in sons:
                 offspring = offspring.union(self.get_off_spring(son))
         return offspring
+
+    def get_cur_window_obj(self):
+        window_obj = None
+        if self.thread_version:
+            file_scope = self.mydata.cur_file_scope
+        else:
+            file_scope = self.cur_file_scope
+        if self.client_side:
+            if file_scope==self.bg_scope:
+               window_obj = self.bg_window
+            elif file_scope in self.cs_scopes:
+                window_obj = self.cs_window[file_scope]
+        return window_obj
+
+    def get_cur_window_scope(self):
+        if self.thread_version:
+            file_scope = self.mydata.cur_file_scope
+        else:
+            file_scope = self.cur_file_scope
+        return file_scope

@@ -686,9 +686,9 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         # for arg in _args:
         #     used_objs.update(arg.used_objs)
 
-        if func_obj in G.internal_objs.values():
-            logger.warning('Error: Trying to run an internal obj {} {}'
-                           ', skipped'.format(func_obj, G.inv_internal_objs[func_obj]))
+        if func_obj in G.internal_objs_list:
+            # logger.warning('Error: Trying to run an internal obj {} {}'
+            #                ', skipped'.format(func_obj, G.inv_internal_objs[func_obj]))
             continue
         any_func_run = True
 
@@ -888,11 +888,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         G.mydata.cur_objs = _this.obj_nodes
                     else:
                         if G.client_side:
-                            window_obj = None
-                            if G.mydata.cur_file_scope == G.bg_scope:
-                                window_obj = G.bg_window
-                            elif G.mydata.cur_file_scope in G.cs_scopes:
-                                window_obj = G.cs_window[G.mydata.cur_file_scope]
+                            window_obj = G.get_cur_window_obj()
                             G.mydata.cur_objs = [window_obj]
                         else:
                             G.mydata.cur_objs = [G.BASE_OBJ]
@@ -901,11 +897,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         G.cur_objs = _this.obj_nodes
                     else:
                         if G.client_side:
-                            window_obj = None
-                            if G.cur_file_scope == G.bg_scope:
-                                window_obj = G.bg_window
-                            elif G.cur_file_scope in G.cs_scopes:
-                                window_obj = G.cs_window[G.cur_file_scope]
+                            window_obj = G.get_cur_window_obj()
                             G.cur_objs = [window_obj]
                         else:
                             G.cur_objs = [G.BASE_OBJ]
