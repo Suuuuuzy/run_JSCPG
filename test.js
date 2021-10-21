@@ -1,29 +1,14 @@
-// var x = 1;
-// var y_test_string = 'test_string';
-// var z = -3;
-// debug_sink('in out');
-// if (x>z){
-//     debug_sink('in 1 if');
-//     y_test_string += '1';
-//     z += 1;
-//     if(x>z+2){
-//         debug_sink('in val if');
-//         y_test_string += '2';
-//     }
-//     else{
-//         debug_sink('in val else');
-//         y_test_string +='3';
-//     }
-// }
-// else{
-//     y_test_string += '4';
-//     z += -1;
-// }
-global.gvar = 5;
+function Window(){}
+window = new Window();
+
+// function Document(){}
+// document = new Document();
+
+window.gvar = 5;
 console.log(gvar);
 
 var gvar2 = 6;
-console.log(global.gvar2);
+console.log(window.gvar2);
 
 // console.log(x)
 // console.log(y_test_string);

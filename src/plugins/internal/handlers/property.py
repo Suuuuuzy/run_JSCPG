@@ -90,7 +90,7 @@ def handle_prop(G, ast_node, side=None, extra=ExtraInfo()) \
             obj = G.add_obj_to_scope(parent_name, ast_node,
                 js_type='object' if (G.check_proto_pollution or G.check_ipt)
                 else None,
-                scope=G.BASE_SCOPE, value=wildcard)
+                scope=G.get_cur_window_scope(), value=wildcard)
             parent_objs = [obj]
         # else:
         #     logger.debug("PARENT OBJ {} NOT DEFINED, return undefined".
@@ -382,10 +382,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                     wc_name_node_found = True
                 else:
                     name_node_found = True
-                # if parent_obj == G.BASE_OBJ:
-                #     # G.add_obj_to_scope(name=prop_name, tobe_added_obj=)
-                #     name_node = G.add_name_node(prop_name, scope=G.BASE_SCOPE)
-                #     prop_name_nodes.add(name_node)
     # multi_assign = name_node_found and wc_name_node_found
     found_in_proto = found_in_proto and len(prop_name_nodes) != 0
     if found_in_proto:

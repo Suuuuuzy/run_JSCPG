@@ -34,12 +34,12 @@ def setup_js_builtins(G: Graph):
     setup_regexp(G)
     setup_math(G)
     setup_promise(G)
-    G.add_blank_func_to_scope('Date', scope=G.BASE_SCOPE, python_func=blank_func)
-    G.add_obj_to_name('__opgWildcard', value=wildcard, scope=G.BASE_SCOPE)
+    G.add_blank_func_to_scope('Date', scope=G.get_cur_window_scope(), python_func=blank_func)
+    G.add_obj_to_name('__opgWildcard', value=wildcard, scope=G.get_cur_window_scope())
 
 
 def setup_string(G: Graph):
-    string_cons = G.add_blank_func_to_scope('String', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    string_cons = G.add_blank_func_to_scope('String', scope=G.get_cur_window_scope(), python_func=this_returning_func)
     G.builtin_constructors.append(string_cons)
     G.string_cons = string_cons
     string_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=string_cons)[0]
@@ -66,7 +66,7 @@ def setup_string(G: Graph):
 
 
 def setup_number(G: Graph):
-    number_cons = G.add_blank_func_to_scope('Number', scope=G.BASE_SCOPE, python_func=number_constructor)
+    number_cons = G.add_blank_func_to_scope('Number', scope=G.get_cur_window_scope(), python_func=number_constructor)
     G.builtin_constructors.append(number_cons)
     G.number_cons = number_cons
     number_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=number_cons)[0]
@@ -76,7 +76,7 @@ def setup_number(G: Graph):
 
 
 def setup_array(G: Graph):
-    array_cons = G.add_blank_func_to_scope('Array', G.BASE_SCOPE, array_constructor)
+    array_cons = G.add_blank_func_to_scope('Array', G.get_cur_window_scope(), array_constructor)
     G.builtin_constructors.append(array_cons)
     G.array_cons = array_cons
     array_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=array_cons)[0]
@@ -105,7 +105,7 @@ def setup_array(G: Graph):
 
 
 def setup_boolean(G: Graph):
-    boolean_cons = G.add_blank_func_to_scope('Boolean', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    boolean_cons = G.add_blank_func_to_scope('Boolean', scope=G.get_cur_window_scope(), python_func=this_returning_func)
     G.builtin_constructors.append(boolean_cons)
     G.boolean_cons = boolean_cons
     boolean_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=boolean_cons)[0]
@@ -115,7 +115,7 @@ def setup_boolean(G: Graph):
 
 
 def setup_symbol(G: Graph):
-    symbol_cons = G.add_blank_func_to_scope('Symbol', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    symbol_cons = G.add_blank_func_to_scope('Symbol', scope=G.get_cur_window_scope(), python_func=this_returning_func)
     G.builtin_constructors.append(symbol_cons)
     symbol_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=symbol_cons)[0]
     # Symbol.prototype.__proto__ = Object.prototype
@@ -123,21 +123,21 @@ def setup_symbol(G: Graph):
 
 
 def setup_errors(G: Graph):
-    error_cons = G.add_blank_func_to_scope('Error', scope=G.BASE_SCOPE, python_func=this_returning_func)
+    error_cons = G.add_blank_func_to_scope('Error', scope=G.get_cur_window_scope(), python_func=this_returning_func)
     G.builtin_constructors.append(error_cons)
     # # Error.prototype.__proto__ = Object.prototype
     # error_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=error_cons)[0]
     # G.add_obj_as_prop(prop_name='__proto__', parent_obj=error_prototype, tobe_added_obj=G.object_prototype)
     # for i in ['EvalError', 'InternalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError']:
     #     # EvalError.prototype.__proto__ = Error
-    #     cons = G.add_blank_func_to_scope(i, scope=G.BASE_SCOPE)
+    #     cons = G.add_blank_func_to_scope(i, scope=G.get_cur_window_scope())
     #     prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=cons)[0]
     #     G.add_obj_as_prop(prop_name='__proto__', parent_obj=prototype, tobe_added_obj=error_prototype)
 
 
 def setup_object_and_function(G: Graph):
     # add Object (function)
-    object_cons = G.add_blank_func_to_scope('Object', scope=G.BASE_SCOPE, python_func=object_constructor)
+    object_cons = G.add_blank_func_to_scope('Object', scope=G.get_cur_window_scope(), python_func=object_constructor)
     G.builtin_constructors.append(object_cons)
     G.object_cons = object_cons
     # get Object.prototype
@@ -146,7 +146,7 @@ def setup_object_and_function(G: Graph):
     # add Object.prototype.__proto__
     G.add_obj_as_prop(prop_name='__proto__', parent_obj=object_prototype, tobe_added_obj=G.null_obj)
     # add Function (function)
-    function_cons = G.add_blank_func_to_scope('Function', scope=G.BASE_SCOPE) # TODO: implement this
+    function_cons = G.add_blank_func_to_scope('Function', scope=G.get_cur_window_scope()) # TODO: implement this
     G.builtin_constructors.append(function_cons)
     G.function_cons = function_cons
     # get Function.prototype
@@ -184,21 +184,21 @@ def setup_object_and_function(G: Graph):
 
 
 def setup_global_functions(G: Graph):
-    parse_int = G.add_blank_func_to_scope('parseInt', G.BASE_SCOPE, parse_number)
-    parse_float = G.add_blank_func_to_scope('parseFloat', G.BASE_SCOPE, parse_number)
-    decode_uri = G.add_blank_func_to_scope('decodeURI', G.BASE_SCOPE, string_returning_func)
-    decode_uri_component = G.add_blank_func_to_scope('decodeURIComponent', G.BASE_SCOPE, string_returning_func)
-    encode_uri = G.add_blank_func_to_scope('encodeURI', G.BASE_SCOPE, string_returning_func)
-    encode_uri_component = G.add_blank_func_to_scope('encodeURIComponent', G.BASE_SCOPE, string_returning_func)
-    escape = G.add_blank_func_to_scope('escape', G.BASE_SCOPE, string_returning_func)
-    unescape = G.add_blank_func_to_scope('unescape', G.BASE_SCOPE, string_returning_func)
-    set_timeout = G.add_blank_func_to_scope('setTimeout', G.BASE_SCOPE, func_calling_func)
-    clear_timeout = G.add_blank_func_to_scope('clearTimeout', G.BASE_SCOPE, blank_func)
-    set_interval = G.add_blank_func_to_scope('setInterval', G.BASE_SCOPE, func_calling_func)
-    clear_interval = G.add_blank_func_to_scope('clearInterval', G.BASE_SCOPE, blank_func)
+    parse_int = G.add_blank_func_to_scope('parseInt', G.get_cur_window_scope(), parse_number)
+    parse_float = G.add_blank_func_to_scope('parseFloat', G.get_cur_window_scope(), parse_number)
+    decode_uri = G.add_blank_func_to_scope('decodeURI', G.get_cur_window_scope(), string_returning_func)
+    decode_uri_component = G.add_blank_func_to_scope('decodeURIComponent', G.get_cur_window_scope(), string_returning_func)
+    encode_uri = G.add_blank_func_to_scope('encodeURI', G.get_cur_window_scope(), string_returning_func)
+    encode_uri_component = G.add_blank_func_to_scope('encodeURIComponent', G.get_cur_window_scope(), string_returning_func)
+    escape = G.add_blank_func_to_scope('escape', G.get_cur_window_scope(), string_returning_func)
+    unescape = G.add_blank_func_to_scope('unescape', G.get_cur_window_scope(), string_returning_func)
+    set_timeout = G.add_blank_func_to_scope('setTimeout', G.get_cur_window_scope(), func_calling_func)
+    clear_timeout = G.add_blank_func_to_scope('clearTimeout', G.get_cur_window_scope(), blank_func)
+    set_interval = G.add_blank_func_to_scope('setInterval', G.get_cur_window_scope(), func_calling_func)
+    clear_interval = G.add_blank_func_to_scope('clearInterval', G.get_cur_window_scope(), blank_func)
 
-    require = G.add_blank_func_to_scope('require', G.BASE_SCOPE, handle_require)
-    #jseval = G.add_blank_func_to_scope('eval', G.BASE_SCOPE, opgen.handle_eval)
+    require = G.add_blank_func_to_scope('require', G.get_cur_window_scope(), handle_require)
+    #jseval = G.add_blank_func_to_scope('eval', G.get_cur_window_scope(), opgen.handle_eval)
 
 
 def array_p_for_each(G: Graph, caller_ast, extra, array=NodeHandleResult(), callback=NodeHandleResult(), this=None):
@@ -1140,11 +1140,11 @@ def number_constructor(G: Graph, caller_ast, extra, _, *args):
 
 
 def setup_global_objs(G: Graph):
-    console_obj = G.add_obj_to_scope(name='console', scope=G.BASE_SCOPE)
+    console_obj = G.add_obj_to_scope(name='console', scope=G.get_cur_window_scope())
     G.add_blank_func_as_prop('log', console_obj, console_log)
     G.add_blank_func_as_prop('error', console_obj, console_log)
 
-    process_obj = G.add_obj_to_scope(name='process', scope=G.BASE_SCOPE, js_type='object', value=wildcard)
+    process_obj = G.add_obj_to_scope(name='process', scope=G.get_cur_window_scope(), js_type='object', value=wildcard)
     G.add_obj_as_prop(prop_name='argv', parent_obj=process_obj, js_type='array', value=wildcard)
     version_obj = G.add_obj_as_prop(prop_name='versions', parent_obj=process_obj, js_type='object', value=wildcard)
     G.add_obj_as_prop(prop_name='modules', parent_obj=version_obj, js_type='string', value=wildcard)
@@ -1172,7 +1172,7 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
 
 
 def setup_json(G: Graph):
-    console_obj = G.add_obj_to_scope(name='JSON', scope=G.BASE_SCOPE)
+    console_obj = G.add_obj_to_scope(name='JSON', scope=G.get_cur_window_scope())
     G.add_blank_func_as_prop('parse', console_obj, json_parse)
     G.add_blank_func_as_prop('stringify', console_obj, string_returning_func)
 
@@ -1204,7 +1204,7 @@ def json_parse(G: Graph, caller_ast, extra, _, text=None, reviver=None):
 
 
 def setup_regexp(G: Graph):
-    regexp_cons = G.add_blank_func_to_scope('RegExp', scope=G.BASE_SCOPE,
+    regexp_cons = G.add_blank_func_to_scope('RegExp', scope=G.get_cur_window_scope(),
         python_func=regexp_constructor)
     G.builtin_constructors.append(regexp_cons)
     regexp_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=regexp_cons)[0]
@@ -1781,7 +1781,7 @@ def convert_to_python_re(code): # -> Tuple[_sre.SRE_Pattern, bool, bool]:
 
 
 def setup_math(G: Graph):
-    math_obj = G.add_obj_to_scope('Math', scope=G.BASE_SCOPE)
+    math_obj = G.add_obj_to_scope('Math', scope=G.get_cur_window_scope())
     G.add_blank_func_as_prop('max', math_obj, math_max)
     G.add_blank_func_as_prop('min', math_obj, math_min)
     G.add_blank_func_as_prop('sqrt', math_obj, math_sqrt)
@@ -1880,7 +1880,7 @@ def math_sqrt(G: Graph, caller_ast, extra, _, *args: NodeHandleResult):
     
 
 def setup_promise(G: Graph):
-    promise_cons = G.add_blank_func_to_scope('Promise', scope=G.BASE_SCOPE, python_func=promise_constructor)
+    promise_cons = G.add_blank_func_to_scope('Promise', scope=G.get_cur_window_scope(), python_func=promise_constructor)
     promise_prototype = G.get_prop_obj_nodes(prop_name='prototype', parent_obj=promise_cons)[0]
     G.promise_cons = promise_cons
     G.builtin_constructors.append(promise_cons)

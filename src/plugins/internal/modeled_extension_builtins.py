@@ -9,21 +9,19 @@ from src.core.checker import obj_traceback
 logger = create_logger("main_logger", output_type="file")
 
 
-# TODO: setup document, window, chrome, console object
 def setup_extension_builtins(G: Graph):
     setup_utils(G)
 
 # setup three functions: RegisterFunc, TriggerEvent, MarkSource here for use
-#  TODO: implement those functions
 def setup_utils(G: Graph):
-    G.add_blank_func_to_scope('RegisterFunc', scope=G.BASE_SCOPE, python_func=RegisterFunc)
-    G.add_blank_func_to_scope('TriggerEvent', scope=G.BASE_SCOPE, python_func=TriggerEvent)
-    G.add_blank_func_to_scope('MarkSource', scope=G.BASE_SCOPE, python_func=MarkSource)
-    G.add_blank_func_to_scope('MarkSink', scope=G.BASE_SCOPE, python_func=MarkSink)
-    G.add_blank_func_to_scope('MarkAttackEntry', scope=G.BASE_SCOPE, python_func=MarkAttackEntry)
-    G.add_blank_func_to_scope('debug_sink', scope=G.BASE_SCOPE, python_func=debug_sink)
-    G.add_blank_func_to_scope('data_out_function', scope=G.BASE_SCOPE, python_func=data_out_function)
-    G.add_blank_func_to_scope('sink_function', scope=G.BASE_SCOPE, python_func=sink_function)
+    G.add_blank_func_to_scope('RegisterFunc', scope=G.get_cur_window_scope(), python_func=RegisterFunc)
+    G.add_blank_func_to_scope('TriggerEvent', scope=G.get_cur_window_scope(), python_func=TriggerEvent)
+    G.add_blank_func_to_scope('MarkSource', scope=G.get_cur_window_scope(), python_func=MarkSource)
+    G.add_blank_func_to_scope('MarkSink', scope=G.get_cur_window_scope(), python_func=MarkSink)
+    G.add_blank_func_to_scope('MarkAttackEntry', scope=G.get_cur_window_scope(), python_func=MarkAttackEntry)
+    G.add_blank_func_to_scope('debug_sink', scope=G.get_cur_window_scope(), python_func=debug_sink)
+    G.add_blank_func_to_scope('data_out_function', scope=G.get_cur_window_scope(), python_func=data_out_function)
+    G.add_blank_func_to_scope('sink_function', scope=G.get_cur_window_scope(), python_func=sink_function)
 
 # event is a string
 # func is the function's declaration node ID

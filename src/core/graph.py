@@ -43,8 +43,9 @@ class MyData(threading.local):
 
 class Graph:
 
-    def __init__(self, thread_version):
+    def __init__(self, thread_version, client_side = False):
         self.thread_version = thread_version
+        self.client_side = client_side
         self.graph = nx.MultiDiGraph()
         self.graph_lock = Lock()
         if self.thread_version:
@@ -86,8 +87,12 @@ class Graph:
         self.sinks = set() # a list of sink objs
 
         # record the scope of cs and bg
-        self.cs_scope= {}
+        self.cs_scopes = []
         self.bg_scope = None
+
+        # record the window obj of cs and bg
+        self.cs_window = {}
+        self.bg_window = None
 
         self.detection_res = {}
         self.num_removed = 0
@@ -122,6 +127,7 @@ class Graph:
 
         self.reverse_names = defaultdict(set)
 
+        self.internal_objs_list = []
         # JS internal values
         self.function_prototype = None
         self.object_prototype = None
@@ -920,6 +926,15 @@ class Graph:
         new_name_node = str(self._get_new_nodeid())
         self.add_node(new_name_node, {'labels:label': 'Name', 'name': name})
         self.add_edge(cur_scope, new_name_node, {"type:TYPE": "SCOPE_TO_VAR"})
+        if self.client_side:
+            window_obj = None
+            if name!='window':
+                if cur_scope == self.bg_scope:
+                    window_obj = self.bg_window
+                elif cur_scope in self.cs_scopes:
+                    window_obj = self.cs_window[cur_scope]
+            if window_obj!=None:
+                self.add_edge_if_not_exist(window_obj, new_name_node, {"type:TYPE": "OBJ_TO_PROP"})
         """
         self.set_node_attr(new_name_node, ('labels:label', 'Name'))
         self.set_node_attr(new_name_node, ('name', name))
@@ -942,6 +957,15 @@ class Graph:
         self.set_node_attr(new_name_node, ('name', name))
         self.add_edge_if_not_exist(parent_obj, new_name_node,
             {"type:TYPE": "OBJ_TO_PROP"})
+        cs_windows = [self.cs_window[i] for i in self.cs_window]
+        if self.client_side:
+            if parent_obj == self.bg_window:
+                self.add_edge_if_not_exist(self.bg_scope, new_name_node,
+                                           {"type:TYPE": "SCOPE_TO_VAR"})
+            elif parent_obj in cs_windows:
+                cs_scope = [i for i in self.cs_window if self.cs_window[i]==parent_obj]
+                self.add_edge_if_not_exist(cs_scope[0], new_name_node,
+                                           {"type:TYPE": "SCOPE_TO_VAR"})
         return new_name_node
 
     def add_obj_as_prop(self, prop_name=None, ast_node=None, js_type='object', 
@@ -963,9 +987,22 @@ class Graph:
 
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
-        if combined and parent_obj == self.BASE_OBJ:
-            self.add_obj_to_scope(name=prop_name, scope=self.BASE_SCOPE,
-                tobe_added_obj=tobe_added_obj, combined=False)
+        cs_windows = [self.cs_window[i] for i in self.cs_window]
+        if not self.client_side:
+            if combined and parent_obj == self.BASE_OBJ:
+                self.add_obj_to_scope(name=prop_name, scope=self.BASE_SCOPE,
+                    tobe_added_obj=tobe_added_obj, combined=False)
+        else:
+            if combined and parent_obj == self.bg_window:
+                self.add_obj_to_scope(name=prop_name, scope=self.cur_file_scope,
+                                      tobe_added_obj=tobe_added_obj, combined=False)
+            elif combined and parent_obj in cs_windows:
+                if not self.thread_version:
+                    self.add_obj_to_scope(name=prop_name, scope=self.cur_file_scope,
+                                         tobe_added_obj=tobe_added_obj, combined=False)
+                else:
+                    self.add_obj_to_scope(name=prop_name, scope=self.mydata.cur_file_scope,
+                                         tobe_added_obj=tobe_added_obj, combined=False)
         return tobe_added_obj
 
     def add_obj_to_scope(self, name=None, ast_node=None, js_type='object',
@@ -988,10 +1025,21 @@ class Graph:
             tobe_added_obj = self.add_obj_node(ast_node, js_type, value)
         self.add_edge(name_node, tobe_added_obj, {"type:TYPE": "NAME_TO_OBJ"})
 
-        if combined and scope == self.BASE_SCOPE:
-            self.add_obj_as_prop(prop_name=name, parent_obj=self.BASE_OBJ,
-                tobe_added_obj=tobe_added_obj, combined=False)
-
+        if not self.client_side:
+            if combined and scope == self.BASE_SCOPE:
+                self.add_obj_as_prop(prop_name=name, parent_obj=self.BASE_OBJ,
+                    tobe_added_obj=tobe_added_obj, combined=False)
+        else:
+            if combined and scope == self.bg_scope:
+                self.add_obj_as_prop(prop_name=name, parent_obj=self.bg_window,
+                    tobe_added_obj=tobe_added_obj, combined=False)
+            elif combined and scope in self.cs_scopes:
+                if not self.thread_version:
+                    self.add_obj_as_prop(prop_name=name, parent_obj=self.cs_window[self.cur_file_scope],
+                        tobe_added_obj=tobe_added_obj, combined=False)
+                else:
+                    self.add_obj_as_prop(prop_name=name, parent_obj=self.cs_window[self.mydata.cur_file_scope],
+                          tobe_added_obj=tobe_added_obj, combined=False)
         return tobe_added_obj
 
     add_obj_to_name = add_obj_to_scope
@@ -1673,78 +1721,6 @@ class Graph:
             self.add_obj_as_prop('__proto__', parent_obj=obj_node,
                                  tobe_added_obj=obj)
 
-    # Misc
-
-    def setup1(self):
-        """
-        the init function of setup a run
-        """
-        # base scope is not related to any file
-        self.BASE_SCOPE = self.add_scope("BASE_SCOPE", scope_name='Base')
-
-        self.BASE_OBJ = self.add_obj_to_scope(name='global',
-                            scope=self.BASE_SCOPE, combined=False)
-        if self.thread_version:
-            self.mydata.cur_objs = [self.BASE_OBJ]
-        else:
-            self.cur_objs = [self.BASE_OBJ]
-
-        # setup JavaScript built-in values
-        self.null_obj = self.add_obj_to_scope(name='null', value='null',
-                                              scope=self.BASE_SCOPE)
-
-        self.true_obj = self.add_obj_node(None, 'boolean', 'true')
-        self.add_obj_to_name('true', scope=self.BASE_SCOPE,
-                             tobe_added_obj=self.true_obj)
-        self.false_obj = self.add_obj_node(None, 'boolean', 'false')
-        self.add_obj_to_name('false', scope=self.BASE_SCOPE,
-                             tobe_added_obj=self.false_obj)
-
-    def setup2(self):
-        # self.tainted_user_input = self.add_obj_to_scope(
-        #     name='pyTaintedUserInput', js_type=None,
-        #     value='*', scope=self.BASE_SCOPE)
-        # self.logger.debug("{} is mared as tainted for user input".format(self.tainted_user_input))
-        # self.set_node_attr(self.tainted_user_input, ('tainted', True))
-
-        # setup JavaScript built-in values
-        self.undefined_obj = self.add_obj_node(None, 'undefined',
-                                                value='undefined')
-        self.add_obj_to_name('undefined', scope=self.BASE_SCOPE,
-                             tobe_added_obj=self.undefined_obj)
-        self.infinity_obj = self.add_obj_node(None, 'number', 'Infinity')
-        self.add_obj_to_name('Infinity', scope=self.BASE_SCOPE,
-                             tobe_added_obj=self.infinity_obj)
-        self.negative_infinity_obj = self.add_obj_node(None, 'number',
-                                                       '-Infinity')
-        self.nan_obj = self.add_obj_node(None, 'number', float('nan'))
-        self.add_obj_to_name('NaN', scope=self.BASE_SCOPE,
-                             tobe_added_obj=self.nan_obj)
-
-        self.internal_objs = {
-            'undefined': self.undefined_obj,
-            'null': self.null_obj,
-            'global': self.BASE_OBJ,
-            'infinity': self.infinity_obj,
-            '-infinity': self.negative_infinity_obj,
-            'NaN': self.nan_obj,
-            'true': self.true_obj,
-            'false': self.false_obj
-        }
-        self.inv_internal_objs = {v: k for k, v in self.internal_objs.items()}
-        self.logger.debug(sty.ef.inverse + 'Internal objects\n' + 
-            str(self.internal_objs)[1:-1] + sty.rs.all)
-
-        self.builtin_prototypes = [
-            self.object_prototype, self.string_prototype,
-            self.array_prototype, self.function_prototype,
-            self.number_prototype, self.boolean_prototype, self.regexp_prototype
-        ]
-        self.pollutable_objs = set(chain(*
-            [self.get_prop_obj_nodes(p) for p in self.builtin_prototypes]))
-        self.pollutable_name_nodes = set(chain(*
-            [self.get_prop_name_nodes(p) for p in self.builtin_prototypes]))
-
     def get_parent_object_def(self, node_id):
         """
         get the obj number and defination of the parent object 
@@ -2020,3 +1996,23 @@ class Graph:
             for son in sons:
                 offspring = offspring.union(self.get_off_spring(son))
         return offspring
+
+    def get_cur_window_obj(self):
+        window_obj = None
+        if self.thread_version:
+            file_scope = self.mydata.cur_file_scope
+        else:
+            file_scope = self.cur_file_scope
+        if self.client_side:
+            if file_scope==self.bg_scope:
+               window_obj = self.bg_window
+            elif file_scope in self.cs_scopes:
+                window_obj = self.cs_window[file_scope]
+        return window_obj
+
+    def get_cur_window_scope(self):
+        if self.thread_version:
+            file_scope = self.mydata.cur_file_scope
+        else:
+            file_scope = self.cur_file_scope
+        return file_scope

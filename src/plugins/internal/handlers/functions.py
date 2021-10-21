@@ -329,6 +329,23 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     # create the instantiated object
     # js_type=None: avoid automatically adding prototype
     created_obj = G.add_obj_node(ast_node=exp_ast_node, js_type=None)
+    """
+    # mark window obj for back and content
+    code = G.get_node_attr(exp_ast_node).get('code')
+    if code =='new Window()':
+        if G.thread_version:
+            if G.mydata.cur_file_scope == G.bg_scope:
+                G.back_window = created_obj
+            #  TODO: only one content file for now, but we need more
+            elif G.mydata.cur_file_scope == G.cs_scope['cs_0.js']:
+                G.content_window = created_obj
+        else:
+            if G.cur_file_scope==G.bg_scope:
+                G.back_window = created_obj
+            #  TODO: only one content file for now, but we need more
+            elif G.cur_file_scope==G.cs_scope['cs_0.js']:
+                G.content_window = created_obj
+    """
     # add edge between obj and obj decl
     G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
     # build the prototype chain
@@ -669,9 +686,9 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
         # for arg in _args:
         #     used_objs.update(arg.used_objs)
 
-        if func_obj in G.internal_objs.values():
-            logger.warning('Error: Trying to run an internal obj {} {}'
-                           ', skipped'.format(func_obj, G.inv_internal_objs[func_obj]))
+        if func_obj in G.internal_objs_list:
+            # logger.warning('Error: Trying to run an internal obj {} {}'
+            #                ', skipped'.format(func_obj, G.inv_internal_objs[func_obj]))
             continue
         any_func_run = True
 
@@ -870,12 +887,20 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     if _this:
                         G.mydata.cur_objs = _this.obj_nodes
                     else:
-                        G.mydata.cur_objs = [G.BASE_OBJ]
+                        if G.client_side:
+                            window_obj = G.get_cur_window_obj()
+                            G.mydata.cur_objs = [window_obj]
+                        else:
+                            G.mydata.cur_objs = [G.BASE_OBJ]
                 else:
                     if _this:
                         G.cur_objs = _this.obj_nodes
                     else:
-                        G.cur_objs = [G.BASE_OBJ]
+                        if G.client_side:
+                            window_obj = G.get_cur_window_obj()
+                            G.cur_objs = [window_obj]
+                        else:
+                            G.cur_objs = [G.BASE_OBJ]
                 branch_returned_objs, branch_used_objs = simurun_function(
                     G, func_ast, branches=next_branches, caller_ast=caller_ast)
                 if G.thread_version:

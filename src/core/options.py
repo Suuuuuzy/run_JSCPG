@@ -47,6 +47,7 @@ def parse_args():
     parser.add_argument('-pq', '--run_with_pq', action='store_true', default=False, help="run a the program as a priority queue")
     parser.add_argument('-o', '--obj_traceback', action='store_true', default=False, help="traceback through the obj contribute to edge")
     parser.add_argument('-dx', '--dx', action='store_true', default=False, help="test on the doublex dataset")
+    parser.add_argument('-easy', '--easy_test', action='store_true', default=False, help="test on simple extension")
 
 
     args = parser.parse_args()
