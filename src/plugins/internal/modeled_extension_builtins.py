@@ -9,12 +9,10 @@ from src.core.checker import obj_traceback
 logger = create_logger("main_logger", output_type="file")
 
 
-# TODO: setup document, window, chrome, console object
 def setup_extension_builtins(G: Graph):
     setup_utils(G)
 
 # setup three functions: RegisterFunc, TriggerEvent, MarkSource here for use
-#  TODO: implement those functions
 def setup_utils(G: Graph):
     G.add_blank_func_to_scope('RegisterFunc', scope=G.BASE_SCOPE, python_func=RegisterFunc)
     G.add_blank_func_to_scope('TriggerEvent', scope=G.BASE_SCOPE, python_func=TriggerEvent)

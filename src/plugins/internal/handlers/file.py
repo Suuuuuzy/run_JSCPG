@@ -89,16 +89,24 @@ def run_toplevel_file(G: Graph, node_id):
         G.cur_file_scope = func_scope
         backup_stmt = G.cur_stmt
 
-    # cs_0.js, bg.js
-    if 'bg.js' in file_path:
-        G.bg_scope = func_scope
-    pattern = re.compile('cs_\d.js')
-    try:
-        name = pattern.findall(file_path)[0]
-        G.cs_scope[name] = func_scope
-    except:
-        pass
-
+    # if analyze chrome extension code
+    if G.client_side:
+        # cs_0.js, bg.js
+        # setup the window object before we start run the file
+        if 'bg.js' in file_path:
+            G.bg_scope = func_scope
+            window_obj = G.add_obj_to_scope(name='window', scope=func_scope, combined=False)
+            G.bg_window = window_obj
+        else:
+            pattern = re.compile('cs_\d.js')
+            # try:
+            name = pattern.findall(file_path)[0]
+            if name!=None:
+                G.cs_scopes.append(func_scope)
+                # except:
+                #     pass
+                window_obj = G.add_obj_to_scope(name='window', scope=func_scope, combined=False)
+                G.cs_window[func_scope] = window_obj
 
     '''
     # add module object to the current file's scope

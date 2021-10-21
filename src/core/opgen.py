@@ -25,7 +25,7 @@ class OPGen:
 
     def __init__(self):
         self.options = options
-        self.graph = Graph(options.run_with_pq)
+        self.graph = Graph(options.run_with_pq, client_side = options.chrome_extension)
         self.graph.package_name = options.input_file
         setup_graph_env(self.graph)
 
@@ -141,7 +141,7 @@ class OPGen:
             list: the test result pathes of the module
         """
         check_res = None
-        setup_opg(G)
+        # setup_opg(G)
         G.export_node = True
         internal_plugins = PluginManager(G, init=True)
         entry_id = '0'
@@ -211,16 +211,16 @@ class OPGen:
 
         loggers.detail_logger.info(f"{G.package_name} started")
         for entrance_file in entrance_files:
-            G = self.get_new_graph(package_name=package_path, thread_version = options.run_with_pq)
+            G = self.get_new_graph(package_name=package_path)
             test_res = self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
             if len(test_res) != 0:
                 break
     
-    def get_new_graph(self,  package_name=None , thread_version=False):
+    def get_new_graph(self,  package_name=None):
         """
         set up a new graph
         """
-        self.graph = Graph(thread_version = thread_version)
+        self.graph = Graph(thread_version = self.options.run_with_pq, client_side = self.options.chrome_extension)
         if not package_name:
             self.graph.package_name = options.input_file
         else:
@@ -276,7 +276,7 @@ class OPGen:
 
             for package_path in package_list:
                 # init a new graph
-                self.get_new_graph(package_name=package_path, thread_version = options.run_with_pq)
+                self.get_new_graph(package_name=package_path)
                 if options.chrome_extension:
                     self.test_chrome_extension(package_path, options.vul_type, self.graph, timeout_s=timeout_s,
                         pq=options.run_with_pq, dx = options.dx)
@@ -428,7 +428,8 @@ def admin_threads(G, function, args):
         #     print('%%%%%%%%%work: ', tmp)
         #     tmp = [i.thread_self for i in G.pq]
         #     print('%%%%%%%%%pq: ', tmp)
-        if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
+        # if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
+        if len(G.work_queue) == 0 and len(G.pq) == 0 and len(G.wait_queue) == 0:
             print('finish')
             return 1
 

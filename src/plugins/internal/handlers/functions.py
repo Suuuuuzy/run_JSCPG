@@ -329,6 +329,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     # create the instantiated object
     # js_type=None: avoid automatically adding prototype
     created_obj = G.add_obj_node(ast_node=exp_ast_node, js_type=None)
+    """
     # mark window obj for back and content
     code = G.get_node_attr(exp_ast_node).get('code')
     if code =='new Window()':
@@ -344,6 +345,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
             #  TODO: only one content file for now, but we need more
             elif G.cur_file_scope==G.cs_scope['cs_0.js']:
                 G.content_window = created_obj
+    """
     # add edge between obj and obj decl
     G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
     # build the prototype chain
@@ -885,12 +887,28 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     if _this:
                         G.mydata.cur_objs = _this.obj_nodes
                     else:
-                        G.mydata.cur_objs = [G.BASE_OBJ]
+                        if G.client_side:
+                            window_obj = None
+                            if G.mydata.cur_file_scope == G.bg_scope:
+                                window_obj = G.bg_window
+                            elif G.mydata.cur_file_scope in G.cs_scopes:
+                                window_obj = G.cs_window[G.mydata.cur_file_scope]
+                            G.mydata.cur_objs = [window_obj]
+                        else:
+                            G.mydata.cur_objs = [G.BASE_OBJ]
                 else:
                     if _this:
                         G.cur_objs = _this.obj_nodes
                     else:
-                        G.cur_objs = [G.BASE_OBJ]
+                        if G.client_side:
+                            window_obj = None
+                            if G.cur_file_scope == G.bg_scope:
+                                window_obj = G.bg_window
+                            elif G.cur_file_scope in G.cs_scopes:
+                                window_obj = G.cs_window[G.cur_file_scope]
+                            G.cur_objs = [window_obj]
+                        else:
+                            G.cur_objs = [G.BASE_OBJ]
                 branch_returned_objs, branch_used_objs = simurun_function(
                     G, func_ast, branches=next_branches, caller_ast=caller_ast)
                 if G.thread_version:
