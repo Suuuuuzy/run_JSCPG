@@ -213,6 +213,15 @@ Chrome.prototype.cookies.getAllCookieStores = function(callback){
     callback(CookieStores_source);
 };
 
+// chrome.cookies.getAllCookieStores(callback: function)
+Chrome.prototype.cookies.set = function(details, callback){
+    sink_function(details, 'chrome_cookies_set_sink')
+    // var CookieStore_source = {id:'cookiestore_id', tabIds:[0,1,2,3]};
+    // var CookieStores_source = [CookieStore_source];
+    // MarkSource(CookieStores_source, 'CookieStores_source')
+    // callback(CookieStores_source);
+};
+
 
 Chrome.prototype.storage = new Object();
 Chrome.prototype.storage.sync = new Object();
