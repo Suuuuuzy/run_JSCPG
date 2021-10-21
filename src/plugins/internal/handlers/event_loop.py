@@ -187,7 +187,7 @@ def bg_chrome_tabs_sendMessage(G, event):
     # from src.core.logger import loggers
     # loggers.main_logger.info(sty.fg.green + "COPY OBJECT" + sty.rs.all + ": " + entry_nodeid)
     # print('message obj node:', message, G.get_node_attr(message))
-    func_objs = G.get_objs_by_name('MessageSender', scope=G.cs_scope['cs_0.js'], branches=[])
+    func_objs = G.get_objs_by_name('MessageSender', scope=G.get_cur_window_scope(), branches=[])
     MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
                                                 extra=None,
                                                 caller_ast=None, is_new=True, stmt_id='Unknown',
@@ -195,7 +195,7 @@ def bg_chrome_tabs_sendMessage(G, event):
                                                 mark_fake_args=False)
     MessageSender.obj_nodes = created_objs
     # print('MessageSender obj', created_objs[0], G.get_node_attr(created_objs[0]))
-    sendResponse = G.get_objs_by_name('sendResponse', scope=G.cs_scope['cs_0.js'], branches=[])
+    sendResponse = G.get_objs_by_name('sendResponse', scope=G.get_cur_window_scope(), branches=[])
     # print('sendResponse obj', sendResponse[0], G.get_obj_def_ast_node(sendResponse[0]),
     #       G.get_node_attr(sendResponse[0]))
     args = [NodeHandleResult(obj_nodes=[message]), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
