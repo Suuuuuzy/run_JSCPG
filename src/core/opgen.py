@@ -294,7 +294,7 @@ class OPGen:
             with open(options.list, 'r') as fp:
                 package_list = json.load(fp)
                 if options.package_path:
-                    package_list = [options.package_path+i for i in package_list]
+                    package_list = [os.path.join(options.package_path,i) for i in package_list]
 
             for package_path in tqdm(package_list):
                 # init a new graph

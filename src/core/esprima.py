@@ -15,8 +15,8 @@ def esprima_parse(path='-', args=[], input=None, print_func=print):
     stdout, stderr = proc.communicate(input)
     stderr = stderr.split('Current node:')[0]
     print_func(stderr)
-    if "Unexpected token" in stderr:
-        return None
+    # if "Unexpected token" in stderr:
+    #     return None
     return stdout
 
 def esprima_search(module_name, search_path, print_func=print):
