@@ -3,7 +3,6 @@ import sys
 import csv
 import sty
 import io
-import logging
 import json
 from typing import List, Callable
 from .utils import BranchTag, BranchTagContainer, DictCounter, wildcard
@@ -95,6 +94,7 @@ class Graph:
         self.bg_window = None
 
         self.detection_res = {}
+        self.detected = False
         self.num_removed = 0
         self.dont_quit = None
         self.last_stmts = []

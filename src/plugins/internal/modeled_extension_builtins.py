@@ -6,8 +6,7 @@ from .utils import emit_thread
 import threading
 from src.core.checker import obj_traceback
 
-logger = create_logger("main_logger", output_type="file")
-
+logger = loggers.main_logger
 
 def setup_extension_builtins(G: Graph):
     setup_utils(G)
@@ -181,15 +180,16 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
     for obj in sus_objs:
         attrs = G.get_node_attr(obj)
         if 'tainted' in attrs and attrs['tainted']:
+            G.detected = True
             print(sty.fg.li_green + sty.ef.inverse +f'~~~tainted detected!~~~in extension: '\
                   + G.package_name +' with '+ sink_name + sty.rs.all)
             res = '~~~tainted detected!~~~in extension: '+ G.package_name +' with '+ sink_name + '\n'
-            loggers.res_logger.info("~~~tainted detected!~~~in extension: {} with {}".format(
-                G.package_name , sink_name))
+            # loggers.res_logger.info("~~~tainted detected!~~~in extension: {} with {}".format(
+                # G.package_name , sink_name))
             res += print_taint_flow(G, attrs, sink_name)
-            res_file = os.path.join(G.package_name, 'opgen_generated_files')
-            os.makedirs(res_file, exist_ok=True)
-            with open(os.path.join(res_file, 'res.txt'), 'a') as f:
+            res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+            # os.makedirs(res_dir, exist_ok=True)
+            with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
                 f.write(res)
             # obj_pathes, ast_pathes, text_path = obj_traceback(G, obj)
             # print(sty.fg.li_green + sty.ef.inverse +f'{text_path}' + sty.rs.all)

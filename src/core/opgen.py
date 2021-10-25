@@ -1,6 +1,5 @@
 from .graph import Graph
-from .utils import * 
-from .helpers import * 
+from .helpers import *
 from .timeout import timeout, TimeoutError
 from ..plugins.manager import PluginManager 
 from ..plugins.internal.setup_env import setup_opg
@@ -13,10 +12,10 @@ import shutil
 import sys
 from tqdm import tqdm
 import time
-from threading import Thread, Event
+from threading import Thread
 import threading
 from src.core.thread_design import thread_info
-
+import json
 
 class OPGen:
     """
@@ -25,7 +24,7 @@ class OPGen:
 
     def __init__(self):
         self.options = options
-        self.graph = Graph(options.run_with_pq, client_side = options.chrome_extension)
+        self.graph = Graph(options.run_with_pq, client_side=options.chrome_extension)
         self.graph.package_name = options.input_file
         setup_graph_env(self.graph)
 
@@ -89,7 +88,7 @@ class OPGen:
         """
         test a dir of files as an chrome extension
         Args:
-            file_path (str): the path to the extension
+            extension_path (str): the path to the extension
             vul_type (str) [os_command, prototype_pollution, xss]: the type of vul
             G (Graph): the graph we run top of
         Returns:
@@ -97,7 +96,7 @@ class OPGen:
         """
         # preprocess of the files in chrome extension
         if pq:
-            G.thread_version=True
+            G.thread_version = True
         print('process chrome extension: ', extension_path)
         if not validate_chrome_extension(extension_path, dx):
             print('not valid chrome extension')
@@ -106,26 +105,50 @@ class OPGen:
             G = self.graph
         test_res = None
         # loggers.crx_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'run extension' + extension_path)
+        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+        os.makedirs(res_dir, exist_ok=True)
+        if os.path.exists(os.path.join(res_dir, 'res.txt')):
+            os.remove(os.path.join(res_dir, 'res.txt'))
         if timeout_s is not None:
             try:
                 with timeout(seconds=timeout_s,
                              error_message="{} timeout after {} seconds". \
                                      format(extension_path, timeout_s)):
+                    loggers.res_logger.info('processing extension: %s', extension_path)
                     start_time = time.time()
                     parse_chrome_extension(G, extension_path, dx, easy_test = options.easy_test)
                     test_res = self._test_graph(G, vul_type=vul_type)
                     end_time = time.time()
+                    with open(os.path.join(res_dir, 'used_time.txt'), 'w') as f:
+                        f.write(str(end_time-start_time))
                     loggers.res_logger.info("{} finish with {} seconds spent####". \
                             format(extension_path, end_time-start_time))
+                    if not G.detected:
+                        with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                            f.write('nothing detected')
+                        loggers.res_logger.info('nothing detected in file %s', extension_path)
+                    else:
+                        loggers.res_logger.info('vulnerability detected in file %s', extension_path)
             except TimeoutError as err:
                 if self.graph.get_total_num_statements()!=0:
                     covered_stat_rate = 100*len(self.graph.covered_stat) / (self.graph.get_total_num_statements()- self.graph.get_header_num_statements())
                 else:
                     covered_stat_rate = 0
+                with open(os.path.join(res_dir, 'used_time.txt'), 'w') as f:
+                    f.write(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
                 loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
+                if not G.detected:
+                    with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                        f.write('nothing detected')
+                    loggers.res_logger.info('nothing detected in file %s', extension_path)
+                else:
+                    loggers.res_logger.info('vulnerability detected in file %s', extension_path)
         else:
             parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
             test_res = self._test_graph(G, vul_type=vul_type)
+            if not G.detected:
+                with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                    f.write('nothing detected')
         # test_res = None
         return test_res
 
@@ -184,12 +207,12 @@ class OPGen:
                         error_message="{} timeout after {} seconds".\
                                 format(module_path, timeout_s)):
                     parse_string(G, js_call_templete)
-                    test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
+                    test_res = self._test_graph(G, vul_type=vul_type)
             except TimeoutError as err:
                 loggers.res_logger.error(err)
         else:
             parse_string(G, js_call_templete)
-            test_res = self._test_graph(G, vul_type=vul_type, pq=pq)
+            test_res = self._test_graph(G, vul_type=vul_type)
 
         return test_res
 
@@ -261,18 +284,17 @@ class OPGen:
                 cur_list_path = os.path.join(options.run_env, "tmp_split_list", str(i))
                 tmp_args[list_idx + 1] = cur_list_path
                 cur_cmd = ' '.join(tmp_args)
-                # print(f"screen -S runscreen_{i} -dm {cur_cmd}")
-                os.system(f"screen -S runscreen_{i} -dm {cur_cmd}")
+                print(f"screen -S opgen_{i} -dm {cur_cmd}")
+                os.system(f"screen -S opgen_{i} -dm {cur_cmd}")
             return 
 
         if options.babel:
             babel_convert()
         if options.list is not None:
-            package_list = []
             with open(options.list, 'r') as fp:
-                for line in fp.readlines():
-                    package_path = line.strip()
-                    package_list.append(package_path)
+                package_list = json.load(fp)
+                if options.package_path:
+                    package_list = [options.package_path+i for i in package_list]
 
             for package_path in package_list:
                 # init a new graph
@@ -283,14 +305,6 @@ class OPGen:
                 else:
                     self.test_nodejs_package(package_path,
                         options.vul_type, self.graph, timeout_s=timeout_s)
-                # finish test, print the result
-                # if len(self.graph.detection_res[options.vul_type]) != 0:
-                #     loggers.res_logger.info("{} is detected in {}".format(
-                #         options.vul_type,
-                #         package_path))
-                # else:
-                #     loggers.res_logger.info("No vuls found in {}".format(
-                #         package_path))
 
         else:
             if options.module:
@@ -305,17 +319,6 @@ class OPGen:
                 # analyze from JS source code files
                 self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, pq=options.run_with_pq)
 
-            # if len(self.graph.detection_res[options.vul_type]) != 0:
-            #     print(sty.fg.li_green + sty.ef.inverse +
-            #         f'{options.vul_type} detected at {options.input_file}'
-            #         + sty.rs.all)
-            #     loggers.res_logger.info("{} is detected in {}".format(
-            #         options.vul_type,
-            #         options.input_file))
-        # print("Graph size: {}, GC removed {} nodes".format(self.graph.get_graph_size(), self.graph.num_removed))
-        # print("Cleaning up tmp dirs")
-        #shutil.rmtree(options.run_env)
-        #export to csv
         if options.export is not None:
             if options.export == 'light':
                 self.graph.export_to_CSV("./exports/nodes.csv", "./exports/rels.csv", light=True)
@@ -428,8 +431,8 @@ def admin_threads(G, function, args):
         #     print('%%%%%%%%%work: ', tmp)
         #     tmp = [i.thread_self for i in G.pq]
         #     print('%%%%%%%%%pq: ', tmp)
-        # if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
-        if len(G.work_queue) == 0 and len(G.pq) == 0 and len(G.wait_queue) == 0:
+        if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
+        # if len(G.work_queue) == 0 and len(G.pq) == 0 and len(G.wait_queue) == 0:
             print('finish')
             return 1
 
@@ -462,7 +465,6 @@ def setup_graph_env(G: Graph):
 
     Args:
         G (Graph): the Graph to setup
-        options (options): the user input options
     """
     if options.print:
         G.print = True

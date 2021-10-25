@@ -13,7 +13,10 @@ def esprima_parse(path='-', args=[], input=None, print_func=print):
     proc = subprocess.Popen(['node', main_js_path, path] + args, text=True,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate(input)
+    stderr = stderr.split('Current node:')[0]
     print_func(stderr)
+    if "Unexpected token" in stderr:
+        return None
     return stdout
 
 def esprima_search(module_name, search_path, print_func=print):

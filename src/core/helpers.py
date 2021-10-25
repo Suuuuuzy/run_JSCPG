@@ -123,7 +123,7 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
     # path to generated files, debug, make header=Fasle
     # generated_extension_dir = generate_extension_files(path, header=False)
     if dx:
-        generated_extension_dir = os.path.join('crx_tmp', "eopg_generated_files")
+        generated_extension_dir = os.path.join(path, "opgen_generated_files")
         # verified the existence of the two scripts
         cs = os.path.join(path, 'content_scripts.js')
         filtered_js_files = [cs]
@@ -144,13 +144,16 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
         generated_extension_dir = generate_extension_files(path, header_path)
     # TODO: popup files
     if generated_extension_dir:
+        # try:
         result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],
-                               print_func=loggers.main_logger.info)
+                               print_func=loggers.res_logger.info)
+        # if not result:
+            # logging.critical('Esprima parsing error for %s', generated_extension_dir)
         G.import_from_string(result)
 
 
 def generate_extension_files(extension_path, header_path, header=True):
-    generated_extension_dir = os.path.join('crx_tmp', "eopg_generated_files")
+    generated_extension_dir = os.path.join(extension_path, "opgen_generated_files")
     os.makedirs(generated_extension_dir, exist_ok=True)
     # clean the old directory, if any file exists
     for file in os.listdir(generated_extension_dir):
