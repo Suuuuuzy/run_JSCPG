@@ -515,7 +515,7 @@ def prepare_split_list():
     # make a tmp dir to store the 
     tmp_list_dir = "tmp_split_list"
     os.system("mkdir {}".format(os.path.join(options.run_env, tmp_list_dir)))
-    with open(options.list, 'r') as fp:
+    with open(options.list) as fp:
         package_list = json.load(fp)
 
     num_packages = len(package_list) 
@@ -529,7 +529,7 @@ def prepare_split_list():
     cnt = 0
     for sub_packages in sub_package_lists:
         with open(os.path.join(options.run_env, tmp_list_dir, str(cnt)), 'w') as fp:
-            fp.writelines(sub_packages)
+            json.dump(sub_packages, fp)
         cnt += 1
 
 
