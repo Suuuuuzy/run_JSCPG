@@ -296,7 +296,7 @@ class OPGen:
                 if options.package_path:
                     package_list = [options.package_path+i for i in package_list]
 
-            for package_path in package_list:
+            for package_path in tqdm(package_list):
                 # init a new graph
                 self.get_new_graph(package_name=package_path)
                 if options.chrome_extension:
@@ -515,9 +515,8 @@ def prepare_split_list():
     # make a tmp dir to store the 
     tmp_list_dir = "tmp_split_list"
     os.system("mkdir {}".format(os.path.join(options.run_env, tmp_list_dir)))
-    package_list = None
     with open(options.list, 'r') as fp:
-        package_list = fp.readlines()
+        package_list = json.load(fp)
 
     num_packages = len(package_list) 
     chunk_size = math.floor(num_packages / num_thread)
