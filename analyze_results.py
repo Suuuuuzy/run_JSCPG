@@ -45,11 +45,11 @@ for line in lines:
         novul_ids.append(line[-32:])
 
 old_dic = {"processed_ids":processed_ids, "timeout_ids":timeout_ids, "detectd_ids":detectd_ids, "novul_ids":novul_ids}
+for i in old_dic:
+    old_dic[i] = list(set(old_dic[i]))
 
 if mode.startswith('local'):
     old_results_file = os.path.join(dirname, 'opgen_results.txt')
-    for i in old_dic:
-        old_dic[i] = list(set(old_dic[i]))
     old_dic['novul_ids'] = [i for i in old_dic['novul_ids'] if i not in old_dic["detectd_ids"]]
     for i in old_dic:
         print(i)
@@ -69,14 +69,12 @@ if mode.startswith('local'):
     with open(os.path.join(dirname, 'should_do.txt'), 'w') as f:
         json.dump(should_do, f)
 else:
-    old_dic = {"processed_ids": [], "timeout_ids": [], "detectd_ids": [],
-           "novul_ids": []}
     old_results_file = os.path.join(dirname, 'opgen_results.txt')
-    for i in old_dic:
-        old_dic[i] = list(set(old_dic[i]))
     with open(old_results_file, 'w') as f:
         json.dump(old_dic, f)
-
+    for i in old_dic:
+        print(i)
+        print(len(old_dic[i]))
     if mode=='server_de':
         with open(doublex_de) as f:
             c = json.load(f)
