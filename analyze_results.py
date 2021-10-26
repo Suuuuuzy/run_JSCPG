@@ -88,5 +88,7 @@ else:
         with open(doublex_0_opgen_1, 'w') as f:
             json.dump(detectd_ids, f)
     should_do = [i for i in c if i not in processed_ids]
+    print('should_do')
+    print(len(should_do))
     with open(os.path.join(dirname, 'new_to_do.txt'), 'w') as f:
         json.dump(should_do, f)
