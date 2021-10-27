@@ -177,6 +177,8 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
             sus_objs.add(obj)
             sus_objs.update(G.get_off_spring(obj))
     sink_name = args[-1].values[0]
+    if len(sus_objs)==0:
+        print(sink_name + ' detected')
     for obj in sus_objs:
         attrs = G.get_node_attr(obj)
         if 'tainted' in attrs and attrs['tainted']:

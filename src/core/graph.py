@@ -1937,10 +1937,10 @@ class Graph:
         for n in all_nodes:
             if 'type' in all_nodes[n] and 'AST_' in all_nodes[n]['type'] and self.is_statement(n):
                 filepath = self.get_node_file_path(n)
-                if filepath == "crx_tmp/eopg_generated_files/bg.js":
-                    threshold = 620
-                else:
-                    threshold = 436
+                with open(filepath) as f:
+                    c = f.read()
+                    c = c.split('\n')
+                    threshold = len(c)
                 cur_node_attr = self.get_node_attr(n)
                 if cur_node_attr.get('lineno:int') is None:
                     continue

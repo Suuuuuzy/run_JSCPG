@@ -155,6 +155,12 @@ Chrome.prototype.tabs.onActivated.addListener = function(myCallback){
     myCallback(activeInfo);
 }
 
+Chrome.prototype.tabs.onUpdated = new Object();
+Chrome.prototype.tabs.onUpdated.addListener = function(myCallback){
+    var tab = new Tab();
+    myCallback(99, {}, tab);
+}
+
 // for deprecated APIs
 Chrome.prototype.tabs.onActiveChanged = Chrome.prototype.tabs.onActivated
 
@@ -215,12 +221,14 @@ Chrome.prototype.cookies.getAllCookieStores = function(callback){
 
 // chrome.cookies.getAllCookieStores(callback: function)
 Chrome.prototype.cookies.set = function(details, callback){
-    sink_function(details, 'chrome_cookies_set_sink')
-    // var CookieStore_source = {id:'cookiestore_id', tabIds:[0,1,2,3]};
-    // var CookieStores_source = [CookieStore_source];
-    // MarkSource(CookieStores_source, 'CookieStores_source')
-    // callback(CookieStores_source);
+    sink_function(details, 'chrome_cookies_set_sink');
+
 };
+
+Chrome.prototype.cookies.remove = function(details, callback){
+    sink_function(details, 'chrome_cookies_remove_sink');
+}
+
 
 
 Chrome.prototype.storage = new Object();
@@ -370,12 +378,18 @@ Chrome.prototype.webRequest.onBeforeSendHeaders.addListener = function(myCallbac
 
 Chrome.prototype.browsingData = new Object();
 Chrome.prototype.browsingData.remove = function(para1, prara2, para3){
-    sink_function(para1, prara2, para3, 'chrome_browsingData_remove_sink');
+    sink_function('chrome_browsingData_remove_sink');
 }
 
+Chrome.prototype.management = new Object();
+Chrome.prototype.management.getAll = function(callback){
+    var ExtensionInfos = [{"description":"description", "enabled":true}];
+    MarkSource(ExtensionInfos);
+    callback(ExtensionInfos);
+}
 
 chrome = new Chrome();
-
+chrome.experimental.cookies = chrome.cookies;
 
 
 /////////

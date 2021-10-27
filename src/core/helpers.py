@@ -149,7 +149,10 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
                                print_func=loggers.res_logger.info)
         # if not result:
             # logging.critical('Esprima parsing error for %s', generated_extension_dir)
-        G.import_from_string(result)
+        try:
+            G.import_from_string(result)
+        except:
+            loggers.res_logger.info(path+' can not impor from string')
 
 
 def generate_extension_files(extension_path, header_path, header=True):
