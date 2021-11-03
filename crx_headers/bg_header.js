@@ -268,6 +268,7 @@ Chrome.prototype.storage.local.set = function(key, callback){
 };
 
 Chrome.prototype.storage.local.remove = function(key, callback){
+    debug_sink('inside remove');
     sink_function(key, 'chrome_storage_local_remove_sink');
     callback();
 };

@@ -111,11 +111,11 @@ def ast_call_function(G, ast_node, extra):
             returned_value_sources.append(sources)
         return NodeHandleResult(values=returned_values, 
                                 value_sources=returned_value_sources)
-    elif G.get_node_attr(ast_node).get('flags:string[]') == 'JS_DELETE':
-        if handled_args:
-            for name_node in handled_args[0].name_nodes:
-                for obj in handled_args[0].obj_nodes:
-                    G.remove_all_edges_between(name_node, obj)
+    # elif G.get_node_attr(ast_node).get('flags:string[]') == 'JS_DELETE':
+    #     if handled_args:
+    #         for name_node in handled_args[0].name_nodes:
+    #             for obj in handled_args[0].obj_nodes:
+    #                 G.remove_all_edges_between(name_node, obj)
         return NodeHandleResult()
 
     # find function declaration objects
