@@ -172,8 +172,7 @@ def combine_files(newfile, files):
     for file in files:
         print(file)
         try:
-            with open(file, encoding='ascii', errors='ignore') as fin:
-                # print('debug file: ', file)
+            with open(file, errors='ignore') as fin:
                 content = fin.read()
                 result += '// original file:' + file + '\n\n'
                 result += content
@@ -216,7 +215,7 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, h
             filtered_js_files.insert(0,os.path.join(header_path, 'bg_header.js'))
             filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
         combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
-    with open(os.path.join(extension_path, 'manifest.json'), encoding='ascii', errors='ignore') as f:
+    with open(os.path.join(extension_path, 'manifest.json'), errors='ignore') as f:
         manifest = json.load(f)
         version = manifest['manifest_version']
         if 'content_scripts' in manifest:
@@ -239,7 +238,7 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, h
                     if bgpage.startswith('/'):
                         bgpage = '.' + bgpage
                     try:
-                        with open(os.path.join(extension_path, bgpage), encoding='ascii', errors='ignore') as f:
+                        with open(os.path.join(extension_path, bgpage), errors='ignore') as f:
                             content = f.read()
                             pattern = re.compile('<script .*?src=["|\']([^["|\']*?)"')
                             scripts = pattern.findall(content)

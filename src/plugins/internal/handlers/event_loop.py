@@ -26,21 +26,40 @@ def event_loop_threading(G: Graph, event, mydata):
         func(G, event)
 
 
-def event_loop_no_threading(G: Graph, event):
+def event_loop_no_threading(G: Graph):
     print('========SEE eventRegisteredFuncs:========')
     for i in G.eventRegisteredFuncs:
         print(i, G.eventRegisteredFuncs[i])
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
-    if event['eventName'] in event_listener_dic:
-        if event_listener_dic[event['eventName']][0] in G.eventRegisteredFuncs:
+    print('========SEE attackEntries:========')
+    while len(G.attackEntries) != 0:
+        entry = G.attackEntries.pop()
+        print('attack:', entry[0])
+        if entry[0] in attack_dic:
+            attack_dic[entry[0]](G, entry)
+        else:
+            other_attack(G, entry)
+    while len(G.eventQueue)!=0:
+        event = G.eventQueue.pop()
+        print('processing eventName:', event['eventName'])
+        if event['eventName'] in event_listener_dic:
+            listener = event_listener_dic[event['eventName']][0]
+            with G.eventRegisteredFuncs_lock:
+                listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
+            if listener_not_registered:
+                print(event['eventName'], ': event listener not rregistered')
+                return
             func = event_listener_dic[event['eventName']][1]
             func(G, event)
 
 
 def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata=None):
-    cur_thread = threading.current_thread()
-    print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
-    G.mydata.unpickle_up(mydata)
+    if G.thread_version:
+        cur_thread = threading.current_thread()
+        print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+        G.mydata.unpickle_up(mydata)
+    else:
+        print('=========Perform attack: ' + str(entry))
     wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
                                        else None, value=wildcard)
     G.set_node_attr(wildcard_msg_obj, ('tainted', True))
@@ -61,9 +80,12 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata=None):
                                                          mark_fake_args=False)
 
 def window_eventListener_attack(G, entry, mydata=None):
-    G.mydata.unpickle_up(mydata)
-    cur_thread = threading.current_thread()
-    print('========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+    if G.thread_version:
+        G.mydata.unpickle_up(mydata)
+        cur_thread = threading.current_thread()
+        print('========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+    else:
+        print('=========Perform attack: ' + str(entry))
     func_objs = [entry[1]]
     # since there is only one parameter in this function, which is fake, we can use the mark_fake_args in call_function
     returned_result, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
@@ -72,9 +94,12 @@ def window_eventListener_attack(G, entry, mydata=None):
 
 
 def other_attack(G, entry, mydata=None):
-    G.mydata.unpickle_up(mydata)
-    cur_thread = threading.current_thread()
-    print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+    if G.thread_version:
+        G.mydata.unpickle_up(mydata)
+        cur_thread = threading.current_thread()
+        print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+    else:
+        print('=========Perform attack: ' + str(entry))
     func_objs = [entry[1]]
     args = []  # no args
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
@@ -249,4 +274,9 @@ event_listener_dic = {
     "bg_chrome_tabs_sendMessage":["cs_chrome_runtime_onMessage", bg_chrome_tabs_sendMessage],
     "bg_chrome_runtime_onMessage_response":["cs_chrome_runtime_sendMessage_onResponse", bg_chrome_runtime_onMessage_response],
     "cs_chrome_runtime_onMessage_response":["bg_chrome_tabs_sendMessage_onResponse", cs_chrome_tabs_onMessage_response]
+}
+
+attack_dic = {
+    'bg_chrome_runtime_MessageExternal':bg_chrome_runtime_MessageExternal_attack,
+    'cs_window_eventListener': window_eventListener_attack
 }

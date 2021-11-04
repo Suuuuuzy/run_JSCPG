@@ -1,10 +1,11 @@
 from src.core.graph import Graph
 from src.core.utils import *
 from src.core.logger import *
-from src.plugins.internal.handlers.event_loop import event_loop_no_threading, event_loop_threading, bg_chrome_runtime_MessageExternal_attack, other_attack, window_eventListener_attack
+from src.plugins.internal.handlers.event_loop import event_loop_threading, other_attack
 from .utils import emit_thread
 import threading
 from src.core.checker import obj_traceback
+from src.plugins.internal.handlers.event_loop import attack_dic
 
 logger = loggers.main_logger
 
@@ -96,7 +97,7 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in trigger event: ', tmp)
     else:
-        event_loop_no_threading(G, event)
+        G.eventQueue.insert(0, {'eventName': eventName, 'info': info, 'extra': extra})
     return NodeHandleResult()
 
 
@@ -124,19 +125,19 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
         #  attack right away!
         entry = [type, listener]
         if G.thread_version:
-            if entry[0]=='bg_chrome_runtime_MessageExternal':
-                emit_thread(G, bg_chrome_runtime_MessageExternal_attack, (G, entry, G.mydata.pickle_up()))
-            elif entry[0]=='cs_window_eventListener':
-                emit_thread(G, window_eventListener_attack, (G, entry, G.mydata.pickle_up()))
+            if entry[0] in attack_dic:
+                attack_func = attack_dic[entry[0]]
+                emit_thread(G, attack_func, (G, entry, G.mydata.pickle_up()))
             else:
                 emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()))
             # tmp = [i.thread_self for i in G.work_queue]
             # print('%%%%%%%%%work in MarkAttackEntry: ', tmp)
         else:
-            if entry[0]=='bg_chrome_runtime_MessageExternal':
-                bg_chrome_runtime_MessageExternal_attack(G, entry)
-            else:
-                other_attack(G, entry)
+            G.attackEntries.insert(0, entry)
+            # if entry[0]=='bg_chrome_runtime_MessageExternal':
+            #     bg_chrome_runtime_MessageExternal_attack(G, entry)
+            # else:
+            #     other_attack(G, entry)
     return NodeHandleResult()
 
 def debug_sink(G: Graph, caller_ast, extra, _, *args):

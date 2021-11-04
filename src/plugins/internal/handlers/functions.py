@@ -812,7 +812,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         if mark_fake_args:
                             G.set_node_attr(elem, ('tainted', True))
                             G.set_node_attr(elem, ('fake_arg', True))
-                            G.set_node_attr(elem, ('taint_flow', [([elem], fake_arg_srcs[j])]))
+                            if fake_arg_srcs and j < len(fake_arg_srcs):
+                                G.set_node_attr(elem, ('taint_flow', [([elem], fake_arg_srcs[j])]))
                             logger.debug("{} marked as tainted [2]".format(elem))
                     else:
                         added_obj = G.add_obj_to_scope(name=param_name,
@@ -823,7 +824,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('tainted', True))
                         G.set_node_attr(added_obj, ('fake_arg', True))
-                        G.set_node_attr(added_obj, ('taint_flow', [([added_obj], fake_arg_srcs[j])]))
+                        if fake_arg_srcs and j < len(fake_arg_srcs):
+                            G.set_node_attr(added_obj, ('taint_flow', [([added_obj], fake_arg_srcs[j])]))
                         logger.debug("{} marked as tainted [3]".format(added_obj))
                     G.add_obj_as_prop(prop_name=str(j),
                                       parent_obj=arguments_obj, tobe_added_obj=added_obj)
@@ -840,7 +842,7 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                     if mark_fake_args:
                         G.set_node_attr(added_obj, ('tainted', True))
                         G.set_node_attr(added_obj, ('fake_arg', True))
-                        if j<len(fake_arg_srcs):
+                        if fake_arg_srcs and j<len(fake_arg_srcs):
                             G.set_node_attr(added_obj, ('taint_flow', [([added_obj], fake_arg_srcs[j])]))
                         logger.debug("{} marked as tainted [4]".format(added_obj))
                     G.add_obj_as_prop(prop_name=str(j),

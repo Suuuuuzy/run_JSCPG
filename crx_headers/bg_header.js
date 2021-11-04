@@ -167,7 +167,6 @@ Chrome.prototype.tabs.onActiveChanged = Chrome.prototype.tabs.onActivated
 
 // chrome.tabs.executeScript
 Chrome.prototype.tabs.executeScript = function(tabid, details, callback){
-    debug_sink(tabid, details, callback);
     sink_function(tabid, 'chrome_tabs_executeScript_sink');
     sink_function(details, 'chrome_tabs_executeScript_sink');
     sink_function(callback, 'chrome_tabs_executeScript_sink');
@@ -268,7 +267,6 @@ Chrome.prototype.storage.local.set = function(key, callback){
 };
 
 Chrome.prototype.storage.local.remove = function(key, callback){
-    debug_sink('inside remove');
     sink_function(key, 'chrome_storage_local_remove_sink');
     callback();
 };

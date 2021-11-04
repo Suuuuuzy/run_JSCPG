@@ -7,7 +7,7 @@ window.postMessage = function(message, targetOrigin, [transfer]){
 
 // target.addEventListener(type, listener [, options]);
 // the 'e' parameter passed to listener can be ignored, otherwise, it is the event object
-window.addEventListener = function(type, listener,  [ options]){
+window.addEventListener = function(type, listener,  [options]){
     MarkAttackEntry('cs_window_eventListener', listener);
 };
 
@@ -28,9 +28,8 @@ window.localStorage.getItem = function(a, b){
 
 };
 
-// Window.prototype.eval = eval;
-
-// window = new Window();
+window.frames[0] = window;
+window.frames[1] = window;
 
 //  ========= the document and its elements are all objects ========= 
 
@@ -269,8 +268,8 @@ XMLHttpRequest.prototype.send = function(msg){
 
 XMLHttpRequest.prototype.responseText = 'sensitive_responseText';
 XMLHttpRequest.prototype.responseXML = 'sensitive_responseXML';
-// MarkSource(XMLHttpRequest.prototype.responseText, 'XMLHttpRequest_responseText_source');
-// MarkSource(XMLHttpRequest.prototype.responseXML, 'XMLHttpRequest_responseXML_source');
+MarkSource(XMLHttpRequest.prototype.responseText, 'XMLHttpRequest_responseText_source');
+MarkSource(XMLHttpRequest.prototype.responseXML, 'XMLHttpRequest_responseXML_source');
 
 
 
