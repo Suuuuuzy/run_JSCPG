@@ -147,8 +147,6 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
         # try:
         result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],
                                print_func=loggers.res_logger.info)
-        # if not result:
-            # logging.critical('Esprima parsing error for %s', generated_extension_dir)
         try:
             G.import_from_string(result)
         except:

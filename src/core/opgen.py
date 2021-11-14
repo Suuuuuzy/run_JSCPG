@@ -25,7 +25,19 @@ class OPGen:
 
     def __init__(self):
         self.options = options
-        self.graph = Graph(options.run_with_pq, client_side=options.chrome_extension)
+        # initialize header lines here
+        if options.easy_test:
+            header_path = 'crx_headers_easy/'
+        else:
+            header_path = 'crx_headers/'
+        with open(os.path.join(header_path, 'jquery_header.js')) as f:
+            self.jq_header_lines = len(f.read().split('\n'))
+        with open(os.path.join(header_path, 'cs_header.js')) as f:
+            self.cs_header_lines = len(f.read().split('\n'))
+        with open(os.path.join(header_path, 'bg_header.js')) as f:
+            self.bg_header_lines = len(f.read().split('\n'))
+
+        self.graph = Graph(options.run_with_pq, self.cs_header_lines+self.jq_header_lines, self.bg_header_lines+self.jq_header_lines, client_side=options.chrome_extension, )
         self.graph.package_name = options.input_file
         setup_graph_env(self.graph)
 
@@ -246,7 +258,7 @@ class OPGen:
         """
         set up a new graph
         """
-        self.graph = Graph(thread_version = self.options.run_with_pq, client_side = self.options.chrome_extension)
+        self.graph = Graph(thread_version = self.options.run_with_pq, cs_header_lines=self.cs_header_lines+self.jq_header_lines, bg_header_lines=self.bg_header_lines+self.jq_header_lines, client_side = self.options.chrome_extension)
         if not package_name:
             self.graph.package_name = options.input_file
         else:

@@ -42,7 +42,9 @@ class MyData(threading.local):
 
 class Graph:
 
-    def __init__(self, thread_version, client_side = False):
+    def __init__(self, thread_version, cs_header_lines, bg_header_lines, client_side = False ):
+        self.cs_header_lines = cs_header_lines
+        self.bg_header_lines = bg_header_lines
         self.thread_version = thread_version
         self.client_side = client_side
         self.graph = nx.MultiDiGraph()
@@ -65,20 +67,8 @@ class Graph:
         self.op_cnt = {'add_node': 0, 'add_edge': 0, 'get_node_attr': 0, 'get_edge': 0, 'get_edge_attr': 0}
         self.nearest_upper_CPG_cache = {}
         ###################
-        '''
-        # msg_queue EXAMPLE
-        # G.msg_queue = [
-        # ['cs2bg/bg2cs','single/longtime', args:[obj, message, options, responseCallback]
-        # #, ...
-        # ]
-        self.msg_queue = []
-        # msg_receivers EXAMPLE
-        # G.msg_queue = [
-        # ['cs/bg','single/longtime', 'msg object id']
-        # #, ...
-        # ]
-        self.msg_receivers = []
-        '''
+
+
 
         self.eventQueue = []  # a queue of events
         self.sensitiveSource = set() # a list of sensitive source objs
@@ -114,7 +104,8 @@ class Graph:
         self.covered_num_stat = 0
         self.covered_stat = {} #set()
         self.all_stat = set()
-        self.header_stat = set()
+        # initialize head_stats
+        self.initialize_header_stat()
         self.all_func = set()
         self.covered_func = set()
 
@@ -1931,27 +1922,28 @@ class Graph:
         return self.all_stat
 
     def get_header_stat(self):
-        if len(self.header_stat)>0:
-            return self.header_stat
+        return self.header_stat
+
+    def initialize_header_stat(self):
+        self.header_stat = set()
         all_nodes = self.get_all_nodes()
         for n in all_nodes:
             if 'type' in all_nodes[n] and 'AST_' in all_nodes[n]['type'] and self.is_statement(n):
                 filepath = self.get_node_file_path(n)
-                with open(filepath) as f:
-                    c = f.read()
-                    c = c.split('\n')
-                    threshold = len(c)
+                if "eopg_generated_files/bg.js" in filepath:
+                    threshold = self.bg_header_lines
+                elif "eopg_generated_files/cs" in filepath:
+                    threshold = self.cs_header_lines
                 cur_node_attr = self.get_node_attr(n)
                 if cur_node_attr.get('lineno:int') is None:
                     continue
                 else:
                     try:
                         line_num = int(cur_node_attr.get('lineno:int'))
-                        if line_num< threshold:
+                        if line_num < threshold:
                             self.header_stat.add(n)
                     except:
                         pass
-        return self.header_stat
 
     def get_header_num_statements(self):
         header_stat = self.get_header_stat()
