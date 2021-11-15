@@ -372,6 +372,12 @@ Chrome.prototype.webRequest.onBeforeSendHeaders.addListener = function(myCallbac
 }
 
 
+// chrome.alarms
+Chrome.prototype.alarms = new Object();
+Chrome.prototype.alarms.clearAll = function(callback){}
+Chrome.prototype.alarms.create = function(name, alarmInfo){}
+Chrome.prototype.alarms.onAlarm.addListener = function(callback){}
+
 
 // chrome.browsingData.remove
 
@@ -389,6 +395,5 @@ Chrome.prototype.management.getAll = function(callback){
 
 chrome = new Chrome();
 chrome.experimental.cookies = chrome.cookies;
-
 
 /////////
