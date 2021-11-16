@@ -82,6 +82,9 @@ function $(a){
         var array_in = a;
         a = undefined;
     }
+    else if(typeof a === 'function') {
+        a();
+    }
     else{
         // $("#test")
         if (a[0] == '#'){
