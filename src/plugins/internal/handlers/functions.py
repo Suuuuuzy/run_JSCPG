@@ -329,23 +329,11 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     # create the instantiated object
     # js_type=None: avoid automatically adding prototype
     created_obj = G.add_obj_node(ast_node=exp_ast_node, js_type=None)
-    """
-    # mark window obj for back and content
-    code = G.get_node_attr(exp_ast_node).get('code')
-    if code =='new Window()':
-        if G.thread_version:
-            if G.mydata.cur_file_scope == G.bg_scope:
-                G.back_window = created_obj
-            #  TODO: only one content file for now, but we need more
-            elif G.mydata.cur_file_scope == G.cs_scope['cs_0.js']:
-                G.content_window = created_obj
-        else:
-            if G.cur_file_scope==G.bg_scope:
-                G.back_window = created_obj
-            #  TODO: only one content file for now, but we need more
-            elif G.cur_file_scope==G.cs_scope['cs_0.js']:
-                G.content_window = created_obj
-    """
+    # add canHaveOnProperty for object.onload property
+    # print('new object debug')
+    canHaveOnPropertyObject = ['Document', 'Document_element']
+    if G.get_node_attr(constructor_decl).get('code') in canHaveOnPropertyObject:
+        G.set_node_attr(created_obj, ('canHaveOnProperty', "True"))
     # add edge between obj and obj decl
     G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})
     # build the prototype chain

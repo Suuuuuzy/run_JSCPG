@@ -96,6 +96,8 @@ def run_toplevel_file(G: Graph, node_id):
         if 'bg.js' in file_path:
             G.bg_scope = func_scope
             window_obj = G.add_obj_to_scope(name='window', scope=func_scope, combined=False)
+            # add canHaveOnProperty for object.onload property
+            G.set_node_attr(window_obj, ('canHaveOnProperty', "True"))
             G.bg_window = window_obj
             setup_opg_window(G, func_scope, window_obj)
         else:
@@ -107,6 +109,8 @@ def run_toplevel_file(G: Graph, node_id):
                 # except:
                 #     pass
                 window_obj = G.add_obj_to_scope(name='window', scope=func_scope, combined=False)
+                # add canHaveOnProperty for object.onload property
+                G.set_node_attr(window_obj, ('canHaveOnProperty', "True"))
                 G.cs_window[func_scope] = window_obj
                 setup_opg_window(G, func_scope, window_obj)
 

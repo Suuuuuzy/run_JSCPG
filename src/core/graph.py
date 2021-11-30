@@ -2008,3 +2008,17 @@ class Graph:
         else:
             file_scope = self.cur_file_scope
         return file_scope
+
+    def get_parent_obj_from_property_name(self, name_node):
+        # if node_id in self.nearest_upper_CPG_cache:
+        #     return self.nearest_upper_CPG_cache[node_id]
+        #
+        # ori_node_id = node_id
+        # result = None
+        # assert node_id is not None
+        parent_edges = self.get_in_edges(name_node, edge_type = "OBJ_TO_PROP")
+        if parent_edges is None or len(parent_edges) == 0:
+            parent_node =  None
+        parent_node = parent_edges[0][0]
+
+        return parent_node

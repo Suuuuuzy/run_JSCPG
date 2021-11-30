@@ -9,6 +9,7 @@ from src.plugins.internal.handlers.vars import handle_var
 import sty
 from src.core.checker import traceback, print_success_pathes
 from src.core.options import options
+from src.plugins.internal.modeled_extension_builtins import MarkAttackEntryOnProperty
 
 class HandleBinaryOP(Handler):
     """
@@ -281,6 +282,17 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
     for name_node in handled_left.name_nodes:
         # nn_for_tags = G.get_node_attr(name_node).get('for_tags')
         # if not nn_for_tags: # empty array or None
+        # print('debug property name')
+        onEvents = ["onload" ,"onmessage"]
+        if G.get_node_attr(name_node).get('name') in onEvents:
+            parent_obj = G.get_parent_obj_from_property_name(name_node)
+            if parent_obj:
+                if G.get_node_attr(parent_obj).get('canHaveOnProperty'):
+                    type = G.get_node_attr(name_node).get('name')
+                    for listener in right_objs:
+                        # print('MarkAttackEntryOnProperty', type, listener)
+                        MarkAttackEntryOnProperty(G, type, listener)
+        #         add right objs to the attack
         G.assign_obj_nodes_to_name_node(name_node, right_objs,
             branches=branches)
 

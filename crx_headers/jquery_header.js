@@ -67,6 +67,9 @@ Document.prototype.addEventListener = function(type, listener,  [ options]){
     MarkAttackEntry('document_event_listener', listener);
 };
 
+
+Document.prototype.createElement = Document_element.prototype.createElement;
+
 document = new Document();
 
 

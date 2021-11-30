@@ -140,6 +140,20 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
             #     other_attack(G, entry)
     return NodeHandleResult()
 
+
+def MarkAttackEntryOnProperty(G: Graph, type, listener):
+    if listener!=G.undefined_obj:
+        #  attack right away!
+        entry = [type, listener]
+        if G.thread_version:
+            if entry[0] in attack_dic:
+                attack_func = attack_dic[entry[0]]
+                emit_thread(G, attack_func, (G, entry, G.mydata.pickle_up()))
+            else:
+                emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()))
+        else:
+            G.attackEntries.insert(0, entry)
+
 def debug_sink(G: Graph, caller_ast, extra, _, *args):
     print('code reached')
     print(args)
