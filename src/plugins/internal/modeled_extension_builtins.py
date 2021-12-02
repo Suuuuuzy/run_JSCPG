@@ -185,7 +185,7 @@ def data_out_function(G: Graph, caller_ast, extra, _, *args):
 # check whether the parameters are tainted
 def sink_function(G: Graph, caller_ast, extra, _, *args):
     sus_objs = set()
-    # print('sink function reached')
+    print('sink function reached')
     if len(args)>1:
         for i in range(len(args)-1):
             obj = args[i].obj_nodes[0]

@@ -15,12 +15,12 @@ class HandleConst(Handler) :
         js_type = 'string' if cur_type == 'string' else 'number'
         code = self.G.get_node_attr(self.node_id).get('code')
         if cur_type == 'integer' and (code.startswith("0x") or code.startswith("0X")):
-                value = int(code, 16)
+            value = int(code, 16)
         elif cur_type == 'integer' and (code.startswith("0b") or code.startswith("0B")):
-                print(self.G.get_node_attr(self.node_id))
-                print(cur_type)
-                print('debug: ', code)
-                value = int(code, 2)
+            print(self.G.get_node_attr(self.node_id))
+            print(cur_type)
+            print('debug: ', code)
+            value = int(code, 2)
         elif cur_type == 'string':
             if self.G.get_node_attr(self.node_id).get('flags:string[]') == 'JS_REGEXP':
                 added_obj = G.add_obj_node(ast_node=self.node_id,
