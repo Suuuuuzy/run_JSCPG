@@ -113,7 +113,7 @@ MessageSenderExternal = function(){
     this.url = 'url';
 };
 function sendResponseExternal(message_out){
-    sink_function(message_out, 'sendResponseExternal_sink out');
+    sink_function(message_out, 'sendResponseExternal_sink');
 };
 
 
@@ -394,6 +394,7 @@ Chrome.prototype.management.getAll = function(callback){
 }
 
 chrome = new Chrome();
+_ = chrome;
 chrome.experimental.cookies = chrome.cookies;
 
 /////////

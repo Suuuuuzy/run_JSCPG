@@ -182,53 +182,60 @@ def data_out_function(G: Graph, caller_ast, extra, _, *args):
     return NodeHandleResult()
 
 
-# check whether the parameters are tainted
+# check the sink function
 def sink_function(G: Graph, caller_ast, extra, _, *args):
     sus_objs = set()
     print('sink function reached')
+    # get sus_objs and sink_name
     if len(args)>1:
         for i in range(len(args)-1):
             obj = args[i].obj_nodes[0]
             sus_objs.add(obj)
             sus_objs.update(G.get_off_spring(obj))
     sink_name = args[-1].values[0]
+    # if no obj is required, control flow reaches
     if len(sus_objs)==0:
-        print(sink_name + ' detected')
+        print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
+              + G.package_name + ' with ' + sink_name + sty.rs.all)
+        res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
+        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+        with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
+            f.write(res)
+        G.detected = True
+    # check whether the taint flow is vulnerable
     for obj in sus_objs:
-        attrs = G.get_node_attr(obj)
-        if 'tainted' in attrs and attrs['tainted']:
+        if check_taint(G, obj, sink_name):
             G.detected = True
-            print(sty.fg.li_green + sty.ef.inverse +f'~~~tainted detected!~~~in extension: '\
-                  + G.package_name +' with '+ sink_name + sty.rs.all)
-            res = '~~~tainted detected!~~~in extension: '+ G.package_name +' with '+ sink_name + '\n'
-            # loggers.res_logger.info("~~~tainted detected!~~~in extension: {} with {}".format(
-                # G.package_name , sink_name))
-            res += print_taint_flow(G, attrs, sink_name)
-            res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-            # os.makedirs(res_dir, exist_ok=True)
-            with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
-                f.write(res)
-            # obj_pathes, ast_pathes, text_path = obj_traceback(G, obj)
-            # print(sty.fg.li_green + sty.ef.inverse +f'{text_path}' + sty.rs.all)
     return NodeHandleResult()
 
 
-def print_taint_flow(G, attrs, sink_name):
+invalid_taint  = [("cs_window_eventListener","window_postMessage_sink"), ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink")]
+def check_taint(G, obj, sink_name):
     res = ''
-    if 'taint_flow' in attrs:
-        print(attrs['taint_flow'])
+    attrs = G.get_node_attr(obj)
+    if attrs.get('tainted') and 'taint_flow' in attrs:
         res += (str(attrs['taint_flow']) + '\n')
         for flow in attrs['taint_flow']:
             path = flow[0]
+            source_name = flow[1]
+            if (source_name, sink_name) in invalid_taint:
+                return None
             ast_path = [G.get_obj_def_ast_node(node) for node in path]
             ast_path = [node for node in ast_path if node]
             from src.core.checker import get_path_text
-            print('from ' + flow[1] + ' to ' + sink_name)
-            res += ('from ' + flow[1] + ' to ' + sink_name +'\n')
-            print(ast_path)
-            res += (str(ast_path)+'\n')
-            print(get_path_text(G, ast_path))
-            res += (get_path_text(G, ast_path)+'\n')
-    return res
+            res += ('from ' + source_name + ' to ' + sink_name + '\n')
+            res += (str(ast_path) + '\n')
+            # print(ast_path)
+            res += (get_path_text(G, ast_path) + '\n')
+            print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
+                  + G.package_name + ' with ' + sink_name + sty.rs.all)
+            print(res)
+            res  = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n' + res
+            res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+            with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
+                f.write(res)
+            return res
+    return None
+
 
 

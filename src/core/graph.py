@@ -985,14 +985,18 @@ class Graph:
                     tobe_added_obj=tobe_added_obj, combined=False)
         else:
             if combined and parent_obj == self.bg_window:
-                self.add_obj_to_scope(name=prop_name, scope=self.cur_file_scope,
+                if not self.thread_version:
+                    tmp_scope = self.cur_file_scope
+                else:
+                    tmp_scope = self.mydata.cur_file_scope
+                self.add_obj_to_scope(name=prop_name, scope=tmp_scope,
                                       tobe_added_obj=tobe_added_obj, combined=False)
             elif combined and parent_obj in cs_windows:
                 if not self.thread_version:
-                    self.add_obj_to_scope(name=prop_name, scope=self.cur_file_scope,
-                                         tobe_added_obj=tobe_added_obj, combined=False)
+                    tmp_scope = self.cur_file_scope
                 else:
-                    self.add_obj_to_scope(name=prop_name, scope=self.mydata.cur_file_scope,
+                    tmp_scope = self.mydata.cur_file_scope
+                self.add_obj_to_scope(name=prop_name, scope=tmp_scope,
                                          tobe_added_obj=tobe_added_obj, combined=False)
         return tobe_added_obj
 

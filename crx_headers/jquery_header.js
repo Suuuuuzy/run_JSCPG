@@ -2,7 +2,7 @@
 
 // targetWindow.postMessage(message, targetOrigin, [transfer]);
 window.postMessage = function(message, targetOrigin, [transfer]){
-    sink_function(message, 'window_postMessage_sink out');
+    sink_function(message, 'window_postMessage_sink');
 };
 
 // target.addEventListener(type, listener [, options]);
