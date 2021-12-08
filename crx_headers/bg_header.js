@@ -15,10 +15,26 @@ Port.prototype.onMessage.addListener = function(myCallback){
 };
 
 Port.prototype.postMessage = function(msg){
-    // var eventName = 'bg_port_postMessage';
-    // var info =  {message:msg};
     TriggerEvent('bg_port_postMessage', {message:msg});
 };
+
+
+// ========= external port ========= 
+function externalPort(info){
+    this.includeTlsChannelId = "includeTlsChannelId";
+    this.name = "name";
+}
+
+externalPort.prototype.onMessage = new Object();
+
+externalPort.prototype.onMessage.addListener = function(myCallback){
+    MarkAttackEntry('bg_external_port_onMessage', myCallback);
+};
+
+externalPort.prototype.postMessage = function(msg){
+    sink_function(msg, 'bg_external_port_postMessage');
+};
+
 
 // ========= tab ========= 
 function Tab(){
@@ -116,7 +132,13 @@ function sendResponseExternal(message_out){
     sink_function(message_out, 'sendResponseExternal_sink');
 };
 
-
+// chrome.runtime.onConnectExternal.addListener
+Chrome.prototype.runtime.onConnectExternal = new Object();
+// myCallback parameters: (message: any, sender: MessageSender, sendResponse: function) => {...}
+Chrome.prototype.runtime.onConnectExternal.addListener = function(myCallback){
+    // var type = 'bg_chrome_runtime_MessageExternal';
+    MarkAttackEntry('bg_chrome_runtime_onConnectExternal', myCallback);
+}
 
 Chrome.prototype.topSites = new Object();
 Chrome.prototype.topSites.get = function(myCallback){
@@ -189,6 +211,12 @@ Chrome.prototype.tabs.create = function(createProperties, callback){
 Chrome.prototype.tabs.update = function(tabId, updateProperties, callback){
     sink_function(updateProperties.url, 'chrome_tabs_update_sink');
     callback();
+}
+// chrome.tabs.getAllInWindow
+Chrome.prototype.tabs.getAllInWindow = function(winId, callback){
+    var tab = new Tab();
+    tabs = [tab];
+    callback(tabs);
 }
 
 
@@ -325,6 +353,14 @@ Chrome.prototype.downloads.erase = function(query, callback) {
     sink_function(query, 'chrome_downloads_erase_sink');
     // body...
 }
+
+// chrome.windows
+Chrome.prototype.windows = new Object();
+Chrome.prototype.windows.getCurrent = function(callback){
+    var win = {id:"id"};
+    callback(win);
+};
+
 
 
 function BookmarkTreeNode(){

@@ -446,8 +446,8 @@ def admin_threads(G, function, args):
         #     print('%%%%%%%%%work: ', tmp)
         #     tmp = [i.thread_self for i in G.pq]
         #     print('%%%%%%%%%pq: ', tmp)
-        # if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
-        if len(G.work_queue) == 0 and len(G.pq) == 0 and len(G.wait_queue) == 0:
+        if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
+        # if len(G.work_queue) == 0 and len(G.pq) == 0 and len(G.wait_queue) == 0:
             print('finish')
             return 1
 

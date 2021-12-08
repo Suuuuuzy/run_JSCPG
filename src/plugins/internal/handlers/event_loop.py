@@ -79,6 +79,28 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata=None):
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
                                                          mark_fake_args=False)
 
+def bg_chrome_runtime_onConnectExternal_attack(G, entry, mydata=None):
+    if G.thread_version:
+        cur_thread = threading.current_thread()
+        print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+        G.mydata.unpickle_up(mydata)
+    else:
+        print('=========Perform attack: ' + str(entry))
+    args = [NodeHandleResult()]
+    func_objs = G.get_objs_by_name('externalPort', scope=G.bg_scope, branches=[])
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+                                                  caller_ast=None, is_new=True, stmt_id='Unknown', func_name='externalPort',
+                                                  mark_fake_args=False)
+    returned_result.obj_nodes = created_objs
+    args = [returned_result]
+    # args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), MessageSenderExternal, NodeHandleResult(obj_nodes=sendResponseExternal)]
+    func_objs = [entry[1]]
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+                                                          caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                         mark_fake_args=False)
+
+bg_external_port_onMessage_attack = bg_chrome_runtime_MessageExternal_attack
+
 def window_eventListener_attack(G, entry, mydata=None):
     if G.thread_version:
         G.mydata.unpickle_up(mydata)
@@ -277,6 +299,8 @@ event_listener_dic = {
 }
 
 attack_dic = {
-    'bg_chrome_runtime_MessageExternal':bg_chrome_runtime_MessageExternal_attack,
-    'cs_window_eventListener': window_eventListener_attack
+    'bg_chrome_runtime_MessageExternal': bg_chrome_runtime_MessageExternal_attack,
+    'cs_window_eventListener': window_eventListener_attack,
+    "bg_chrome_runtime_onConnectExternal": bg_chrome_runtime_onConnectExternal_attack,
+    "bg_external_port_onMessage": bg_external_port_onMessage_attack
 }

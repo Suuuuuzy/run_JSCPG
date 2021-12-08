@@ -1,16 +1,12 @@
-function Document_element(id, class_name, tag){
-    this.id = id;
-    this.class_name = class_name;
-    this.tag = tag;
-}
-Document_element.prototype.createElement = function(tagname){
-    var de = new Document_element(undefined, undefined, tagname);
-    return de;
+function eval(para1){
+    sink_function(para1, 'eval_sink');
 }
 
-function Document(){}
-
-Document.prototype.createElement = Document_element.prototype.createElement;
-
-document = new Document();
-
+window.addEventListener = function(type, listener,  [options]){
+    if (type=='message'){
+        MarkAttackEntry('cs_window_eventListener', listener);
+    }
+    else if(type=='load'){
+        listener();
+    }
+};
