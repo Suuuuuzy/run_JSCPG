@@ -432,15 +432,23 @@ def add_contributes_to(G: Graph, sources: Iterable, target,
     chain_tainted=True):
     assert not isinstance(sources, (str, bytes))
     tainted = False
-    for s in sources:
-        # source_id = str(s)
-        # if G.get_node_attr(s).get('tainted'):
-        #     source_id += ' tainted'
-        # print(f'{source_id} CONTRIBUTES TO {target}')
-        G.add_edge(s, target, {'type:TYPE': 'CONTRIBUTES_TO'})
-        tainted = tainted or G.get_node_attr(s).get('tainted', False)
+    taint_flow = []
+    for i, source in enumerate(sources):
+        attrs = G.get_node_attr(source)
+        if attrs.get('tainted'):
+            # copy source's ancestors
+            if 'taint_flow' in attrs:
+                taint_flow.extend(attrs['taint_flow'])
+        G.add_edge(source, target, {'type:TYPE': 'CONTRIBUTES_TO'})
+        tainted = tainted or G.get_node_attr(source).get('tainted', False)
+    
+    # add taint flow
+    # flow: ([path], source_name)
+    for flow in taint_flow:
+        flow[0].append(target)
     if chain_tainted and tainted:
         G.set_node_attr(target, ('tainted', True))
+        G.set_node_attr(target, ('taint_flow', taint_flow))
 
 def get_df_callback(G, ast_node=None):
     if ast_node is None:

@@ -55,7 +55,7 @@ class HandleBinaryOP(Handler):
                     else:
                         results.append(wildcard)
                     result_tags.append(tags1 + tags2)
-                    result_sources.append(sources1[i] or [] + sources2[j] or [])
+                    result_sources.append((sources1[i] or []) + (sources2[j] or []))
             if len(values1) * len(values2) == 0:
                 # always returns at least one value
                 results.append(wildcard)
@@ -88,7 +88,7 @@ class HandleBinaryOP(Handler):
                     else:
                         results.append(wildcard)
                     result_tags.append(tags1 + tags2)
-                    result_sources.append(sources1[i] or [] + sources2[j] or [])
+                    result_sources.append((sources1[i] or []) + (sources2[j] or []))
             if len(values1) * len(values2) == 0:
                 results.append(wildcard)
                 sources = set()

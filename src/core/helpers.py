@@ -614,7 +614,7 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
     for i, source in enumerate(sources):
         _source = str(source)
         attrs = G.get_node_attr(source)
-        if 'tainted' in attrs and attrs['tainted']:
+        if attrs.get('tainted'):
             _source += ' tainted'
             # copy source's ancestors
             if 'taint_flow' in attrs:
