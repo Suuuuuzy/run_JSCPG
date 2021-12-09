@@ -293,7 +293,10 @@ function eval(para1){
     sink_function(para1, 'eval_sink');
 }
 
-URL.createObjectURL = function(object){
+function URL(url, base){
+    return base+url;
+}
+URL.prototype.createObjectURL = function(object){
     return object.toString()
 } 
 

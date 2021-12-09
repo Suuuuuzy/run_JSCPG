@@ -12,6 +12,7 @@ from threading import Thread
 import threading
 from src.core.thread_design import thread_info
 import time
+from src.plugins.internal.utils import emit_thread
 
 class HandleFile(Handler):
 
@@ -30,21 +31,9 @@ class HandleFile(Handler):
         # if thread version, dispatch the files in different threads
 
         if self.G.thread_version and node_type=="Directory":
-            current_thread = threading.current_thread()
-            with self.G.thread_info_lock:
-                cur_info = self.G.thread_infos[current_thread.name]
-            son_age = cur_info.thread_age
             for child in self.G.get_child_nodes(self.node_id):
-                t = Thread(target=self.internal_manager.dispatch_node, args=(child, self.extra))
-                info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=son_age)
-                info.pause()
-                with self.G.thread_info_lock:
-                    self.G.thread_infos[t.name] = info
-                print('jianjia see file in dispatch pq: ', child, t.name)
-                t.start()
-                with self.G.pq_lock:
-                    self.G.pq.append(info)
-                    self.G.pq.sort(key=lambda x: x.thread_age, reverse=False)
+                # self.internal_manager.dispatch_node(child, self.extra)
+                emit_thread(self.G, self.internal_manager.dispatch_node, (child, self.extra))
         else:
             for child in self.G.get_child_nodes(self.node_id):
                 self.internal_manager.dispatch_node(child, self.extra)
