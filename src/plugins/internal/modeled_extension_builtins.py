@@ -103,6 +103,11 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
 
 def MarkSource(G: Graph, caller_ast, extra, _, *args):
     sensitiveSource = args[0].obj_nodes[0]
+    # sensitiveSourceName = args[0].name
+    # if sensitiveSourceName=="cookies_source":
+    #     ast_node = args[0].ast_node
+    #     sensitiveSource = G.add_obj_node(ast_node, "object", wildcard)
+
     source_name = args[1].values[0]
     sons = G.get_off_spring(sensitiveSource)
     sons.add(sensitiveSource)
@@ -157,6 +162,9 @@ def MarkAttackEntryOnProperty(G: Graph, type, listener):
 def debug_sink(G: Graph, caller_ast, extra, _, *args):
     print('code reached')
     print(args)
+    for arg in args:
+        for obj in arg.obj_nodes:
+            print(G.get_node_attr(obj))
     return NodeHandleResult()
 
 def data_out_function(G: Graph, caller_ast, extra, _, *args):
