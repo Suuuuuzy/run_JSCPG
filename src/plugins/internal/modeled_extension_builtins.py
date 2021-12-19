@@ -80,7 +80,6 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
         for data in G.get_prop_obj_nodes(prop):
             print(G.get_prop_obj_nodes(data))"""
     # trigger event right away
-    print('trigger event: ', eventName)
     listener = G.event_listener_dic[eventName]
     if G.thread_version:
         with G.eventRegisteredFuncs_lock:
@@ -93,6 +92,7 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
                 else:
                     G.event_loop[eventName] = [event]
         else:
+            print('trigger event in a new thread: ', eventName)
             emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()))
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in trigger event: ', tmp)
@@ -160,7 +160,7 @@ def MarkAttackEntryOnProperty(G: Graph, type, listener):
             G.attackEntries.insert(0, entry)
 
 def debug_sink(G: Graph, caller_ast, extra, _, *args):
-    print('code reached')
+    print('debug code reached')
     print(args)
     for arg in args:
         for obj in arg.obj_nodes:

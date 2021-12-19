@@ -172,18 +172,19 @@ class HandleConditional(Handler):
         test, consequent, alternate = G.get_ordered_ast_child_nodes(node_id)
         loggers.main_logger.debug(f'Ternary operator: {test} ? {consequent} : {alternate}')
         possibility, deterministic = check_condition(G, test, extra)
-        if deterministic and possibility == 1:
-            return self.internal_manager.dispatch_node(consequent, extra)
-        elif deterministic and possibility == 0:
-            return self.internal_manager.dispatch_node(alternate, extra)
-        else:
-            h1 = self.internal_manager.dispatch_node(consequent, extra)
-            h2 = self.internal_manager.dispatch_node(alternate, extra)
-            return NodeHandleResult(obj_nodes=h1.obj_nodes+h2.obj_nodes,
-                name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id,
-                values=h1.values+h2.values,
-                value_sources=h1.value_sources+h2.value_sources,
-                callback=get_df_callback(G))
+        ### Jianjia go both ways all the time
+        # if deterministic and possibility == 1:
+        #     return self.internal_manager.dispatch_node(consequent, extra)
+        # elif deterministic and possibility == 0:
+        #     return self.internal_manager.dispatch_node(alternate, extra)
+        # else:
+        h1 = self.internal_manager.dispatch_node(consequent, extra)
+        h2 = self.internal_manager.dispatch_node(alternate, extra)
+        return NodeHandleResult(obj_nodes=h1.obj_nodes+h2.obj_nodes,
+            name_nodes=h1.name_nodes+h2.name_nodes, ast_node=node_id,
+            values=h1.values+h2.values,
+            value_sources=h1.value_sources+h2.value_sources,
+            callback=get_df_callback(G))
 
 class HandleIfElem(Handler):
     def process(self):

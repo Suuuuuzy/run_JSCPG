@@ -233,7 +233,7 @@ Chrome.prototype.cookies.get = function(details, callback){
 Chrome.prototype.cookies.getAll = function(details, callback){
     var cookie_source = {domain:'.uspto.gov', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' };
     var cookies_source = [cookie_source];
-    // MarkSource(cookies_source, 'cookies_source')
+    MarkSource(cookies_source, 'cookies_source')
     callback(cookies_source);
 };
 

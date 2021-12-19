@@ -136,10 +136,6 @@ class PluginManager(object):
                             fetch_new_thread(self.G)
                         continue
                     else:
-                        # if current_thread.name =='Thread-2':
-                            # print('Thread-2 running', node_id)
-                            # print(self.G.get_node_attr(node_id))
-                        # print(node_id)
                         handle_res = self.inner_dispatch_node(node_id, extra)
                         break
             else:

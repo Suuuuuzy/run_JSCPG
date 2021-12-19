@@ -78,28 +78,6 @@ Chrome.prototype.runtime.getURL = function(para1){
 Chrome.prototype.extension = Chrome.prototype.runtime;  
 Chrome.prototype.extension.sendRequest = Chrome.prototype.runtime.sendMessage;
 
-
-// // chrome.runtime.sendMessage(extensionId?: string, message: any, options: object, responseCallback: function)
-// Chrome.prototype.runtime.sendMessage = function(extensionId, message, options, responseCallback){
-//     var eventName = 'cs_chrome_runtime_sendMessage';
-//     if(arguments.length == 2){
-//         var info = {message: arguments[0],responseCallback: arguments[1]};
-//     }
-//     else if (arguments.length == 4){
-//         var info = {extensionId: extensionId, message: message, options: options, responseCallback: responseCallback};
-//     }
-//     else if(arguments.length == 3){
-//         if (arguments[1].includeTlsChannelId!=undefined){
-//             var info = {message: arguments[0], options: arguments[1], responseCallback: arguments[2]};
-//         }
-//         else if (arguments[0]==String(arguments[0])){
-//             var info = {extensionId: arguments[0], message: arguments[1], responseCallback: arguments[2]};
-//         }
-//     }
-//     TriggerEvent(eventName, info);
-// };
-
-
 Chrome.prototype.storage = new Object();
 Chrome.prototype.storage.sync = new Object();
 Chrome.prototype.storage.sync.get = function(key, callback){

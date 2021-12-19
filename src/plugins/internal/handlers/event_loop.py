@@ -7,11 +7,11 @@ import threading
 def event_loop_threading(G: Graph, event, mydata):
     G.mydata.unpickle_up(mydata)
     # STEP1: see eventRegisteredFuncs right now
-    print('========SEE eventRegisteredFuncs:========')
-    with G.eventRegisteredFuncs_lock:
-        for i in G.eventRegisteredFuncs:
-            print(i, G.eventRegisteredFuncs[i])
-            print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
+    # print('========SEE eventRegisteredFuncs:========')
+    # with G.eventRegisteredFuncs_lock:
+    #     for i in G.eventRegisteredFuncs:
+    #         print(i, G.eventRegisteredFuncs[i])
+    #         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
     # STEP2: trigger event
     cur_thread = threading.current_thread()
     print('=========processing eventName: ' + event['eventName'] + ' in ' + cur_thread.name)

@@ -13,40 +13,42 @@ elif mode=='server_de':
 elif mode=='server_sus':
     dirname = '/media/data2/jianjia/extension_data/opgen_results/suspect_by_doublex'
     doublex_sus = '/media/data2/jianjia/extension_data/doublex_result/suspect.txt'
+elif mode=="cve":
+    dirname = '/Users/jia/Desktop/tmp/data_process/CVE'
 
-old_filename = os.path.join(dirname, 'results.log')
-with open(old_filename) as f:
-    old_log = f.read()
-new_filename = 'results.log'
-if os.path.exists(new_filename):
-    with open(new_filename) as f:
-        c = f.read()
-    if c not in old_log:
-        old_log = old_log+c
-        with open(old_filename, 'w') as f:
-            f.write(old_log)
-
-lines=(old_log.split('\n'))
-
-processed_ids = []
-timeout_ids = []
-detectd_ids = []
-novul_ids = []
-
-for line in lines:
-    if line.startswith('processing extension:'):
-        processed_ids.append(line[-32:])
-    if 'timeout' in line:
-        id = line.split(' timeout')[0][-32:]
-        timeout_ids.append(id)
-    if 'vulnerability detected' in line:
-        detectd_ids.append(line[-32:])
-    if 'nothing detected' in line:
-        novul_ids.append(line[-32:])
-
-old_dic = {"processed_ids":processed_ids, "timeout_ids":timeout_ids, "detectd_ids":detectd_ids, "novul_ids":novul_ids}
-for i in old_dic:
-    old_dic[i] = list(set(old_dic[i]))
+# old_filename = os.path.join(dirname, 'results.log')
+# with open(old_filename) as f:
+#     old_log = f.read()
+# new_filename = 'results.log'
+# if os.path.exists(new_filename):
+#     with open(new_filename) as f:
+#         c = f.read()
+#     if c not in old_log:
+#         old_log = old_log+c
+#         with open(old_filename, 'w') as f:
+#             f.write(old_log)
+#
+# lines=(old_log.split('\n'))
+#
+# processed_ids = []
+# timeout_ids = []
+# detectd_ids = []
+# novul_ids = []
+#
+# for line in lines:
+#     if line.startswith('processing extension:'):
+#         processed_ids.append(line[-32:])
+#     if 'timeout' in line:
+#         id = line.split(' timeout')[0][-32:]
+#         timeout_ids.append(id)
+#     if 'vulnerability detected' in line:
+#         detectd_ids.append(line[-32:])
+#     if 'nothing detected' in line:
+#         novul_ids.append(line[-32:])
+#
+# old_dic = {"processed_ids":processed_ids, "timeout_ids":timeout_ids, "detectd_ids":detectd_ids, "novul_ids":novul_ids}
+# for i in old_dic:
+#     old_dic[i] = list(set(old_dic[i]))
 
 if mode.startswith('local'):
     old_results_file = os.path.join(dirname, 'opgen_results.txt')
@@ -68,7 +70,7 @@ if mode.startswith('local'):
             print(0)
     with open(os.path.join(dirname, 'should_do.txt'), 'w') as f:
         json.dump(should_do, f)
-else:
+elif mode.startswith('server'):
     old_results_file = os.path.join(dirname, 'opgen_results.txt')
     with open(old_results_file, 'w') as f:
         json.dump(old_dic, f)
@@ -92,3 +94,21 @@ else:
     print(len(should_do))
     with open(os.path.join(dirname, 'new_to_do.txt'), 'w') as f:
         json.dump(should_do, f)
+
+elif mode=="cve":
+    dirname = '/Users/jia/Desktop/tmp/data_process/CVE'
+    files = os.listdir(dirname)
+    files  = [i for i in files if not i.startswith(".")]
+    detected = []
+    not_detected = []
+    for file in files:
+        with open(os.path.join(dirname,file, "opgen_generated_files","res.txt")) as f:
+            content = f.read()
+        if "nothing detected" not in content:
+            detected.append(file)
+        else:
+            not_detected.append(file)
+    print("detected")
+    print(detected)
+    print("not_detected")
+    print(not_detected)
