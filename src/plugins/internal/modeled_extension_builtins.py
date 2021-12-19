@@ -201,9 +201,17 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
     # get sus_objs and sink_name
     if len(args)>1:
         for i in range(len(args)-1):
-            obj = args[i].obj_nodes[0]
-            sus_objs.add(obj)
-            sus_objs.update(G.get_off_spring(obj))
+            arg = args[i]
+            sus_objs.update(set(filter(lambda obj:
+                    G.get_node_attr(obj).get('type') != 'function', arg.obj_nodes)))
+            if arg.value_sources:
+                for objs in arg.value_sources:
+                    sus_objs.update(objs)
+    SpringObjs = set()
+    for obj in sus_objs:
+        SpringObjs.update(G.get_off_spring(obj))
+    sus_objs.update(SpringObjs)
+
     sink_name = args[-1].values[0]
     # if no obj is required, control flow reaches
     if len(sus_objs)==0:
@@ -220,14 +228,23 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
             G.detected = True
     return NodeHandleResult()
 
-def sink_function_in_graph(G: Graph, obj, sink_name):
+
+def sink_function_in_graph(G: Graph, args, sink_name):
     sus_objs = set()
     print('sink function reached')
     # get sus_objs and sink_name
-    sus_objs.add(obj)
-    sus_objs.update(G.get_off_spring(obj))
+    for arg in args:
+        sus_objs.update(set(filter(lambda obj:
+                                   G.get_node_attr(obj).get('type') != 'function', arg.obj_nodes)))
+        if arg.value_sources:
+            for objs in arg.value_sources:
+                sus_objs.update(objs)
+    SpringObjs = set()
+    for obj in sus_objs:
+        SpringObjs.update(G.get_off_spring(obj))
+    sus_objs.update(SpringObjs)
     # if no obj is required, control flow reaches
-    if len(sus_objs)==0:
+    if len(sus_objs) == 0:
         print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
               + G.package_name + ' with ' + sink_name + sty.rs.all)
         res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
@@ -240,6 +257,7 @@ def sink_function_in_graph(G: Graph, obj, sink_name):
         if check_taint(G, obj, sink_name):
             G.detected = True
     return NodeHandleResult()
+
 
 invalid_taint  = [("cs_window_eventListener","window_postMessage_sink"), ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink")]
 def check_taint(G, obj, sink_name):
