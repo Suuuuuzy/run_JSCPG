@@ -101,13 +101,17 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
     return NodeHandleResult()
 
 
+def MarkSourceInGraph(G, sourceObj, sourceName):
+    sons = G.get_off_spring(sourceObj)
+    sons.add(sourceObj)
+    for son in sons:
+        G.set_node_attr(son, ('tainted',True))
+        # every path is a tuple with (path, source_name)
+        G.set_node_attr(son, ('taint_flow', [([son],sourceName)]))
+    return NodeHandleResult()
+
 def MarkSource(G: Graph, caller_ast, extra, _, *args):
     sensitiveSource = args[0].obj_nodes[0]
-    # sensitiveSourceName = args[0].name
-    # if sensitiveSourceName=="cookies_source":
-    #     ast_node = args[0].ast_node
-    #     sensitiveSource = G.add_obj_node(ast_node, "object", wildcard)
-
     source_name = args[1].values[0]
     sons = G.get_off_spring(sensitiveSource)
     sons.add(sensitiveSource)
@@ -216,6 +220,26 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
             G.detected = True
     return NodeHandleResult()
 
+def sink_function_in_graph(G: Graph, obj, sink_name):
+    sus_objs = set()
+    print('sink function reached')
+    # get sus_objs and sink_name
+    sus_objs.add(obj)
+    sus_objs.update(G.get_off_spring(obj))
+    # if no obj is required, control flow reaches
+    if len(sus_objs)==0:
+        print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
+              + G.package_name + ' with ' + sink_name + sty.rs.all)
+        res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
+        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+        with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
+            f.write(res)
+        G.detected = True
+    # check whether the taint flow is vulnerable
+    for obj in sus_objs:
+        if check_taint(G, obj, sink_name):
+            G.detected = True
+    return NodeHandleResult()
 
 invalid_taint  = [("cs_window_eventListener","window_postMessage_sink"), ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink")]
 def check_taint(G, obj, sink_name):

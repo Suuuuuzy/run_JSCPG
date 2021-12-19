@@ -1083,6 +1083,22 @@ def func_calling_func(G: Graph, caller_ast, extra, _, *args):
             G.get_node_attr(obj).get('type') == 'function', arg.obj_nodes))
         results, _ = call_function(G, filtered_objs, extra=extra)
         used_objs.update(results.obj_nodes)
+
+    from src.plugins.internal.modeled_extension_builtins import sink_function_in_graph
+    code_obj_name = "setTimeout"
+    code_objs = []
+    for arg in args:
+        code_objs.extend(list(filter(lambda obj:
+            G.get_node_attr(obj).get('type') != 'function', arg.obj_nodes)))
+        if arg.value_sources:
+            for objs in arg.value_sources:
+                code_objs.extend(objs)
+    code_objs = set(code_objs)
+    print("setTimeout")
+    for obj in code_objs:
+        print(obj)
+        sink_function_in_graph(G, obj, code_obj_name)
+
     add_contributes_to(G, used_objs, dummy_return_obj)
     return NodeHandleResult(obj_nodes=[dummy_return_obj], used_objs=list(used_objs))
 

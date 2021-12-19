@@ -283,8 +283,7 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
         # nn_for_tags = G.get_node_attr(name_node).get('for_tags')
         # if not nn_for_tags: # empty array or None
         # print('debug property name')
-        onEvents = ["onload" ,"onmessage"]
-        if G.get_node_attr(name_node).get('name') in onEvents:
+        if G.get_node_attr(name_node).get('name') in G.onEvents:
             parent_obj = G.get_parent_obj_from_property_name(name_node)
             if parent_obj:
                 if G.get_node_attr(parent_obj).get('canHaveOnProperty'):

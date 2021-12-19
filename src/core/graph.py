@@ -216,6 +216,8 @@ class Graph:
 
         self.listener_event_dic = {value: key for (key, value) in self.event_listener_dic.items()}
 
+        self.canHaveOnPropertyObject = ['Document', 'Document_element']
+        self.onEvents = ["onload" ,"onmessage"]
 
 
 

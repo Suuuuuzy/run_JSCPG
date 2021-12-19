@@ -331,8 +331,7 @@ def instantiate_obj(G, exp_ast_node, constructor_decl, branches=None):
     created_obj = G.add_obj_node(ast_node=exp_ast_node, js_type=None)
     # add canHaveOnProperty for object.onload property
     # print('new object debug')
-    canHaveOnPropertyObject = ['Document', 'Document_element']
-    if G.get_node_attr(constructor_decl).get('code') in canHaveOnPropertyObject:
+    if G.get_node_attr(constructor_decl).get('code') in G.canHaveOnPropertyObject:
         G.set_node_attr(created_obj, ('canHaveOnProperty', "True"))
     # add edge between obj and obj decl
     G.add_edge(created_obj, constructor_decl, {"type:TYPE": "OBJ_DECL"})

@@ -166,6 +166,18 @@ jqXHR.prototype.always = function(callback){
     return this;
 }
 
+fetch = function(resource, options){
+    sink_function(resource, "fetch_resource_sink");
+    sink_function(options, "fetch_options_sink");
+}
+
+fetch.prototype.then = function(callback){
+    var responseText = 'data_from_fetch';
+    MarkSource(responseText, 'fetch_source');
+    callback(responseText);
+    return this;
+}
+
 JQ_obj = function(a, array_in){
     this.selector = a;
     this.context = document;
@@ -286,6 +298,10 @@ MarkSource(XMLHttpRequest.prototype.responseXML, 'XMLHttpRequest_responseXML_sou
 
 function eval(para1){
     sink_function(para1, 'eval_sink');
+}
+
+function setTimeout(para1){
+
 }
 
 function URL(url, base){
