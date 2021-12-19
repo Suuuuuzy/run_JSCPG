@@ -267,10 +267,10 @@ def bg_chrome_runtime_onMessage_response(G, event):
                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
                                                   mark_fake_args=False)
     # unregister this function
-    event = 'cs_chrome_runtime_sendMessage_onResponse'
-    with G.eventRegisteredFuncs_lock:
-        if event in G.eventRegisteredFuncs:
-            del G.eventRegisteredFuncs[event]
+    # event = 'cs_chrome_runtime_sendMessage_onResponse'
+    # with G.eventRegisteredFuncs_lock:
+    #     if event in G.eventRegisteredFuncs:
+    #         del G.eventRegisteredFuncs[event]
 
 def cs_chrome_tabs_onMessage_response(G, event):
     message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
@@ -283,10 +283,10 @@ def cs_chrome_tabs_onMessage_response(G, event):
                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
                                                   mark_fake_args=False)
     # unregister this function
-    event = 'bg_chrome_tabs_sendMessage_onResponse'
-    with G.eventRegisteredFuncs_lock:
-        if event in G.eventRegisteredFuncs:
-            del G.eventRegisteredFuncs[event]
+    # event = 'bg_chrome_tabs_sendMessage_onResponse'
+    # with G.eventRegisteredFuncs_lock:
+    #     if event in G.eventRegisteredFuncs:
+    #         del G.eventRegisteredFuncs[event]
 
 event_listener_dic = {
     "cs_chrome_runtime_connect": ["bg_chrome_runtime_onConnect", cs_chrome_runtime_connect],

@@ -231,7 +231,7 @@ Chrome.prototype.cookies.get = function(details, callback){
 
 // chrome.cookies.getAll(details: object, callback: function)
 Chrome.prototype.cookies.getAll = function(details, callback){
-    var cookie_source = {domain:'.uspto.gov', expirationDate:2070, hostOnly:true, httpOnly: false, name:'cookie_name', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' };
+    var cookie_source = {domain:'.uspto.gov', expirationDate:2070, hostOnly:true, httpOnly: false, name:'trcrx_Jianjia', path:'cookie_path',sameSite:'no_restriction', secure:true, session: true, storeId:'cookie_storeId', value: 'cookie_value' };
     var cookies_source = [cookie_source];
     MarkSource(cookies_source, 'cookies_source')
     callback(cookies_source);
@@ -286,7 +286,7 @@ Chrome.prototype.storage.local = new Object();
 Chrome.prototype.storage.local.get = function(key, callback){
     var storage_local_get_source = {'key':'value'};
     MarkSource(storage_local_get_source, 'storage_local_get_source');
-    callback(storage_local_get_source);
+    arguments[len(arguments)-1](storage_local_get_source);
 };
 
 Chrome.prototype.storage.local.set = function(key, callback){
@@ -428,6 +428,13 @@ Chrome.prototype.management.getAll = function(callback){
     MarkSource(ExtensionInfos, "management_getAll_source");
     callback(ExtensionInfos);
 }
+
+Chrome.prototype.management.getSelf = function(callback){
+    var ExtensionInfos = [{"description":"description", "enabled":true}];
+    MarkSource(ExtensionInfos, "management_getSelf_source");
+    callback(ExtensionInfos);
+}
+
 
 chrome = new Chrome();
 _ = chrome;

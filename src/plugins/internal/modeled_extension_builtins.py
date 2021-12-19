@@ -166,9 +166,18 @@ def MarkAttackEntryOnProperty(G: Graph, type, listener):
 def debug_sink(G: Graph, caller_ast, extra, _, *args):
     print('debug code reached')
     print(args)
+    sus_objs = []
     for arg in args:
         for obj in arg.obj_nodes:
-            print(G.get_node_attr(obj))
+            sus_objs.append(obj)
+    # tmp_objs = set()
+    # for obj in sus_objs:
+    #     offsprings = G.get_off_spring(obj)
+    #     tmp_objs.update(offsprings)
+    # sus_objs.update(tmp_objs)
+    print("sus_objs", sus_objs)
+    for obj in sus_objs:
+        print(G.get_node_attr(obj))
     return NodeHandleResult()
 
 def data_out_function(G: Graph, caller_ast, extra, _, *args):
@@ -197,8 +206,8 @@ def data_out_function(G: Graph, caller_ast, extra, _, *args):
 # check the sink function
 def sink_function(G: Graph, caller_ast, extra, _, *args):
     sus_objs = set()
-    print('sink function reached')
-    # get sus_objs and sink_name
+    print('sink function reached:', args[-1].values[0])
+    # get sus_objs and sink_nam
     if len(args)>1:
         for i in range(len(args)-1):
             arg = args[i]
@@ -206,12 +215,12 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
                     G.get_node_attr(obj).get('type') != 'function', arg.obj_nodes)))
             if arg.value_sources:
                 for objs in arg.value_sources:
-                    sus_objs.update(objs)
+                    sus_objs.update(set(objs))
     SpringObjs = set()
     for obj in sus_objs:
         SpringObjs.update(G.get_off_spring(obj))
     sus_objs.update(SpringObjs)
-
+    print(sus_objs)
     sink_name = args[-1].values[0]
     # if no obj is required, control flow reaches
     if len(sus_objs)==0:
@@ -238,7 +247,7 @@ def sink_function_in_graph(G: Graph, args, sink_name):
                                    G.get_node_attr(obj).get('type') != 'function', arg.obj_nodes)))
         if arg.value_sources:
             for objs in arg.value_sources:
-                sus_objs.update(objs)
+                sus_objs.update(set(objs))
     SpringObjs = set()
     for obj in sus_objs:
         SpringObjs.update(G.get_off_spring(obj))
