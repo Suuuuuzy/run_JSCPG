@@ -92,7 +92,6 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
                 else:
                     G.event_loop[eventName] = [event]
         else:
-            print('trigger event in a new thread: ', eventName)
             emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()))
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in trigger event: ', tmp)

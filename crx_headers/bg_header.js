@@ -364,7 +364,7 @@ Chrome.prototype.windows.getCurrent = function(callback){
 
 
 function BookmarkTreeNode(){
-    // this.children = [];
+    this.children = [];
     this.dataAdded= 10;
     this.dateGroupModified=1;
     this.id='id for the node';
@@ -380,7 +380,8 @@ function BookmarkTreeNode(){
 Chrome.prototype.bookmarks = new Object(); 
 Chrome.prototype.bookmarks.getTree = function(callback){
     var node = new BookmarkTreeNode();
-    node.children = [new BookmarkTreeNode()];
+    var child = new BookmarkTreeNode();
+    node.children = [child];
     var BookmarkTreeNode_source = [node];
     MarkSource(BookmarkTreeNode_source, 'BookmarkTreeNode_source');
     callback(BookmarkTreeNode_source);
@@ -398,13 +399,7 @@ Chrome.prototype.webRequest.onBeforeSendHeaders = new Object();
 //   extraInfoSpec         //  optional array of strings
 // )
 Chrome.prototype.webRequest.onBeforeSendHeaders.addListener = function(myCallback, filter, extraInfoSpec){
-    // var request_Headers = [{Content-Length: 348}, {Content-Length: 456}];
-    // var details = {frameId = 123, initiator = 'onBeforeSendHeaders_initiator', 
-    // method = 'Standard_HTTP_method', parentFrameId = -1, requestHeaders = request_Headers,
-    // requestId = 'ID_of_the_request', tabId = 99, timeStamp = 321, type = 'main_frame', url = 'url'
-    // };
-    // myCallback(details);
-    // RegisterFunc();
+
 }
 
 

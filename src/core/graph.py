@@ -1398,7 +1398,7 @@ class Graph:
                     if j[1] in copied:
                         continue
                     copied.add(j[1])
-                    new_prop_obj_node = self.copy_obj(j[1], ast_node, copied)
+                    new_prop_obj_node = self.copy_obj(j[1], ast_node, copied, deep=deep)
                     # self.add_node(new_prop_obj_node, self.get_node_attr(j[1])) # ?
                     self.add_edge(new_prop_name_node, new_prop_obj_node,
                         {'type:TYPE': 'NAME_TO_OBJ'})

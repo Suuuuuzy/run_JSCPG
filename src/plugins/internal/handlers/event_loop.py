@@ -220,22 +220,7 @@ def bg_chrome_tabs_sendMessage(G, event):
         else:
             G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
     message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
-    """
-    print('copy object: ' + str(message))
-    props = G.get_prop_obj_nodes(message)
-    for prop in props:
-        print(prop)
-        print(G.get_node_attr(prop))
     message = G.copy_obj(message, ast_node=None, deep=True)
-    print('new object: ' + str(message))
-    props = G.get_prop_obj_nodes(message)
-    for prop in props:
-        print(prop)
-        print(G.get_node_attr(prop))
-        """
-    # from src.core.logger import loggers
-    # loggers.main_logger.info(sty.fg.green + "COPY OBJECT" + sty.rs.all + ": " + entry_nodeid)
-    # print('message obj node:', message, G.get_node_attr(message))
     func_objs = G.get_objs_by_name('MessageSender', scope=G.get_cur_window_scope(), branches=[])
     MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
                                                 extra=None,
