@@ -132,8 +132,9 @@ class OPGen:
                     parse_chrome_extension(G, extension_path, dx, easy_test = options.easy_test)
                     test_res = self._test_graph(G, vul_type=vul_type)
                     end_time = time.time()
-                    with open(os.path.join(res_dir, 'used_time.txt'), 'w') as f:
-                        f.write(str(end_time-start_time))
+                    with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
+                        f.write(self.output_args_str())
+                        f.write(extension_path + " finish within {} seconds####".format(str(end_time-start_time)) + "\n\n")
                     loggers.res_logger.info("{} finish with {} seconds spent####". \
                             format(extension_path, end_time-start_time))
                     if not G.detected:
@@ -147,8 +148,9 @@ class OPGen:
                     covered_stat_rate = 100*len(self.graph.covered_stat) / (self.graph.get_total_num_statements()- self.graph.get_header_num_statements())
                 else:
                     covered_stat_rate = 0
-                with open(os.path.join(res_dir, 'used_time.txt'), 'w') as f:
-                    f.write(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
+                with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
+                    f.write(self.output_args_str())
+                    f.write(str(err) + " with {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
                 loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
                 if not G.detected:
                     with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
@@ -272,6 +274,15 @@ class OPGen:
         for key in keys:
             loggers.main_logger.info("{}: {}".format(key, 
                 options.instance.__dict__[key]))
+
+    def output_args_str(self):
+        argsStr = "All args:\n"
+        keys = [i for i in options.instance.__dict__.keys() if i[:1] != '_']
+        for key in keys:
+            argsStr+=("{}: {}".format(key,
+                options.instance.__dict__[key]))
+            argsStr+="\n"
+        return argsStr
     
     def run(self):
         self.output_args()

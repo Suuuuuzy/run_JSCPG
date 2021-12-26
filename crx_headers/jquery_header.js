@@ -44,17 +44,18 @@ Document_element.prototype.createElement = function(tagname){
     return de;
 }
 
+Document_element.prototype.appendChild = function(node){}
 
 
 function Document(){}
 
-Document.prototype.body = new Object();
+Document.prototype.body = new Document_element(undefined, undefined, "body");
 
 Document.prototype.getElementById = function(id){
     var document_element = new Document_element(id);
 };
 
-Document.prototype.body.appendChild = function(){};
+// Document.prototype.body.appendChild = function(){};
 
 
 Document.prototype.addEventListener = function(type, listener,  [ options]){
