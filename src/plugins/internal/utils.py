@@ -511,8 +511,14 @@ def check_condition(G: Graph, ast_node, extra: ExtraInfo):
     flag = True
     deter_flag = True
     if node_type == 'AST_EXPR_LIST':
-        child = G.get_ordered_ast_child_nodes(ast_node)[0]
-        return check_condition(G, child, extra)
+        from src.plugins.manager_instance import internal_manager
+        # child = G.get_ordered_ast_child_nodes(ast_node)[0]
+        childern = G.get_ordered_ast_child_nodes(ast_node)
+        # the expression besides the last one should be run
+        for i in range(len(childern)-1):
+            result = internal_manager.dispatch_node(childern[i], extra)
+        # the last expression determines the true or false
+        return check_condition(G, childern[-1], extra)
     elif node_type == 'AST_UNARY_OP' and op_type == 'UNARY_BOOL_NOT':
         child = G.get_ordered_ast_child_nodes(ast_node)[0]
         p, d = check_condition(G, child, extra)

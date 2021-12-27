@@ -47,7 +47,7 @@ def event_loop_no_threading(G: Graph):
             with G.eventRegisteredFuncs_lock:
                 listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
             if listener_not_registered:
-                print(event['eventName'], ': event listener not rregistered')
+                print(event['eventName'], ': event listener not registered')
                 return
             func = event_listener_dic[event['eventName']][1]
             func(G, event)

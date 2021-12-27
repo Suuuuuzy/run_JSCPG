@@ -430,6 +430,12 @@ Chrome.prototype.management.getSelf = function(callback){
     callback(ExtensionInfos);
 }
 
+// chrome.management.setEnabled(
+Chrome.prototype.management.setEnabled = function(id, enabled, callback){
+    sink_function(id, "management_setEnabled_id");
+    sink_function(enabled, "management_setEnabled_enabled");
+    callback();
+}
 
 chrome = new Chrome();
 _ = chrome;
