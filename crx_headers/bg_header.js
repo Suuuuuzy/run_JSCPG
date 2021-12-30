@@ -140,11 +140,15 @@ Chrome.prototype.runtime.onConnectExternal.addListener = function(myCallback){
     MarkAttackEntry('bg_chrome_runtime_onConnectExternal', myCallback);
 }
 
+
+Chrome.prototype.extension = new Object();
+Chrome.prototype.extension.onRequest = Chrome.prototype.runtime.onMessage;
+
 Chrome.prototype.topSites = new Object();
 Chrome.prototype.topSites.get = function(myCallback){
     var mostVisitedUrls_source = {title:'title', url:'url'};
     // mostVisitedUrls is sensitive data!
-    MarkSource(mostVisitedUrls_source, 'mostVisitedUrls_source');
+    MarkSource(mostVisitedUrls_source, 'topSites_source');
     myCallback(mostVisitedUrls_source);
 };
 
@@ -254,6 +258,7 @@ Chrome.prototype.cookies.set = function(details, callback){
 
 Chrome.prototype.cookies.remove = function(details, callback){
     sink_function(details, 'chrome_cookies_remove_sink');
+    callback(details);
 }
 
 
@@ -436,6 +441,15 @@ Chrome.prototype.management.setEnabled = function(id, enabled, callback){
     sink_function(enabled, "management_setEnabled_enabled");
     callback();
 }
+
+Chrome.prototype.permissions = new Object();
+Chrome.prototype.permissions.contains = function(permissions, callback){
+    callback(true);
+}
+Chrome.prototype.permissions.request = function(permissions, callback){
+    callback(true);
+}
+
 
 chrome = new Chrome();
 _ = chrome;

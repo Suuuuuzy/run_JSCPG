@@ -267,7 +267,8 @@ def sink_function_in_graph(G: Graph, args, sink_name):
     return NodeHandleResult()
 
 
-invalid_taint  = [("cs_window_eventListener","window_postMessage_sink"), ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink")]
+invalid_taint  = [("cs_window_eventListener","window_postMessage_sink"), ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink"),
+                  ("cookies_source", "chrome_cookies_set_sink")]
 def check_taint(G, obj, sink_name):
     res = ''
     attrs = G.get_node_attr(obj)

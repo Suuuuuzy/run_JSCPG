@@ -113,14 +113,16 @@ function $(a){
 
 
 // jqXHR
-$.ajax = function(para){
-    if (para.url){
-        sink_function(para.url, 'jQuery_ajax_url_sink');
+$.ajax = function(url, settings){
+    sink_function(url, 'jQuery_ajax_url_sink');
+    sink_function(settings.data, 'jQuery_ajax_settings_data_sink');
+    if(settings.beforeSend){
+        settings.beforeSend();
     }
-    if (para.success){
+    if (settings.success){
         var jQuery_ajax_result_source = 'data_form_jq_ajax';
         MarkSource(jQuery_ajax_result_source, 'jQuery_ajax_result_source');
-        para.success(jQuery_ajax_result_source);
+        settings.success(jQuery_ajax_result_source);
     }
 }
 // jQuery.get( url [, data ] [, success ] [, dataType ] )

@@ -48,7 +48,7 @@ external_source_var_name = [
     'bg_chrome_runtime_MessageExternal_src'
 ]
 
-crx_source_var_name = ['mostVisitedUrls_source',
+crx_source_var_name = ['topSites_source',
                        'cookie_source',
                        'cookies_source',
                        'CookieStores_source',
