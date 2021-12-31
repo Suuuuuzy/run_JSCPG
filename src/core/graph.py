@@ -171,6 +171,12 @@ class Graph:
         self.pq = []
         self.pq_lock = Lock()
 
+        self.code_coverage_lock = Lock()
+        self.last_code_cov_time = 0
+        self.last_code_cov = 0
+        self.speed_threshold = 1e-10
+        self.stop_sign = False
+
         self.work_queue = set()
         self.work_queue_lock = Lock()
         self.wait_queue = set()

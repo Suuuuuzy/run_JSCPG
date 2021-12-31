@@ -113,6 +113,10 @@ class PluginManager(object):
                 NodeHandleResult: the handle result of the node
             """
             handle_res = NodeHandleResult()
+            # add the code coverage screening, stop when too slow
+            if self.G.stop_sign:
+                print('see sign, stop')
+                return NodeHandleResult()
             if self.G.thread_version:
                 current_thread = threading.current_thread()
                 with self.G.thread_info_lock:
@@ -158,13 +162,29 @@ class PluginManager(object):
                 if node_id  in all_stat-header_stat:
                     if node_id not in self.G.covered_stat:
                         self.G.covered_stat[node_id] = 0
+                        code_cov = len(self.G.covered_stat) / (self.G.get_total_num_statements()-self.G.get_header_num_statements())
                         loggers.progress_logger.info(
-                            "{}% stmt covered.".format(100 * len(self.G.covered_stat) / (self.G.get_total_num_statements()-self.G.get_header_num_statements())))
+                            "{}% stmt covered.".format(100 * code_cov))
                     # elif self.G.covered_stat[node_id] > 300:
                     #    return NodeHandleResult()
                     else:
                         self.G.covered_stat[node_id] += 1
-
+                        with self.G.code_coverage_lock:
+                            code_cov = self.G.last_code_cov
+                    # here check the speed
+                    time_laps = time.time()-self.G.last_code_cov_time
+                    # if time_laps>10000:
+                        # time_laps =
+                    speed = (code_cov-self.G.last_code_cov)/time_laps
+                    print(speed, time_laps)
+                    if speed < self.G.speed_threshold and time_laps>3 and self.G.last_code_cov!=0:
+                        print("too slow, set sign")
+                        self.G.stop_sign = True
+                        return NodeHandleResult()
+                    # if not too slow:
+                    with self.G.code_coverage_lock:
+                        self.G.last_code_cov_time = time.time()
+                        self.G.last_code_cov = code_cov
             node_attr = self.G.get_node_attr(node_id)
             loggers.debug_logger.info("processing {}".format(node_id) + str(node_attr))
             node_type = node_attr['type']

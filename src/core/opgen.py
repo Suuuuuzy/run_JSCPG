@@ -164,6 +164,10 @@ class OPGen:
             if not G.detected:
                 with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
                     f.write('nothing detected')
+            with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
+                f.write(self.output_args_str())
+                f.write(extension_path + " stopped with {}% stmt covered####".format(self.graph.last_code_cov) + "\n\n")
+
         # test_res = None
         return test_res
 
