@@ -114,7 +114,7 @@ class PluginManager(object):
             """
             handle_res = NodeHandleResult()
             # add the code coverage screening, stop when too slow
-            if self.G.stop_sign:
+            if self.G.auto_stop and self.G.stop_sign:
                 print('see sign, stop')
                 return NodeHandleResult()
             if self.G.thread_version:
@@ -172,19 +172,17 @@ class PluginManager(object):
                         with self.G.code_coverage_lock:
                             code_cov = self.G.last_code_cov
                     # here check the speed
-                    time_laps = time.time()-self.G.last_code_cov_time
-                    # if time_laps>10000:
-                        # time_laps =
-                    speed = (code_cov-self.G.last_code_cov)/time_laps
-                    print(speed, time_laps)
-                    if speed < self.G.speed_threshold and time_laps>3 and self.G.last_code_cov!=0:
-                        print("too slow, set sign")
-                        self.G.stop_sign = True
-                        return NodeHandleResult()
-                    # if not too slow:
-                    with self.G.code_coverage_lock:
-                        self.G.last_code_cov_time = time.time()
-                        self.G.last_code_cov = code_cov
+                    if self.G.auto_stop:
+                        time_laps = time.time()-self.G.last_code_cov_time
+                        speed = (code_cov-self.G.last_code_cov)/time_laps
+                        # print(speed, time_laps)
+                        if speed < self.G.speed_threshold and time_laps>3 and self.G.last_code_cov!=0:
+                            print("too slow, set sign")
+                            self.G.stop_sign = True
+                            return NodeHandleResult()
+                        with self.G.code_coverage_lock:
+                            self.G.last_code_cov_time = time.time()
+                            self.G.last_code_cov = code_cov
             node_attr = self.G.get_node_attr(node_id)
             loggers.debug_logger.info("processing {}".format(node_id) + str(node_attr))
             node_type = node_attr['type']
