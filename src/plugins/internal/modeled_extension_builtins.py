@@ -6,6 +6,7 @@ from .utils import emit_thread
 import threading
 from src.core.checker import obj_traceback
 from src.plugins.internal.handlers.event_loop import attack_dic
+from src.core.utils import wildcard
 
 logger = loggers.main_logger
 
@@ -108,6 +109,31 @@ def MarkSourceInGraph(G, sourceObj, sourceName):
         # every path is a tuple with (path, source_name)
         G.set_node_attr(son, ('taint_flow', [([son],sourceName)]))
     return NodeHandleResult()
+
+# def MarkSource(G: Graph, caller_ast, extra, _, *args):
+#     print("MarkSource", args[0])
+#     # print("====")
+#     # opg_tainted_wildcard_obj = G.add_obj_to_name('__opgTaintedWildcard', scope=G.BASE_SCOPE)
+#     # G.set_node_attr(opg_tainted_wildcard_obj, ('tainted', True))
+#     # print(G.get_node_attr(opg_tainted_wildcard_obj))
+#     # sensitiveSource = args[0].obj_nodes[0]
+#     # print(G.get_node_attr(sensitiveSource))
+#     if args[0].values:
+#         wildcard_name = args[0].values[0]
+#         sensitiveSource = G.add_obj_to_name(wildcard_name)
+#         G.set_node_attr(sensitiveSource, ('tainted', True))
+#
+#         source_name = args[1].values[0]
+#         sons = G.get_off_spring(sensitiveSource)
+#         sons.add(sensitiveSource)
+#         for son in sons:
+#             G.set_node_attr(son, ('tainted',True))
+#             # every path is a tuple with (path, source_name)
+#             G.set_node_attr(son, ('taint_flow', [([son],source_name)]))
+#             G.set_node_attr(son, ("value", wildcard))
+#             print("====")
+#             print(G.get_node_attr(son))
+#     return NodeHandleResult()
 
 def MarkSource(G: Graph, caller_ast, extra, _, *args):
     sensitiveSource = args[0].obj_nodes[0]
