@@ -129,7 +129,6 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = args[0].values[0]
     listener = args[1].obj_nodes[0]
     if listener!=G.undefined_obj:
-        # G.attackEntries.insert(0, [type, listener])
         #  attack right away!
         entry = [type, listener]
         if G.thread_version:
@@ -138,14 +137,9 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
                 emit_thread(G, attack_func, (G, entry, G.mydata.pickle_up()))
             else:
                 emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()))
-            # tmp = [i.thread_self for i in G.work_queue]
-            # print('%%%%%%%%%work in MarkAttackEntry: ', tmp)
         else:
             G.attackEntries.insert(0, entry)
-            # if entry[0]=='bg_chrome_runtime_MessageExternal':
-            #     bg_chrome_runtime_MessageExternal_attack(G, entry)
-            # else:
-            #     other_attack(G, entry)
+
     return NodeHandleResult()
 
 
@@ -165,15 +159,15 @@ def MarkAttackEntryOnProperty(G: Graph, type, listener):
 def debug_sink(G: Graph, caller_ast, extra, _, *args):
     print('debug code reached')
     print(args)
-    sus_objs = []
+    sus_objs = set()
     for arg in args:
         for obj in arg.obj_nodes:
-            sus_objs.append(obj)
-    # tmp_objs = set()
-    # for obj in sus_objs:
-    #     offsprings = G.get_off_spring(obj)
-    #     tmp_objs.update(offsprings)
-    # sus_objs.update(tmp_objs)
+            sus_objs.add(obj)
+    tmp_objs = set()
+    for obj in sus_objs:
+        offsprings = G.get_off_spring(obj)
+        tmp_objs.update(offsprings)
+    sus_objs.update(tmp_objs)
     print("sus_objs", sus_objs)
     for obj in sus_objs:
         print(G.get_node_attr(obj))
@@ -205,7 +199,7 @@ def data_out_function(G: Graph, caller_ast, extra, _, *args):
 # check the sink function
 def sink_function(G: Graph, caller_ast, extra, _, *args):
     sus_objs = set()
-    print('sink function reached:', args[-1].values[0])
+    # print('sink function reached:', args[-1].values[0])
     # get sus_objs and sink_nam
     if len(args)>1:
         for i in range(len(args)-1):

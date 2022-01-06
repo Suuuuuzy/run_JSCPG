@@ -1113,9 +1113,9 @@ def string_returning_func(G: Graph, caller_ast, extra, _, *args):
             used_objs.update(offspring)
         # used_objs = list(used_objs)
         # print('used_objs of json_stringfy', used_objs)
-        for used in used_objs:
-            ast = G.get_obj_def_ast_node(used)
-        for obj in arg.obj_nodes:
+        # for used in used_objs:
+        #     ast = G.get_obj_def_ast_node(used)
+        for obj in used_objs:
             add_contributes_to(G, [obj], returned_string)
     return NodeHandleResult(obj_nodes=[returned_string], used_objs=list(used_objs))
 

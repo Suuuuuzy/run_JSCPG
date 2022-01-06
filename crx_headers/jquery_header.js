@@ -8,7 +8,7 @@ window.postMessage = function(message, targetOrigin, [transfer]){
 // target.addEventListener(type, listener [, options]);
 // the 'e' parameter passed to listener can be ignored, otherwise, it is the event object
 window.addEventListener = function(type, listener,  [options]){
-    MarkAttackEntry('cs_window_eventListener', listener);
+    MarkAttackEntry('cs_window_eventListener_' + type, listener);
 };
 
 
