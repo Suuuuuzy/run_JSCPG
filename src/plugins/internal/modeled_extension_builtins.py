@@ -144,6 +144,8 @@ def MarkSource(G: Graph, caller_ast, extra, _, *args):
         G.set_node_attr(son, ('tainted',True))
         # every path is a tuple with (path, source_name)
         G.set_node_attr(son, ('taint_flow', [([son],source_name)]))
+        G.set_node_attr(son,("code", wildcard))
+        G.set_node_attr(son, ("value", wildcard))
     return NodeHandleResult()
 
 def MarkSink(G: Graph, caller_ast, extra, _, *args):
