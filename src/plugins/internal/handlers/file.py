@@ -69,12 +69,14 @@ def run_toplevel_file(G: Graph, node_id):
         file_path = G.get_node_attr(node_id)['name']
     else:
         loggers.main_logger.error("[ERROR] " + node_id + "no file name")
-
-    # loop call
-    if file_path in G.file_stack:
-        return [] 
-    G.file_stack.append(file_path)
-    print('G.file_stack', G.file_stack)
+    if not G.thread_version:
+        # loop call
+        if file_path in G.file_stack:
+            return []
+        G.file_stack.append(file_path)
+        print('G.file_stack', G.file_stack)
+    else:
+        print('G.file_stack', file_path)
     if G.thread_version:
         previous_file_path = G.mydata.cur_file_path
         G.mydata.cur_file_path = file_path
@@ -176,7 +178,8 @@ def run_toplevel_file(G: Graph, node_id):
         G.cur_file_path = previous_file_path
         G.cur_stmt = backup_stmt
 
-    G.file_stack.pop(-1)
+    if not G.thread_version:
+        G.file_stack.pop(-1)
 
     module_exports_objs = []
 

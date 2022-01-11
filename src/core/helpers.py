@@ -123,17 +123,21 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
     # path to generated files, debug, make header=Fasle
     # generated_extension_dir = generate_extension_files(path, header=False)
     if dx:
+        if easy_test:
+            header_path = 'crx_headers_easy'
+        else:
+            header_path = 'crx_headers'
         generated_extension_dir = os.path.join(path, "opgen_generated_files")
         # verified the existence of the two scripts
         cs = os.path.join(path, 'content_scripts.js')
         filtered_js_files = [cs]
-        filtered_js_files.insert(0, 'crx_headers/cs_header.js')
-        filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
+        filtered_js_files.insert(0, os.path.join(header_path, 'cs_header.js'))
+        filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
         combine_files(os.path.join(generated_extension_dir, 'cs_0.js'), filtered_js_files)
         bg = os.path.join(path, 'background.js')
         filtered_js_files = [bg]
-        filtered_js_files.insert(0,'crx_headers/bg_header.js')
-        filtered_js_files.insert(0, 'crx_headers/jquery_header.js')
+        filtered_js_files.insert(0, os.path.join(header_path, 'bg_header.js'))
+        filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
         combine_files(os.path.join(generated_extension_dir, 'bg.js'), filtered_js_files)
     else:
         if easy_test:
@@ -165,9 +169,9 @@ def generate_extension_files(extension_path, header_path, header=True):
 
 def combine_files(newfile, files):
     result = ''
-    print('=======newfile=======', newfile)
+    # print('=======newfile=======', newfile)
     for file in files:
-        print(file)
+        # print(file)
         try:
             with open(file, errors='ignore') as fin:
                 content = fin.read()

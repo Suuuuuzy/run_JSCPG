@@ -881,7 +881,7 @@ def object_values(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_arr
             for prop_obj in prop_objs:
                 G.add_obj_as_prop(str(i), parent_obj=arr, tobe_added_obj=prop_obj)
         # wildcard object
-        if G.get_node_attr(obj).get('type') in ['array', 'object'] and \
+        if G.s(obj).get('type') in ['array', 'object'] and \
             G.get_node_attr(obj).get('code') == wildcard:
             wildcard_prop_objs = G.get_prop_obj_nodes(obj, wildcard, extra.branches)
             if not wildcard_prop_objs: # if the wildcard property does not exist

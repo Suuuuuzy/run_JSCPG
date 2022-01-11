@@ -43,7 +43,7 @@ class HandleSwitchList(Handler):
                     simurun_block(G, body, tmp_cur_scope, branches+[branch_tag])
             # handle_node(G, test, extra)
             p, d = check_switch_var(self, G, test, extra)
-            print('check result =', p, d)
+            # print('check result =', p, d)
             if d and p == 1:
                 simurun_block(G, body, tmp_cur_scope, branches,
                             block_scope=False)

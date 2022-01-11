@@ -226,8 +226,6 @@ def find_prop(G, parent_objs, prop_name, branches=None,
 
         # Search "direct" properties
         prop_name_node = G.get_prop_name_node(prop_name, parent_obj)
-        if prop_name=='Data':
-            print(prop_name_node)
         if prop_name_node is not None and prop_name != wildcard:
             name_node_found = True
             prop_name_nodes.add(prop_name_node)

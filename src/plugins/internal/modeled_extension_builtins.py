@@ -226,14 +226,14 @@ def data_out_function(G: Graph, caller_ast, extra, _, *args):
 
 # check the sink function
 def sink_function(G: Graph, caller_ast, extra, _, *args):
+    sink_name = args[-1].values[0]
     sus_objs = set()
     # print('sink function reached:', args[-1].values[0])
     # get sus_objs and sink_nam
     if len(args)>1:
         for i in range(len(args)-1):
             arg = args[i]
-            sus_objs.update(set(filter(lambda obj:
-                    G.get_node_attr(obj).get('type') != 'function', arg.obj_nodes)))
+            sus_objs.update(arg.obj_nodes)
             if arg.value_sources:
                 for objs in arg.value_sources:
                     sus_objs.update(set(objs))
@@ -241,8 +241,7 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
     for obj in sus_objs:
         SpringObjs.update(G.get_off_spring(obj))
     sus_objs.update(SpringObjs)
-    print(sus_objs)
-    sink_name = args[-1].values[0]
+
     # if no obj is required, control flow reaches
     if len(sus_objs)==0:
         print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
@@ -264,8 +263,7 @@ def sink_function_in_graph(G: Graph, args, sink_name):
     print('sink function reached')
     # get sus_objs and sink_name
     for arg in args:
-        sus_objs.update(set(filter(lambda obj:
-                                   G.get_node_attr(obj).get('type') != 'function', arg.obj_nodes)))
+        sus_objs.update(arg.obj_nodes)
         if arg.value_sources:
             for objs in arg.value_sources:
                 sus_objs.update(set(objs))
@@ -289,8 +287,12 @@ def sink_function_in_graph(G: Graph, args, sink_name):
     return NodeHandleResult()
 
 
-invalid_taint  = [("cs_window_eventListener","window_postMessage_sink"), ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink"),
-                  ("cookies_source", "chrome_cookies_set_sink")]
+invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
+                  ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink"),
+                  ("cookies_source", "chrome_cookies_set_sink"),
+                  ("management_getAll_source", "management_setEnabled_id"),
+                  ("management_getAll_source", "management_setEnabled_enabled"),
+                  ("storage_local_get_source", "chrome_storage_local_set_sink")]
 def check_taint(G, obj, sink_name):
     res = ''
     attrs = G.get_node_attr(obj)

@@ -41,7 +41,7 @@ def event_loop_no_threading(G: Graph):
             other_attack(G, entry)
     while len(G.eventQueue)!=0:
         event = G.eventQueue.pop()
-        print('processing eventName:', event['eventName'])
+        print('=========processing eventName:', event['eventName'])
         if event['eventName'] in event_listener_dic:
             listener = event_listener_dic[event['eventName']][0]
             with G.eventRegisteredFuncs_lock:
@@ -169,8 +169,8 @@ def bg_port_postMessage(G, event):
 
 def cs_chrome_runtime_sendMessage(G, event):
     # register sender_responseCallback function to cs runtime.sendMessage's responseCallback
-    print('event: ', event)
-    print(G.get_node_attr(event['info']))
+    # print('event: ', event)
+    # print(G.get_node_attr(event['info']))
     sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name='responseCallback')[0]
     new_event = 'cs_chrome_runtime_sendMessage_onResponse'  # cs on getting the response from bg
     if G.thread_version:

@@ -66,6 +66,13 @@ Document.prototype.addEventListener = function(type, listener,  [ options]){
 
 Document.prototype.createElement = Document_element.prototype.createElement;
 
+
+
+Document.prototype.write = function(text){
+    sink_function(text, "document_write_sink");
+}
+
+
 document = new Document();
 
 
