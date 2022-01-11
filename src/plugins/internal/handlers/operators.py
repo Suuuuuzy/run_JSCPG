@@ -297,6 +297,6 @@ def do_assign(G, handled_left, handled_right, branches=None, ast_node=None):
 
         returned_objs.extend(right_objs)
 
-    return NodeHandleResult(obj_nodes=handled_right.obj_nodes,
+    return NodeHandleResult(obj_nodes=returned_objs,
         name_nodes=handled_left.name_nodes, # used_objs=used_objs,
         callback=get_df_callback(G))
