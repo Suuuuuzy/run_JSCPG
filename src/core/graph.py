@@ -1992,14 +1992,23 @@ class Graph:
         """
         offspring = set()  # the set of all its offspring
         sons = set()  # the set of the next level offspring
-        #
+        # print("get_off_spring", node_id)
+        if self.get_cur_window_obj()==node_id:
+            return set(node_id)
         names = self.get_prop_name_nodes(node_id)
         sons.update(self.get_prop_obj_nodes(parent_obj=node_id, user_defined_only=True))
-        offspring = offspring.union(sons)
-        # now sons is the set of the next level offspring
-        if len(sons) != 0:
-            for son in sons:
-                offspring = offspring.union(self.get_off_spring(son))
+        while len(sons)!=0:
+            item = sons.pop()
+            offspring.add(item)
+            item_sons = self.get_prop_obj_nodes(parent_obj=item, user_defined_only=True)
+            offspring.update(item_sons)
+            sons.update(item_sons)
+
+        # offspring = offspring.union(sons)
+        # # now sons is the set of the next level offspring
+        # if len(sons) != 0:
+        #     for son in sons:
+        #         offspring = offspring.union(self.get_off_spring(son))
         return offspring
 
     def get_cur_window_obj(self):

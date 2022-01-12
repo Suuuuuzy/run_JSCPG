@@ -21,7 +21,6 @@ def setup_utils(G: Graph):
     G.add_blank_func_to_scope('MarkSink', scope=G.get_cur_window_scope(), python_func=MarkSink)
     G.add_blank_func_to_scope('MarkAttackEntry', scope=G.get_cur_window_scope(), python_func=MarkAttackEntry)
     G.add_blank_func_to_scope('debug_sink', scope=G.get_cur_window_scope(), python_func=debug_sink)
-    G.add_blank_func_to_scope('data_out_function', scope=G.get_cur_window_scope(), python_func=data_out_function)
     G.add_blank_func_to_scope('sink_function', scope=G.get_cur_window_scope(), python_func=sink_function)
 
 # event is a string
@@ -110,31 +109,6 @@ def MarkSourceInGraph(G, sourceObj, sourceName):
         G.set_node_attr(son, ('taint_flow', [([son],sourceName)]))
     return NodeHandleResult()
 
-# def MarkSource(G: Graph, caller_ast, extra, _, *args):
-#     print("MarkSource", args[0])
-#     # print("====")
-#     # opg_tainted_wildcard_obj = G.add_obj_to_name('__opgTaintedWildcard', scope=G.BASE_SCOPE)
-#     # G.set_node_attr(opg_tainted_wildcard_obj, ('tainted', True))
-#     # print(G.get_node_attr(opg_tainted_wildcard_obj))
-#     # sensitiveSource = args[0].obj_nodes[0]
-#     # print(G.get_node_attr(sensitiveSource))
-#     if args[0].values:
-#         wildcard_name = args[0].values[0]
-#         sensitiveSource = G.add_obj_to_name(wildcard_name)
-#         G.set_node_attr(sensitiveSource, ('tainted', True))
-#
-#         source_name = args[1].values[0]
-#         sons = G.get_off_spring(sensitiveSource)
-#         sons.add(sensitiveSource)
-#         for son in sons:
-#             G.set_node_attr(son, ('tainted',True))
-#             # every path is a tuple with (path, source_name)
-#             G.set_node_attr(son, ('taint_flow', [([son],source_name)]))
-#             G.set_node_attr(son, ("value", wildcard))
-#             print("====")
-#             print(G.get_node_attr(son))
-#     return NodeHandleResult()
-
 def MarkSource(G: Graph, caller_ast, extra, _, *args):
     sensitiveSource = args[0].obj_nodes[0]
     source_name = args[1].values[0]
@@ -200,29 +174,6 @@ def debug_sink(G: Graph, caller_ast, extra, _, *args):
     for obj in sus_objs:
         print(G.get_node_attr(obj))
     return NodeHandleResult()
-
-def data_out_function(G: Graph, caller_ast, extra, _, *args):
-    sus_objs= set()
-    print('data out function reached')
-    for arg in args:
-        sus_objs.add(arg.obj_nodes[0])
-    tmp_objs = sus_objs.copy()
-    for obj in tmp_objs:
-        offsprings = G.get_off_spring(obj)
-        sus_objs.update(offsprings)
-    tmp_objs = sus_objs.copy()
-    for obj in tmp_objs:
-        pathes = obj_traceback(G, obj)
-        for path in pathes:
-            for obj in path:
-                sus_objs.add(obj)
-    # print(sus_objs)
-    # print(G.sensitiveSource)
-    for off in sus_objs:
-        if off in G.sensitiveSource:
-            print('detected!')
-    return NodeHandleResult()
-
 
 # check the sink function
 def sink_function(G: Graph, caller_ast, extra, _, *args):

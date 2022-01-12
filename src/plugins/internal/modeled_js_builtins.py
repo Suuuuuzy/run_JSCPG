@@ -13,7 +13,6 @@ from src.core.logger import loggers
 from itertools import chain, product
 from math import isnan
 import math
-from .utils import get_off_spring
 from typing import Tuple
 
 
@@ -1109,7 +1108,7 @@ def string_returning_func(G: Graph, caller_ast, extra, _, *args):
         used_objs.update(arg.obj_nodes)
         # TODO: update all the childern
         for obj in arg.obj_nodes:
-            offspring = get_off_spring(G, obj)
+            offspring = G.get_off_spring(obj)
             used_objs.update(offspring)
         # used_objs = list(used_objs)
         # print('used_objs of json_stringfy', used_objs)
@@ -1163,7 +1162,7 @@ def console_log(G: Graph, caller_ast, extra, _, *args):
         used_objs.update(arg.obj_nodes)
         # add offsprings to used objs, like in JSON.stringify
         for obj in arg.obj_nodes:
-            used_objs.update(get_off_spring(G, obj))
+            used_objs.update(G.get_off_spring(obj))
         # used_objs.update(arg.used_objs)
         values = list(map(str, arg.values))
         for obj in arg.obj_nodes:

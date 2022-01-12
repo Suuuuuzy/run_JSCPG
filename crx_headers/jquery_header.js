@@ -156,9 +156,8 @@ $.post = function( url , data, success){
 
 jQuery = $;
 
-jqXHR = function(){
+jqXHR = function(){}
 
-}
 // jqXHR.fail(function( jqXHR, textStatus, errorThrown ) {});
 jqXHR.prototype.fail = function(callback){
     // do nothing
@@ -176,12 +175,16 @@ jqXHR.prototype.always = function(callback){
     return this;
 }
 
+
+fetch_obj = function(){}
+
 fetch = function(resource, options){
     sink_function(resource, "fetch_resource_sink");
     sink_function(options, "fetch_options_sink");
+    return new fetch_obj();
 }
 
-fetch.prototype.then = function(callback){
+fetch_obj.prototype.then = function(callback){
     var responseText = 'data_from_fetch';
     MarkSource(responseText, 'fetch_source');
     callback(responseText);

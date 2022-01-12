@@ -824,26 +824,6 @@ def merge(G, stmt, num_of_branches, parent_branch):
                                 G.graph.remove_edge(u, v, key)
 
 
-def get_off_spring(G: Graph, node_id):
-    """
-    # get all the offsprings of a certain obj node
-    # if we do not wish to include the length obj, we should exclude it
-    :param G: graph
-    :param node_id: node id
-    :return: a set of objs which is the user_defined_only offspring of the obj
-    """
-    offspring = set() # the set of all its offspring
-    sons = set() # the set of the next level offspring
-    #
-    names = G.get_prop_name_nodes(node_id)
-    sons.update(G.get_prop_obj_nodes(parent_obj=node_id, user_defined_only = True))
-    offspring = offspring.union(sons)
-    # now sons is the set of the next level offspring
-    if len(sons) != 0:
-        for son in sons:
-            offspring = offspring.union(get_off_spring(G, son))
-    return offspring
-
 def emit_thread(G: Graph, function, args, is_event = False):
     if len(threading.enumerate())==1:
         from src.core.opgen import admin_threads
