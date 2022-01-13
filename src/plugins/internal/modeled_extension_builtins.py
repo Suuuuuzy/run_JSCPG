@@ -239,12 +239,13 @@ def sink_function_in_graph(G: Graph, args, sink_name):
 
 
 invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
-                  ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink"),
-                  ("cookies_source", "chrome_cookies_set_sink"),
-                  ("management_getAll_source", "management_setEnabled_id"),
-                  ("management_getAll_source", "management_setEnabled_enabled"),
-                  ("storage_local_get_source", "chrome_storage_local_set_sink"),
-                  ("storage_sync_get_source", "chrome_storage_sync_set_sink")]
+                  ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink")
+                  # ("cookies_source", "chrome_cookies_set_sink"),
+                  # ("management_getAll_source", "management_setEnabled_id"),
+                  # ("management_getAll_source", "management_setEnabled_enabled"),
+                  # ("storage_local_get_source", "chrome_storage_local_set_sink"),
+                  # ("storage_sync_get_source", "chrome_storage_sync_set_sink")
+                    ]
 def check_taint(G, obj, sink_name):
     res = ''
     attrs = G.get_node_attr(obj)

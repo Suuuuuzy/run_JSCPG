@@ -756,14 +756,14 @@ def merge(G, stmt, num_of_branches, parent_branch):
         for v in G.get_child_nodes(u, 'NAME_TO_OBJ'):
             created = [False] * num_of_branches
             deleted = [False] * num_of_branches
-
-            for key, edge_attr in G.graph[u][v].items():
-                branch_tag = edge_attr.get('branch')
-                if branch_tag and branch_tag.point == stmt:
-                    if branch_tag.mark == 'A':
-                        created[int(branch_tag.branch)] = True
-                    if branch_tag.mark == 'D':
-                        deleted[int(branch_tag.branch)] = True
+            with G.graph_lock:
+                for key, edge_attr in G.graph[u][v].items():
+                    branch_tag = edge_attr.get('branch')
+                    if branch_tag and branch_tag.point == stmt:
+                        if branch_tag.mark == 'A':
+                            created[int(branch_tag.branch)] = True
+                        if branch_tag.mark == 'D':
+                            deleted[int(branch_tag.branch)] = True
 
             # We flatten Addition edges if they exist in any branch, because
             # the possibilities will continue to exist in parent branches.

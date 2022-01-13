@@ -68,7 +68,7 @@ class OPGen:
                 pathes = traceback(G, vul_type)
                 vul_pathes = vul_checking(G, pathes[0], vul_type)
         # add chrome extension part
-        elif vul_type == 'chrome_data_exfiltration' or vul_type == 'chrome_API_execution':
+        elif vul_type == 'chrome_ext' or vul_type == 'chrome_API_execution':
             if options.obj_traceback:
                 pathes = obj_traceback_crx(G, vul_type)
                 vul_pathes = vul_checking(G, pathes[0], vul_type)

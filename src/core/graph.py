@@ -2003,6 +2003,8 @@ class Graph:
             item_sons = self.get_prop_obj_nodes(parent_obj=item, user_defined_only=True)
             offspring.update(item_sons)
             sons.update(item_sons)
+            # if len(offspring)>20:
+            #     print(len(offspring))
 
         # offspring = offspring.union(sons)
         # # now sons is the set of the next level offspring
