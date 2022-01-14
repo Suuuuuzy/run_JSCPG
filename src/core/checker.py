@@ -31,16 +31,6 @@ def get_path_text(G, path, caller= None):
         except Exception as e:
             print(e)
         if content is not None:
-            # namespace = cur_node_attr.get('namespace')
-            # num = namespace.split(':')
-            # line0, col0, line1, col1 = [int(node) for node in num]
-            # if line0==line1:
-            #     code = content[line0][col0:col1]
-            # else:
-            #     code = content[line0][col0:]
-            #     for i in range(line0+1, line1):
-            #         code+=content[i]
-            #     code += [line1][:col1]
             attr = G.get_node_attr(node)
             cur_path_str2 += "Line {}\t{}\t{}\n".format(start_lineno,
                     ''.join(content[start_lineno:end_lineno + 1]), attr['code'])

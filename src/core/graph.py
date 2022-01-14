@@ -42,14 +42,15 @@ class MyData(threading.local):
 
 class Graph:
 
-    def __init__(self, thread_version, cs_header_lines, bg_header_lines, client_side = False, auto_stop = False):
+    def __init__(self, cs_header_lines, bg_header_lines, thread_version):
         self.cs_header_lines = cs_header_lines
         self.bg_header_lines = bg_header_lines
         self.thread_version = thread_version
-        self.client_side = client_side
-        self.auto_stop = auto_stop
+        self.client_side = False
+        self.auto_stop = False
         self.graph = nx.MultiDiGraph()
         self.graph_lock = Lock()
+        self.no_merge = False
         if self.thread_version:
             self.mydata = MyData()
         else:
@@ -68,8 +69,6 @@ class Graph:
         self.op_cnt = {'add_node': 0, 'add_edge': 0, 'get_node_attr': 0, 'get_edge': 0, 'get_edge_attr': 0}
         self.nearest_upper_CPG_cache = {}
         ###################
-
-
 
         self.eventQueue = []  # a queue of events
         self.sensitiveSource = set() # a list of sensitive source objs

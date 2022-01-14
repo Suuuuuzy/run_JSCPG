@@ -211,7 +211,7 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
 
 def sink_function_in_graph(G: Graph, args, sink_name):
     sus_objs = set()
-    print('sink function reached')
+    # print('sink function reached')
     # get sus_objs and sink_name
     for arg in args:
         sus_objs.update(arg.obj_nodes)

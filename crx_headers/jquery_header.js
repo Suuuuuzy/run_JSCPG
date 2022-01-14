@@ -44,6 +44,9 @@ Document_element.prototype.createElement = function(tagname){
     return de;
 }
 
+Document_element.prototype.innerText = new Object();
+MarkSource(Document_element.prototype.innerText, "document.body.innerText");
+
 Document_element.prototype.appendChild = function(node){}
 
 
@@ -121,15 +124,23 @@ function $(a){
 
 // jqXHR
 $.ajax = function(url, settings){
-    sink_function(url, 'jQuery_ajax_url_sink');
-    sink_function(settings.data, 'jQuery_ajax_settings_data_sink');
-    if(settings.beforeSend){
-        settings.beforeSend();
+    if (typeof url=="string"){
+        sink_function(url, 'jQuery_ajax_url_sink');
+        sink_function(settings.data, 'jQuery_ajax_settings_data_sink');
+        if(settings.beforeSend){
+            settings.beforeSend();
+        }
+        if (settings.success){
+            var jQuery_ajax_result_source = 'data_form_jq_ajax';
+            MarkSource(jQuery_ajax_result_source, 'jQuery_ajax_result_source');
+            settings.success(jQuery_ajax_result_source);
+        }
     }
-    if (settings.success){
-        var jQuery_ajax_result_source = 'data_form_jq_ajax';
-        MarkSource(jQuery_ajax_result_source, 'jQuery_ajax_result_source');
-        settings.success(jQuery_ajax_result_source);
+    else{
+        sink_function(url.url, 'jQuery_ajax_settings_url_sink');
+        if (url.complete){
+            url.complete(xhr, textStatus);
+        }
     }
 }
 // jQuery.get( url [, data ] [, success ] [, dataType ] )

@@ -750,6 +750,8 @@ def merge(G, stmt, num_of_branches, parent_branch):
         parent_branch (BranchTag): parent branch tag (if this branch is
             inside another branch statement).
      '''
+    if G.no_merge:
+        return
     loggers.main_logger.debug(f'Merging branches in {stmt}')
     name_nodes = G.get_node_by_attr('labels:label', 'Name')
     for u in name_nodes:

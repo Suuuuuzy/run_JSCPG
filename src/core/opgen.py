@@ -37,7 +37,9 @@ class OPGen:
         with open(os.path.join(header_path, 'bg_header.js')) as f:
             self.bg_header_lines = len(f.read().split('\n'))
 
-        self.graph = Graph(options.run_with_pq, self.cs_header_lines+self.jq_header_lines, self.bg_header_lines+self.jq_header_lines, client_side=options.chrome_extension, auto_stop = options.autostop)
+        self.graph = Graph(cs_header_lines=self.cs_header_lines + self.jq_header_lines, \
+                           bg_header_lines=self.bg_header_lines + self.jq_header_lines,
+                           thread_version = self.options.run_with_pq)
         self.graph.package_name = options.input_file
         setup_graph_env(self.graph)
 
@@ -264,7 +266,9 @@ class OPGen:
         """
         set up a new graph
         """
-        self.graph = Graph(thread_version = self.options.run_with_pq, cs_header_lines=self.cs_header_lines+self.jq_header_lines, bg_header_lines=self.bg_header_lines+self.jq_header_lines, client_side = self.options.chrome_extension, auto_stop = self.options.autostop)
+        self.graph = Graph(cs_header_lines = self.cs_header_lines + self.jq_header_lines, \
+                            bg_header_lines = self.bg_header_lines + self.jq_header_lines,
+                           thread_version = self.options.run_with_pq)
         if not package_name:
             self.graph.package_name = options.input_file
         else:
@@ -513,6 +517,11 @@ def setup_graph_env(G: Graph):
     G.check_ipt = (options.vul_type == 'ipt')
     G.call_limit = options.call_limit
     G.detection_res[options.vul_type] = set()
+    G.no_merge = options.no_merge
+    G.thread_version = options.run_with_pq
+    G.client_side = options.chrome_extension
+    G.auto_stop = options.autostop
+
 
 def babel_convert():
     """
