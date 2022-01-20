@@ -1126,16 +1126,16 @@ class Graph:
             for obj in objs:
                 has_obj[obj] = False
             # check edges without branch tag
-            for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
+            for _, obj, _, attr in out_edges:
                 branch_tag = attr.get('branch')
-                for_tags = self.get_node_attr(obj).get('for_tags')
+                # for_tags = self.get_node_attr(obj).get('for_tags')
                 if branch_tag is None:
                     has_obj[obj] = True
             # for each branch in branch history
             # we check from the oldest (shallowest) to the most recent (deepest)
             for branch in branches:
                 # check which edge matches the current checking branch
-                for _, obj, _, attr in self.get_out_edges(name_node, edge_type='NAME_TO_OBJ'):
+                for _, obj, _, attr in out_edges:
                     tag = attr.get('branch')
                     if tag and tag.point == branch.point and tag.branch == branch.branch:
                         if tag.mark == 'A':
@@ -1182,7 +1182,7 @@ class Graph:
             # built in source, mark as tainted
             for obj in res_objs:
                 self.set_node_attr(obj, ("tainted", True))
-
+                # self.set_node_attr(obj, ('taint_flow', [([obj],var_name)]))
         return res_objs
 
     def get_prop_names(self, parent_obj, exclude_proto=True):
@@ -1197,8 +1197,14 @@ class Graph:
 
     get_keys = get_prop_names
 
-    def get_prop_name_nodes(self, parent_obj=None):
-        return self.get_child_nodes(parent_obj, edge_type='OBJ_TO_PROP')
+    def get_prop_name_nodes(self, parent_obj=None, user_defined_only = False ):
+        name_nodes = self.get_child_nodes(parent_obj, edge_type='OBJ_TO_PROP')
+        if user_defined_only:
+            name_nodes = filter(
+                lambda x: self.get_node_attr(x).get('name') not in
+                          ['prototype', '__proto__', 'constructor', 'length'],
+                name_nodes)
+        return name_nodes
 
     def get_prop_name_node(self, prop_name, parent_obj=None):
         for name_node in self.get_prop_name_nodes(parent_obj):
@@ -1365,7 +1371,7 @@ class Graph:
 
             return tmp_edge[0][1]
 
-    def copy_obj(self, obj_node, ast_node=None, copied=None, deep=False):
+    def copy_obj(self, obj_node, ast_node=None, copied=None, deep=False, copy_user_defined_only = True):
         '''
         Copy an object and its properties.
         '''
@@ -1380,24 +1386,22 @@ class Graph:
             for flow in taint_flow:
                 flow[0].append(new_obj_node)
             self.set_node_attr(new_obj_node, ('taint_flow', taint_flow))
-        # copy properties
-        for i in self.get_out_edges(obj_node, edge_type='OBJ_TO_PROP'):
+        # copy properties, copy only user defined properties
+        for prop_name_node in self.get_prop_name_nodes(parent_obj=obj_node, user_defined_only=copy_user_defined_only):
+        # for i in self.get_out_edges(obj_node, edge_type='OBJ_TO_PROP'):
             # copy property name node
-            prop_name_node = i[1]
+            # prop_name_node = i[1]
             new_prop_name_node = str(self._get_new_nodeid())
-            self.add_node(new_prop_name_node,
-                          self.get_node_attr(prop_name_node))
-            self.add_edge(new_obj_node, new_prop_name_node,
-                          {'type:TYPE': 'OBJ_TO_PROP'})
+            self.add_node(new_prop_name_node,self.get_node_attr(prop_name_node))
+            # print("copying property name node ", self.get_node_attr(prop_name_node))
+            self.add_edge(new_obj_node, new_prop_name_node,{'type:TYPE': 'OBJ_TO_PROP'})
             if self.get_node_attr(prop_name_node).get('name') == '__proto__':
-                for j in self.get_out_edges(prop_name_node, edge_type=
-                    'NAME_TO_OBJ'):
+                for j in self.get_out_edges(prop_name_node, edge_type='NAME_TO_OBJ'):
                     self.add_edge(new_prop_name_node, j[1],
                         {'type:TYPE': 'NAME_TO_OBJ'})
                 continue
             # copy property object nodes
-            for j in self.get_out_edges(prop_name_node, edge_type=
-                'NAME_TO_OBJ'):
+            for j in self.get_out_edges(prop_name_node, edge_type='NAME_TO_OBJ'):
                 if deep:
                     # sometimes this loop may dead inside a graph with a circle
                     # check whether we copied this node before
@@ -1981,7 +1985,7 @@ class Graph:
                         self.all_func.add(n)
         return len(self.all_func)
 
-    def get_off_spring(self, node_id):
+    def get_off_spring(self, node_id, print_nodes = False):
         """
         # get all the offsprings of a certain obj node
         # if we do not wish to include the length obj, we should exclude it
@@ -1994,7 +1998,10 @@ class Graph:
         # print("get_off_spring", node_id)
         if self.get_cur_window_obj()==node_id:
             return set(node_id)
-        names = self.get_prop_name_nodes(node_id)
+        if print_nodes:
+            names = self.get_prop_name_nodes(node_id)
+            for name in names:
+                print(self.get_node_attr(name))
         sons.update(self.get_prop_obj_nodes(parent_obj=node_id, user_defined_only=True))
         while len(sons)!=0:
             item = sons.pop()
@@ -2002,6 +2009,10 @@ class Graph:
             item_sons = self.get_prop_obj_nodes(parent_obj=item, user_defined_only=True)
             offspring.update(item_sons)
             sons.update(item_sons)
+            if print_nodes:
+                names = self.get_prop_name_nodes(item)
+                for name in names:
+                    print(self.get_node_attr(name))
             # if len(offspring)>20:
             #     print(len(offspring))
 
@@ -2045,3 +2056,13 @@ class Graph:
         parent_node = parent_edges[0][0]
 
         return parent_node
+
+    def debug_sink_in_graph(self, obj):
+        print('debug code in graph: ', obj)
+        tmp_objs = set()
+        offsprings = self.get_off_spring(obj, print_nodes = True)
+        tmp_objs.update(offsprings)
+        tmp_objs.add(obj)
+        print("sus_objs", tmp_objs)
+        for obj in tmp_objs:
+            print(self.get_node_attr(obj))

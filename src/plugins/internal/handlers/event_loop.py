@@ -159,7 +159,6 @@ def cs_port_postMessage(G, event):
 def bg_port_postMessage(G, event):
     message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
     message = G.copy_obj(message, ast_node=None, deep=True)
-    # print('message obj node:', G.get_node_attr(message))
     args = [NodeHandleResult(obj_nodes=[message])]
     with G.eventRegisteredFuncs_lock:
         func_objs = G.eventRegisteredFuncs['cs_port_onMessage']
