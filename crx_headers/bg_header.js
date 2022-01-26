@@ -140,6 +140,18 @@ Chrome.prototype.runtime.onConnectExternal.addListener = function(myCallback){
     MarkAttackEntry('bg_chrome_runtime_onConnectExternal', myCallback);
 }
 
+Chrome.prototype.runtime.connectNative = function(extensionId, connectInfo){
+    // var eventName = 'cs_chrome_runtime_connect';
+    if (connectInfo===undefined){
+        var connectInfo = extensionId;
+        var extensionId = undefined;
+    }
+    // var info = {extensionId:extensionId, connectInfo:connectInfo};
+    // TriggerEvent('bg_chrome_runtime_connectNative', {extensionId:extensionId, connectInfo:connectInfo});    
+    return new externalPort(connectInfo);
+};
+
+
 
 Chrome.prototype.extension = new Object();
 Chrome.prototype.extension.onRequest = Chrome.prototype.runtime.onMessage;
