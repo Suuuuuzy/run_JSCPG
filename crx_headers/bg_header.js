@@ -466,5 +466,5 @@ Chrome.prototype.permissions.request = function(permissions, callback){
 chrome = new Chrome();
 _ = chrome;
 chrome.experimental.cookies = chrome.cookies;
-
+browser = chrome;
 /////////
