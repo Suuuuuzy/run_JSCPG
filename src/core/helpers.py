@@ -524,7 +524,7 @@ def copy_objs_for_branch(G: Graph, handle_result: NodeHandleResult, branch,
             if name_node in handle_result.name_nodes and (eb is None or
                 (eb.point == branch.point and eb.branch != branch.branch)):
                 if copied_obj is None: # the object should be copied only once
-                    copied_obj = G.copy_obj(obj, ast_node, deep=deep)
+                    copied_obj = G.copy_obj(obj, ast_node, deep=deep, copy_user_defined_only=False)
                     returned_objs.append(copied_obj)
                 # assign the name node to the copied object and mark the
                 # previous edge as deleted (D)
