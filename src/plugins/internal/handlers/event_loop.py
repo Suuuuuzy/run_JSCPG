@@ -31,24 +31,15 @@ def event_loop_no_threading(G: Graph):
     for i in G.eventRegisteredFuncs:
         print(i, G.eventRegisteredFuncs[i])
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
-    print('========SEE attackEntries:========')
-    while len(G.attackEntries) != 0:
-        entry = G.attackEntries.pop()
-        print('attack:', entry[0])
-        if entry[0] in attack_dic:
-            attack_dic[entry[0]](G, entry)
-        else:
-            other_attack(G, entry)
     while len(G.eventQueue)!=0:
         event = G.eventQueue.pop()
         print('=========processing eventName:', event['eventName'])
         if event['eventName'] in event_listener_dic:
             listener = event_listener_dic[event['eventName']][0]
-            with G.eventRegisteredFuncs_lock:
-                listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
+            listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
             if listener_not_registered:
                 print(event['eventName'], ': event listener not registered')
-                return
+                continue
             func = event_listener_dic[event['eventName']][1]
             func(G, event)
 

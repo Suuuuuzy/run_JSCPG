@@ -96,7 +96,16 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in trigger event: ', tmp)
     else:
-        G.eventQueue.insert(0, {'eventName': eventName, 'info': info, 'extra': extra})
+        print('=========processing eventName:', event['eventName'])
+        from src.plugins.internal.handlers.event_loop import event_listener_dic
+        if event['eventName'] in event_listener_dic:
+            listener = event_listener_dic[event['eventName']][0]
+            listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
+            if listener_not_registered:
+                print(event['eventName'], ': event listener not registered')
+                G.eventQueue.insert(0, {'eventName': eventName, 'info': info, 'extra': extra})
+            func = event_listener_dic[event['eventName']][1]
+            func(G, event)
     return NodeHandleResult()
 
 
@@ -140,7 +149,11 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
             else:
                 emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()))
         else:
-            G.attackEntries.insert(0, entry)
+            if entry[0] in attack_dic:
+                attack_dic[entry[0]](G, entry)
+            else:
+                other_attack(G, entry)
+            # G.attackEntries.insert(0, entry)
 
     return NodeHandleResult()
 
