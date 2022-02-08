@@ -147,7 +147,6 @@ Chrome.prototype.runtime.connectNative = function(extensionId, connectInfo){
         var extensionId = undefined;
     }
     // var info = {extensionId:extensionId, connectInfo:connectInfo};
-    // TriggerEvent('bg_chrome_runtime_connectNative', {extensionId:extensionId, connectInfo:connectInfo});    
     return new externalPort(connectInfo);
 };
 

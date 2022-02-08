@@ -27,6 +27,7 @@ class HandleSwitchList(Handler):
         cases = G.get_ordered_ast_child_nodes(node_id)
         default_is_deterministic = True
         tmp_cur_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
+        # flag =  ( p>0 )
         for i, case in enumerate(cases):
             '''
             print('jianjia see case in dispatch: ', case)
@@ -41,13 +42,16 @@ class HandleSwitchList(Handler):
                 else:
                     # not deterministic
                     simurun_block(G, body, tmp_cur_scope, branches+[branch_tag])
+                # jianjia run all the cases
+                # simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
             # handle_node(G, test, extra)
             p, d = check_switch_var(self, G, test, extra)
             # print('check result =', p, d)
+            # jianjia run all the cases
             if d and p == 1:
                 simurun_block(G, body, tmp_cur_scope, branches,
                             block_scope=False)
-                break
+                # break
             elif not d or 0 < p < 1:
                 simurun_block(G, body, tmp_cur_scope, branches+[branch_tag],
                             block_scope=False)

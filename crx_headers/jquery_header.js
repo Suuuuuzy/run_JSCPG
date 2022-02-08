@@ -31,6 +31,8 @@ window.localStorage.getItem = function(a, b){
 window.frames[0] = window;
 window.frames[1] = window;
 
+self = window;
+
 //  ========= the document and its elements are all objects ========= 
 
 function Document_element(id, class_name, tag){
