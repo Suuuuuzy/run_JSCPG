@@ -107,7 +107,24 @@ Chrome.prototype.storage.local.get = function(key, callback){
     var storage_local_get_source = {'key':'value'};
     MarkSource(storage_local_get_source, 'storage_local_get_source');
     callback(storage_local_get_source);
+    return StoragePromise(storage_local_get_source);
 };
+
+
+StoragePromise = function(result){
+    this.result = result;
+};
+
+StoragePromise.prototype.then = function(callback){
+    callback(this.result);
+    return this;
+}
+
+StoragePromise.prototype.catch = function(callback){
+    callback(this.result);
+    return this;
+}
+
 
 Chrome.prototype.storage.local.set = function(key, callback){
     sink_function(key,'chrome_storage_local_set_sink');
