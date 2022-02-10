@@ -27,37 +27,56 @@ class HandleSwitchList(Handler):
         cases = G.get_ordered_ast_child_nodes(node_id)
         default_is_deterministic = True
         tmp_cur_scope = G.cur_scope if not G.thread_version else G.mydata.cur_scope
-        # flag =  ( p>0 )
+        next_case_flag =  False # whether to run the next case
         for i, case in enumerate(cases):
-            '''
-            print('jianjia see case in dispatch: ', case)
-            depth = G.get_node_attr(case)['branch']
-            print(depth)
-            '''
             branch_tag = BranchTag(point=stmt_id, branch=str(i))
             test, body = G.get_ordered_ast_child_nodes(case)
-            if G.get_node_attr(test).get('type') == 'NULL': # default
-                if default_is_deterministic or G.single_branch:
-                    simurun_block(G, body, tmp_cur_scope, branches)
-                else:
-                    # not deterministic
-                    simurun_block(G, body, tmp_cur_scope, branches+[branch_tag])
-                # jianjia run all the cases
-                # simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
-            # handle_node(G, test, extra)
-            p, d = check_switch_var(self, G, test, extra)
-            # print('check result =', p, d)
-            # jianjia run all the cases
-            if d and p == 1:
-                simurun_block(G, body, tmp_cur_scope, branches,
-                            block_scope=False)
-                # break
-            elif not d or 0 < p < 1:
-                simurun_block(G, body, tmp_cur_scope, branches+[branch_tag],
-                            block_scope=False)
-                default_is_deterministic = False
-            else:
-                continue
+            if not next_case_flag:
+                p, d = check_switch_var(self, G, test, extra)
+                if p > 0:
+                    next_case_flag = True
+            if next_case_flag:
+                _, _, break_signal = simurun_block(G, body, tmp_cur_scope, branches, block_scope=False)
+                if break_signal:
+                    break
+            if not next_case_flag and G.get_node_attr(test).get('type') == 'NULL': # default
+                # if default_is_deterministic or G.single_branch:
+                simurun_block(G, body, tmp_cur_scope, branches)
+                # else:
+                #     # not deterministic
+                #     simurun_block(G, body, tmp_cur_scope, branches+[branch_tag])
+
+        # for i, case in enumerate(cases):
+        #     '''
+        #     print('jianjia see case in dispatch: ', case)
+        #     depth = G.get_node_attr(case)['branch']
+        #     print(depth)
+        #     '''
+        #     branch_tag = BranchTag(point=stmt_id, branch=str(i))
+        #     test, body = G.get_ordered_ast_child_nodes(case)
+        #     if G.get_node_attr(test).get('type') == 'NULL': # default
+        #         if default_is_deterministic or G.single_branch:
+        #             simurun_block(G, body, tmp_cur_scope, branches)
+        #         else:
+        #             # not deterministic
+        #             simurun_block(G, body, tmp_cur_scope, branches+[branch_tag])
+        #         # jianjia run all the cases
+        #         # simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
+        #     # handle_node(G, test, extra)
+        #     p, d = check_switch_var(self, G, test, extra)
+        #     # print('check result =', p, d)
+        #     # jianjia run all the cases
+        #     if d and p == 1:
+        #         simurun_block(G, body, tmp_cur_scope, branches,
+        #                     block_scope=False)
+        #         # break
+        #     elif not d or 0 < p < 1:
+        #         simurun_block(G, body, tmp_cur_scope, branches+[branch_tag],
+        #                     block_scope=False)
+        #         default_is_deterministic = False
+        #     else:
+        #         continue
+
         if not G.single_branch:
             merge(G, stmt_id, len(cases), parent_branch)
 

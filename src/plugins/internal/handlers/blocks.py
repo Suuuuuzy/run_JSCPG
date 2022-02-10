@@ -29,7 +29,14 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     decl_vars_and_funcs(G, ast_node, var=decl_var)
     stmts = G.get_ordered_ast_child_nodes(ast_node)
     # simulate statements
+    break_signal = False
     for stmt in stmts:
+        node_attr = G.get_node_attr(stmt)
+        # print(node_id)
+        node_type = node_attr['type']
+        if node_type=="AST_BREAK":
+            break_signal = True
+            break
         if G.cfg_stmt is not None:
             G.add_edge_if_not_exist(G.cfg_stmt, stmt, {"type:TYPE": "FLOWS_TO"})
         if G.thread_version:
@@ -50,4 +57,4 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
             G.cur_scope = parent_scope
 
 
-    return list(returned_objs), list(used_objs)
+    return list(returned_objs), list(used_objs), break_signal

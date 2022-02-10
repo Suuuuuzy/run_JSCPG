@@ -191,7 +191,7 @@ def simurun_function(G, func_ast, branches=None, block_scope=True,
             tmp_scope = G.mydata.cur_scope
         else:
             tmp_scope = G.cur_scope
-        returned_objs, used_objs = simurun_block(G, child,
+        returned_objs, used_objs, _ = simurun_block(G, child,
             parent_scope=tmp_scope, branches=branches,
             block_scope=block_scope, decl_var=True)
         break

@@ -43,9 +43,9 @@ class PluginManager(object):
         from .internal.handlers.encaps_list import HandleEncapsList as HandleEncapsList
         from .internal.handlers.assign_op import HandleAssignOP as HandleAssignOP
         from .internal.handlers.not_impl import HandleThrow as HandleThrow
-        from .internal.handlers.not_impl import HandleBreak as HandleBreak
+        from .internal.handlers.break_stmt import HandleBreak as HandleBreak
         from .internal.handlers.not_impl import HandleCatchList as HandleCatchList
-        from .internal.handlers.not_impl import HandleContinue as HandleContinue
+        from .internal.handlers.continue_stmt import HandleContinue as HandleContinue
         from .internal.handlers.stmtlist import HandleStmtList as HandleStmtList
         from .internal.handlers.not_impl import HandleClass as HandleClass
         from .internal.handlers.not_impl import HandleMethod as HandleMethod 
