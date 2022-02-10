@@ -65,7 +65,12 @@ function Tab(){
 function Chrome(){}
 
 Chrome.prototype.runtime = new Object();
-Chrome.prototype.extension = Chrome.prototype.runtime;  // for deprecated APIs
+// for deprecated APIs
+Chrome.prototype.extension = Chrome.prototype.runtime;  
+Chrome.prototype.extension.onRequest = Chrome.prototype.runtime.onMessage;
+
+
+
 Chrome.prototype.runtime.onInstalled = new Object();
 // this function be called righrt after all the 
 Chrome.prototype.runtime.onInstalled.addListener = function(myCallback) {
@@ -152,8 +157,6 @@ Chrome.prototype.runtime.connectNative = function(extensionId, connectInfo){
 
 
 
-Chrome.prototype.extension = new Object();
-Chrome.prototype.extension.onRequest = Chrome.prototype.runtime.onMessage;
 
 Chrome.prototype.topSites = new Object();
 Chrome.prototype.topSites.get = function(myCallback){

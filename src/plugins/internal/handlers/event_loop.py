@@ -158,9 +158,6 @@ def bg_port_postMessage(G, event):
                 mark_fake_args=False)
 
 def cs_chrome_runtime_sendMessage(G, event):
-    # register sender_responseCallback function to cs runtime.sendMessage's responseCallback
-    # print('event: ', event)
-    # print(G.get_node_attr(event['info']))
     sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name='responseCallback')[0]
     new_event = 'cs_chrome_runtime_sendMessage_onResponse'  # cs on getting the response from bg
     if G.thread_version:
@@ -173,7 +170,6 @@ def cs_chrome_runtime_sendMessage(G, event):
             G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
     message = G.get_prop_obj_nodes(event['info'], prop_name = 'message')[0]
     message = G.copy_obj(message, ast_node=None, deep=True)
-    info_nodes = G.get_prop_name_nodes(event['info'])
     func_objs = G.get_objs_by_name('MessageSender', scope=G.bg_scope, branches=[])
     MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
                   extra=None,
