@@ -130,15 +130,23 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
         generated_extension_dir = os.path.join(path, "opgen_generated_files")
         # verified the existence of the two scripts
         cs = os.path.join(path, 'content_scripts.js')
-        filtered_js_files = [cs]
-        filtered_js_files.insert(0, os.path.join(header_path, 'cs_header.js'))
-        filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
-        combine_files(os.path.join(generated_extension_dir, 'cs_0.js'), filtered_js_files)
+        if os.path.getsize(cs)==0:
+            with open(os.path.join(generated_extension_dir, 'cs_0.js'), "w") as f:
+                pass
+        else:
+            filtered_js_files = [cs]
+            filtered_js_files.insert(0, os.path.join(header_path, 'cs_header.js'))
+            filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
+            combine_files(os.path.join(generated_extension_dir, 'cs_0.js'), filtered_js_files)
         bg = os.path.join(path, 'background.js')
-        filtered_js_files = [bg]
-        filtered_js_files.insert(0, os.path.join(header_path, 'bg_header.js'))
-        filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
-        combine_files(os.path.join(generated_extension_dir, 'bg.js'), filtered_js_files)
+        if os.path.getsize(bg)==0:
+            with open(os.path.join(generated_extension_dir, 'bg.js'), "w") as f:
+                pass
+        else:
+            filtered_js_files = [bg]
+            filtered_js_files.insert(0, os.path.join(header_path, 'bg_header.js'))
+            filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
+            combine_files(os.path.join(generated_extension_dir, 'bg.js'), filtered_js_files)
     else:
         if easy_test:
             header_path = 'crx_headers_easy'
@@ -208,12 +216,13 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, h
             filelist = [x for x in filelist if x.endswith('.js') and 'jquery' not in x.lower()]
             filtered_js_files.extend(filelist)
         # print('filtered_js_files', filtered_js_files)
-        if 'cs' in newname and header:
-            filtered_js_files.insert(0, os.path.join(header_path, 'cs_header.js'))
-            filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
-        elif 'bg' in newname and header:
-            filtered_js_files.insert(0,os.path.join(header_path, 'bg_header.js'))
-            filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
+        if len(filtered_js_files)>0:
+            if 'cs' in newname and header:
+                filtered_js_files.insert(0, os.path.join(header_path, 'cs_header.js'))
+                filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
+            elif 'bg' in newname and header:
+                filtered_js_files.insert(0,os.path.join(header_path, 'bg_header.js'))
+                filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
         combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
     with open(os.path.join(extension_path, 'manifest.json'), errors='ignore') as f:
         manifest = json.load(f)

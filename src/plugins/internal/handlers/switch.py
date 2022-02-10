@@ -55,7 +55,7 @@ class HandleSwitchList(Handler):
             branch_tag = BranchTag(point=stmt_id, branch=str(i))
             test, body = G.get_ordered_ast_child_nodes(case)
             break_signal = False
-            # if last time 
+            # if last time does not match
             if next_case==0:
                 p, d = check_switch_var(self, G, test, extra)
                 if d and p == 1:
@@ -65,13 +65,14 @@ class HandleSwitchList(Handler):
                     _, _, break_signal = simurun_block(G, body, tmp_cur_scope, branches+[branch_tag], block_scope=False)
                     default_is_deterministic = False
                     next_case = p
+            # if last time keeps it going on
             elif next_case==1:
                 _, _, break_signal = simurun_block(G, body, tmp_cur_scope, branches, block_scope=False)
             elif 0 < next_case < 1:
                 _, _, break_signal = simurun_block(G, body, tmp_cur_scope, branches + [branch_tag], block_scope=False)
             if break_signal:
                 break
-
+            # if default
             if next_case==0 and G.get_node_attr(test).get('type') == 'NULL': # default
                 if default_is_deterministic or G.single_branch:
                     simurun_block(G, body, tmp_cur_scope, branches)
