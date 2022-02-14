@@ -154,10 +154,14 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
             else:
                 emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()), thread_age = thread_age)
         else:
-            if entry[0] in attack_dic:
-                attack_dic[entry[0]](G, entry)
+            # if this attack should be called later
+            if type=="bg_tabs_onupdated":
+                G.attackEntries.insert(0, entry)
             else:
-                other_attack(G, entry)
+                if type in attack_dic:
+                    attack_dic[type](G, entry)
+                else:
+                    other_attack(G, entry)
             # G.attackEntries.insert(0, entry)
 
     return NodeHandleResult()
