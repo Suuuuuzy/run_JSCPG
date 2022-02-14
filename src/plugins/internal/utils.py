@@ -826,7 +826,7 @@ def merge(G, stmt, num_of_branches, parent_branch):
                                 G.graph.remove_edge(u, v, key)
 
 
-def emit_thread(G: Graph, function, args, is_event = False):
+def emit_thread(G: Graph, function, args, thread_age=1, is_event = False ):
     if len(threading.enumerate())==1:
         from src.core.opgen import admin_threads
         admin_threads(G, function, args)
@@ -835,8 +835,10 @@ def emit_thread(G: Graph, function, args, is_event = False):
         current_thread = threading.current_thread()
         with G.thread_info_lock:
             cur_info = G.thread_infos[current_thread.name]
+        if thread_age==-1:
+            thread_age = cur_info.thread_age+5
         # info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=cur_info.thread_age)
-        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=1)
+        info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=thread_age)
         # print('jianjia see new thread in emit_thread: ', args[1], t.name)
         if is_event:
             with G.thread_info_lock:

@@ -140,15 +140,19 @@ def MarkSink(G: Graph, caller_ast, extra, _, *args):
 def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = args[0].values[0]
     listener = args[1].obj_nodes[0]
+    if type=="bg_tabs_onupdated":
+        thread_age = -1;
+    else:
+        thread_age = 1
     if listener!=G.undefined_obj:
         #  attack right away!
         entry = [type, listener]
         if G.thread_version:
             if entry[0] in attack_dic:
                 attack_func = attack_dic[entry[0]]
-                emit_thread(G, attack_func, (G, entry, G.mydata.pickle_up()))
+                emit_thread(G, attack_func, (G, entry, G.mydata.pickle_up()), thread_age = thread_age)
             else:
-                emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()))
+                emit_thread(G, other_attack, (G, entry, G.mydata.pickle_up()), thread_age = thread_age)
         else:
             if entry[0] in attack_dic:
                 attack_dic[entry[0]](G, entry)

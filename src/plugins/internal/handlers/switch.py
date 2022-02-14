@@ -70,7 +70,7 @@ class HandleSwitchList(Handler):
                 _, _, break_signal = simurun_block(G, body, tmp_cur_scope, branches, block_scope=False)
             elif 0 < next_case < 1:
                 _, _, break_signal = simurun_block(G, body, tmp_cur_scope, branches + [branch_tag], block_scope=False)
-            if break_signal:
+            if next_case == 1 and break_signal:
                 break
             # if default
             if next_case==0 and G.get_node_attr(test).get('type') == 'NULL': # default

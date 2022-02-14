@@ -140,6 +140,7 @@ $.ajax = function(url, settings){
     }
     else{
         sink_function(url.url, 'jQuery_ajax_settings_url_sink');
+        sink_function(url.data, 'jQuery_ajax_settings_data_sink');
         if (url.complete){
             url.complete(xhr, textStatus);
         }
@@ -165,6 +166,24 @@ $.post = function( url , data, success){
     success(responseText);
     return new jqXHR();
 }
+
+
+// jQuery.extend( target, object1 [, objectN ] )
+$.extend = function(obj1, obj2){
+    for (var key in obj2){
+        obj1[key] = obj2[key];
+    }
+}
+
+// jQuery.extend( [deep ], target, object1 [, objectN ] ) deep copy
+
+$.each = function(obj, callback){
+    var index=0;
+    for (index=0; index<obj.length; i++){
+        callback(index, obj[index]);
+    }
+}
+
 
 
 jQuery = $;
@@ -284,14 +303,6 @@ JQ_obj.prototype.each = function(first_argument) {
 };
 
 
-// jQuery.extend( target, object1 [, objectN ] )
-$.extend = function(obj1, obj2){
-    for (var key in obj2){
-        obj1[key] = obj2[key];
-    }
-}
-
-// jQuery.extend( [deep ], target, object1 [, objectN ] ) deep copy
 
 //  ========= Event ========= 
 function Event(type){

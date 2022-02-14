@@ -188,6 +188,11 @@ Chrome.prototype.tabs.query = function(queryInfo, callback){
     callback(alltabs);
 }
 
+Chrome.prototype.tabs.getSelected = function(callback){
+    var tab = new Tab();
+    callback(tab);
+}
+
 Chrome.prototype.tabs.onActivated = new Object();
 // the callback is called once a new tab is activated, we run the callback after all the others are set
 Chrome.prototype.tabs.onActivated.addListener = function(myCallback){
@@ -197,8 +202,9 @@ Chrome.prototype.tabs.onActivated.addListener = function(myCallback){
 
 Chrome.prototype.tabs.onUpdated = new Object();
 Chrome.prototype.tabs.onUpdated.addListener = function(myCallback){
-    var tab = new Tab();
-    myCallback(99, {}, tab);
+    MarkAttackEntry('bg_tabs_onupdated', myCallback);
+    // var tab = new Tab();
+    // myCallback(99, {}, tab);
 }
 
 // for deprecated APIs
