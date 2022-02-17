@@ -1892,6 +1892,7 @@ def setup_promise(G: Graph):
     G.add_blank_func_as_prop('then', promise_prototype, promise_p_then)
     G.add_blank_func_as_prop('catch', promise_prototype, promise_p_catch)
     G.add_blank_func_as_prop('finally', promise_prototype, promise_p_finally)
+    G.add_blank_func_as_prop('resolve', promise_prototype, promise_p_resolve)
 
 
 def promise_constructor(G: Graph, caller_ast, extra, _, executor=NodeHandleResult()):
@@ -1923,6 +1924,9 @@ def promise_p_catch(G: Graph, caller_ast, extra, this, on_rejected=NodeHandleRes
 
 def promise_p_finally(G: Graph, caller_ast, extra, this, on_finally=NodeHandleResult()):
     return promise_p_then(G, caller_ast, extra, this, on_finally, on_finally)
+
+def promise_p_resolve(G: Graph, caller_ast, extra, this, on_finally=NodeHandleResult()):
+    return promise_constructor(G, caller_ast, extra, this, executor=NodeHandleResult())
 
 def string_p_indexof(G: Graph, caller_ast, extra, strs=NodeHandleResult(),
     searchValue=NodeHandleResult(), fromIndex=NodeHandleResult()):

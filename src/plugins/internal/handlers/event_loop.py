@@ -197,8 +197,13 @@ def cs_chrome_runtime_sendMessage(G, event):
             G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
         else:
             G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
-    message = G.get_prop_obj_nodes(event['info'], prop_name = 'message')[0]
-    message = G.copy_obj(message, ast_node=None, deep=True)
+    # for tmp in G.get_prop_obj_nodes(event['info'], prop_name = 'message'):
+    #     G.debug_sink_in_graph(tmp)
+    messages = G.get_prop_obj_nodes(event['info'], prop_name = 'message')
+    # G.debug_sink_in_graph(message)
+    copied_messages = []
+    for tmp in messages:
+        copied_messages.append(G.copy_obj((tmp), ast_node=None, deep=True))
     func_objs = G.get_objs_by_name('MessageSender', scope=G.bg_scope, branches=[])
     MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
                   extra=None,
@@ -207,7 +212,7 @@ def cs_chrome_runtime_sendMessage(G, event):
                   mark_fake_args=False)
     MessageSender.obj_nodes = created_objs
     sendResponse = G.get_objs_by_name('sendResponse', scope=G.bg_scope, branches=[])
-    args = [NodeHandleResult(obj_nodes=[message]), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
+    args = [NodeHandleResult(obj_nodes=copied_messages), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
     with G.eventRegisteredFuncs_lock:
         func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onMessage']
     # switch cur scope

@@ -331,6 +331,7 @@ MarkSource(XMLHttpRequest.prototype.responseText, 'XMLHttpRequest_responseText_s
 MarkSource(XMLHttpRequest.prototype.responseXML, 'XMLHttpRequest_responseXML_source');
 
 
+XHR = XMLHttpRequest;
 
 
 function eval(para1){

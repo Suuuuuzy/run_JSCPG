@@ -141,7 +141,7 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = args[0].values[0]
     listener = args[1].obj_nodes[0]
     if type=="bg_tabs_onupdated":
-        thread_age = -1;
+        thread_age = -1
     else:
         thread_age = 1
     if listener!=G.undefined_obj:

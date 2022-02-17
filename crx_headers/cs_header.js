@@ -31,11 +31,27 @@ Chrome.prototype.extension = Chrome.prototype.runtime;
 Chrome.prototype.extension.sendRequest = Chrome.prototype.runtime.sendMessage;
 
 
-Chrome.prototype.runtime.sendMessage = function(msg, rspCallback){
-    // var eventName = 'cs_chrome_runtime_sendMessage';
-    // var info = {message: msg,responseCallback: rspCallback};
-    TriggerEvent('cs_chrome_runtime_sendMessage', {message: msg,responseCallback: rspCallback});
+// chrome.runtime.sendMessage(
+//   extensionId?: string,
+//   message: any,
+//   options?: object,
+//   callback?: function,
+// )
+Chrome.prototype.runtime.sendMessage = function(extensionId, msg, options, rspCallback){
+    real_rspCallback = rspCallback || options || msg;
+    real_rspCallback = typeof real_rspCallback==="function"?real_rspCallback:undefined;
+    real_msg = typeof msg==="function"?extensionId:msg;
+    TriggerEvent('cs_chrome_runtime_sendMessage', {message: real_msg,responseCallback: real_rspCallback});
 };
+
+
+// function test(extensionId, msg, options, rspCallback){
+//     real_rspCallback = rspCallback || options || msg;
+//     real_rspCallback = typeof real_rspCallback==="function"?real_rspCallback:undefined
+//     real_msg = typeof msg==="function"?extensionId:msg
+//     console.log(real_msg);
+//     console.log(real_rspCallback);
+// }
 
 Chrome.prototype.runtime.connect = function(extensionId, connectInfo){
     // var eventName = 'cs_chrome_runtime_connect';
