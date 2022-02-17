@@ -51,6 +51,7 @@ class Graph:
         self.graph = nx.MultiDiGraph()
         self.graph_lock = Lock()
         self.no_merge = False
+        self.thread_stmt = False
         if self.thread_version:
             self.mydata = MyData()
         else:
@@ -746,6 +747,16 @@ class Graph:
             node_id = parent_node
 
         self.nearest_upper_CPG_cache[ori_node_id] = result 
+        return result
+
+    def check_upper_toplevel(self, node_id):
+        result = False
+        parent_edges = self.get_in_edges(node_id, edge_type="PARENT_OF")
+        if parent_edges is not None and len(parent_edges) > 0:
+            parent_node = parent_edges[0][0]
+            parent_node_attr = self.get_node_attr(parent_node)
+            if parent_node_attr.get('type') in ["AST_TOPLEVEL"]:
+                result = True
         return result
 
     def get_all_child_nodes(self, node_id, max_depth = None):

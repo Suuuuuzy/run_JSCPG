@@ -1,6 +1,7 @@
 # This module is used to handle all the block level nodes
 from src.core.utils import ExtraInfo, BranchTagContainer
 from ..utils import decl_vars_and_funcs, to_obj_nodes
+from src.plugins.internal.utils import emit_thread
 
 def simurun_block(G, ast_node, parent_scope=None, branches=None,
     block_scope=True, decl_var=False):
@@ -45,7 +46,11 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
             G.cur_stmt = stmt
         G.cfg_stmt = stmt
         # add control flow edges here
-        handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
+        if G.thread_stmt and G.check_upper_toplevel(ast_node):
+            emit_thread(G, internal_manager.dispatch_node, (stmt, ExtraInfo(branches=branches), G.mydata.pickle_up()))
+        else:
+            handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
+
 
 
     returned_objs = G.function_returns[G.find_ancestor_scope()][1]
@@ -58,3 +63,5 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
 
 
     return list(returned_objs), list(used_objs), break_signal
+
+

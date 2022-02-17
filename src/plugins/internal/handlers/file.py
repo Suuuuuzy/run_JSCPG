@@ -33,7 +33,7 @@ class HandleFile(Handler):
         if self.G.thread_version and node_type=="Directory":
             for child in self.G.get_child_nodes(self.node_id):
                 # self.internal_manager.dispatch_node(child, self.extra)
-                emit_thread(self.G, self.internal_manager.dispatch_node, (child, self.extra))
+                emit_thread(self.G, self.internal_manager.dispatch_node, (child, self.extra, self.G.mydata.pickle_up()))
         else:
             for child in self.G.get_child_nodes(self.node_id):
                 self.internal_manager.dispatch_node(child, self.extra)

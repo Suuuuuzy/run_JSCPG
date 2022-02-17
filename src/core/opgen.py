@@ -518,6 +518,7 @@ def setup_graph_env(G: Graph):
     G.call_limit = options.call_limit
     G.detection_res[options.vul_type] = set()
     G.no_merge = options.no_merge
+    G.thread_stmt = options.thread_stmt
     G.thread_version = options.run_with_pq
     G.client_side = options.chrome_extension
     G.auto_stop = options.autostop

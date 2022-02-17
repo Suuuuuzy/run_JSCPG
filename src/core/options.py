@@ -51,6 +51,7 @@ def parse_args():
     parser.add_argument('-path', '--package_path', default='demos/', help="path to extension")
     parser.add_argument('-auto', '--autostop', action='store_true', default=False, help="auto stop when running too slow")
     parser.add_argument('-no_merge', '--no_merge', action='store_true', default=False, help="do not do merge")
+    parser.add_argument('-thread_stmt', '--thread_stmt', action='store_true', default=False, help="run stmts with threads if they are takign too long")
 
     args = parser.parse_args()
     if args.vul_type == 'prototype_pollution':

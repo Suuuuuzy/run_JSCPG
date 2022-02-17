@@ -100,7 +100,7 @@ class PluginManager(object):
                     'AST_CLASS': self.HandleClass,
                     }
 
-        def dispatch_node(self, node_id, extra=None):
+        def dispatch_node(self, node_id, extra=None, mydata =None):
             """
             this method will dispatch nodes to different modules based
             on the type of the node
@@ -112,6 +112,8 @@ class PluginManager(object):
             Returns:
                 NodeHandleResult: the handle result of the node
             """
+            if mydata is not None:
+                self.G.mydata.unpickle_up(mydata)
             handle_res = NodeHandleResult()
             # add the code coverage screening, stop when too slow
             if self.G.auto_stop and self.G.stop_sign:
