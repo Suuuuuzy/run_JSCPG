@@ -29,6 +29,7 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     # loggers.main_logger.log(ATTENTION, 'BLOCK {} STARTS, SCOPE {}'.format(ast_node, G.cur_scope))
     decl_vars_and_funcs(G, ast_node, var=decl_var)
     stmts = G.get_ordered_ast_child_nodes(ast_node)
+    upper_toplevel = G.check_upper_toplevel(ast_node)
     # simulate statements
     break_signal = False
     for stmt in stmts:
@@ -46,7 +47,8 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
             G.cur_stmt = stmt
         G.cfg_stmt = stmt
         # add control flow edges here
-        if G.thread_stmt and G.check_upper_toplevel(ast_node):
+        # jianjia add thread_stmt here
+        if G.thread_stmt and upper_toplevel:
             emit_thread(G, internal_manager.dispatch_node, (stmt, ExtraInfo(branches=branches), G.mydata.pickle_up()))
         else:
             handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
