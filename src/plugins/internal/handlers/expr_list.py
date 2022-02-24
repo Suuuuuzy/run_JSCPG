@@ -12,7 +12,7 @@ class HandleExprList(Handler):
         # jianjia add thread_stmt here
         if self.G.thread_stmt:
             for child in self.G.get_ordered_ast_child_nodes(self.node_id):
-                print(child)
+                # print("HandleExprList", child)
                 emit_thread(self.G, self.internal_manager.dispatch_node, (child, self.extra, self.G.mydata.pickle_up()))
         else:
             for child in self.G.get_ordered_ast_child_nodes(self.node_id):
