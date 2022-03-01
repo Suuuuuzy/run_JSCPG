@@ -48,7 +48,7 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         G.cfg_stmt = stmt
         # add control flow edges here
         # jianjia add thread_stmt here
-        if G.thread_stmt and upper_toplevel:
+        if G.thread_stmt:
             emit_thread(G, internal_manager.dispatch_node, (stmt, ExtraInfo(branches=branches), G.mydata.pickle_up()))
         else:
             handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))

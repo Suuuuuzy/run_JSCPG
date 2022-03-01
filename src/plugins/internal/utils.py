@@ -832,10 +832,10 @@ def emit_thread(G: Graph, function, args, thread_age=1, is_event = False ):
         admin_threads(G, function, args)
     else:
         t = Thread(target=function, args=args)
-        current_thread = threading.current_thread()
-        with G.thread_info_lock:
-            cur_info = G.thread_infos[current_thread.name]
-        if thread_age==-1:
+        if thread_age == -1:
+            current_thread = threading.current_thread()
+            with G.thread_info_lock:
+                cur_info = G.thread_infos[current_thread.name]
             thread_age = cur_info.thread_age
         # info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=cur_info.thread_age)
         info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=thread_age)
@@ -853,4 +853,5 @@ def emit_thread(G: Graph, function, args, thread_age=1, is_event = False ):
             t.start()
             with G.pq_lock:
                 G.pq.append(info)
-
+                G.pq.sort(key=lambda x: x.thread_age, reverse=False)
+        return t

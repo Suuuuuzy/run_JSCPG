@@ -10,8 +10,8 @@ from src.core.timeout import timeout, TimeoutError
 from threading import Thread, Condition
 import threading
 import time
-from src.core.thread_design import thread_info
-import copy
+from src.plugins.internal.utils import emit_thread
+
 class HandleIf(Handler):
     """
     handle the if ast
@@ -115,6 +115,9 @@ class HandleIf(Handler):
             son_age = cur_info.thread_age
             cv = Condition()
             for idx, if_elem in enumerate(if_elems):
+                args=(if_elem, idx, G.mydata.pickle_up())
+                t = emit_thread(G, run_if_elem_pq, args, thread_age=son_age)
+                """
                 t = Thread(target=run_if_elem_pq, args=(if_elem, idx, G.mydata.pickle_up()))
                 info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=son_age)
                 info.pause()
@@ -125,6 +128,7 @@ class HandleIf(Handler):
                 with G.pq_lock:
                     G.pq.append(info)
                     G.pq.sort(key=lambda x: x.thread_age, reverse=False)
+                """
                 with G.branch_son_dad_lock:
                     G.branch_son_dad[t.name] = [threading.current_thread(), cv]
             with cv:
