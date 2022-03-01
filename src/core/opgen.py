@@ -123,7 +123,7 @@ class OPGen:
         res_dir = os.path.join(G.package_name, 'opgen_generated_files')
         os.makedirs(res_dir, exist_ok=True)
         if os.path.exists(os.path.join(res_dir, 'res.txt')):
-            os.remove(os.path.join(res_dir, 'res.txt'))
+            os.rename(os.path.join(res_dir, 'res.txt'), os.path.join(res_dir, 'res_old.txt'))
         if timeout_s is not None:
             try:
                 with timeout(seconds=timeout_s,
