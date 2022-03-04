@@ -406,8 +406,8 @@ def admin_threads(G, function, args):
     t.start()
     with G.work_queue_lock:
         G.work_queue.add(info)
-    old_queue = []
-    old_len = 0
+    # old_queue = []
+    # old_len = 0
     while True:
         with G.work_queue_lock:
             for t in G.work_queue:
@@ -415,7 +415,7 @@ def admin_threads(G, function, args):
                     t.handled = True
             dead = [i for i in G.work_queue if i.handled]
             G.work_queue = set([i for i in G.work_queue if not i.handled])
-            tmp = [i.thread_self for i in G.work_queue]
+            # tmp = [i.thread_self for i in G.work_queue]
             # print('%%%%%%%%%work in admin: ', tmp)
         for t in dead:
             # if this thread is dead
