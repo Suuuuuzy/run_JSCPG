@@ -147,13 +147,22 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
             filtered_js_files.insert(0, os.path.join(header_path, 'bg_header.js'))
             filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
             combine_files(os.path.join(generated_extension_dir, 'bg.js'), filtered_js_files)
+        # if there is war file, treat it as background, but does not share the scope with background
+        war = os.path.join(path, 'wars.js')
+        if os.path.exists(war) and os.path.getsize(war) == 0:
+            with open(os.path.join(generated_extension_dir, 'wars.js'), "w") as f:
+                pass
+        elif os.path.exists(war) and os.path.getsize(war) != 0:
+            filtered_js_files = [war]
+            filtered_js_files.insert(0, os.path.join(header_path, 'bg_header.js'))
+            filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
+            combine_files(os.path.join(generated_extension_dir, 'wars.js'), filtered_js_files)
     else:
         if easy_test:
             header_path = 'crx_headers_easy'
         else:
             header_path = 'crx_headers'
         generated_extension_dir = generate_extension_files(path, header_path)
-    # TODO: popup files
     if generated_extension_dir:
         # try:
         result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],
@@ -213,7 +222,7 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, h
             else:
                 filepath = os.path.abspath(os.path.join(relative_path, file))
                 filelist = glob.glob(filepath)
-            filelist = [x for x in filelist if x.endswith('.js') and 'jquery' not in x.lower()]
+            filelist = [x for x in filelist if x.endswith('.js') and 'jquery' not in x.lower() and os.path.getsize(x)!=0]
             filtered_js_files.extend(filelist)
         # print('filtered_js_files', filtered_js_files)
         if len(filtered_js_files)>0:
