@@ -2,6 +2,7 @@
 from src.core.utils import ExtraInfo, BranchTagContainer
 from ..utils import decl_vars_and_funcs, to_obj_nodes
 from src.plugins.internal.utils import emit_thread
+import threading
 
 def simurun_block(G, ast_node, parent_scope=None, branches=None,
     block_scope=True, decl_var=False):
@@ -32,7 +33,14 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     upper_toplevel = G.check_upper_toplevel(ast_node)
     # simulate statements
     break_signal = False
-    for stmt in stmts:
+
+    if G.thread_stmt:
+        current_thread = threading.current_thread()
+        with G.thread_info_lock:
+            cur_info = G.thread_infos[current_thread.name]
+        thread_age = cur_info.thread_age
+
+    for (i,stmt) in enumerate(stmts):
         node_attr = G.get_node_attr(stmt)
         # print(node_id)
         node_type = node_attr['type']
@@ -49,7 +57,10 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         # add control flow edges here
         # jianjia add thread_stmt here
         if G.thread_stmt:
-            emit_thread(G, internal_manager.dispatch_node, (stmt, ExtraInfo(branches=branches), G.mydata.pickle_up()))
+            stmt_age = thread_age+i
+            print("new thread for stmt: ", stmt_age)
+            stmt_thread = emit_thread(G, internal_manager.dispatch_node, (stmt, ExtraInfo(branches=branches), G.mydata.pickle_up()), thread_age = stmt_age)
+            print("stmt_thread", stmt_thread.ident)
         else:
             handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
 
