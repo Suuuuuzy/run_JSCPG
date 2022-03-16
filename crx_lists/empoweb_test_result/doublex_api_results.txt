@@ -1,0 +1,1 @@
+{"suspect": [], "detected": ["ajlbdflhaaflcepndpkdgejimggjcpnm", "lpkfidfkgflpbakdnhpojiejlpdanknh", "backekeabechifnekobfachchocbmjag", "SpaceGalaxyHDWallpapersCRX2_1", "aboihlmnifahajfibplgbmjlhplfmilg_server", "bdiogkcdmlehdjfandmfaibbkkaicppk"], "not_done": [], "timeout": [], "benign": ["demo_grammarly", "mv3"]}

@@ -2089,3 +2089,41 @@ class Graph:
         print("sus_objs", tmp_objs)
         for obj in tmp_objs:
             print(self.get_node_attr(obj))
+
+    def get_AST_num(self, node_id):
+        num = 0
+        children = self.get_ordered_ast_child_nodes(node_id)
+        if len(children)>0:
+            for child in children:
+                num += self.get_AST_num(child)
+        # self add 1
+        num += 1
+        return num
+
+    # ASToperators = [
+    #                 'AST_ASSIGN': self.HandleAssign,
+    #                 'AST_CALL': self.HandleASTCall,
+    #                 'AST_METHOD_CALL': self.HandleASTCall,
+    #                 'AST_METHOD': self.HandleMethod,
+    #                 'AST_NEW': self.HandleASTCall,
+    #                 'AST_CLOSURE': self.HandleFuncDecl,
+    #                 'AST_UNARY_OP': self.HandleUnaryOp,
+    #                 'AST_FOR': self.HandleFor,
+    #                 'AST_WHILE': self.HandleWhile,
+    #                 'AST_FOREACH': self.HandleForEach,
+    #                 'AST_BREAK': self.HandleBreak,
+    #                 'AST_EXPR_LIST': self.HandleExprList,
+    #                 'AST_PRE_INC': self.HandleIncDec,
+    #                 'AST_POST_INC': self.HandleIncDec,
+    #                 'AST_PRE_DEC': self.HandleIncDec,
+    #                 'AST_POST_DEC': self.HandleIncDec,
+    #                 'AST_IF': self.HandleIf,
+    #                 'AST_IF_ELEM': self.HandleIfElem,
+    #                 'AST_CONDITIONAL': self.HandleConditional,
+    #                 'AST_BINARY_OP': self.HandleBinaryOP,
+    #                 'AST_RETURN': self.HandleReturn,
+    #                 'AST_TRY': self.HandleTry,
+    #                 'AST_CATCH_LIST': self.HandleCatchList,
+    #                 'AST_CONTINUE': self.HandleContinue,
+    #                 'AST_ASSIGN_OP': self.HandleAssignOP,
+    # ]

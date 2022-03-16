@@ -59,6 +59,8 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         if G.thread_stmt:
             stmt_age = thread_age+i
             print("new thread for stmt: ", stmt_age)
+            print("length of this stmt: ")
+            print(G.get_AST_num(stmt))
             stmt_thread = emit_thread(G, internal_manager.dispatch_node, (stmt, ExtraInfo(branches=branches), G.mydata.pickle_up()), thread_age = stmt_age)
             print("stmt_thread", stmt_thread.ident)
         else:
