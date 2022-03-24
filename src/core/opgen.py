@@ -156,7 +156,7 @@ class OPGen:
                 loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
                 if not G.detected:
                     with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
-                        f.write('nothing detected')
+                        f.write('timeout')
                     loggers.res_logger.info('nothing detected in file %s', extension_path)
                 else:
                     loggers.res_logger.info('vulnerability detected in file %s', extension_path)

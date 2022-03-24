@@ -57,7 +57,7 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         # add control flow edges here
         # jianjia add thread_stmt here
         stmt_length = G.get_AST_num(stmt)
-        if G.thread_stmt :
+        if G.thread_stmt:
             stmt_age = thread_age+i
             # print("new thread for stmt: ", stmt_age)
             # print("length of this stmt: ")
