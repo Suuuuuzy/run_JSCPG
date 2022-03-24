@@ -92,7 +92,18 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
                 else:
                     G.event_loop[eventName] = [event]
         else:
-            emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()))
+            with G.event_record_lock:
+                if eventName in G.event_record:
+                    G.event_record[eventName]+=1
+                else:
+                    G.event_record[eventName]=0
+                tmp_time = G.event_record[eventName]
+            if tmp_time>G.event_max_time:
+                # print("happen > 5 times")
+                emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()), thread_age = -1)
+            else:
+                emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()))
+
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in trigger event: ', tmp)
     else:
@@ -258,8 +269,8 @@ def sink_function_in_graph(G: Graph, args, sink_name):
 
 
 invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
-                  ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink")
-                  # ("cookies_source", "chrome_cookies_set_sink"),
+                  ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink"),
+                  ("bg_external_port_onMessage", "window_postMessage_sink")                  # ("cookies_source", "chrome_cookies_set_sink"),
                   # ("management_getAll_source", "management_setEnabled_id"),
                   # ("management_getAll_source", "management_setEnabled_enabled"),
                   # ("storage_local_get_source", "chrome_storage_local_set_sink"),

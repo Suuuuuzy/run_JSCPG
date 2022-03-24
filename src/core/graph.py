@@ -201,6 +201,10 @@ class Graph:
         self.thread_infos = {}
         self.thread_info_lock = Lock()
 
+        self.event_record = {}
+        self.event_record_lock = Lock()
+        self.event_max_time = 5
+
         self.event_loop = {}
         # a list of events
         self.event_loop_lock = Lock()

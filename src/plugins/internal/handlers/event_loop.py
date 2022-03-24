@@ -63,7 +63,7 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata=None):
                                        else None, value=wildcard)
     G.set_node_attr(wildcard_msg_obj, ('tainted', True))
     G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
-    G.set_node_attr(wildcard_msg_obj, ('taint_flow', [([wildcard_msg_obj], str(entry))]))
+    G.set_node_attr(wildcard_msg_obj, ('taint_flow', [([wildcard_msg_obj], str(entry[0]))]))
     func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
     MessageSenderExternal, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
                                                 extra=None,
