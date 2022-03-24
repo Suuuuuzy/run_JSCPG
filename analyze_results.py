@@ -72,7 +72,7 @@ def ana_opgen(extension_path, id):
                 res = 0
             elif "timeout" in c:
                 res = -2
-            elif "all_dic" in c:
+            elif "tainted detected" in c:
                 res = 1
     return res
 
