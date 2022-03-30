@@ -69,7 +69,8 @@ def sum_all_files(pathDir, prefix):
         with open(old_results_file) as f:
             all_dic = json.load(f)
             all_dic['not_done'] = []
-            all_dic['benign'] = []
+            if "detected_by_doublex" in pathDir:
+                all_dic['benign'] = []
     else:
         all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": []}
     with open(old_results_file, 'w') as f:
@@ -104,6 +105,13 @@ def run_with_threads(resDir, extension_path, idfile, func, thread_num = 200):
     prefix = 'opgen_results'
     with open(idfile) as f:
         ids = json.load(f)
+    old_results_file = os.path.join(resDir, prefix + '.txt')
+    if os.path.exists(old_results_file):
+        with open(old_results_file) as f:
+            c = json.load(f)
+            ids = c['not_done']
+            if "detected_by_doublex" in resDir:
+                ids.extend(c['benign'])
     step = len(ids) // thread_num
     print('Task started with %d threads.'%thread_num)
     for i in range(thread_num - 1):
