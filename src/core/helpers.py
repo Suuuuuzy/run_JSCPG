@@ -178,7 +178,8 @@ def generate_extension_files(extension_path, header_path, header=True):
     os.makedirs(generated_extension_dir, exist_ok=True)
     # clean the old directory, if any file exists
     for file in os.listdir(generated_extension_dir):
-        os.remove(os.path.join(generated_extension_dir,file))
+        if file.startswith("cs") or file.startswith("bg"):
+            os.remove(os.path.join(generated_extension_dir,file))
     if(preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, header)):
         return generated_extension_dir
     else:
