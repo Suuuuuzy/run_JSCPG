@@ -38,7 +38,8 @@ window.localStorage.clear = function(){
 window.frames[0] = window;
 window.frames[1] = window;
 
-self = window;
+var self = window;
+var top = window;
 
 //  ========= the document and its elements are all objects ========= 
 

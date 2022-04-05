@@ -520,6 +520,7 @@ def setup_graph_env(G: Graph):
     G.no_merge = options.no_merge
     G.thread_stmt = options.thread_stmt
     G.thread_version = options.run_with_pq
+    G.all_branch = options.all_branch
     G.client_side = options.chrome_extension
     G.auto_stop = options.autostop
 
