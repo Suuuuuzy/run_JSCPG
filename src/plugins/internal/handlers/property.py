@@ -321,14 +321,16 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         # We cannot create name node under __proto__.
         # Name nodes are only created under the original parent objects.
 
-        # If this is an wildcard (unknown) object, add another
+        # If the parent is an wildcard (unknown) object, add another
         # wildcard object as its property.
         # Note that if it's on left side and the property name is
         # known, you need to create it with the concrete property name.
         if ((not in_proto or G.check_ipt) and is_wildcard_obj(G, parent_obj)
                 and not wc_name_node_found and G.get_node_attr(parent_obj)['type'] == 'object' 
                 and (side != 'left' or prop_name == wildcard)):
-            added_name_node = G.add_prop_name_node(wildcard, parent_obj)
+            # change from added_name_node = G.add_prop_name_node(wildcard, parent_obj)
+            # why we add wildcard name node???
+            added_name_node = G.add_prop_name_node(prop_name, parent_obj)
             prop_name_nodes.add(added_name_node)
             added_obj = G.add_obj_to_name_node(added_name_node,
                 js_type='object' if G.check_proto_pollution or G.check_ipt
