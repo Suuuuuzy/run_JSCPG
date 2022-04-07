@@ -107,7 +107,7 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
         # tmp = [i.thread_self for i in G.work_queue]
         # print('%%%%%%%%%work in trigger event: ', tmp)
     else:
-        G.eventQueue.insert(0, {'eventName': eventName, 'info': info, 'extra': extra})
+        G.eventQueue.insert(0, event)
         # print('=========processing eventName:', event['eventName'])
         # from src.plugins.internal.handlers.event_loop import event_listener_dic
         # if event['eventName'] in event_listener_dic:

@@ -20,7 +20,7 @@ def event_loop_threading(G: Graph, event, mydata):
         with G.eventRegisteredFuncs_lock:
             listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
         if listener_not_registered:
-            print(event['eventName'] , ': event listener not rregistered')
+            print(event['eventName'] , ': event listener not registered')
             return
         func = event_listener_dic[event['eventName']][1]
         func(G, event)
@@ -42,6 +42,10 @@ def event_loop_no_threading(G: Graph):
     while len(G.eventQueue)!=0:
         event = G.eventQueue.pop()
         print('=========processing eventName:', event['eventName'])
+        print('========SEE eventRegisteredFuncs:========')
+        for i in G.eventRegisteredFuncs:
+            print(i, G.eventRegisteredFuncs[i])
+            print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
         if event['eventName'] in event_listener_dic:
             listener = event_listener_dic[event['eventName']][0]
             listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
@@ -197,6 +201,10 @@ def cs_chrome_runtime_sendMessage(G, event):
             G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
         else:
             G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
+        print('========SEE eventRegisteredFuncs after adding onResponse:========')
+        for i in G.eventRegisteredFuncs:
+            print(i, G.eventRegisteredFuncs[i])
+            print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
     # for tmp in G.get_prop_obj_nodes(event['info'], prop_name = 'message'):
     #     G.debug_sink_in_graph(tmp)
     messages = G.get_prop_obj_nodes(event['info'], prop_name = 'message')
@@ -265,17 +273,16 @@ def bg_chrome_runtime_onMessage_response(G, event):
     message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
     message = G.copy_obj(message, ast_node=None, deep=True)
     args = [NodeHandleResult(obj_nodes=[message])]
+    tmp_event = 'cs_chrome_runtime_sendMessage_onResponse'
+    # get and unregister this function
     with G.eventRegisteredFuncs_lock:
-        func_objs = G.eventRegisteredFuncs['cs_chrome_runtime_sendMessage_onResponse']
+        if tmp_event in G.eventRegisteredFuncs:
+            func_objs = G.eventRegisteredFuncs[tmp_event]
+            del G.eventRegisteredFuncs[tmp_event]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
                                                   extra=None,
                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
                                                   mark_fake_args=False)
-    # unregister this function
-    # event = 'cs_chrome_runtime_sendMessage_onResponse'
-    # with G.eventRegisteredFuncs_lock:
-    #     if event in G.eventRegisteredFuncs:
-    #         del G.eventRegisteredFuncs[event]
 
 def cs_chrome_tabs_onMessage_response(G, event):
     message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
@@ -288,10 +295,10 @@ def cs_chrome_tabs_onMessage_response(G, event):
                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
                                                   mark_fake_args=False)
     # unregister this function
-    # event = 'bg_chrome_tabs_sendMessage_onResponse'
-    # with G.eventRegisteredFuncs_lock:
-    #     if event in G.eventRegisteredFuncs:
-    #         del G.eventRegisteredFuncs[event]
+    event = 'bg_chrome_tabs_sendMessage_onResponse'
+    with G.eventRegisteredFuncs_lock:
+        if event in G.eventRegisteredFuncs:
+            del G.eventRegisteredFuncs[event]
 
 event_listener_dic = {
     "cs_chrome_runtime_connect": ["bg_chrome_runtime_onConnect", cs_chrome_runtime_connect],

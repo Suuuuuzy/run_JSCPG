@@ -27,9 +27,12 @@ class HandleBinaryOP(Handler):
         if flag == 'BINARY_BOOL_OR':
             # TODO: add value check to filter out false values
             handled_left = handle_node(left_child, extra)
-            handled_right = handle_node(right_child, extra)
-            now_objs = list(set(to_obj_nodes(G, handled_left, node_id)
-                + to_obj_nodes(G, handled_right, node_id)))
+            left_values = to_values(G, handled_left, node_id, for_prop=True)[0]
+            if left_values==[undefined]:
+                handled_right = handle_node(right_child, extra)
+                now_objs = list(set(to_obj_nodes(G, handled_right, node_id)))
+            else:
+                now_objs = list(set(to_obj_nodes(G, handled_left, node_id)))
             return NodeHandleResult(obj_nodes=now_objs)
         elif flag == 'BINARY_ADD':
             handled_left = handle_node(left_child, extra)
