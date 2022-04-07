@@ -8,6 +8,7 @@ from src.core.logger import loggers, sty
 from ..utils import get_df_callback,add_contributes_to
 from itertools import chain
 from src.plugins.internal.modeled_js_builtins_list import modeled_builtin_lists
+import copy
 
 class HandleProp(Handler):
     """
@@ -341,7 +342,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 attr = G.get_node_attr(parent_obj)
                 # add taint_flow from wildcard parent to wildcard child
                 if 'taint_flow' in attr:
-                    taint_flow = attr['taint_flow']
+                    taint_flow = copy.deepcopy(attr['taint_flow'])
                     for flow in taint_flow:
                         flow[0].append(added_obj)
                     G.set_node_attr(added_obj, ('taint_flow', taint_flow))

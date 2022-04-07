@@ -13,6 +13,7 @@ from collections import defaultdict
 from queue import PriorityQueue
 from threading import Thread, Event, Lock, Condition
 import threading
+import copy
 
 class MyData(threading.local):
     def __init__(self):
@@ -1407,7 +1408,7 @@ class Graph:
         self.add_node(new_obj_node, self.get_node_attr(obj_node))
         attr = self.get_node_attr(new_obj_node)
         if 'taint_flow' in attr:
-            taint_flow = attr['taint_flow']
+            taint_flow = copy.deepcopy(attr['taint_flow'])
             for flow in taint_flow:
                 flow[0].append(new_obj_node)
             self.set_node_attr(new_obj_node, ('taint_flow', taint_flow))
@@ -2092,6 +2093,7 @@ class Graph:
         tmp_objs.add(obj)
         print("sus_objs", tmp_objs)
         for obj in tmp_objs:
+            print(obj)
             print(self.get_node_attr(obj))
 
     def get_AST_num(self, node_id):

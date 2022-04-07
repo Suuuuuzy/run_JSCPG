@@ -202,6 +202,7 @@ def debug_sink(G: Graph, caller_ast, extra, _, *args):
     sus_objs.update(tmp_objs)
     print("sus_objs", sus_objs)
     for obj in sus_objs:
+        print(obj)
         print(G.get_node_attr(obj))
     return NodeHandleResult()
 

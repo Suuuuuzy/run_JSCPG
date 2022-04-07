@@ -10,6 +10,7 @@ import threading
 from threading import Thread
 import time
 from src.core.thread_design import thread_info
+import copy
 
 def decl_function(G, node_id, func_name=None, obj_parent_scope=None,
     scope_parent_scope=None):
@@ -433,19 +434,26 @@ def add_contributes_to(G: Graph, sources: Iterable, target,
     assert not isinstance(sources, (str, bytes))
     tainted = False
     taint_flow = []
+    # get the original taint flow of target
+    attrs = G.get_node_attr(target)
+    if attrs.get('tainted'):
+        if 'taint_flow' in attrs:
+            taint_flow.extend(copy.deepcopy(attrs['taint_flow']))
+    # add new taint flow from sources to target
     for i, source in enumerate(sources):
         attrs = G.get_node_attr(source)
         if attrs.get('tainted'):
             # copy source's ancestors
             if 'taint_flow' in attrs:
-                taint_flow.extend(attrs['taint_flow'])
+                taint_flow.extend(copy.deepcopy(attrs['taint_flow']))
         G.add_edge(source, target, {'type:TYPE': 'CONTRIBUTES_TO'})
         tainted = tainted or G.get_node_attr(source).get('tainted', False)
     
     # add taint flow
     # flow: ([path], source_name)
-    for flow in taint_flow:
-        flow[0].append(target)
+    if sources:
+        for flow in taint_flow:
+            flow[0].append(target)
     if chain_tainted and tainted:
         G.set_node_attr(target, ('tainted', True))
         G.set_node_attr(target, ('taint_flow', taint_flow))
