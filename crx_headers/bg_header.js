@@ -239,7 +239,7 @@ Chrome.prototype.tabs.update = function(tabId, updateProperties, callback){
 // chrome.tabs.getAllInWindow
 Chrome.prototype.tabs.getAllInWindow = function(winId, callback){
     var tab = new Tab();
-    tabs = [tab];
+    var tabs = [tab];
     callback(tabs);
 }
 
