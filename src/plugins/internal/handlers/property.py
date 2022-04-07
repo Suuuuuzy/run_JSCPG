@@ -326,7 +326,7 @@ def find_prop(G, parent_objs, prop_name, branches=None,
         # Note that if it's on left side and the property name is
         # known, you need to create it with the concrete property name.
         if ((not in_proto or G.check_ipt) and is_wildcard_obj(G, parent_obj)
-                and not wc_name_node_found and G.get_node_attr(parent_obj)['type'] == 'object' 
+                and not name_node_found and G.get_node_attr(parent_obj)['type'] == 'object'
                 and (side != 'left' or prop_name == wildcard)):
             # change from added_name_node = G.add_prop_name_node(wildcard, parent_obj)
             # why we add wildcard name node???
