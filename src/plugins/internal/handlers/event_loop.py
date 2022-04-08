@@ -42,10 +42,6 @@ def event_loop_no_threading(G: Graph):
     while len(G.eventQueue)!=0:
         event = G.eventQueue.pop()
         print('=========processing eventName:', event['eventName'])
-        print('========SEE eventRegisteredFuncs:========')
-        for i in G.eventRegisteredFuncs:
-            print(i, G.eventRegisteredFuncs[i])
-            print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
         if event['eventName'] in event_listener_dic:
             listener = event_listener_dic[event['eventName']][0]
             listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
@@ -201,10 +197,6 @@ def cs_chrome_runtime_sendMessage(G, event):
             G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
         else:
             G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
-        print('========SEE eventRegisteredFuncs after adding onResponse:========')
-        for i in G.eventRegisteredFuncs:
-            print(i, G.eventRegisteredFuncs[i])
-            print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
     # for tmp in G.get_prop_obj_nodes(event['info'], prop_name = 'message'):
     #     G.debug_sink_in_graph(tmp)
     messages = G.get_prop_obj_nodes(event['info'], prop_name = 'message')

@@ -453,7 +453,8 @@ def add_contributes_to(G: Graph, sources: Iterable, target,
     # flow: ([path], source_name)
     if sources:
         for flow in taint_flow:
-            flow[0].append(target)
+            if flow[0][-1] != target:
+                flow[0].append(target)
     if chain_tainted and tainted:
         G.set_node_attr(target, ('tainted', True))
         G.set_node_attr(target, ('taint_flow', taint_flow))

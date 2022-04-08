@@ -280,8 +280,9 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
 def check_taint(G, obj, sink_name):
     res = ''
     attrs = G.get_node_attr(obj)
+    check_res = False
     if attrs.get('tainted') and 'taint_flow' in attrs:
-        res += (str(attrs['taint_flow']) + '\n')
+        res = str(attrs['taint_flow']) + '\n'
         for flow in attrs['taint_flow']:
             path = flow[0]
             source_name = flow[1]
@@ -290,19 +291,19 @@ def check_taint(G, obj, sink_name):
             ast_path = [G.get_obj_def_ast_node(node) for node in path]
             ast_path = [node for node in ast_path if node]
             from src.core.checker import get_path_text
+            res += '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
             res += ('from ' + source_name + ' to ' + sink_name + '\n')
-            res += (str(ast_path) + '\n')
+            # res += (str(ast_path) + '\n')
             # print(ast_path)
             res += (get_path_text(G, ast_path) + '\n')
             print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
                   + G.package_name + ' with ' + sink_name + sty.rs.all)
             # print(res)
-            res  = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n' + res
             res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-            with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
-                f.write(res)
-            return res
-    return None
+        with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
+            f.write(res)
+        check_res = True
+    return check_res
 
 
 
