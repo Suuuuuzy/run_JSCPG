@@ -194,9 +194,14 @@ def cs_chrome_runtime_sendMessage(G, event):
         register_event_check(G, new_event, sender_responseCallback)
     else:
         if new_event in G.eventRegisteredFuncs:
-            G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
+            if sender_responseCallback not in G.eventRegisteredFuncs[new_event]:
+                G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
         else:
             G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
+    print('========SEE eventRegisteredFuncs after adding onResponse:========')
+    for i in G.eventRegisteredFuncs:
+        print(i, G.eventRegisteredFuncs[i])
+        print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
     # for tmp in G.get_prop_obj_nodes(event['info'], prop_name = 'message'):
     #     G.debug_sink_in_graph(tmp)
     messages = G.get_prop_obj_nodes(event['info'], prop_name = 'message')
@@ -236,7 +241,8 @@ def bg_chrome_tabs_sendMessage(G, event):
         register_event_check(G, new_event, sender_responseCallback)
     else:
         if new_event in G.eventRegisteredFuncs:
-            G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
+            if sender_responseCallback not in G.eventRegisteredFuncs[new_event]:
+                G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
         else:
             G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
     message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]

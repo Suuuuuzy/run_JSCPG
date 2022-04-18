@@ -34,10 +34,10 @@ def handle_var(G: Graph, ast_node, side=None, extra=None):
 
         name_node = G.get_name_node(var_name)
         # print('++++++debug', name_node, var_name)
-        if var_name == "true" or var_name == "false":
-            pass
+        # if var_name == "true" or var_name == "false":
+        #     pass
         #     TODO: add true and false obj
-        elif name_node is not None:
+        if name_node is not None:
             now_objs = list(
                 set(G.get_objs_by_name_node(name_node, branches=branches)))
         elif side != 'right':

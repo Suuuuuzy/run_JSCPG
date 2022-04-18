@@ -271,7 +271,10 @@ def sink_function_in_graph(G: Graph, args, sink_name):
 
 invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink"),
-                  ("bg_external_port_onMessage", "window_postMessage_sink")                  # ("cookies_source", "chrome_cookies_set_sink"),
+                  ("bg_external_port_onMessage", "window_postMessage_sink"),
+                  ("storage_sync_get_source", "chrome_storage_sync_set_sink"),
+                  ("storage_sync_get_source", "fetch_options_sink")
+                  # ("cookies_source", "chrome_cookies_set_sink"),
                   # ("management_getAll_source", "management_setEnabled_id"),
                   # ("management_getAll_source", "management_setEnabled_enabled"),
                   # ("storage_local_get_source", "chrome_storage_local_set_sink"),
@@ -282,12 +285,13 @@ def check_taint(G, obj, sink_name):
     attrs = G.get_node_attr(obj)
     check_res = False
     if attrs.get('tainted') and 'taint_flow' in attrs:
-        res = str(attrs['taint_flow']) + '\n'
+        res = ""
         for flow in attrs['taint_flow']:
             path = flow[0]
             source_name = flow[1]
             if (source_name, sink_name) in invalid_taint:
-                return None
+                continue
+            res += str(flow) + '\n'
             ast_path = [G.get_obj_def_ast_node(node) for node in path]
             ast_path = [node for node in ast_path if node]
             from src.core.checker import get_path_text
@@ -299,7 +303,7 @@ def check_taint(G, obj, sink_name):
             print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
                   + G.package_name + ' with ' + sink_name + sty.rs.all)
             # print(res)
-            res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
         with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
             f.write(res)
         check_res = True

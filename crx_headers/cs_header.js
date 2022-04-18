@@ -16,8 +16,6 @@ Port.prototype.onMessage.addListener = function(content_myCallback){
 };
 
 Port.prototype.postMessage = function(msg){
-        // var eventName = 'cs_port_postMessage';
-        // var info =  {message:msg};
         TriggerEvent('cs_port_postMessage', {message:msg});
 };
 
@@ -37,21 +35,19 @@ Chrome.prototype.extension.sendRequest = Chrome.prototype.runtime.sendMessage;
 //   options?: object,
 //   callback?: function,
 // )
-Chrome.prototype.runtime.sendMessage = function(extensionId, msg, options, rspCallback){
-    var rspCallback = rspCallback || options || msg;
-    var real_rspCallback = typeof rspCallback==="function"?rspCallback:undefined;
-    var real_msg = typeof msg==="function"?extensionId:msg;
+Chrome.prototype.runtime.sendMessage = function(extensionId, msg_sendMessage, options_cs_sM, rspCallback){
+    // debug_sink("msg_sendMessage", msg_sendMessage);
+    // debug_sink("arguments[3]", arguments[3]);
+    // debug_sink("arguments[2]", arguments[2]);
+    var select_rspCallback = rspCallback || options_cs_sM || msg_sendMessage;
+    debug_sink("select_rspCallback", select_rspCallback);
+    var real_rspCallback = typeof select_rspCallback==="function"?select_rspCallback:undefined;
+    var real_msg = typeof msg_sendMessage==="function"?extensionId:msg_sendMessage;
+    debug_sink("real_msg", real_msg);
+    debug_sink("responseCallback", real_rspCallback);
     TriggerEvent('cs_chrome_runtime_sendMessage', {message: real_msg,responseCallback: real_rspCallback});
 };
 
-
-// function test(extensionId, msg, options, rspCallback){
-//     real_rspCallback = rspCallback || options || msg;
-//     real_rspCallback = typeof real_rspCallback==="function"?real_rspCallback:undefined
-//     real_msg = typeof msg==="function"?extensionId:msg
-//     console.log(real_msg);
-//     console.log(real_rspCallback);
-// }
 
 Chrome.prototype.runtime.connect = function(extensionId, connectInfo){
     // var eventName = 'cs_chrome_runtime_connect';
