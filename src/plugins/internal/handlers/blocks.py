@@ -41,11 +41,16 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
         thread_age = cur_info.thread_age
 
     for (i,stmt) in enumerate(stmts):
+        if check_return(G, branches):
+            break
         node_attr = G.get_node_attr(stmt)
         # print(node_id)
         node_type = node_attr['type']
         if node_type=="AST_BREAK":
             break_signal = True
+            break
+        elif node_type=="AST_RETURN":
+            handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
             break
         if G.cfg_stmt is not None:
             G.add_edge_if_not_exist(G.cfg_stmt, stmt, {"type:TYPE": "FLOWS_TO"})
@@ -81,3 +86,10 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     return list(returned_objs), list(used_objs), break_signal
 
 
+def check_return(G, branches):
+    ancestor_scope = G.find_ancestor_scope()
+    if G.function_returns[ancestor_scope]:
+        returned_branch = G.function_returns[ancestor_scope][2]
+        if branches in returned_branch:
+            returned_objs = G.function_returns[ancestor_scope][1]
+            return True

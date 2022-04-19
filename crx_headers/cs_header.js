@@ -36,15 +36,9 @@ Chrome.prototype.extension.sendRequest = Chrome.prototype.runtime.sendMessage;
 //   callback?: function,
 // )
 Chrome.prototype.runtime.sendMessage = function(extensionId, msg_sendMessage, options_cs_sM, rspCallback){
-    // debug_sink("msg_sendMessage", msg_sendMessage);
-    // debug_sink("arguments[3]", arguments[3]);
-    // debug_sink("arguments[2]", arguments[2]);
     var select_rspCallback = rspCallback || options_cs_sM || msg_sendMessage;
-    debug_sink("select_rspCallback", select_rspCallback);
     var real_rspCallback = typeof select_rspCallback==="function"?select_rspCallback:undefined;
     var real_msg = typeof msg_sendMessage==="function"?extensionId:msg_sendMessage;
-    debug_sink("real_msg", real_msg);
-    debug_sink("responseCallback", real_rspCallback);
     TriggerEvent('cs_chrome_runtime_sendMessage', {message: real_msg,responseCallback: real_rspCallback});
 };
 

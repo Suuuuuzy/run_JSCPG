@@ -3,7 +3,7 @@ from src.core.options import options
 from src.core.utils import NodeHandleResult, ExtraInfo
 from src.core.helpers import to_values
 from src.plugins.internal.utils import wildcard, undefined
-from ..utils import is_wildcard_obj
+from ..utils import is_wildcard_obj, copy_taint_flow
 from src.core.logger import loggers, sty
 from ..utils import get_df_callback,add_contributes_to
 from itertools import chain
@@ -344,7 +344,9 @@ def find_prop(G, parent_objs, prop_name, branches=None,
                 attr = G.get_node_attr(parent_obj)
                 # add taint_flow from wildcard parent to wildcard child
                 if 'taint_flow' in attr:
-                    taint_flow = copy.deepcopy(attr['taint_flow'])
+                    # rewrite deepcopy
+                    taint_flow = copy_taint_flow(attr['taint_flow'])
+
                     for flow in taint_flow:
                         flow[0].append(added_obj)
                     G.set_node_attr(added_obj, ('taint_flow', taint_flow))

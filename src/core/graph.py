@@ -146,7 +146,7 @@ class Graph:
         self.file_stack = []
         self.require_obj_stack = []
 
-        self.function_returns = defaultdict(lambda: [[], []])
+        self.function_returns = defaultdict(lambda: [[], [], []])
 
         # Python-modeled built-in modules
         self.builtin_modules = {}
@@ -1407,8 +1407,9 @@ class Graph:
         new_obj_node = str(self._get_new_nodeid())
         self.add_node(new_obj_node, self.get_node_attr(obj_node))
         attr = self.get_node_attr(new_obj_node)
+        from src.plugins.internal.utils import copy_taint_flow
         if 'taint_flow' in attr:
-            taint_flow = copy.deepcopy(attr['taint_flow'])
+            taint_flow = copy_taint_flow(attr['taint_flow'])
             for flow in taint_flow:
                 flow[0].append(new_obj_node)
             self.set_node_attr(new_obj_node, ('taint_flow', taint_flow))

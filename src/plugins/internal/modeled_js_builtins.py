@@ -165,7 +165,7 @@ def setup_object_and_function(G: Graph):
     G.add_blank_func_as_prop('keys', object_cons, object_keys)
     G.add_blank_func_as_prop('values', object_cons, object_values)
     G.add_blank_func_as_prop('entries', object_cons, object_entries)
-    G.add_blank_func_as_prop('defineProperty', object_cons, blank_func)
+    G.add_blank_func_as_prop('defineProperty', object_cons, define_property)
     G.add_blank_func_as_prop('defineProperties', object_cons, blank_func)
     G.add_blank_func_as_prop('assign', object_cons, object_assign)
 
@@ -932,6 +932,10 @@ def object_entries(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_ar
         returned_objs.append(arr)
     return NodeHandleResult(obj_nodes=returned_objs)
 
+# def Object.defineProperty(obj, prop, descriptor)
+# def define_property(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
+#     return NodeHandleResult(obj_nodes=returned_objs)
+#     pass
 
 def object_assign(G: Graph, caller_ast, extra, _, *objects):
     obj_nodes = set()

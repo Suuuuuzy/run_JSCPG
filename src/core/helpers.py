@@ -14,6 +14,8 @@ import os
 import re
 import glob
 import copy
+from src.plugins.internal.utils import copy_taint_flow
+
 
 def get_argnames_from_funcaller(G, node_id):
     """
@@ -639,7 +641,7 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
     attrs = G.get_node_attr(target)
     if attrs.get('tainted'):
         if 'taint_flow' in attrs:
-            taint_flow.extend(copy.deepcopy(attrs['taint_flow']))
+            taint_flow.extend(copy_taint_flow(attrs['taint_flow']))
     # add new taint flow from sources to target
     for i, source in enumerate(sources):
         _source = str(source)
@@ -648,7 +650,7 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
             _source += ' tainted'
             # copy source's ancestors
             if 'taint_flow' in attrs:
-                taint_flow.extend(copy.deepcopy(attrs['taint_flow']))
+                taint_flow.extend(copy_taint_flow(attrs['taint_flow']))
             # add source to target
             # taint_flow.append([source, target])
         source_name = ', '.join(G.reverse_names[source])

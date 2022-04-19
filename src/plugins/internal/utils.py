@@ -438,14 +438,14 @@ def add_contributes_to(G: Graph, sources: Iterable, target,
     attrs = G.get_node_attr(target)
     if attrs.get('tainted'):
         if 'taint_flow' in attrs:
-            taint_flow.extend(copy.deepcopy(attrs['taint_flow']))
+            taint_flow.extend(copy_taint_flow(attrs['taint_flow']))
     # add new taint flow from sources to target
     for i, source in enumerate(sources):
         attrs = G.get_node_attr(source)
         if attrs.get('tainted'):
             # copy source's ancestors
             if 'taint_flow' in attrs:
-                taint_flow.extend(copy.deepcopy(attrs['taint_flow']))
+                taint_flow.extend(copy_taint_flow(attrs['taint_flow']))
         G.add_edge(source, target, {'type:TYPE': 'CONTRIBUTES_TO'})
         tainted = tainted or G.get_node_attr(source).get('tainted', False)
     
@@ -865,3 +865,11 @@ def emit_thread(G: Graph, function, args, thread_age=1, is_event = False ):
                 G.pq.append(info)
                 G.pq.sort(key=lambda x: x.thread_age, reverse=False)
         return t
+
+def copy_taint_flow(taint_flow):
+    new_flow = []
+    for path_source in taint_flow:
+        tmppath = [i for i in path_source[0]]
+        tmpsoure = path_source[1]
+        new_flow.append((tmppath, tmpsoure))
+    return new_flow
