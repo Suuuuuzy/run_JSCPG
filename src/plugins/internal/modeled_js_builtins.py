@@ -933,9 +933,14 @@ def object_entries(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_ar
     return NodeHandleResult(obj_nodes=returned_objs)
 
 # def Object.defineProperty(obj, prop, descriptor)
-# def define_property(G: Graph, caller_ast, extra, _, arg: NodeHandleResult, for_array=False):
-#     return NodeHandleResult(obj_nodes=returned_objs)
-#     pass
+def define_property(G: Graph, caller_ast, extra, _, *args):
+    variable = args[0].obj_nodes[0]
+    if not args[1].values[0]:
+        property_name = to_values(args[1])
+    else:
+        property_name =  args[1].values[0]
+    property_value = args[2].obj_nodes[0]
+    return NodeHandleResult()
 
 def object_assign(G: Graph, caller_ast, extra, _, *objects):
     obj_nodes = set()

@@ -28,12 +28,17 @@ class HandleBinaryOP(Handler):
             # TODO: add value check to filter out false values
             handled_left = handle_node(left_child, extra)
             left_values = to_values(G, handled_left, node_id, for_prop=True)[0]
-            # if handled_left.obj_nodes==G.undefined_obj:
             if left_values in ([undefined], ["false"]):
                 handled_right = handle_node(right_child, extra)
                 now_objs = list(set(to_obj_nodes(G, handled_right, node_id)))
             else:
                 now_objs = list(set(to_obj_nodes(G, handled_left, node_id)))
+            return NodeHandleResult(obj_nodes=now_objs)
+        elif flag=='BINARY_BOOL_AND':
+            # TODO: add value check to filter out false values
+            handled_left = handle_node(left_child, extra)
+            handled_right = handle_node(right_child, extra)
+            now_objs = list(set(to_obj_nodes(G, handled_right, node_id)))
             return NodeHandleResult(obj_nodes=now_objs)
         elif flag == 'BINARY_ADD':
             handled_left = handle_node(left_child, extra)
@@ -101,7 +106,7 @@ class HandleBinaryOP(Handler):
                 result_sources.append(list(sources))
             return NodeHandleResult(values=results, used_objs=used_objs,
                 value_sources=result_sources, callback=get_df_callback(G))
-        elif flag in ['BINARY_BOOL_OR', 'BINARY_BOOL_AND', 'BINARY_IS_EQUAL',
+        elif flag in ['BINARY_BOOL_OR',  'BINARY_IS_EQUAL',
             'BINARY_IS_IDENTICAL', 'BINARY_IS_NOT_EQUAL',
             'BINARY_IS_NOT_IDENTICAL', 'BINARY_IS_SMALLER',
             'BINARY_IS_GREATER', 'BINARY_IS_SMALLER_OR_EQUAL',
