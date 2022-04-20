@@ -38,7 +38,7 @@ Chrome.prototype.extension.sendRequest = Chrome.prototype.runtime.sendMessage;
 Chrome.prototype.runtime.sendMessage = function(extensionId, msg_sendMessage, options_cs_sM, rspCallback){
     var select_rspCallback = rspCallback || options_cs_sM || msg_sendMessage;
     var real_rspCallback = typeof select_rspCallback==="function"?select_rspCallback:undefined;
-    var real_msg = typeof msg_sendMessage==="function"?extensionId:msg_sendMessage;
+    var real_msg = (typeof msg_sendMessage==="function" || msg_sendMessage==undefined)?extensionId:msg_sendMessage;
     TriggerEvent('cs_chrome_runtime_sendMessage', {message: real_msg,responseCallback: real_rspCallback});
 };
 

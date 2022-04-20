@@ -205,7 +205,8 @@ def cs_chrome_runtime_sendMessage(G, event):
     # for tmp in G.get_prop_obj_nodes(event['info'], prop_name = 'message'):
     #     G.debug_sink_in_graph(tmp)
     messages = G.get_prop_obj_nodes(event['info'], prop_name = 'message')
-    # G.debug_sink_in_graph(message)
+    # print("cs_chrome_runtime_sendMessage debug_sink in graph")
+    # G.debug_sink_in_graph(messages[0])
     copied_messages = []
     for tmp in messages:
         copied_messages.append(G.copy_obj((tmp), ast_node=None, deep=True))
