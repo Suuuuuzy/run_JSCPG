@@ -1,6 +1,6 @@
 // ========= proxy ========= 
 // function Proxy(target, handler){
-//     handler.get
+//     handler.apply
     
 //     if (info.includeTlsChannelId){
 //         this.includeTlsChannelId = info.includeTlsChannelId;
@@ -9,8 +9,6 @@
 //         this.name = info.name;
 //     }
 // }
-
-
 //  ========= window ========= 
 
 // targetWindow.postMessage(message, targetOrigin, [transfer]);
