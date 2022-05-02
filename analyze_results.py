@@ -138,6 +138,9 @@ def main():
     elif mode == 'doublex_sus':
         res_dir = '/media/data2/jianjia/extension_data/opgen_results/suspect_by_doublex'
         idfile = '/media/data2/jianjia/extension_data/doublex_result/suspect.txt'
+    elif mode == 'all':
+        res_dir = '/media/data2/jianjia/extension_data/opgen_results/all'
+        idfile = '/media/data2/jianjia/extension_data/filtered_file.txt'
     run_with_threads(res_dir, extension_path, idfile, analyze_results, thread_num = thread_num)
 
 
