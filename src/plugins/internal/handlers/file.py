@@ -125,7 +125,7 @@ def run_toplevel_file(G: Graph, node_id):
             G.war_window = window_obj
             setup_opg_window(G, func_scope, window_obj)
         else:
-            pattern = re.compile('cs_\d.js')
+            pattern = re.compile('cs_\d*.js')
             name = pattern.findall(file_path)[0]
             if name!=None:
                 G.cs_scopes.append(func_scope)
