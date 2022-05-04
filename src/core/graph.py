@@ -233,7 +233,8 @@ class Graph:
         self.canHaveOnPropertyObject = ['Document', 'Document_element','XMLHttpRequest']
         self.onEvents = ["onload" ,"onmessage", "onreadystatechange", "onerror"]
 
-
+        self.attacked = False
+        self.attacked_lock = Lock()
 
 
     # Basic graph operations

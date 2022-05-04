@@ -151,6 +151,9 @@ def MarkSink(G: Graph, caller_ast, extra, _, *args):
     return NodeHandleResult()
 
 def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
+    with G.attacked_lock:
+        if not G.attacked:
+            G.attacked = True
     type = args[0].values[0]
     listener = args[1].obj_nodes[0]
     if listener!=G.undefined_obj:
@@ -178,6 +181,9 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
 
 
 def MarkAttackEntryOnProperty(G: Graph, type, listener):
+    with G.attacked_lock:
+        if not G.attacked:
+            G.attacked = True
     if listener!=G.undefined_obj:
         #  attack right away!
         entry = [type, listener]
@@ -235,10 +241,14 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
         with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
             f.write(res)
         G.detected = True
-    # check whether the taint flow is vulnerable
-    for obj in sus_objs:
-        if check_taint(G, obj, sink_name):
-            G.detected = True
+    # check whether the taint flow is vulnerable, check first whether it is attacked yet.
+    with G.attacked_lock:
+        if G.attacked:
+            check = True
+    if check:
+        for obj in sus_objs:
+            if check_taint(G, obj, sink_name):
+                G.detected = True
     return NodeHandleResult()
 
 
@@ -264,10 +274,14 @@ def sink_function_in_graph(G: Graph, args, sink_name):
         with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
             f.write(res)
         G.detected = True
-    # check whether the taint flow is vulnerable
-    for obj in sus_objs:
-        if check_taint(G, obj, sink_name):
-            G.detected = True
+    # check whether the taint flow is vulnerable, check first whether it is attacked yet.
+    with G.attacked_lock:
+        if G.attacked:
+            check = True
+    if check:
+        for obj in sus_objs:
+            if check_taint(G, obj, sink_name):
+                G.detected = True
     return NodeHandleResult()
 
 
@@ -282,8 +296,13 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   # ("storage_local_get_source", "chrome_storage_local_set_sink"),
                   # ("storage_sync_get_source", "chrome_storage_sync_set_sink")
                     ]
+
+valid_sources_starts = ["cs_window_eventListener_", "document_eventListener_"]
+valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
+# valid_data_out_sinks = ["window_postMessage_sink", "document_write_sink", "bg_external_port_postMessage"]
+# in the data flow, the source has to be in valid
+
 def check_taint(G, obj, sink_name):
-    res = ''
     attrs = G.get_node_attr(obj)
     check_res = False
     if attrs.get('tainted') and 'taint_flow' in attrs:

@@ -84,7 +84,7 @@ Document.prototype.getElementById = function(id){
 
 Document.prototype.addEventListener = function(type, listener,  [ options]){
     // var type = 'document_event_listener';
-    MarkAttackEntry('document_event_listener', listener);
+    MarkAttackEntry('document_eventListener_'+type, listener);
 };
 
 
