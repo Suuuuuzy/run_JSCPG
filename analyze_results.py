@@ -38,6 +38,8 @@ def ana_opgen(extension_path, id):
                 res = -2
             elif "tainted detected" in c:
                 res = 1
+            elif "Error:" in c:
+                res = 2
     return res
 
 def analyze_results(flag, resDir, extension_path, ids):
@@ -45,6 +47,7 @@ def analyze_results(flag, resDir, extension_path, ids):
     not_done = []
     timeout = []
     benign = []
+    error = []
     for id in tqdm(ids):
         res = ana_opgen(extension_path, id)
         if res==1:
@@ -55,7 +58,9 @@ def analyze_results(flag, resDir, extension_path, ids):
             timeout.append(id)
         elif res==0:
             benign.append(id)
-    dic = {"detected": detected, "not_done":not_done, "timeout":timeout, "benign":benign}
+        elif res==2:
+            error.append(id)
+    dic = {"detected": detected, "not_done":not_done, "timeout":timeout, "benign":benign, "error":error}
     os.makedirs(resDir, exist_ok=True)
     with open(os.path.join(resDir, str(flag) + 'opgen_results.txt'), 'w') as f:
         json.dump(dic, f)
@@ -72,7 +77,7 @@ def sum_all_files(pathDir, prefix):
             if "detected_by_doublex" in pathDir:
                 all_dic['benign'] = []
     else:
-        all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": []}
+        all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[]}
     with open(old_results_file, 'w') as f:
         for i in range(0, thread_num):
             with open(os.path.join(pathDir, str(i) + prefix+'.txt')) as fr:
@@ -81,6 +86,7 @@ def sum_all_files(pathDir, prefix):
                 all_dic["not_done"].extend(c["not_done"])
                 all_dic["timeout"].extend(c["timeout"])
                 all_dic["benign"].extend(c["benign"])
+                all_dic["error"].extend(c["error"])
         json.dump(all_dic, f)
     cnt = 0
     for i in all_dic:

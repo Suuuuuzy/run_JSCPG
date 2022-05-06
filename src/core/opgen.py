@@ -80,7 +80,7 @@ class OPGen:
 
         return vul_pathes
 
-    def test_file(self, file_path, vul_type='os_command', G=None, timeout_s=None, pq=False):
+    def test_file(self, file_path, vul_type='os_command', G=None, timeout_s=None):
         """
         test a file as a js script
         Args:
@@ -94,12 +94,10 @@ class OPGen:
         if G is None:
             G = self.graph
         parse_file(G, file_path)
-        if pq:
-            G.thread_version = True
         test_res = self._test_graph(G, vul_type=vul_type)
         return test_res
 
-    def test_chrome_extension(self, extension_path, vul_type, G=None,  timeout_s=None, pq=False, dx=False):
+    def test_chrome_extension(self, extension_path, vul_type, G=None,  timeout_s=None, dx=False):
         """
         test a dir of files as an chrome extension
         Args:
@@ -110,12 +108,7 @@ class OPGen:
             list: the test result pathes of the chrome extension
         """
         # preprocess of the files in chrome extension
-        if pq:
-            G.thread_version = True
         print('process chrome extension: ', extension_path)
-        if not validate_chrome_extension(extension_path, dx):
-            print('not valid chrome extension')
-            return -1
         if G is None:
             G = self.graph
         test_res = None
@@ -124,6 +117,10 @@ class OPGen:
         os.makedirs(res_dir, exist_ok=True)
         if os.path.exists(os.path.join(res_dir, 'res.txt')):
             os.rename(os.path.join(res_dir, 'res.txt'), os.path.join(res_dir, 'res_old.txt'))
+        if not validate_chrome_extension(extension_path, dx):
+            with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                f.write("Error: " + extension_path + " is not a valid chrome extension")
+            return -1
         if timeout_s is not None:
             try:
                 with timeout(seconds=timeout_s,
@@ -189,17 +186,9 @@ class OPGen:
         G.export_node = True
         internal_plugins = PluginManager(G, init=True)
         entry_id = '0'
-        # jianjia: generate branch graph before we fully run
-        # (mark on the AST node, each node should search ancestors until branch is found)
-        # generate_branch_graph(G, entry_nodeid=entry_id)
         generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
         if not G.thread_version:
             event_loop_no_threading(G)
-        # if vul_type is not None:
-        #     check_res = self.check_vuls(vul_type, G)
-        #     # print('check_res debug: ', check_res)
-        #     if len(check_res) != 0:
-        #         self.graph.detection_res[vul_type].add(G.package_name)
         return check_res
 
     def test_module(self, module_path, vul_type='os_command', G=None, 
@@ -334,8 +323,7 @@ class OPGen:
                 # init a new graph
                 self.get_new_graph(package_name=package_path)
                 if options.chrome_extension:
-                    self.test_chrome_extension(package_path, options.vul_type, self.graph, timeout_s=timeout_s,
-                        pq=options.run_with_pq, dx = options.dx)
+                    self.test_chrome_extension(package_path, options.vul_type, self.graph, timeout_s=timeout_s, dx = options.dx)
                 else:
                     self.test_nodejs_package(package_path,
                         options.vul_type, self.graph, timeout_s=timeout_s)
@@ -347,11 +335,10 @@ class OPGen:
                 self.test_nodejs_package(options.input_file, 
                         options.vul_type, G=self.graph, timeout_s=timeout_s)
             elif options.chrome_extension:
-                self.test_chrome_extension(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s,
-                                           pq=options.run_with_pq, dx = options.dx)
+                self.test_chrome_extension(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, dx = options.dx)
             else:
                 # analyze from JS source code files
-                self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, pq=options.run_with_pq)
+                self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
 
         if options.export is not None:
             if options.export == 'light':

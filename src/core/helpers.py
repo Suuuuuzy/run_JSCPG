@@ -173,6 +173,8 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
         try:
             G.import_from_string(result)
         except:
+            with open(os.path.join(generated_extension_dir, 'used_time.txt'), 'a') as f:
+                f.write("error: "+ path+" can not impor from string")
             loggers.res_logger.info(path+' can not impor from string')
 
 
