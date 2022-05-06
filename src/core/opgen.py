@@ -128,7 +128,11 @@ class OPGen:
                                      format(extension_path, timeout_s)):
                     loggers.res_logger.info('processing extension: %s', extension_path)
                     start_time = time.time()
-                    parse_chrome_extension(G, extension_path, dx, easy_test = options.easy_test)
+                    Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test = options.easy_test)
+                    if Error_msg:
+                        with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                            f.write(Error_msg)
+                        return
                     test_res = self._test_graph(G, vul_type=vul_type)
                     end_time = time.time()
                     with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
@@ -158,7 +162,11 @@ class OPGen:
                 else:
                     loggers.res_logger.info('vulnerability detected in file %s', extension_path)
         else:
-            parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
+            Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
+            if Error_msg:
+                with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                    f.write(Error_msg)
+                return
             test_res = self._test_graph(G, vul_type=vul_type)
             if not G.detected:
                 with open(os.path.join(res_dir, 'res.txt'), 'w') as f:

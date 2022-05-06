@@ -125,6 +125,7 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
     """
     # path to generated files, debug, make header=Fasle
     # generated_extension_dir = generate_extension_files(path, header=False)
+    Error_msg = ""
     if dx:
         if easy_test:
             header_path = 'crx_headers_easy'
@@ -170,12 +171,15 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
         # try:
         result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],
                                print_func=loggers.res_logger.info)
-        try:
-            G.import_from_string(result)
-        except:
-            with open(os.path.join(generated_extension_dir, 'used_time.txt'), 'a') as f:
-                f.write("error: "+ path+" can not impor from string")
-            loggers.res_logger.info(path+' can not impor from string')
+        if result==None:
+            Error_msg = "Error: "+ path+" unexpected token while parsed with esprima"
+        else:
+            try:
+                G.import_from_string(result)
+            except:
+                Error_msg = "Error: "+ path+" can not import from string"
+                loggers.res_logger.info(path+' can not import from string')
+    return Error_msg
 
 
 def generate_extension_files(extension_path, header_path, header=True):
