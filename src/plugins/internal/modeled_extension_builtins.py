@@ -242,6 +242,7 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
             f.write(res)
         G.detected = True
     # check whether the taint flow is vulnerable, check first whether it is attacked yet.
+    check = False
     with G.attacked_lock:
         if G.attacked:
             check = True
@@ -275,6 +276,7 @@ def sink_function_in_graph(G: Graph, args, sink_name):
             f.write(res)
         G.detected = True
     # check whether the taint flow is vulnerable, check first whether it is attacked yet.
+    check = False
     with G.attacked_lock:
         if G.attacked:
             check = True
