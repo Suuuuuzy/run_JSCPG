@@ -60,7 +60,8 @@ chrome_API_execution_APIs = [
 
 def crx_src_sink_filter(extension_dir):
     loggers.crx_src_sink_logger.info('==========='+extension_dir+'===========')
-    if not validate_chrome_extension(extension_dir):
+    Error_msg = validate_chrome_extension(extension_dir)
+    if Error_msg:
         return
     generated_extension_dir = generate_extension_files(extension_dir, header=False)
     content = ''

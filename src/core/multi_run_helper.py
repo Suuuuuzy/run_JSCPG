@@ -25,25 +25,32 @@ def validate_chrome_extension(extension_path, dx=False):
     Returns:
         True or False
     """
-    valid = True
+    Error_msg = ""
     manifest_json_path = '{}/manifest.json'.format(extension_path)
     if os.path.exists(manifest_json_path):
         with open(manifest_json_path) as f:
             try:
                 x = json.load(f)
             except json.decoder.JSONDecodeError:
-                valid = False
-                print("File content could not be converted to JSON")
+                Error_msg = "Error: "+extension_path+" File content could not be converted to JSON"
+        with open(manifest_json_path) as f:
+            try:
+                content = f.read()
+                decoded_data = content.encode().decode('utf-8-sig')
+                data = json.loads(decoded_data)
+                Error_msg = ""
+            except:
+                pass
     else:
-        valid = False
+        Error_msg = "Error: "+extension_path+" manifest.json does not exist"
 
     if dx:
         files = os.listdir(extension_path)
         supposed_files = ['background.js', 'content_scripts.js']
         for i in supposed_files:
             if i not in files:
-                valid = False
-    return valid
+                Error_msg = "Error: "+extension_path+" no background.js or content_scripts.js"
+    return Error_msg
 
 
 def validate_package(package_path):

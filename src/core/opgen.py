@@ -117,9 +117,10 @@ class OPGen:
         os.makedirs(res_dir, exist_ok=True)
         if os.path.exists(os.path.join(res_dir, 'res.txt')):
             os.rename(os.path.join(res_dir, 'res.txt'), os.path.join(res_dir, 'res_old.txt'))
-        if not validate_chrome_extension(extension_path, dx):
+        Error_msg = validate_chrome_extension(extension_path, dx)
+        if Error_msg:
             with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
-                f.write("Error: " + extension_path + " is not a valid chrome extension")
+                f.write(Error_msg)
             return -1
         if timeout_s is not None:
             try:
