@@ -239,7 +239,9 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, h
         combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
     with open(os.path.join(extension_path, 'manifest.json'), errors='ignore') as f:
         manifest = json.load(f)
-        version = manifest['manifest_version']
+        version = 2
+        if 'manifest_version' in manifest:
+            version = manifest['manifest_version']
         if 'content_scripts' in manifest:
             count = 0
             for j in manifest['content_scripts']:
