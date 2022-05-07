@@ -188,6 +188,8 @@ class PluginManager(object):
             node_attr = self.G.get_node_attr(node_id)
             loggers.debug_logger.info("processing {}".format(node_id) + str(node_attr))
             # print(node_id)
+            if "type" not in node_attr:
+                return
             node_type = node_attr['type']
 
             if node_type not in self.handler_map:
