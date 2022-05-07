@@ -133,8 +133,12 @@ class OPGen:
                     if Error_msg:
                         with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
                             f.write(Error_msg)
-                        return
-                    test_res = self._test_graph(G, vul_type=vul_type)
+                        return -1
+                    Error_msg = self._test_graph(G, vul_type=vul_type)
+                    if Error_msg:
+                        with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                            f.write(Error_msg)
+                        return -1
                     end_time = time.time()
                     with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
                         f.write(self.output_args_str())
@@ -168,7 +172,11 @@ class OPGen:
                 with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
                     f.write(Error_msg)
                 return
-            test_res = self._test_graph(G, vul_type=vul_type)
+            Error_msg = self._test_graph(G, vul_type=vul_type)
+            if Error_msg:
+                with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                    f.write(Error_msg)
+                return -1
             if not G.detected:
                 with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
                     f.write('nothing detected')
@@ -190,15 +198,18 @@ class OPGen:
         Returns:
             list: the test result pathes of the module
         """
-        check_res = None
-        setup_opg(G)
-        G.export_node = True
-        internal_plugins = PluginManager(G, init=True)
-        entry_id = '0'
-        generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
-        if not G.thread_version:
-            event_loop_no_threading(G)
-        return check_res
+        Error_msg = None
+        try:
+            setup_opg(G)
+            G.export_node = True
+            internal_plugins = PluginManager(G, init=True)
+            entry_id = '0'
+            generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
+            if not G.thread_version:
+                event_loop_no_threading(G)
+        except:
+            Error_msg = "Error: " + G.package_name + " error during test graph"
+        return Error_msg
 
     def test_module(self, module_path, vul_type='os_command', G=None, 
             timeout_s=None, pq=False):
