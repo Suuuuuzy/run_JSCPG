@@ -188,20 +188,21 @@ def bg_port_postMessage(G, event):
 
 def cs_chrome_runtime_sendMessage(G, event):
     sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name='responseCallback')[0]
-    new_event = 'cs_chrome_runtime_sendMessage_onResponse'  # cs on getting the response from bg
-    if G.thread_version:
-        from src.plugins.internal.modeled_extension_builtins import register_event_check
-        register_event_check(G, new_event, sender_responseCallback)
-    else:
-        if new_event in G.eventRegisteredFuncs:
-            if sender_responseCallback not in G.eventRegisteredFuncs[new_event]:
-                G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
+    if sender_responseCallback != G.undefined_obj:
+        new_event = 'cs_chrome_runtime_sendMessage_onResponse'  # cs on getting the response from bg
+        if G.thread_version:
+            from src.plugins.internal.modeled_extension_builtins import register_event_check
+            register_event_check(G, new_event, sender_responseCallback)
         else:
-            G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
-    print('========SEE eventRegisteredFuncs after adding onResponse:========')
-    for i in G.eventRegisteredFuncs:
-        print(i, G.eventRegisteredFuncs[i])
-        print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
+            if new_event in G.eventRegisteredFuncs:
+                if sender_responseCallback not in G.eventRegisteredFuncs[new_event]:
+                    G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
+            else:
+                G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
+        print('========SEE eventRegisteredFuncs after adding onResponse:========')
+        for i in G.eventRegisteredFuncs:
+            print(i, G.eventRegisteredFuncs[i])
+            print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
     # for tmp in G.get_prop_obj_nodes(event['info'], prop_name = 'message'):
     #     G.debug_sink_in_graph(tmp)
     messages = G.get_prop_obj_nodes(event['info'], prop_name = 'message')
@@ -236,16 +237,17 @@ def cs_chrome_runtime_sendMessage(G, event):
 def bg_chrome_tabs_sendMessage(G, event):
     # register sender_responseCallback function to cs runtime.sendMessage's responseCallback
     sender_responseCallback = G.get_prop_obj_nodes(event['info'], prop_name='responseCallback')[0]
-    new_event = 'bg_chrome_tabs_sendMessage_onResponse'  # bg on getting the response from cs
-    if G.thread_version:
-        from src.plugins.internal.modeled_extension_builtins import register_event_check
-        register_event_check(G, new_event, sender_responseCallback)
-    else:
-        if new_event in G.eventRegisteredFuncs:
-            if sender_responseCallback not in G.eventRegisteredFuncs[new_event]:
-                G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
+    if sender_responseCallback!=G.undefined_obj:
+        new_event = 'bg_chrome_tabs_sendMessage_onResponse'  # bg on getting the response from cs
+        if G.thread_version:
+            from src.plugins.internal.modeled_extension_builtins import register_event_check
+            register_event_check(G, new_event, sender_responseCallback)
         else:
-            G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
+            if new_event in G.eventRegisteredFuncs:
+                if sender_responseCallback not in G.eventRegisteredFuncs[new_event]:
+                    G.eventRegisteredFuncs[new_event].append(sender_responseCallback)
+            else:
+                G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
     message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
     message = G.copy_obj(message, ast_node=None, deep=True)
     func_objs = G.get_objs_by_name('MessageSender', scope=G.get_cur_window_scope(), branches=[])
