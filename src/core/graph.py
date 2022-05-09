@@ -236,7 +236,6 @@ class Graph:
         self.attacked = False
         self.attacked_lock = Lock()
 
-
     # Basic graph operations
     # node
 

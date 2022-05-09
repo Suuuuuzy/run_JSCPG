@@ -83,7 +83,6 @@ Document.prototype.getElementById = function(id){
 
 
 Document.prototype.addEventListener = function(type, listener,  [ options]){
-    // var type = 'document_event_listener';
     MarkAttackEntry('document_eventListener_'+type, listener);
 };
 
@@ -255,7 +254,7 @@ JQ_obj = function(a, array_in){
 // events [,selector] [,data], handler
 JQ_obj.prototype.on = function(){
     if (this[0]==document){
-        MarkAttackEntry('document_on_event', arguments[-1]);
+        MarkAttackEntry("document_on_event", arguments[-1]);
     }  
 }
 

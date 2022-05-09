@@ -151,12 +151,13 @@ def MarkSink(G: Graph, caller_ast, extra, _, *args):
     return NodeHandleResult()
 
 def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
-    with G.attacked_lock:
-        if not G.attacked:
-            G.attacked = True
     type = args[0].values[0]
     listener = args[1].obj_nodes[0]
     if listener!=G.undefined_obj:
+        if type not in invalid_attacks:
+            with G.attacked_lock:
+                if not G.attacked:
+                    G.attacked = True
         #  attack right away!
         entry = [type, listener]
         if G.thread_version:
@@ -181,10 +182,11 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
 
 
 def MarkAttackEntryOnProperty(G: Graph, type, listener):
-    with G.attacked_lock:
-        if not G.attacked:
-            G.attacked = True
     if listener!=G.undefined_obj:
+        if type not in invalid_onEvents_attacks:
+            with G.attacked_lock:
+                if not G.attacked:
+                    G.attacked = True
         #  attack right away!
         entry = [type, listener]
         if G.thread_version:
@@ -301,6 +303,8 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
 
 valid_sources_starts = ["cs_window_eventListener_", "document_eventListener_"]
 valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
+invalid_attacks = ["bg_tabs_onupdated"]
+invalid_onEvents_attacks = ["onload", "onreadystatechange", "onerror"]
 # valid_data_out_sinks = ["window_postMessage_sink", "document_write_sink", "bg_external_port_postMessage"]
 # in the data flow, the source has to be in valid
 

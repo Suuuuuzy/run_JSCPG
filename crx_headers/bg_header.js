@@ -28,7 +28,7 @@ function externalPort(info){
 externalPort.prototype.onMessage = new Object();
 
 externalPort.prototype.onMessage.addListener = function(myCallback){
-    MarkAttackEntry('bg_external_port_onMessage', myCallback);
+    MarkAttackEntry("bg_external_port_onMessage", myCallback);
 };
 
 externalPort.prototype.postMessage = function(msg){
@@ -119,8 +119,7 @@ Chrome.prototype.runtime.onMessage.removeListener = function(myCallback) {
 Chrome.prototype.runtime.onMessageExternal = new Object();
 // myCallback parameters: (message: any, sender: MessageSender, sendResponse: function) => {...}
 Chrome.prototype.runtime.onMessageExternal.addListener = function(myCallback){
-    // var type = 'bg_chrome_runtime_MessageExternal';
-    MarkAttackEntry('bg_chrome_runtime_MessageExternal', myCallback);
+    MarkAttackEntry("bg_chrome_runtime_MessageExternal", myCallback);
 }
 MessageSenderExternal = function(){
     this.frameId = 123;
@@ -141,8 +140,7 @@ function sendResponseExternal(message_out){
 Chrome.prototype.runtime.onConnectExternal = new Object();
 // myCallback parameters: (message: any, sender: MessageSender, sendResponse: function) => {...}
 Chrome.prototype.runtime.onConnectExternal.addListener = function(myCallback){
-    // var type = 'bg_chrome_runtime_MessageExternal';
-    MarkAttackEntry('bg_chrome_runtime_onConnectExternal', myCallback);
+    MarkAttackEntry("bg_chrome_runtime_MessageExternal", myCallback);
 }
 
 Chrome.prototype.runtime.connectNative = function(extensionId, connectInfo){
@@ -202,7 +200,7 @@ Chrome.prototype.tabs.onActivated.addListener = function(myCallback){
 
 Chrome.prototype.tabs.onUpdated = new Object();
 Chrome.prototype.tabs.onUpdated.addListener = function(myCallback){
-    MarkAttackEntry('bg_tabs_onupdated', myCallback);
+    MarkAttackEntry("bg_tabs_onupdated", myCallback);
     // var tab = new Tab();
     // myCallback(99, {}, tab);
 }
