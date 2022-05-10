@@ -58,6 +58,8 @@ function Document_element(id, class_name, tag){
     this.id = id;
     this.class_name = class_name;
     this.tag = tag;
+    this.href = 'Document_element_href';
+    MarkSource(this.href, 'Document_element_href');
 }
 Document_element.prototype.contentWindow = new Window();
 Document_element.prototype.createElement = function(tagname){

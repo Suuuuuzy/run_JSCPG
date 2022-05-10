@@ -1504,7 +1504,7 @@ def string_p_match(G: Graph, caller_ast, extra, strs=NodeHandleResult(), regexps
                 add_contributes_to(G, [regexp], added_array)
             else:
                 sv = str(sv)
-                ssv = str(ssv)
+                # ssv = str(ssv)
                 added_array = G.null_obj
                 r, glob, sticky = convert_to_python_re(rv)
                 if r is None:

@@ -147,6 +147,14 @@ def main():
     elif mode == 'all':
         res_dir = '/media/data2/jianjia/extension_data/opgen_results/all'
         idfile = '/media/data2/jianjia/extension_data/filtered_file.txt'
+    elif mode== "doublex_de_empoweb_local":
+        extension_path = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_empoweb_api_result/detected"
+        res_dir = '/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_empoweb_api_result/opgen_results'
+        idfile = '/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_empoweb_api_result/detected.txt'
+    elif mode== "doublex_de_local":
+        extension_path = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected"
+        res_dir = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/opgen_results"
+        idfile = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected.txt"
     run_with_threads(res_dir, extension_path, idfile, analyze_results, thread_num = thread_num)
 
 
