@@ -166,7 +166,10 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
             header_path = 'crx_headers_easy'
         else:
             header_path = 'crx_headers'
-        generated_extension_dir = generate_extension_files(path, header_path)
+        try:
+            generated_extension_dir = generate_extension_files(path, header_path)
+        except:
+            Error_msg = "Error: "+ path+" in generating extension files"
     if generated_extension_dir:
         # try:
         result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],
