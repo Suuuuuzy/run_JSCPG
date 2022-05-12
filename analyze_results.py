@@ -98,6 +98,8 @@ def sum_all_files(pathDir, prefix):
         json.dump(all_dic['not_done'], f)
     with open(os.path.join(pathDir, 'benign.txt'), 'w') as f:
         json.dump(all_dic['benign'], f)
+    with open(os.path.join(pathDir, 'detected.txt'), 'w') as f:
+        json.dump(all_dic['detected'], f)
     benign = all_dic['benign']
     not_done = all_dic['not_done']
     benign.extend(not_done)
