@@ -162,6 +162,7 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
             filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
             combine_files(os.path.join(generated_extension_dir, 'wars.js'), filtered_js_files)
     else:
+        generated_extension_dir = None
         if easy_test:
             header_path = 'crx_headers_easy'
         else:
