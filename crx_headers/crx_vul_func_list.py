@@ -1,3 +1,12 @@
+attacker_dispatchable_events = [
+    "window.postMessage",
+    "window.dispathEvent",
+    "document.dispathEvent",
+    "element.dispathEvent",
+    "Chrome.runtime.onMessageExternal"
+]
+
+
 chrome_data_exfiltration_APIs = [
     "chrome.cookies.get",
     "chrome.cookies.getAll",
@@ -12,14 +21,6 @@ chrome_data_exfiltration_APIs = [
     "chrome.downloads.getFileIcon"
 ]
 
-
-dispatchable_events = [
-    "window.postMessage",
-    "chrome.runtime.sendMessage",
-    "window.dispathEvent",
-    "document.dispathEvent",
-    "element.dispathEvent"
-]
 
 chrome_API_execution_APIs = [
     "chrome.tabs.executeScript",
@@ -46,20 +47,14 @@ chrome_API_execution_APIs = [
     "eval"
 ]
 
-crx_source = [
-        # chrome extension built-in get sensitive data APIs
-        'chrome_topSites_get_source',
-        'chrome_cookies_get_source',
-        'chrome_cookies_getAll_source',
-        'chrome_cookies_getAllCookieStores_source',
-        # 'chrome_cookies_onChanged_addListener_source'
-        'chrome_storage_sync_get_source',
-        'chrome_storage_local_get_source'
-        'chrome_history_search_source',
-        'chrome_history_getVisits_source',
-        'chrome_downloads_search_source',
-        'chrome_downloads_getFileIcon_source'
-        # jQuery source
-        'jQuery_get_source',
-        'jQuery_post_source'
-]
+bg_cs_communication
+bg2cs
+chrome.tabs.sendMessage
+port
+
+cs2bg
+chrome.runtime.sendMessage
+port
+
+
+
