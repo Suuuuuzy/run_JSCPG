@@ -154,7 +154,7 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = args[0].values[0]
     listener = args[1].obj_nodes[0]
     if listener!=G.undefined_obj:
-        if type not in invalid_attacks:
+        if decide_invalid_attacks(type):
             with G.attacked_lock:
                 if not G.attacked:
                     G.attacked = True
@@ -304,6 +304,15 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
 valid_sources_starts = ["cs_window_eventListener_", "document_eventListener_"]
 valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 invalid_attacks = ["bg_tabs_onupdated"]
+def decide_invalid_attacks(type):
+    res = True
+    if type in invalid_attacks:
+        res = False
+    elif type.startswith("cs_window_eventListener_"):
+        if not type.endswith("message"):
+            res = False
+    return res
+
 invalid_onEvents_attacks = ["onload", "onreadystatechange", "onerror"]
 # valid_data_out_sinks = ["window_postMessage_sink", "document_write_sink", "bg_external_port_postMessage"]
 # in the data flow, the source has to be in valid
