@@ -293,7 +293,8 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink"),
                   ("bg_external_port_onMessage", "window_postMessage_sink"),
                   ("storage_sync_get_source", "chrome_storage_sync_set_sink"),
-                  ("storage_sync_get_source", "fetch_options_sink")
+                  ("storage_sync_get_source", "fetch_options_sink"),
+                  ("XMLHttpRequest_responseText_source", "XMLHttpRequest_post_sink")
                   # ("cookies_source", "chrome_cookies_set_sink"),
                   # ("management_getAll_source", "management_setEnabled_id"),
                   # ("management_getAll_source", "management_setEnabled_enabled"),

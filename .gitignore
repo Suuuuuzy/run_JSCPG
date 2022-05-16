@@ -1,3 +1,4 @@
+single_run.sh
 exports/nodes.csv
 exports/rels.csv
 crx_lists/detected_both/
