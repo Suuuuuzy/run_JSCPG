@@ -80,12 +80,10 @@ class Graph:
         # record the scope of cs and bg
         self.cs_scopes = []
         self.bg_scope = None
-        self.war_scope = None
 
         # record the window obj of cs and bg
         self.cs_window = {}
         self.bg_window = None
-        self.war_window = None
 
         self.detection_res = {}
         self.detected = False
@@ -948,8 +946,6 @@ class Graph:
             if name!='window':
                 if cur_scope == self.bg_scope:
                     window_obj = self.bg_window
-                elif cur_scope == self.war_scope:
-                    window_obj = self.war_window
                 elif cur_scope in self.cs_scopes:
                     window_obj = self.cs_window[cur_scope]
             if window_obj!=None:
@@ -980,9 +976,6 @@ class Graph:
         if self.client_side:
             if parent_obj == self.bg_window:
                 self.add_edge_if_not_exist(self.bg_scope, new_name_node,
-                                           {"type:TYPE": "SCOPE_TO_VAR"})
-            if parent_obj == self.war_window:
-                self.add_edge_if_not_exist(self.war_scope, new_name_node,
                                            {"type:TYPE": "SCOPE_TO_VAR"})
             elif parent_obj in cs_windows:
                 cs_scope = [i for i in self.cs_window if self.cs_window[i]==parent_obj]
@@ -1015,7 +1008,7 @@ class Graph:
                 self.add_obj_to_scope(name=prop_name, scope=self.BASE_SCOPE,
                     tobe_added_obj=tobe_added_obj, combined=False)
         else:
-            if combined and parent_obj in [self.bg_window, self.war_window]:
+            if combined and parent_obj in [self.bg_window]:
                 if not self.thread_version:
                     tmp_scope = self.cur_file_scope
                 else:
@@ -1058,9 +1051,6 @@ class Graph:
         else:
             if combined and scope == self.bg_scope:
                 self.add_obj_as_prop(prop_name=name, parent_obj=self.bg_window,
-                    tobe_added_obj=tobe_added_obj, combined=False)
-            elif combined and scope == self.war_scope:
-                self.add_obj_as_prop(prop_name=name, parent_obj=self.war_window,
                     tobe_added_obj=tobe_added_obj, combined=False)
             elif combined and scope in self.cs_scopes:
                 if not self.thread_version:
@@ -2059,8 +2049,6 @@ class Graph:
         if self.client_side:
             if file_scope==self.bg_scope:
                window_obj = self.bg_window
-            elif file_scope==self.war_scope:
-               window_obj = self.war_window
             elif file_scope in self.cs_scopes:
                 window_obj = self.cs_window[file_scope]
         return window_obj

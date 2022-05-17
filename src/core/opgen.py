@@ -112,14 +112,15 @@ class OPGen:
         if G is None:
             G = self.graph
         test_res = None
-        # loggers.crx_logger.info(sty.ef.inverse + sty.fg.li_magenta + 'run extension' + extension_path)
         res_dir = os.path.join(G.package_name, 'opgen_generated_files')
         os.makedirs(res_dir, exist_ok=True)
-        if os.path.exists(os.path.join(res_dir, 'res.txt')):
-            os.rename(os.path.join(res_dir, 'res.txt'), os.path.join(res_dir, 'res_old.txt'))
+        result_file_old = G.result_file_old
+        result_file = G.result_file
+        if os.path.exists(os.path.join(res_dir, result_file)):
+            os.rename(os.path.join(res_dir, result_file), os.path.join(res_dir, result_file_old))
         Error_msg = validate_chrome_extension(extension_path, dx)
         if Error_msg:
-            with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+            with open(os.path.join(res_dir, result_file), 'w') as f:
                 f.write(Error_msg)
             return -1
         if timeout_s is not None:
@@ -131,15 +132,15 @@ class OPGen:
                     start_time = time.time()
                     Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test = options.easy_test)
                     if Error_msg:
-                        with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                        with open(os.path.join(res_dir, result_file), 'w') as f:
                             f.write(Error_msg)
                         return -1
                     Error_msg = self._test_graph(G, vul_type=vul_type)
                     file_size = 0
-                    if os.path.exists(os.path.join(res_dir, 'res.txt')):
-                        file_size = os.path.getsize(os.path.join(res_dir, 'res.txt'))
+                    if os.path.exists(os.path.join(res_dir, result_file)):
+                        file_size = os.path.getsize(os.path.join(res_dir, result_file))
                     if Error_msg and file_size == 0:
-                        with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                        with open(os.path.join(res_dir, result_file), 'w') as f:
                             f.write(Error_msg)
                         return -1
                     end_time = time.time()
@@ -149,7 +150,7 @@ class OPGen:
                     loggers.res_logger.info("{} finish with {} seconds spent####". \
                             format(extension_path, end_time-start_time))
                     if not G.detected:
-                        with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                        with open(os.path.join(res_dir, result_file), 'w') as f:
                             f.write('nothing detected')
                         loggers.res_logger.info('nothing detected in file %s', extension_path)
                     else:
@@ -164,7 +165,7 @@ class OPGen:
                     f.write(str(err) + " with {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
                 loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
                 if not G.detected:
-                    with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                    with open(os.path.join(res_dir, result_file), 'w') as f:
                         f.write('timeout')
                     loggers.res_logger.info('nothing detected in file %s', extension_path)
                 else:
@@ -172,19 +173,19 @@ class OPGen:
         else:
             Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
             if Error_msg:
-                with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                with open(os.path.join(res_dir, result_file), 'w') as f:
                     f.write(Error_msg)
                 return
             Error_msg = self._test_graph(G, vul_type=vul_type)
             file_size = 0
-            if os.path.exists(os.path.join(res_dir, 'res.txt')):
-                file_size = os.path.getsize(os.path.join(res_dir, 'res.txt'))
+            if os.path.exists(os.path.join(res_dir, result_file)):
+                file_size = os.path.getsize(os.path.join(res_dir, result_file))
             if Error_msg and file_size==0:
-                with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                with open(os.path.join(res_dir, result_file), 'w') as f:
                     f.write(Error_msg)
                 return -1
             if not G.detected:
-                with open(os.path.join(res_dir, 'res.txt'), 'w') as f:
+                with open(os.path.join(res_dir, result_file), 'w') as f:
                     f.write('nothing detected')
             with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
                 f.write(self.output_args_str())
@@ -205,16 +206,16 @@ class OPGen:
             list: the test result pathes of the module
         """
         Error_msg = None
-        try:
-            setup_opg(G)
-            G.export_node = True
-            internal_plugins = PluginManager(G, init=True)
-            entry_id = '0'
-            generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
-            if not G.thread_version:
-                event_loop_no_threading(G)
-        except:
-            Error_msg = "Error: " + G.package_name + " error during test graph"
+        # try:
+        setup_opg(G)
+        G.export_node = True
+        internal_plugins = PluginManager(G, init=True)
+        entry_id = '0'
+        generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
+        if not G.thread_version:
+            event_loop_no_threading(G)
+        # except:
+        #     Error_msg = "Error: " + G.package_name + " error during test graph"
         return Error_msg
 
     def test_module(self, module_path, vul_type='os_command', G=None, 
@@ -532,6 +533,13 @@ def setup_graph_env(G: Graph):
     G.detection_res[options.vul_type] = set()
     G.no_merge = options.no_merge
     G.thread_stmt = options.thread_stmt
+    G.war = options.war
+    if G.war:
+        G.result_file = "res_war.txt"
+        G.result_file_old =  "res_war_old.txt"
+    else:
+        G.result_file = "res.txt"
+        G.result_file_old = "res_old.txt"
     G.thread_version = options.run_with_pq
     G.all_branch = options.all_branch
     G.client_side = options.chrome_extension

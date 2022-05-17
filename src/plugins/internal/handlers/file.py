@@ -110,19 +110,12 @@ def run_toplevel_file(G: Graph, node_id):
     if G.client_side:
         # cs_0.js, bg.js
         # setup the window object before we start run the file
-        if 'bg.js' in file_path:
+        if 'bg.js' in file_path or ('war.js' in file_path and G.war):
             G.bg_scope = func_scope
             window_obj = G.add_obj_to_scope(name='window', scope=func_scope, combined=False)
             # add canHaveOnProperty for object.onload property
             G.set_node_attr(window_obj, ('canHaveOnProperty', "True"))
             G.bg_window = window_obj
-            setup_opg_window(G, func_scope, window_obj)
-        elif 'wars.js' in file_path:
-            G.war_scope = func_scope
-            window_obj = G.add_obj_to_scope(name='window', scope=func_scope, combined=False)
-            # add canHaveOnProperty for object.onload property
-            G.set_node_attr(window_obj, ('canHaveOnProperty', "True"))
-            G.war_window = window_obj
             setup_opg_window(G, func_scope, window_obj)
         else:
             pattern = re.compile('cs_\d*.js')

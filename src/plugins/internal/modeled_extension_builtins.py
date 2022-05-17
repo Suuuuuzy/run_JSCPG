@@ -240,7 +240,7 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
               + G.package_name + ' with ' + sink_name + sty.rs.all)
         res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
         res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-        with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
+        with open(os.path.join(res_dir, G.result_file), 'a') as f:
             f.write(res)
         G.detected = True
     # check whether the taint flow is vulnerable, check first whether it is attacked yet.
@@ -274,7 +274,7 @@ def sink_function_in_graph(G: Graph, args, sink_name):
               + G.package_name + ' with ' + sink_name + sty.rs.all)
         res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
         res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-        with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
+        with open(os.path.join(res_dir, G.result_file), 'a') as f:
             f.write(res)
         G.detected = True
     # check whether the taint flow is vulnerable, check first whether it is attacked yet.
@@ -341,7 +341,7 @@ def check_taint(G, obj, sink_name):
                   + G.package_name + ' with ' + sink_name + sty.rs.all)
             # print(res)
         res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-        with open(os.path.join(res_dir, 'res.txt'), 'a') as f:
+        with open(os.path.join(res_dir, G.result_file), 'a') as f:
             f.write(res)
         check_res = True
     return check_res

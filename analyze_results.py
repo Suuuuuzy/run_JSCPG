@@ -25,10 +25,10 @@ import json
 from tqdm import tqdm
 import threading
 
-def ana_opgen(extension_path, id):
+def ana_opgen(extension_path, id, res_name):
     res = -1
     gen_path = os.path.join(extension_path, id, "opgen_generated_files")
-    filename = os.path.join(gen_path, "res.txt")
+    filename = os.path.join(gen_path, res_name)
     if os.path.exists(gen_path) and os.path.exists(filename):
         with open(filename) as f:
             c = f.read()
@@ -42,14 +42,14 @@ def ana_opgen(extension_path, id):
                 res = 2
     return res
 
-def analyze_results(flag, resDir, extension_path, ids):
+def analyze_results(flag, resDir, extension_path, ids, res_name):
     detected = []
     not_done = []
     timeout = []
     benign = []
     error = []
     for id in tqdm(ids):
-        res = ana_opgen(extension_path, id)
+        res = ana_opgen(extension_path, id, res_name)
         if res==1:
             detected.append(id)
         elif res==-1:
@@ -109,7 +109,7 @@ def sum_all_files(pathDir, prefix):
         os.remove(os.path.join(pathDir, str(i) + prefix+'.txt'))
 
 
-def run_with_threads(resDir, extension_path, idfile, func, thread_num = 200):
+def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num = 200):
     threads = []
     flag = 0
     prefix = 'opgen_results'
@@ -125,11 +125,11 @@ def run_with_threads(resDir, extension_path, idfile, func, thread_num = 200):
     step = len(ids) // thread_num
     print('Task started with %d threads.'%thread_num)
     for i in range(thread_num - 1):
-        t = threading.Thread(target=func, args=(i, resDir, extension_path, ids[flag:flag+step]))
+        t = threading.Thread(target=func, args=(i, resDir, extension_path, ids[flag:flag+step], res_name))
         t.start()
         threads.append(t)
         flag += step
-    t = threading.Thread(target=func, args=(thread_num - 1, resDir, extension_path, ids[flag:]))
+    t = threading.Thread(target=func, args=(thread_num - 1, resDir, extension_path, ids[flag:], res_name))
     t.start()
     threads.append(t)
     for t in threads:
@@ -142,6 +142,7 @@ def main():
     thread_num = 200
     extension_path = "/media/data2/jianjia/extension_data/unzipped_extensions"
     idfile = ''
+    res_name = "res.txt"
     if mode == 'doublex_de':
         res_dir = '/media/data2/jianjia/extension_data/opgen_results/detected_by_doublex'
         idfile = '/media/data2/jianjia/extension_data/doublex_result/detected.txt'
@@ -151,6 +152,10 @@ def main():
     elif mode == 'all':
         res_dir = '/media/data2/jianjia/extension_data/opgen_results/all'
         idfile = '/media/data2/jianjia/extension_data/filtered_file.txt'
+    elif mode == 'allwar':
+        res_dir = '/media/data2/jianjia/extension_data/opgen_results/allwar'
+        idfile = '/media/data2/jianjia/extension_data/filtered_file.txt'
+        res_name = "res_war.txt"
     elif mode== "doublex_de_empoweb_local":
         extension_path = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_empoweb_api_result/detected"
         res_dir = '/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_empoweb_api_result/opgen_results'
@@ -159,7 +164,7 @@ def main():
         extension_path = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected"
         res_dir = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/opgen_results"
         idfile = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected.txt"
-    run_with_threads(res_dir, extension_path, idfile, analyze_results, thread_num = thread_num)
+    run_with_threads(res_dir, extension_path, idfile, analyze_results, res_name = res_name, thread_num = thread_num)
 
 
 if __name__=='__main__':

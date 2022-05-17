@@ -163,16 +163,12 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
             combine_files(os.path.join(generated_extension_dir, 'wars.js'), filtered_js_files)
     else:
         generated_extension_dir = None
-        if easy_test:
-            header_path = 'crx_headers_easy'
-        else:
-            header_path = 'crx_headers'
+        header_path = 'crx_headers_easy' if easy_test else 'crx_headers'
         try:
-            generated_extension_dir = generate_extension_files(path, header_path)
+            generated_extension_dir = generate_extension_files(path, header_path, war = G.war)
         except:
-            Error_msg = "Error: "+ path+" in generating extension files"
+            Error_msg = "Error: "+ path +" in generating extension files"
     if generated_extension_dir:
-        # try:
         result = esprima_parse(generated_extension_dir, ['-n', str(start_node_id), '-o', '-'],
                                print_func=loggers.res_logger.info)
         if result==None:
@@ -186,14 +182,14 @@ def parse_chrome_extension(G, path, dx, easy_test, start_node_id=0):
     return Error_msg
 
 
-def generate_extension_files(extension_path, header_path, header=True):
+def generate_extension_files(extension_path, header_path, header=True, war = False):
     generated_extension_dir = os.path.join(extension_path, "opgen_generated_files")
     os.makedirs(generated_extension_dir, exist_ok=True)
     # clean the old directory, if any file exists
     for file in os.listdir(generated_extension_dir):
-        if file.startswith("cs") or file.startswith("bg"):
+        if file.startswith("cs") or file.startswith("war") or file.startswith("bg"):
             os.remove(os.path.join(generated_extension_dir,file))
-    if(preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, header)):
+    if(preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, header, war)):
         return generated_extension_dir
     else:
         return False
@@ -224,8 +220,8 @@ def js_file_filter(files):
             re.append(file)
     return re
 
-def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, header):
-    def processFile(files, newname, relative_path = extension_path):
+def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, header, war):
+    def processFile(files, newname, relative_path=extension_path):
         filtered_js_files = []
         for file in files:
             if file.startswith("https:") or file.startswith("http:"):
@@ -236,19 +232,20 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, h
             else:
                 filepath = os.path.abspath(os.path.join(relative_path, file))
                 filelist = glob.glob(filepath)
-            filelist = [x for x in filelist if x.endswith('.js') and 'jquery' not in x.lower() and os.path.getsize(x)!=0]
+            filelist = [x for x in filelist if
+                        x.endswith('.js') and 'jquery' not in x.lower() and os.path.getsize(x) != 0]
             filtered_js_files.extend(filelist)
         # print('filtered_js_files', filtered_js_files)
-        if len(filtered_js_files)>0:
+        if len(filtered_js_files) > 0:
             if 'cs' in newname and header:
                 filtered_js_files.insert(0, os.path.join(header_path, 'cs_header.js'))
                 filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
-            elif 'bg' in newname and header:
-                filtered_js_files.insert(0,os.path.join(header_path, 'bg_header.js'))
+            elif ('bg' in newname or 'war' in newname) and header:
+                filtered_js_files.insert(0, os.path.join(header_path, 'bg_header.js'))
                 filtered_js_files.insert(0, os.path.join(header_path, 'jquery_header.js'))
         combine_files(os.path.join(generated_extension_dir, newname), filtered_js_files)
-    # try load json with different decoding
-    manifest_json_path =  os.path.join(extension_path, 'manifest.json')
+    # try to load json with different decoding
+    manifest_json_path = os.path.join(extension_path, 'manifest.json')
     manifest = None
     with open(manifest_json_path) as f:
         try:
@@ -263,7 +260,6 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, h
                 manifest = json.loads(decoded_data)
             except:
                 pass
-
     version = 2
     if 'manifest_version' in manifest:
         version = manifest['manifest_version']
@@ -274,32 +270,34 @@ def preprocess_cs_bg_war(extension_path, generated_extension_dir, header_path, h
                 csfiles = j['js']
                 processFile(csfiles, 'cs_'+str(count)+'.js')
             count += 1
-    # if 'web_accessible_resources' in manifest:
-    #     warfiles = manifest['web_accessible_resources']
-    #     processFile(warfiles, 'war.js')
-    if 'background' in manifest:
-        if version==2:
-            if 'scripts' in manifest['background']:
-                bgfiles = manifest['background']['scripts']
-                processFile(bgfiles, 'bg.js')
-            elif 'page' in manifest['background']:
-                bgpage = manifest['background']['page']
-                if bgpage.startswith('/'):
-                    bgpage = '.' + bgpage
-                try:
-                    with open(os.path.join(extension_path, bgpage), errors='ignore') as f:
-                        content = f.read()
-                        pattern = re.compile('<script .*?src=["|\']([^["|\']*?)"')
-                        scripts = pattern.findall(content)
-                        bg_last = os.path.abspath(os.path.join(extension_path, bgpage, '..'))
-                        processFile(scripts, 'bg.js', relative_path = bg_last)
-                except OSError as e:
-                    print(e)
-        # if manifest.json verion is 3
-        elif version==3:
-            if 'service_worker' in manifest['background']:
-                bgfiles = [manifest['background']['service_worker']]
-                processFile(bgfiles, 'bg.js')
+    if war:
+        if 'web_accessible_resources' in manifest:
+            warfiles = manifest['web_accessible_resources']
+            processFile(warfiles, 'war.js')
+    else:
+        if 'background' in manifest:
+            if version==2:
+                if 'scripts' in manifest['background']:
+                    bgfiles = manifest['background']['scripts']
+                    processFile(bgfiles, 'bg.js')
+                elif 'page' in manifest['background']:
+                    bgpage = manifest['background']['page']
+                    if bgpage.startswith('/'):
+                        bgpage = '.' + bgpage
+                    try:
+                        with open(os.path.join(extension_path, bgpage), errors='ignore') as f:
+                            content = f.read()
+                            pattern = re.compile('<script .*?src=["|\']([^["|\']*?)"')
+                            scripts = pattern.findall(content)
+                            bg_last = os.path.abspath(os.path.join(extension_path, bgpage, '..'))
+                            processFile(scripts, 'bg.js', relative_path = bg_last)
+                    except OSError as e:
+                        print(e)
+            # if manifest.json verion is 3
+            elif version==3:
+                if 'service_worker' in manifest['background']:
+                    bgfiles = [manifest['background']['service_worker']]
+                    processFile(bgfiles, 'bg.js')
     return True
 
 
