@@ -65,14 +65,8 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata=None):
     G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
     G.set_node_attr(wildcard_msg_obj, ('taint_flow', [([wildcard_msg_obj], str(entry[0]))]))
     func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
-    MessageSenderExternal, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
-                                                extra=None,
-                                                caller_ast=None, is_new=True, stmt_id='Unknown',
-                                                func_name='MessageSenderExternal',
-                                                mark_fake_args=False)
-    MessageSenderExternal.obj_nodes = created_objs
     sendResponseExternal = G.get_objs_by_name('sendResponseExternal', scope=G.bg_scope, branches=[])
-    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), MessageSenderExternal, NodeHandleResult(obj_nodes=sendResponseExternal)]
+    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
     func_objs = [entry[1]]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
@@ -89,7 +83,7 @@ def bg_chrome_runtime_onConnectExternal_attack(G, entry, mydata=None):
     func_objs = G.get_objs_by_name('externalPort', scope=G.bg_scope, branches=[])
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
                                                   caller_ast=None, is_new=True, stmt_id='Unknown', func_name='externalPort',
-                                                  mark_fake_args=False)
+                                                  mark_fake_args=True)
     returned_result.obj_nodes = created_objs
     args = [returned_result]
     # args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), MessageSenderExternal, NodeHandleResult(obj_nodes=sendResponseExternal)]

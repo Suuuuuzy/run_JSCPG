@@ -229,7 +229,7 @@ class Graph:
         self.listener_event_dic = {value: key for (key, value) in self.event_listener_dic.items()}
 
         self.canHaveOnPropertyObject = ['Document', 'Document_element','XMLHttpRequest']
-        self.onEvents = ["onload" ,"onmessage", "onreadystatechange", "onerror"]
+        self.onEvents = ["onload" ,"onmessage", "onreadystatechange", "onerror", "ready"]
 
         self.attacked = False
         self.attacked_lock = Lock()

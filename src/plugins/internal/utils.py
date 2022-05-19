@@ -495,9 +495,9 @@ def build_df_by_def_use(G, cur_stmt, used_objs):
         if def_cpg_node is None: continue
         if def_cpg_node == cur_stmt: continue
         def_lineno = G.get_node_attr(def_cpg_node).get('lineno:int')
-        loggers.main_logger.info(sty.fg.li_magenta + sty.ef.inverse + "OBJ REACHES" + sty.rs.all +
-        " {} -> {} (Line {} -> Line {}), by OBJ {}".format(def_cpg_node,
-        cur_stmt, def_lineno, cur_lineno, obj))
+        # loggers.main_logger.info(sty.fg.li_magenta + sty.ef.inverse + "OBJ REACHES" + sty.rs.all +
+        # " {} -> {} (Line {} -> Line {}), by OBJ {}".format(def_cpg_node,
+        # cur_stmt, def_lineno, cur_lineno, obj))
         G.add_edge(def_cpg_node, cur_stmt, {'type:TYPE': 'OBJ_REACHES', 'obj': obj})
 
 def check_condition(G: Graph, ast_node, extra: ExtraInfo):

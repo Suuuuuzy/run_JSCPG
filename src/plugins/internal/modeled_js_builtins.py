@@ -1000,8 +1000,7 @@ def object_create(G: Graph, caller_ast, extra, _, proto=NodeHandleResult()):
 
 
 def object_is(G: Graph, caller_ast, extra, _, value1: NodeHandleResult, value2: NodeHandleResult):
-    if set(value1.obj_nodes) == set(value2.obj_nodes) and \
-            set(value1.values) == set(value2.values):
+    if set(value1.obj_nodes) == set(value2.obj_nodes) and set(value1.values) == set(value2.values):
         return NodeHandleResult(obj_nodes=[G.true_obj])
     else:
         return NodeHandleResult(obj_nodes=[G.false_obj])

@@ -18,11 +18,10 @@ Port.prototype.postMessage = function(msg){
     TriggerEvent('bg_port_postMessage', {message:msg});
 };
 
-
 // ========= external port ========= 
 function externalPort(info){
-    this.includeTlsChannelId = "includeTlsChannelId";
-    this.name = "name";
+    this.includeTlsChannelId = info.includeTlsChannelId;
+    this.name = info.name;
 }
 
 externalPort.prototype.onMessage = new Object();
@@ -69,8 +68,6 @@ Chrome.prototype.runtime = new Object();
 Chrome.prototype.extension = Chrome.prototype.runtime;  
 Chrome.prototype.extension.onRequest = Chrome.prototype.runtime.onMessage;
 
-
-
 Chrome.prototype.runtime.onInstalled = new Object();
 // this function be called righrt after all the 
 Chrome.prototype.runtime.onInstalled.addListener = function(myCallback) {
@@ -83,7 +80,6 @@ Chrome.prototype.runtime.onConnect = new Object();
 Chrome.prototype.runtime.onConnect.addListener = function(myCallback) {
   RegisterFunc("bg_chrome_runtime_onConnect", myCallback);
 };
-
 
 Chrome.prototype.runtime.onMessage = new Object();
 // myCallback:
@@ -140,7 +136,7 @@ function sendResponseExternal(message_out){
 Chrome.prototype.runtime.onConnectExternal = new Object();
 // myCallback parameters: (message: any, sender: MessageSender, sendResponse: function) => {...}
 Chrome.prototype.runtime.onConnectExternal.addListener = function(myCallback){
-    MarkAttackEntry("bg_chrome_runtime_MessageExternal", myCallback);
+    MarkAttackEntry("bg_chrome_runtime_onConnectExternal", myCallback);
 }
 
 Chrome.prototype.runtime.connectNative = function(extensionId, connectInfo){
@@ -152,9 +148,6 @@ Chrome.prototype.runtime.connectNative = function(extensionId, connectInfo){
     // var info = {extensionId:extensionId, connectInfo:connectInfo};
     return new externalPort(connectInfo);
 };
-
-
-
 
 Chrome.prototype.topSites = new Object();
 Chrome.prototype.topSites.get = function(myCallback){
