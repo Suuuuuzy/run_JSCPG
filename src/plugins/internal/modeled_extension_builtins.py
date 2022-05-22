@@ -233,22 +233,21 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
     for obj in sus_objs:
         SpringObjs.update(G.get_off_spring(obj))
     sus_objs.update(SpringObjs)
-
-    # if no obj is required, control flow reaches
-    if len(sus_objs)==0:
-        print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
-              + G.package_name + ' with ' + sink_name + sty.rs.all)
-        res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
-        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-        with open(os.path.join(res_dir, G.result_file), 'a') as f:
-            f.write(res)
-        G.detected = True
     # check whether the taint flow is vulnerable, check first whether it is attacked yet.
     check = False
     with G.attacked_lock:
         if G.attacked:
             check = True
     if check:
+        # if no obj is required, control flow reaches
+        if len(sus_objs)==0:
+            print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
+                  + G.package_name + ' with ' + sink_name + sty.rs.all)
+            res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
+            res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+            with open(os.path.join(res_dir, G.result_file), 'a') as f:
+                f.write(res)
+            G.detected = True
         for obj in sus_objs:
             if check_taint(G, obj, sink_name):
                 G.detected = True
@@ -268,21 +267,21 @@ def sink_function_in_graph(G: Graph, args, sink_name):
     for obj in sus_objs:
         SpringObjs.update(G.get_off_spring(obj))
     sus_objs.update(SpringObjs)
-    # if no obj is required, control flow reaches
-    if len(sus_objs) == 0:
-        print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
-              + G.package_name + ' with ' + sink_name + sty.rs.all)
-        res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
-        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-        with open(os.path.join(res_dir, G.result_file), 'a') as f:
-            f.write(res)
-        G.detected = True
     # check whether the taint flow is vulnerable, check first whether it is attacked yet.
     check = False
     with G.attacked_lock:
         if G.attacked:
             check = True
     if check:
+        # if no obj is required, control flow reaches
+        if len(sus_objs) == 0:
+            print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
+                  + G.package_name + ' with ' + sink_name + sty.rs.all)
+            res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
+            res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+            with open(os.path.join(res_dir, G.result_file), 'a') as f:
+                f.write(res)
+            G.detected = True
         for obj in sus_objs:
             if check_taint(G, obj, sink_name):
                 G.detected = True
@@ -304,7 +303,7 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
 
 valid_sources_starts = ["cs_window_eventListener_", "document_eventListener_"]
 valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
-invalid_attacks = ["bg_tabs_onupdated"]
+invalid_attacks = ["bg_tabs_onupdated", "bg_external_port_onMessage"]
 def decide_invalid_attacks(type):
     res = True
     if type in invalid_attacks:

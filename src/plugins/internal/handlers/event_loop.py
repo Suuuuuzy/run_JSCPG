@@ -92,7 +92,26 @@ def bg_chrome_runtime_onConnectExternal_attack(G, entry, mydata=None):
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
                                                          mark_fake_args=False)
 
-bg_external_port_onMessage_attack = bg_chrome_runtime_MessageExternal_attack
+def bg_external_port_onMessage_attack(G, entry, mydata=None):
+    if G.thread_version:
+        cur_thread = threading.current_thread()
+        print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+        G.mydata.unpickle_up(mydata)
+    else:
+        print('=========Perform attack: ' + str(entry))
+    wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
+                                       else None, value=wildcard)
+    # G.set_node_attr(wildcard_msg_obj, ('tainted', True))
+    G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
+    # G.set_node_attr(wildcard_msg_obj, ('taint_flow', [([wildcard_msg_obj], str(entry[0]))]))
+    func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
+    sendResponseExternal = G.get_objs_by_name('sendResponseExternal', scope=G.bg_scope, branches=[])
+    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
+    func_objs = [entry[1]]
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+                                                          caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                         mark_fake_args=False)
+
 
 def bg_tabs_onupdated_attack(G, entry, mydata=None):
     if G.thread_version:
