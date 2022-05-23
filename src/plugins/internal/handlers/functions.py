@@ -781,8 +781,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                                                    scope=func_scope, tobe_added_obj=obj)
                     else:
                         # this is used to print logs only
-                        logger.debug(f'add arg arguments[{j}] <- '
-                                     f'{arg_obj_nodes}, scope {func_scope}')
+                        # logger.debug(f'add arg arguments[{j}] <- '
+                        #              f'{arg_obj_nodes}, scope {func_scope}')
                 elif j < len(params) and mark_fake_args:
                     param = params[j]
                     param_name = G.get_name_from_child(param)
