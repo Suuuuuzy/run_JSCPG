@@ -340,7 +340,7 @@ def print_handle_result(handle_result: NodeHandleResult):
         output += f', used_objs={handle_result.used_objs}'
     if handle_result.name_tainted:
         output += f', name_tainted={handle_result.name_tainted}'
-    loggers.main_logger.debug(output)
+    # loggers.main_logger.debug(output)
 
 def eval_value(G: Graph, s: str, return_obj_node=False, ast_node=None):
     '''

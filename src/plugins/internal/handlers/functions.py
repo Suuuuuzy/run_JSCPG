@@ -834,8 +834,8 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
                         logger.debug("{} marked as tainted [4]".format(added_obj))
                     G.add_obj_as_prop(prop_name=str(j),
                                       parent_obj=arguments_obj, tobe_added_obj=added_obj)
-                    logger.debug(f'add arguments[{j}] <- new obj {added_obj}, '
-                                 f'scope {func_scope}, ast node {caller_ast}')
+                    # logger.debug(f'add arguments[{j}] <- new obj {added_obj}, '
+                    #              f'scope {func_scope}, ast node {caller_ast}')
                 else:
                     break
                 j += 1

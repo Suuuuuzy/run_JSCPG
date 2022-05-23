@@ -349,8 +349,8 @@ class Graph:
         else:
             for key, edge_attr in self.graph[from_ID][to_ID].items():
                 if edge_attr == attr:
-                    self.logger.warning("Edge {}->{} exists: {}, {}. Duplicate edge "
-                    "will not be created.".format(from_ID,to_ID,key,edge_attr))
+                    # self.logger.warning("Edge {}->{} exists: {}, {}. Duplicate edge "
+                    # "will not be created.".format(from_ID,to_ID,key,edge_attr))
                     return
             self.add_edge(from_ID, to_ID, attr)
 
