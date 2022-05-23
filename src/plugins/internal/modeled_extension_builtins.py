@@ -154,7 +154,7 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
     type = args[0].values[0]
     listener = args[1].obj_nodes[0]
     if listener!=G.undefined_obj:
-        if decide_invalid_attacks(type):
+        if decide_valid_attacks(type):
             with G.attacked_lock:
                 if not G.attacked:
                     G.attacked = True
@@ -301,15 +301,18 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   # ("storage_sync_get_source", "chrome_storage_sync_set_sink")
                     ]
 
-valid_sources_starts = ["cs_window_eventListener_", "document_eventListener_"]
+valid_sources_starts = ["cs_window_", "document_"]
+invalid_sources_ends = ["click", "scroll"]
+# invalid: document_eventListener_scroll, document_eventListener_click, cs_window_eventListener_click, cs_window_eventListener_scroll
 valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 invalid_attacks = ["bg_tabs_onupdated", "bg_external_port_onMessage"]
-def decide_invalid_attacks(type):
+
+def decide_valid_attacks(type):
     res = True
     if type in invalid_attacks:
         res = False
-    elif type.startswith("cs_window_eventListener_"):
-        if not type.endswith("message"):
+    elif "eventListener_" in type:
+        if type.split("eventListener_")[0] in valid_sources_starts and type.split("eventListener_")[1] in invalid_sources_ends:
             res = False
     return res
 

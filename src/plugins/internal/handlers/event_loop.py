@@ -95,10 +95,10 @@ def bg_chrome_runtime_onConnectExternal_attack(G, entry, mydata=None):
 def bg_external_port_onMessage_attack(G, entry, mydata=None):
     if G.thread_version:
         cur_thread = threading.current_thread()
-        print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+        print('=========Perform event: ' + str(entry) + ' in ' + cur_thread.name)
         G.mydata.unpickle_up(mydata)
     else:
-        print('=========Perform attack: ' + str(entry))
+        print('=========Perform event: ' + str(entry))
     wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
                                        else None, value=wildcard)
     # G.set_node_attr(wildcard_msg_obj, ('tainted', True))
@@ -116,10 +116,10 @@ def bg_external_port_onMessage_attack(G, entry, mydata=None):
 def bg_tabs_onupdated_attack(G, entry, mydata=None):
     if G.thread_version:
         cur_thread = threading.current_thread()
-        print('=========Perform attack: ' + str(entry) + ' in ' + cur_thread.name)
+        print('=========Perform event: ' + str(entry) + ' in ' + cur_thread.name)
         G.mydata.unpickle_up(mydata)
     else:
-        print('=========Perform attack: ' + str(entry))
+        print('=========Perform event: ' + str(entry))
     args = [NodeHandleResult()]
     func_objs = G.get_objs_by_name('Tab', scope=G.bg_scope, branches=[])
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
