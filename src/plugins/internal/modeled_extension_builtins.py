@@ -341,7 +341,6 @@ def check_taint(G, obj, sink_name):
             res += (get_path_text(G, ast_path) + '\n')
             print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
                   + G.package_name + ' with ' + sink_name + sty.rs.all)
-            # print(res)
         res_dir = os.path.join(G.package_name, 'opgen_generated_files')
         with open(os.path.join(res_dir, G.result_file), 'a') as f:
             f.write(res)

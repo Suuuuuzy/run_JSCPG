@@ -186,7 +186,7 @@ class PluginManager(object):
                             self.G.last_code_cov_time = time.time()
                             self.G.last_code_cov = code_cov
             node_attr = self.G.get_node_attr(node_id)
-            loggers.debug_logger.info("processing {}".format(node_id) + str(node_attr))
+            # loggers.debug_logger.info("processing {}".format(node_id) + str(node_attr))
             # print(node_id)
             if "type" not in node_attr:
                 return

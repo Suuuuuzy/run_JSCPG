@@ -51,10 +51,10 @@ class HandleIf(Handler):
                     # break
                 # check condition
                 possibility, deterministic = check_condition(G, condition, extra)
-                loggers.main_logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
-                                                                                    G.get_node_attr(condition).get(
-                                                                                        'code') + sty.rs.all,
-                                                                                    possibility, deterministic))
+                # loggers.main_logger.debug('Check condition {} result: {} {}'.format(sty.ef.i +
+                #                                                                     G.get_node_attr(condition).get(
+                #                                                                         'code') + sty.rs.all,
+                #                                                                     possibility, deterministic))
                 if deterministic and possibility == 1:
                     # if the condition is surely true
                     blocks.simurun_block(G, body, tmp_cur_scope, branches)
