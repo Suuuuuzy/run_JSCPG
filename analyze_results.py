@@ -164,6 +164,10 @@ def main():
         extension_path = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected"
         res_dir = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/opgen_results"
         idfile = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected.txt"
+    elif mode=="cus":
+        extension_path = sys.argv[2]
+        idfile = sys.argv[3]
+        res_dir = sys.argv[4]
     run_with_threads(res_dir, extension_path, idfile, analyze_results, res_name = res_name, thread_num = thread_num)
 
 

@@ -302,7 +302,7 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                     ]
 
 valid_sources_starts = ["cs_window_", "document_"]
-invalid_sources_ends = ["click", "scroll"]
+invalid_sources_ends = ["click", "scroll", "load"]
 # invalid: document_eventListener_scroll, document_eventListener_click, cs_window_eventListener_click, cs_window_eventListener_scroll
 valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 invalid_attacks = ["bg_tabs_onupdated", "bg_external_port_onMessage"]
@@ -342,9 +342,10 @@ def check_taint(G, obj, sink_name):
             print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
                   + G.package_name + ' with ' + sink_name + sty.rs.all)
         res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-        with open(os.path.join(res_dir, G.result_file), 'a') as f:
-            f.write(res)
-        check_res = True
+        if res!='':
+            with open(os.path.join(res_dir, G.result_file), 'a') as f:
+                f.write(res)
+            check_res = True
     return check_res
 
 
