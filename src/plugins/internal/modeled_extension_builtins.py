@@ -304,8 +304,9 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
 valid_sources_starts = ["cs_window_", "document_"]
 invalid_sources_ends = ["click", "scroll", "load"]
 # invalid: document_eventListener_scroll, document_eventListener_click, cs_window_eventListener_click, cs_window_eventListener_scroll
-valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
-invalid_attacks = ["bg_tabs_onupdated", "bg_external_port_onMessage"]
+# valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
+invalid_attacks = ["bg_tabs_onupdated", "bg_externalNativePort_onMessage"]
+invalid_onEvents_attacks = ["onload", "onreadystatechange", "onerror"]
 
 def decide_valid_attacks(type):
     res = True
@@ -315,10 +316,6 @@ def decide_valid_attacks(type):
         if type.split("eventListener_")[0] in valid_sources_starts and type.split("eventListener_")[1] in invalid_sources_ends:
             res = False
     return res
-
-invalid_onEvents_attacks = ["onload", "onreadystatechange", "onerror"]
-# valid_data_out_sinks = ["window_postMessage_sink", "document_write_sink", "bg_external_port_postMessage"]
-# in the data flow, the source has to be in valid
 
 def check_taint(G, obj, sink_name):
     attrs = G.get_node_attr(obj)

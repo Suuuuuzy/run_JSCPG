@@ -6,13 +6,6 @@ import threading
 
 def event_loop_threading(G: Graph, event, mydata):
     G.mydata.unpickle_up(mydata)
-    # STEP1: see eventRegisteredFuncs right now
-    # print('========SEE eventRegisteredFuncs:========')
-    # with G.eventRegisteredFuncs_lock:
-    #     for i in G.eventRegisteredFuncs:
-    #         print(i, G.eventRegisteredFuncs[i])
-    #         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
-    # STEP2: trigger event
     cur_thread = threading.current_thread()
     print('=========processing eventName: ' + event['eventName'] + ' in ' + cur_thread.name)
     if event['eventName'] in event_listener_dic:
@@ -101,11 +94,27 @@ def bg_external_port_onMessage_attack(G, entry, mydata=None):
         print('=========Perform event: ' + str(entry))
     wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
                                        else None, value=wildcard)
-    # G.set_node_attr(wildcard_msg_obj, ('tainted', True))
+    G.set_node_attr(wildcard_msg_obj, ('tainted', True))
     G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
-    # G.set_node_attr(wildcard_msg_obj, ('taint_flow', [([wildcard_msg_obj], str(entry[0]))]))
-    func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
+    G.set_node_attr(wildcard_msg_obj, ('taint_flow', [([wildcard_msg_obj], str(entry[0]))]))
     sendResponseExternal = G.get_objs_by_name('sendResponseExternal', scope=G.bg_scope, branches=[])
+    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
+    func_objs = [entry[1]]
+    returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
+                                                          caller_ast=None, is_new=False, stmt_id='Unknown',
+                                                         mark_fake_args=False)
+
+def bg_externalNativePort_onMessage_attack(G, entry, mydata=None):
+    if G.thread_version:
+        cur_thread = threading.current_thread()
+        print('=========Perform event: ' + str(entry) + ' in ' + cur_thread.name)
+        G.mydata.unpickle_up(mydata)
+    else:
+        print('=========Perform event: ' + str(entry))
+    wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
+                                       else None, value=wildcard)
+    G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
+    sendResponseExternal = G.get_objs_by_name('sendResponseExternalNative', scope=G.bg_scope, branches=[])
     args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
     func_objs = [entry[1]]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
@@ -313,7 +322,6 @@ def cs_chrome_tabs_onMessage_response(G, event):
                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
                                                   mark_fake_args=False)
 
-
 event_listener_dic = {
     "cs_chrome_runtime_connect": ["bg_chrome_runtime_onConnect", cs_chrome_runtime_connect],
     "cs_port_postMessage":["bg_port_onMessage", cs_port_postMessage],
@@ -324,10 +332,12 @@ event_listener_dic = {
     "cs_chrome_runtime_onMessage_response":["bg_chrome_tabs_sendMessage_onResponse", cs_chrome_tabs_onMessage_response]
 }
 
+# attack name: attack function
 attack_dic = {
     'bg_chrome_runtime_MessageExternal': bg_chrome_runtime_MessageExternal_attack,
     'cs_window_eventListener': window_eventListener_attack,
     "bg_chrome_runtime_onConnectExternal": bg_chrome_runtime_onConnectExternal_attack,
     "bg_external_port_onMessage": bg_external_port_onMessage_attack,
+    "bg_externalNativePort_onMessage": bg_externalNativePort_onMessage_attack,
     "bg_tabs_onupdated": bg_tabs_onupdated_attack
 }

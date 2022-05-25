@@ -31,6 +31,23 @@ externalPort.prototype.onMessage.addListener = function(myCallback){
 };
 
 externalPort.prototype.postMessage = function(msg){
+    sink_function(msg, 'bg_external_port_postMessage');
+};
+
+
+// ========= external native port ========= 
+function externalNativePort(info){
+    this.includeTlsChannelId = info.includeTlsChannelId;
+    this.name = info.name;
+}
+
+externalNativePort.prototype.onMessage = new Object();
+
+externalNativePort.prototype.onMessage.addListener = function(myCallback){
+    MarkAttackEntry("bg_externalNativePort_onMessage", myCallback);
+};
+
+externalNativePort.prototype.postMessage = function(msg){
     // sink_function(msg, 'bg_external_port_postMessage');
 };
 
@@ -131,6 +148,8 @@ MessageSenderExternal = function(){
 function sendResponseExternal(message_out){
     sink_function(message_out, 'sendResponseExternal_sink');
 };
+
+function sendResponseExternalNative(message_out){};
 
 // chrome.runtime.onConnectExternal.addListener
 Chrome.prototype.runtime.onConnectExternal = new Object();
