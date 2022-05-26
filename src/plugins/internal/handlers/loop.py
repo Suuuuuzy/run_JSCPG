@@ -38,10 +38,10 @@ class HandleFor(Handler):
             # check increment to determine loop variables
             d = peek_variables(G, ast_node=inc, extra=extra) 
             loggers.main_logger.debug('For loop variables:')
-            for name, obj_nodes in d.items():
-                loggers.main_logger.debug(sty.ef.i + name + sty.rs.all + ': ' +
-                    ', '.join([(sty.fg.green+'{}'+sty.rs.all+' {}').format(obj,
-                    val_to_str(G.get_node_attr(obj).get('code'))) for obj in obj_nodes]))
+            # for name, obj_nodes in d.items():
+            #     loggers.main_logger.debug(sty.ef.i + name + sty.rs.all + ': ' +
+            #         ', '.join([(sty.fg.green+'{}'+sty.rs.all+' {}').format(obj,
+            #         val_to_str(G.get_node_attr(obj).get('code'))) for obj in obj_nodes]))
 
             # check if the condition is met
             check_result, deterministic = check_condition(G, cond, extra)

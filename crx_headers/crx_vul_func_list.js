@@ -1,8 +1,9 @@
 
-// 两种漏洞类别：
+// Two catogories of vulnerabilities
 // 1. SET1->SET2->SET3
 // 2. SET1->SET4
-// 假如data flow中遇到effective_sanitization，则认为不是vulnerable的
+// effective_sanitization: to move out exploitable ones
+
 
 // SET 1
 attacker_dispatchable_events = [

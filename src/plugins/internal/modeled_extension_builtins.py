@@ -286,10 +286,62 @@ def sink_function_in_graph(G: Graph, args, sink_name):
             if check_taint(G, obj, sink_name):
                 G.detected = True
     return NodeHandleResult()
+'''
+'''
+########A: API_execution
+'''
+source = []
+valid_sources_starts = ["cs_window_", "document_"]
+invalid_sources_ends = ["click", "scroll", "load"]
+valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 
+sink = [
+    # storage
+    "chrome_storage_sync_set",
+    "chrome_storage_sync_remove",
+    "chrome_storage_sync_clear",
+    "chrome_storage_local_set",
+    "chrome_storage_local_remove",
+    "chrome_storage_local_clear",
+
+
+            ]
+
+'''
+########B: DATA_exfiltration
+'''
+source = ['topSites_source',
+'cookie_source',
+'CookieStores_source' ,
+'storage_sync_get_source',
+'storage_local_get_source',
+'HistoryItem_source',
+'VisitItem_source',
+'DownloadItem_source',
+'iconURL_source',
+'BookmarkTreeNode_source',
+"management_getAll_source",
+"management_getSelf_source",
+'localStorage_getItem_source',
+'Document_element_href',
+"document.body.innerText",
+'jQuery_ajax_result_source',
+'jQuery_get_source',
+'jQuery_post_source',
+'fetch_source',
+'XMLHttpRequest_responseText_source',
+'XMLHttpRequest_responseXML_source']
+
+sink = [
+    "sendResponseExternal_sink",
+    "bg_external_port_postMessage_sink",
+    "window_postMessage_sink",
+        ]
+'''
 
 invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink"),
+                  ("bg_chrome_runtime_MessageExternal", "sendResponseExternal_sink"),
                   ("bg_external_port_onMessage", "window_postMessage_sink"),
                   ("storage_sync_get_source", "chrome_storage_sync_set_sink"),
                   ("storage_sync_get_source", "fetch_options_sink"),
@@ -316,6 +368,7 @@ def decide_valid_attacks(type):
         if type.split("eventListener_")[0] in valid_sources_starts and type.split("eventListener_")[1] in invalid_sources_ends:
             res = False
     return res
+
 
 def check_taint(G, obj, sink_name):
     attrs = G.get_node_attr(obj)

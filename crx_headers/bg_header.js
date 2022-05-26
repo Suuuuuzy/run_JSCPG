@@ -31,7 +31,7 @@ externalPort.prototype.onMessage.addListener = function(myCallback){
 };
 
 externalPort.prototype.postMessage = function(msg){
-    sink_function(msg, 'bg_external_port_postMessage');
+    sink_function(msg, 'bg_external_port_postMessage_sink');
 };
 
 
@@ -48,7 +48,6 @@ externalNativePort.prototype.onMessage.addListener = function(myCallback){
 };
 
 externalNativePort.prototype.postMessage = function(msg){
-    // sink_function(msg, 'bg_external_port_postMessage');
 };
 
 
