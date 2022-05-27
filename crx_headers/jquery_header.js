@@ -164,6 +164,11 @@ $.ajax = function(url, settings){
         if (url.complete){
             url.complete(xhr, textStatus);
         }
+        if (url.success){
+            var jQuery_ajax_result_source = 'data_form_jq_ajax';
+            MarkSource(jQuery_ajax_result_source, 'jQuery_ajax_result_source');
+            url.success(jQuery_ajax_result_source);
+        }
     }
 }
 // jQuery.get( url [, data ] [, success ] [, dataType ] )

@@ -301,7 +301,7 @@ def bg_chrome_runtime_onMessage_response(G, event):
     with G.eventRegisteredFuncs_lock:
         if tmp_event in G.eventRegisteredFuncs:
             func_objs = G.eventRegisteredFuncs[tmp_event]
-            # del G.eventRegisteredFuncs[tmp_event]
+            del G.eventRegisteredFuncs[tmp_event]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
                                                   extra=None,
                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
@@ -316,7 +316,7 @@ def cs_chrome_tabs_onMessage_response(G, event):
     with G.eventRegisteredFuncs_lock:
         if tmp_event in G.eventRegisteredFuncs:
             func_objs = G.eventRegisteredFuncs[tmp_event]
-            # del G.eventRegisteredFuncs[tmp_event]
+            del G.eventRegisteredFuncs[tmp_event]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(),
                                                   extra=None,
                                                   caller_ast=None, is_new=False, stmt_id='Unknown',
