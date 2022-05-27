@@ -103,23 +103,8 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
                 emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()), thread_age = -1)
             else:
                 emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()))
-
-        # tmp = [i.thread_self for i in G.work_queue]
-        # print('%%%%%%%%%work in trigger event: ', tmp)
     else:
-        # print("insert event", eventName)
-        # G.debug_sink_in_graph(info)
         G.eventQueue.insert(0, event)
-        # print('=========processing eventName:', event['eventName'])
-        # from src.plugins.internal.handlers.event_loop import event_listener_dic
-        # if event['eventName'] in event_listener_dic:
-        #     listener = event_listener_dic[event['eventName']][0]
-        #     listener_not_registered = True if listener not in G.eventRegisteredFuncs else False
-        #     if listener_not_registered:
-        #         print(event['eventName'], ': event listener not registered')
-        #         G.eventQueue.insert(0, {'eventName': eventName, 'info': info, 'extra': extra})
-        #     func = event_listener_dic[event['eventName']][1]
-        #     func(G, event)
     return NodeHandleResult()
 
 
@@ -172,11 +157,11 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
             if type=="bg_tabs_onupdated":
                 G.attackEntries.insert(0, entry)
             else:
-                if type in attack_dic:
-                    attack_dic[type](G, entry)
-                else:
-                    other_attack(G, entry)
-            # G.attackEntries.insert(0, entry)
+                # if type in attack_dic:
+                #     attack_dic[type](G, entry)
+                # else:
+                #     other_attack(G, entry)
+                G.attackEntries.insert(0, entry)
 
     return NodeHandleResult()
 
@@ -350,11 +335,14 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   # ("management_getAll_source", "management_setEnabled_id"),
                   # ("management_getAll_source", "management_setEnabled_enabled"),
                   ("storage_local_get_source", "chrome_storage_local_set_sink"),
-                  ("storage_sync_get_source", "chrome_storage_sync_set_sink")
-                    ]
+                  ("storage_sync_get_source", "chrome_storage_sync_set_sink"),
+                  ("cookie_source" , "localStorage_setItem_value"),
+                  ("storage_sync_get_source", "fetch_resource_sink"),
+                  ("fetch_source", "chrome_storage_sync_set_sink")
+                ]
 
 valid_sources_starts = ["cs_window_", "document_"]
-invalid_sources_ends = ["click", "scroll", "load"]
+invalid_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout"]
 # invalid: document_eventListener_scroll, document_eventListener_click, cs_window_eventListener_click, cs_window_eventListener_scroll
 # valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 invalid_attacks = ["bg_tabs_onupdated", "bg_externalNativePort_onMessage"]
