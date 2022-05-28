@@ -1,3 +1,4 @@
+*.dat
 single_run.sh
 exports/nodes.csv
 exports/rels.csv
