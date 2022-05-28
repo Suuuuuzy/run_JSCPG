@@ -139,9 +139,12 @@ def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num 
     else:
         with open(idfile) as f:
             ids = json.load(f)
-        with open("main.log") as f:
-            logContent = f.read()
-        ids = [i for i in ids if i not in logContent]
+        try:
+            with open("main.log") as f:
+                logContent = f.read()
+            ids = [i for i in ids if i not in logContent]
+        except:
+            pass
         with open(os.path.join(resDir, 'not_done.txt'), 'w') as f:
             json.dump(ids, f)
 
