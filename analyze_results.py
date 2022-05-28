@@ -145,6 +145,8 @@ def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num 
             ids = [i for i in ids if i not in logContent]
         except:
             pass
+        print("not_done")
+        print(len(ids))
         with open(os.path.join(resDir, 'not_done.txt'), 'w') as f:
             json.dump(ids, f)
 
@@ -180,7 +182,7 @@ def main():
         extension_path = sys.argv[2]
         idfile = sys.argv[3]
         res_dir = sys.argv[4]
-    run_with_threads(res_dir, extension_path, idfile, analyze_results, res_name = res_name, thread_num = thread_num, mode = None)
+    run_with_threads(res_dir, extension_path, idfile, analyze_results, res_name = res_name, thread_num = thread_num, mode = mode)
 
 
 if __name__=='__main__':

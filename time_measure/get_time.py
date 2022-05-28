@@ -10,9 +10,10 @@ for id in ids:
 	with open(os.path.join(path, id, "opgen_generated_files/used_time.txt")) as f:
 		c = f.read()
 	lines = c.split("\n")
-	line = lines[-1]
+	line = lines[-3]
+#	print(lines)
 	try:
-		time = line.split("/media/data2/jianjia/extension_data/unzipped_extensions/hcefkijdcmjhbgggflbkmbleebkmobjc finish within ")[1]
+		time = line.split("finish within ")[1]
 		time = time.split(" seconds####")[0]
 		times.append(float(time))
 	except:
