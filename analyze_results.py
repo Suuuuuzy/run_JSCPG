@@ -110,7 +110,7 @@ def sum_all_files(pathDir, prefix):
 
 
 def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num = 200, mode=None):
-    if mode!="cus":
+    if mode!="cuslog":
         threads = []
         flag = 0
         prefix = 'opgen_results'
@@ -178,7 +178,7 @@ def main():
         extension_path = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected"
         res_dir = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/opgen_results"
         idfile = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected.txt"
-    elif mode=="cus":
+    elif mode in ["cus", "cuslog"]:
         extension_path = sys.argv[2]
         idfile = sys.argv[3]
         res_dir = sys.argv[4]
