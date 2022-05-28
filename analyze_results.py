@@ -109,32 +109,41 @@ def sum_all_files(pathDir, prefix):
         os.remove(os.path.join(pathDir, str(i) + prefix+'.txt'))
 
 
-def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num = 200):
-    threads = []
-    flag = 0
-    prefix = 'opgen_results'
-    with open(idfile) as f:
-        ids = json.load(f)
-    old_results_file = os.path.join(resDir, prefix + '.txt')
-    if os.path.exists(old_results_file):
-        with open(old_results_file) as f:
-            c = json.load(f)
-            ids = c['not_done']
-            if "detected_by_doublex" in resDir:
-                ids.extend(c['benign'])
-    step = len(ids) // thread_num
-    print('Task started with %d threads.'%thread_num)
-    for i in range(thread_num - 1):
-        t = threading.Thread(target=func, args=(i, resDir, extension_path, ids[flag:flag+step], res_name))
+def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num = 200, mode=None):
+    if mode!="cus":
+        threads = []
+        flag = 0
+        prefix = 'opgen_results'
+        with open(idfile) as f:
+            ids = json.load(f)
+        old_results_file = os.path.join(resDir, prefix + '.txt')
+        if os.path.exists(old_results_file):
+            with open(old_results_file) as f:
+                c = json.load(f)
+                ids = c['not_done']
+                if "detected_by_doublex" in resDir:
+                    ids.extend(c['benign'])
+        step = len(ids) // thread_num
+        print('Task started with %d threads.'%thread_num)
+        for i in range(thread_num - 1):
+            t = threading.Thread(target=func, args=(i, resDir, extension_path, ids[flag:flag+step], res_name))
+            t.start()
+            threads.append(t)
+            flag += step
+        t = threading.Thread(target=func, args=(thread_num - 1, resDir, extension_path, ids[flag:], res_name))
         t.start()
         threads.append(t)
-        flag += step
-    t = threading.Thread(target=func, args=(thread_num - 1, resDir, extension_path, ids[flag:], res_name))
-    t.start()
-    threads.append(t)
-    for t in threads:
-        t.join()
-    sum_all_files(resDir, prefix)
+        for t in threads:
+            t.join()
+        sum_all_files(resDir, prefix)
+    else:
+        with open(idfile) as f:
+            ids = json.load(f)
+        with open("main.log") as f:
+            logContent = f.read()
+        ids = [i for i in ids if i not in logContent]
+        with open(os.path.join(resDir, 'not_done.txt'), 'w') as f:
+            json.dump(ids, f)
 
 def main():
     res_dir = ''
@@ -168,7 +177,7 @@ def main():
         extension_path = sys.argv[2]
         idfile = sys.argv[3]
         res_dir = sys.argv[4]
-    run_with_threads(res_dir, extension_path, idfile, analyze_results, res_name = res_name, thread_num = thread_num)
+    run_with_threads(res_dir, extension_path, idfile, analyze_results, res_name = res_name, thread_num = thread_num, mode = None)
 
 
 if __name__=='__main__':
