@@ -335,10 +335,11 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   # ("management_getAll_source", "management_setEnabled_id"),
                   # ("management_getAll_source", "management_setEnabled_enabled"),
                   ("storage_local_get_source", "chrome_storage_local_set_sink"),
+                  ("storage_local_get_source", "XMLHttpRequest_url_sink"),
                   ("storage_sync_get_source", "chrome_storage_sync_set_sink"),
                   ("cookie_source" , "localStorage_setItem_value"),
                   ("storage_sync_get_source", "fetch_resource_sink"),
-                  ("fetch_source", "chrome_storage_sync_set_sink")
+                  ("fetch_source", "chrome_storage_sync_set_sink"),
                 ]
 
 valid_sources_starts = ["cs_window_", "document_"]
