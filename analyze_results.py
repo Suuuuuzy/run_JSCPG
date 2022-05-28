@@ -140,7 +140,7 @@ def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num 
         with open(idfile) as f:
             ids = json.load(f)
         try:
-            with open("main.log") as f:
+            with open("crx_record.log") as f:
                 logContent = f.read()
             ids = [i for i in ids if i not in logContent]
         except:

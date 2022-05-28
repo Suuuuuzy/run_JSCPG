@@ -109,6 +109,7 @@ class OPGen:
         """
         # preprocess of the files in chrome extension
         print('process chrome extension: ', extension_path)
+        loggers.crx_record_logger.info('process chrome extension: '+ extension_path)
         if G is None:
             G = self.graph
         test_res = None
