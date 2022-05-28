@@ -125,36 +125,8 @@ class OPGen:
             return -1
         if timeout_s is not None:
             try:
-                with timeout(seconds=timeout_s,
-                             error_message="{} timeout after {} seconds". \
-                                     format(extension_path, timeout_s)):
-                    loggers.res_logger.info('processing extension: %s', extension_path)
-                    start_time = time.time()
-                    Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test = options.easy_test)
-                    if Error_msg:
-                        with open(os.path.join(res_dir, result_file), 'w') as f:
-                            f.write(Error_msg)
-                        return -1
-                    Error_msg = self._test_graph(G, vul_type=vul_type)
-                    file_size = 0
-                    if os.path.exists(os.path.join(res_dir, result_file)):
-                        file_size = os.path.getsize(os.path.join(res_dir, result_file))
-                    if Error_msg and file_size == 0:
-                        with open(os.path.join(res_dir, result_file), 'w') as f:
-                            f.write(Error_msg)
-                        return -1
-                    end_time = time.time()
-                    with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
-                        f.write(self.output_args_str())
-                        f.write(extension_path + " finish within {} seconds####".format(str(end_time-start_time)) + "\n\n")
-                    loggers.res_logger.info("{} finish with {} seconds spent####". \
-                            format(extension_path, end_time-start_time))
-                    if not G.detected:
-                        with open(os.path.join(res_dir, result_file), 'w') as f:
-                            f.write('nothing detected')
-                        loggers.res_logger.info('nothing detected in file %s', extension_path)
-                    else:
-                        loggers.res_logger.info('vulnerability detected in file %s', extension_path)
+                with timeout(seconds=timeout_s,error_message="{} timeout after {} seconds".format(extension_path, timeout_s)):
+                    self.parse_run_extension(G, extension_path,dx, res_dir, result_file, vul_type)
             except TimeoutError as err:
                 if self.graph.get_total_num_statements()!=0:
                     covered_stat_rate = 100*len(self.graph.covered_stat) / (self.graph.get_total_num_statements()- self.graph.get_header_num_statements())
@@ -163,37 +135,36 @@ class OPGen:
                 with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
                     f.write(self.output_args_str())
                     f.write(str(err) + " with {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
-                loggers.res_logger.info(str(err) + " with {}% stmt covered####".format(covered_stat_rate))
                 if not G.detected:
                     with open(os.path.join(res_dir, result_file), 'w') as f:
                         f.write('timeout')
-                    loggers.res_logger.info('nothing detected in file %s', extension_path)
-                else:
-                    loggers.res_logger.info('vulnerability detected in file %s', extension_path)
         else:
-            Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
-            if Error_msg:
-                with open(os.path.join(res_dir, result_file), 'w') as f:
-                    f.write(Error_msg)
-                return
-            Error_msg = self._test_graph(G, vul_type=vul_type)
-            file_size = 0
-            if os.path.exists(os.path.join(res_dir, result_file)):
-                file_size = os.path.getsize(os.path.join(res_dir, result_file))
-            if Error_msg and file_size==0:
-                with open(os.path.join(res_dir, result_file), 'w') as f:
-                    f.write(Error_msg)
-                return -1
-            if not G.detected:
-                with open(os.path.join(res_dir, result_file), 'w') as f:
-                    f.write('nothing detected')
-            with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
-                f.write(self.output_args_str())
-                f.write(extension_path + " stopped with {}% stmt covered####".format(self.graph.last_code_cov) + "\n\n")
-
+            self.parse_run_extension(G, extension_path, dx, res_dir, result_file, vul_type)
         # test_res = None
         return test_res
 
+    def parse_run_extension(self, G, extension_path,dx, res_dir, result_file, vul_type):
+        start_time = time.time()
+        Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
+        if Error_msg:
+            with open(os.path.join(res_dir, result_file), 'w') as f:
+                f.write(Error_msg)
+            return -1
+        Error_msg = self._test_graph(G, vul_type=vul_type)
+        file_size = 0
+        if os.path.exists(os.path.join(res_dir, result_file)):
+            file_size = os.path.getsize(os.path.join(res_dir, result_file))
+        if Error_msg and file_size == 0:
+            with open(os.path.join(res_dir, result_file), 'w') as f:
+                f.write(Error_msg)
+            return -1
+        end_time = time.time()
+        with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
+            f.write(self.output_args_str())
+            f.write(extension_path + " finish within {} seconds####".format(str(end_time - start_time)) + "\n\n")
+        if not G.detected:
+            with open(os.path.join(res_dir, result_file), 'w') as f:
+                f.write('nothing detected')
 
     def _test_graph(self, G: Graph, vul_type='os_command'):
         """
