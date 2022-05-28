@@ -54,6 +54,7 @@ def parse_args():
     parser.add_argument('-thread_stmt', '--thread_stmt', action='store_true', default=False, help="run stmts with threads if they are takign too long")
     parser.add_argument('-allb', '--all_branch', action='store_true', default=False, help="run all the branches for no thread version")
     parser.add_argument('-war', '--war', action='store_true', default=False, help="run with war as bg")
+    parser.add_argument('-measure_thread', '--measure_thread', action='store_true', default=False, help="measure thread with time")
 
     args = parser.parse_args()
     if args.vul_type == 'prototype_pollution':

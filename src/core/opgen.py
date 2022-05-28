@@ -420,9 +420,17 @@ def admin_threads(G, function, args):
     t.start()
     with G.work_queue_lock:
         G.work_queue.add(info)
-    # old_queue = []
-    # old_len = 0
+    if G.measure_thread:
+        package_id = G.package_name.split("/")[-1]
+        thread_measure_file = "thread_measure/" + package_id + '.txt'
+        thread_time = []
+        old_len = 1
+        thread_time.append("THREAD " + str(old_len)+" "+str(time.time()))
     while True:
+        if G.measure_thread:
+            if len(threading.enumerate())!=old_len:
+                old_len = len(threading.enumerate())
+                thread_time.append("THREAD " + str(old_len)+" "+str(time.time()))
         with G.work_queue_lock:
             for t in G.work_queue:
                 if not t.thread_self.is_alive():
@@ -480,7 +488,10 @@ def admin_threads(G, function, args):
         #     tmp = [i.thread_self for i in G.pq]
         #     print('%%%%%%%%%pq: ', tmp)
         if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
-        # if len(G.work_queue) == 0 and len(G.pq) == 0 and len(G.wait_queue) == 0:
+            if G.measure_thread:
+                with open(thread_measure_file, "a") as f:
+                    for i in thread_time:
+                        f.write(i+"\n")
             print('finish')
             return 1
 
@@ -533,6 +544,7 @@ def setup_graph_env(G: Graph):
     G.detection_res[options.vul_type] = set()
     G.no_merge = options.no_merge
     G.thread_stmt = options.thread_stmt
+    G.measure_thread = options.measure_thread
     G.war = options.war
     if G.war:
         G.result_file = "res_war.txt"

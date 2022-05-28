@@ -1,3 +1,5 @@
+thread_measure/
+memory_usage_measure/
 *.dat
 single_run.sh
 exports/nodes.csv
