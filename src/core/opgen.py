@@ -395,14 +395,18 @@ def admin_threads(G, function, args):
     if G.measure_thread:
         package_id = G.package_name.split("/")[-1]
         thread_measure_file = "thread_measure/" + package_id + '.txt'
-        thread_time = []
         old_len = 1
-        thread_time.append("THREAD " + str(old_len)+" "+str(time.time()))
+        newline = "THREAD " + str(old_len) + " " + str(time.time())
+        with open(thread_measure_file, "a") as f:
+            f.write(newline + "\n")
     while True:
         if G.measure_thread:
             if len(threading.enumerate())!=old_len:
                 old_len = len(threading.enumerate())
-                thread_time.append("THREAD " + str(old_len)+" "+str(time.time()))
+                newline = "THREAD " + str(old_len)+" "+str(time.time())
+                # thread_time.append(newline)
+                with open(thread_measure_file, "a") as f:
+                    f.write(newline + "\n")
         with G.work_queue_lock:
             for t in G.work_queue:
                 if not t.thread_self.is_alive():
@@ -460,10 +464,10 @@ def admin_threads(G, function, args):
         #     tmp = [i.thread_self for i in G.pq]
         #     print('%%%%%%%%%pq: ', tmp)
         if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
-            if G.measure_thread:
-                with open(thread_measure_file, "a") as f:
-                    for i in thread_time:
-                        f.write(i+"\n")
+            # if G.measure_thread:
+            #     with open(thread_measure_file, "a") as f:
+            #         for i in thread_time:
+            #             f.write(i+"\n")
             print('finish')
             return 1
 
