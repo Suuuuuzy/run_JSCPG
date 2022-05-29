@@ -1,8 +1,8 @@
 import os
 import json
 def main_func():
-    path = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/12_doublex_empoweb_api_result/detected/"
-    with open("crx_lists/memory.txt") as f:
+    path = "memory_usage_measure/extensions"
+    with open("memory_usage_measure/memory.txt") as f:
         ids = json.load(f)
     for id in ids:
         cmd = "mprof run generate_opg.py -t chrome_ext -crx {extenion_path} -pq"

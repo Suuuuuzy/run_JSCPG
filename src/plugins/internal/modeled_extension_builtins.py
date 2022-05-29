@@ -329,7 +329,7 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   ("bg_chrome_runtime_MessageExternal", "sendResponseExternal_sink"),
                   ("bg_external_port_onMessage", "window_postMessage_sink"),
                   ("storage_sync_get_source", "chrome_storage_sync_set_sink"),
-                  ("storage_sync_get_source", "fetch_options_sink"),
+                  # ("storage_sync_get_source", "fetch_options_sink"),
                   ("XMLHttpRequest_responseText_source", "XMLHttpRequest_post_sink"),
                   # ("cookies_source", "chrome_cookies_set_sink"),
                   # ("management_getAll_source", "management_setEnabled_id"),
@@ -337,13 +337,13 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   ("storage_local_get_source", "chrome_storage_local_set_sink"),
                   ("storage_local_get_source", "XMLHttpRequest_url_sink"),
                   ("storage_sync_get_source", "chrome_storage_sync_set_sink"),
-                  ("cookie_source" , "localStorage_setItem_value"),
-                  ("storage_sync_get_source", "fetch_resource_sink"),
-                  ("fetch_source", "chrome_storage_sync_set_sink"),
+                  # ("cookie_source" , "localStorage_setItem_value"),
+                  # ("storage_sync_get_source", "fetch_resource_sink"),
+                  # ("fetch_source", "chrome_storage_sync_set_sink"),
                 ]
 
 valid_sources_starts = ["cs_window_", "document_"]
-invalid_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout"]
+invalid_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded"]
 # invalid: document_eventListener_scroll, document_eventListener_click, cs_window_eventListener_click, cs_window_eventListener_scroll
 # valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 invalid_attacks = ["bg_tabs_onupdated", "bg_externalNativePort_onMessage"]
