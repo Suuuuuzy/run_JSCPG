@@ -6,6 +6,7 @@ path = sys.argv[1]
 with open(idfile) as f:
 	ids = json.load(f)
 times = []
+time_id = {}
 for id in ids:
 	with open(os.path.join(path, id, "opgen_generated_files/used_time.txt")) as f:
 		c = f.read()
