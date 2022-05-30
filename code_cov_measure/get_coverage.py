@@ -14,8 +14,8 @@ for id in ids:
 	line = lines[-3]
 #	print(lines)
 	try:
-		time = line.split("finish within ")[1]
-		time = time.split(" seconds####")[0]
+		time = line.split("with code_cov ")[1]
+		time = time.split("% stmt covered####")[0]
 		times.append(float(time))
 		time_id[id] = float(time)
 	except:

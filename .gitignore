@@ -1,3 +1,4 @@
+memory_usage_measure/extensions/
 thread_measure/*.txt
 *.dat
 single_run.sh

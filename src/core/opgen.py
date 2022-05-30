@@ -31,12 +31,11 @@ class OPGen:
         else:
             header_path = 'crx_headers/'
         with open(os.path.join(header_path, 'jquery_header.js')) as f:
-            self.jq_header_lines = len(f.read().split('\n'))
+            self.jq_header_lines = len(f.read().split('\n'))+2
         with open(os.path.join(header_path, 'cs_header.js')) as f:
-            self.cs_header_lines = len(f.read().split('\n'))
+            self.cs_header_lines = len(f.read().split('\n'))+2
         with open(os.path.join(header_path, 'bg_header.js')) as f:
-            self.bg_header_lines = len(f.read().split('\n'))
-
+            self.bg_header_lines = len(f.read().split('\n'))+2
         self.graph = Graph(cs_header_lines=self.cs_header_lines + self.jq_header_lines, \
                            bg_header_lines=self.bg_header_lines + self.jq_header_lines,
                            thread_version = self.options.run_with_pq)
@@ -129,13 +128,10 @@ class OPGen:
                 with timeout(seconds=timeout_s,error_message="{} timeout after {} seconds".format(extension_path, timeout_s)):
                     self.parse_run_extension(G, extension_path,dx, res_dir, result_file, vul_type)
             except TimeoutError as err:
-                if self.graph.get_total_num_statements()!=0:
-                    covered_stat_rate = 100*len(self.graph.covered_stat) / (self.graph.get_total_num_statements()- self.graph.get_header_num_statements())
-                else:
-                    covered_stat_rate = 0
+                covered_stat_rate = self.graph.get_code_cov()
                 with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
                     f.write(self.output_args_str())
-                    f.write(str(err) + " with {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
+                    f.write(str(err) + " with code_cov {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
                 if not G.detected:
                     with open(os.path.join(res_dir, result_file), 'w') as f:
                         f.write('timeout')
@@ -160,9 +156,10 @@ class OPGen:
                 f.write(Error_msg)
             return -1
         end_time = time.time()
+        covered_stat_rate = self.graph.get_code_cov()
         with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
             f.write(self.output_args_str())
-            f.write(extension_path + " finish within {} seconds####".format(str(end_time - start_time)) + "\n\n")
+            f.write(extension_path + " finish within {} seconds#### with code_cov {}% stmt covered####".format(str(end_time - start_time), covered_stat_rate) + "\n\n")
         if not G.detected:
             with open(os.path.join(res_dir, result_file), 'w') as f:
                 f.write('nothing detected')

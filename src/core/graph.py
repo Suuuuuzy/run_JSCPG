@@ -106,8 +106,7 @@ class Graph:
         self.covered_num_stat = 0
         self.covered_stat = {} #set()
         self.all_stat = set()
-        # initialize head_stats
-        self.initialize_header_stat()
+        self.header_stat = set()
         self.all_func = set()
         self.covered_func = set()
 
@@ -1954,18 +1953,41 @@ class Graph:
         self.get_total_num_statements()
         return self.all_stat
 
-    def get_header_stat(self):
-        return self.header_stat
+    # def initialize_header_stat(self):
+    #     self.header_stat = set()
+    #     all_nodes = self.get_all_nodes()
+    #     for n in all_nodes:
+    #         if 'type' in all_nodes[n] and 'AST_' in all_nodes[n]['type'] and self.is_statement(n):
+    #             filepath = self.get_node_file_path(n)
+    #             print("filepath: ", filepath)
+    #             if "/bg.js" in filepath:
+    #                 threshold = self.bg_header_lines
+    #             elif "/cs" in filepath:
+    #                 threshold = self.cs_header_lines
+    #             cur_node_attr = self.get_node_attr(n)
+    #             if cur_node_attr.get('lineno:int') is None:
+    #                 continue
+    #             else:
+    #                 try:
+    #                     line_num = int(cur_node_attr.get('lineno:int'))
+    #                     if line_num < threshold:
+    #                         self.header_stat.add(n)
+    #                 except:
+    #                     pass
 
-    def initialize_header_stat(self):
-        self.header_stat = set()
+    def get_header_num_statements(self):
+        if len(self.header_stat) != 0:
+            return len(self.header_stat)
+
         all_nodes = self.get_all_nodes()
+        threshold = 0
         for n in all_nodes:
             if 'type' in all_nodes[n] and 'AST_' in all_nodes[n]['type'] and self.is_statement(n):
                 filepath = self.get_node_file_path(n)
-                if "eopg_generated_files/bg.js" in filepath:
+                # print("filepath: ", filepath)
+                if "/bg.js" in filepath:
                     threshold = self.bg_header_lines
-                elif "eopg_generated_files/cs" in filepath:
+                elif "/cs" in filepath:
                     threshold = self.cs_header_lines
                 cur_node_attr = self.get_node_attr(n)
                 if cur_node_attr.get('lineno:int') is None:
@@ -1977,12 +1999,12 @@ class Graph:
                             self.header_stat.add(n)
                     except:
                         pass
+        # print('len(self.all_stat): ', len(self.all_stat))
+        return len(self.header_stat)
 
-    def get_header_num_statements(self):
-        header_stat = self.get_header_stat()
-        # print('len(header_stat): ', len(header_stat))
-        # print( self.all_stat-(header_stat))
-        return len(header_stat)
+    def get_header_stat(self):
+        self.get_header_num_statements()
+        return self.header_stat
 
     def get_total_num_functions(self):
         """
@@ -2094,6 +2116,18 @@ class Graph:
         # self add 1
         num += 1
         return num
+
+    def get_code_cov(self):
+        print("jianjia")
+        print(self.get_total_num_statements())
+        print(self.get_total_num_statements() - self.get_header_num_statements())
+        print(len(self.covered_stat))
+        whole_num = self.get_total_num_statements() - self.get_header_num_statements()
+        if whole_num != 0:
+            covered_stat_rate = 100 * len(self.covered_stat) / whole_num
+        else:
+            covered_stat_rate = 0
+        return covered_stat_rate
 
     # ASToperators = [
     #                 'AST_ASSIGN': self.HandleAssign,
