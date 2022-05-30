@@ -16,6 +16,7 @@ for id in ids:
 		time = line.split("finish within ")[1]
 		time = time.split(" seconds####")[0]
 		times.append(float(time))
+		time_id[id] = float(time)
 	except:
 		if "timeout" in line:
 			print("timeout")
@@ -24,3 +25,6 @@ for id in ids:
 print(len(times))
 with open("time.txt", "w") as f:
 	json.dump(times, f)
+
+with open("time_id.txt", "w") as f:
+	json.dump(time_id, f)
