@@ -127,7 +127,7 @@ class PluginManager(object):
                     # print('manager wait in thread: ', current_thread.name)
                     cur_info.flag.wait()
                     # check running time of current thread, and there is other thread waiting in the pq
-                    if time.time_ns() - cur_info.last_start_time > 10000000000 and len(self.G.pq)>0:
+                    if time.time() - cur_info.last_start_time > 0.1 and len(self.G.pq)>0:
                         # print(str(current_thread) + 'timeout')
                         with self.G.work_queue_lock:
                             if cur_info in self.G.work_queue:
@@ -159,16 +159,18 @@ class PluginManager(object):
             if self.G.is_statement(node_id):
                 line_mark = self.G.get_node_attr(node_id)['namespace'].split(":")
                 loggers.main_logger.info(f"Running Line {line_mark[0]} to {line_mark[2]}")
-                header_stat = self.G.get_header_stat()
-                all_stat = self.G.get_all_stat()
-                if node_id  in all_stat-header_stat:
+                if node_id  in self.G.get_all_but_header_stmt():
                     if node_id not in self.G.covered_stat:
+                        package_id = self.G.package_name.split("/")[-1]
+                        code_cov_measure_file = "code_cov_measure/data/" + package_id + '.txt'
                         self.G.covered_stat[node_id] = 0
-                        code_cov = len(self.G.covered_stat) / (self.G.get_total_num_statements()-self.G.get_header_num_statements())
+                        code_cov = self.G.get_code_cov()
+                        newline = "CODE_COV " + str(code_cov) + " " + str(time.time())
+                        # thread_time.append(newline)
+                        with open(code_cov_measure_file, "a") as f:
+                            f.write(newline + "\n")
                         loggers.progress_logger.info(
                             "{}% stmt covered.".format(100 * code_cov))
-                    # elif self.G.covered_stat[node_id] > 300:
-                    #    return NodeHandleResult()
                     else:
                         self.G.covered_stat[node_id] += 1
                         with self.G.code_coverage_lock:

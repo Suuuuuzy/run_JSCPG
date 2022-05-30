@@ -159,7 +159,6 @@ class HandleIf(Handler):
                 # print(threading.current_thread().name + ': father finish waiting')
                 with G.wait_queue_lock:
                     G.wait_queue.remove(cur_info)
-                # cur_info.last_start_time = time.time_ns()
                 with G.work_queue_lock:
                     G.work_queue.add(cur_info)
                 # tmp = [i.thread_self for i in G.work_queue]

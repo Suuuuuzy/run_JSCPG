@@ -53,6 +53,7 @@ class Graph:
         self.graph_lock = Lock()
         self.no_merge = False
         self.thread_stmt = False
+        self.time_slice = 0.1
         if self.thread_version:
             self.mydata = MyData()
         else:
@@ -192,7 +193,7 @@ class Graph:
 
         self.running_thread_id=0
         self.running_thread_age = 0
-        self.running_time_ns = 0
+        self.running_time = 0
         self.running_thread = None
 
         # dictionary: {thread name: its thread_info object}
@@ -2118,16 +2119,21 @@ class Graph:
         return num
 
     def get_code_cov(self):
-        print("jianjia")
-        print(self.get_total_num_statements())
-        print(self.get_total_num_statements() - self.get_header_num_statements())
-        print(len(self.covered_stat))
+        # print("jianjia")
+        # print(self.get_total_num_statements())
+        # print(self.get_total_num_statements() - self.get_header_num_statements())
+        # print(len(self.covered_stat))
         whole_num = self.get_total_num_statements() - self.get_header_num_statements()
         if whole_num != 0:
             covered_stat_rate = 100 * len(self.covered_stat) / whole_num
         else:
             covered_stat_rate = 0
         return covered_stat_rate
+
+    def get_all_but_header_stmt(self):
+        header_stat = self.get_header_stat()
+        all_stat = self.get_all_stat()
+        return all_stat - header_stat
 
     # ASToperators = [
     #                 'AST_ASSIGN': self.HandleAssign,

@@ -1,8 +1,8 @@
 import os
 import sys
 import json
-idfile = sys.argv[2]
 path = sys.argv[1]
+idfile = sys.argv[2]
 with open(idfile) as f:
 	ids = json.load(f)
 times = []
@@ -19,13 +19,12 @@ for id in ids:
 		times.append(float(time))
 		time_id[id] = float(time)
 	except:
-		if "timeout" in line:
-			print("timeout")
+		print(id + " except")
 	
 time_id = dict(sorted(time_id.items(), key=lambda item: item[1]))
 print(len(times))
-with open("time.txt", "w") as f:
+with open("final_code_cov/cov.txt", "w") as f:
 	json.dump(times, f)
 
-with open("time_id.txt", "w") as f:
+with open("final_code_cov/cov_id.txt", "w") as f:
 	json.dump(time_id, f)

@@ -374,7 +374,7 @@ def fetch_new_thread(G):
             del G.pq[0]
     if result not in G.work_queue:
         # print('fetch new thread: ', result.thread_self.name)
-        result.last_start_time = time.time_ns()
+        result.last_start_time = time.time()
         with G.work_queue_lock:
             G.work_queue.add(result)
         result.resume()
@@ -383,7 +383,7 @@ def fetch_new_thread(G):
 def admin_threads(G, function, args):
     print('admin threads')
     t = Thread(target=function, args=args)
-    info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=1)
+    info = thread_info(thread=t, last_start_time=time.time(), thread_age=1)
     with G.thread_info_lock:
         G.thread_infos[t.name] = info
     t.start()
@@ -517,6 +517,7 @@ def setup_graph_env(G: Graph):
     G.detection_res[options.vul_type] = set()
     G.no_merge = options.no_merge
     G.thread_stmt = options.thread_stmt
+    G.time_slice = options.time_slice
     G.measure_thread = options.measure_thread
     G.war = options.war
     if G.war:
