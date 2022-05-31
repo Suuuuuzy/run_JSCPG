@@ -161,14 +161,15 @@ class PluginManager(object):
                 loggers.main_logger.info(f"Running Line {line_mark[0]} to {line_mark[2]}")
                 if node_id  in self.G.get_all_but_header_stmt():
                     if node_id not in self.G.covered_stat:
-                        package_id = self.G.package_name.split("/")[-1]
-                        code_cov_measure_file = "code_cov_measure/data/" + package_id + '.txt'
                         self.G.covered_stat[node_id] = 0
                         code_cov = self.G.get_code_cov()
-                        newline = "CODE_COV " + str(code_cov) + " " + str(time.time())
                         # thread_time.append(newline)
-                        with open(code_cov_measure_file, "a") as f:
-                            f.write(newline + "\n")
+                        if self.G.measure_code_cov_progress:
+                            newline = "CODE_COV " + str(code_cov) + " " + str(time.time())
+                            package_id = self.G.package_name.split("/")[-1]
+                            code_cov_measure_file = "code_cov_measure/data/" + package_id + '.txt'
+                            with open(code_cov_measure_file, "a") as f:
+                                f.write(newline + "\n")
                         loggers.progress_logger.info(
                             "{}% stmt covered.".format(100 * code_cov))
                     else:

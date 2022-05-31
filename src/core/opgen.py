@@ -390,6 +390,7 @@ def admin_threads(G, function, args):
     with G.work_queue_lock:
         G.work_queue.add(info)
     if G.measure_thread:
+        print()
         package_id = G.package_name.split("/")[-1]
         thread_measure_file = "thread_measure/" + package_id + '.txt'
         old_len = 1
@@ -519,6 +520,7 @@ def setup_graph_env(G: Graph):
     G.thread_stmt = options.thread_stmt
     G.time_slice = options.time_slice
     G.measure_thread = options.measure_thread
+    G.measure_code_cov_progress = options.measure_code_cov_progress
     G.war = options.war
     if G.war:
         G.result_file = "res_war.txt"

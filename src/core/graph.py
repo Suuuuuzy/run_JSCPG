@@ -1592,8 +1592,8 @@ class Graph:
             obj: The object node.
             func_ast (optional): Function's AST node. Default to None.
         '''
-        assert obj != self.undefined_obj
-        assert obj != self.null_obj
+        # assert obj != self.undefined_obj
+        # assert obj != self.null_obj
         if self.get_node_attr(obj).get('code') != wildcard:
             self.set_node_attr(obj, ('type', 'function'))
         self.add_obj_as_prop("prototype", func_ast, "object", 

@@ -1,3 +1,4 @@
+code_cov_measure/data
 memory_usage_measure/extensions/
 thread_measure/*.txt
 *.dat

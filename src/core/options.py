@@ -55,6 +55,7 @@ def parse_args():
     parser.add_argument('-allb', '--all_branch', action='store_true', default=False, help="run all the branches for no thread version")
     parser.add_argument('-war', '--war', action='store_true', default=False, help="run with war as bg")
     parser.add_argument('-measure_thread', '--measure_thread', action='store_true', default=False, help="measure thread with time")
+    parser.add_argument('-measure_code_cov_progress', '--measure_code_cov_progress', action='store_true', default=False, help="measure code coverage with time")
     parser.add_argument('-slice', '--time_slice', type=float, default=0.1, help="find the best time slice")
 
     args = parser.parse_args()

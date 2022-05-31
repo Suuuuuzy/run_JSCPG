@@ -28,7 +28,7 @@ class HandleBinaryOP(Handler):
             # TODO: add value check to filter out false values
             handled_left = handle_node(left_child, extra)
             left_values = to_values(G, handled_left, node_id, for_prop=True)[0]
-            if left_values in ([undefined], ["false"]):
+            if left_values in ([undefined], ["false"], [wildcard]):
                 handled_right = handle_node(right_child, extra)
                 now_objs = list(set(to_obj_nodes(G, handled_right, node_id)))
             else:
