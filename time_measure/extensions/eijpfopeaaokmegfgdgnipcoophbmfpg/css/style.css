@@ -1,0 +1,176 @@
+.ut-wrapper {
+	    text-align: center;
+    width: 100%;
+    z-index: 2147483647;
+    position: fixed;
+    right: 0px;
+    bottom: 0px;
+    height: 40px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    box-shadow: rgb(102, 102, 102) 0px 0px 5px 1px;
+    font-family: arial;
+    color: rgb(255, 255, 255);
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+.ut-wrapper .ul-extension-wrap {line-height: 40px; margin:0 auto;}
+.ut-wrapper ul li {
+	display: inline-block; margin-right: 10px; line-height: 40px;    vertical-align: middle; 
+	height: 34px; 
+}
+.ut-wrapper .logo_image_order {
+	border: 1px solid;   width: 50px;
+    padding:  0px;
+}
+.ut-wrapper .txt_rate_exchange {font-size: 14px;}
+
+
+.ut-wrapper a {color:#ffffff;text-decoration:none;}
+.ut-wrapper a:hover {color:#ffed2d;text-decoration:underline;}
+/*
+.ut-info {float:left;width:270px;font-size:14px;}
+.ut-logo {float:left;width:100px;}
+.ut-logo a {
+	display: block;
+	background: url('chrome-extension://__MSG_@@extension_id__/images/logo-white.png') no-repeat;
+	width: 100px;
+	height: 45px;
+}
+.ut-hotline {
+	float:left;
+	padding-top:6px;
+	padding-left:12px;
+	text-align:left;
+}*/
+/*.ut-hotline h4 {margin:0px;}
+.ut-hotline p {margin:1px 0px 0px;}
+
+.ut-cart {float:left;box-sizing:border-box;width:78px;padding:0px 6px;font-size:13px;}
+.ut-cart div {width:50px;height:45px;background:url('chrome-extension://__MSG_@@extension_id__/images/order88-cart.png') no-repeat;}
+.ut-cart-1{width:40px;height:40px;background:url('chrome-extension://__MSG_@@extension_id__/images/order88-cart.png') no-repeat;}
+.ut-cart div span {display:block;padding-top:5px;text-align:center;font-size:15px;font-weight:700;color:#ff3347;}
+*/
+/*#order88_cart_size2 {position:relative;display:none;}
+
+.ut-buttons {float:left;width:246px;padding-top:6px;}*/
+#ut-addToCart {
+	    background: #449d44;
+    color: #fff;
+	height: 34px;
+	border: none;
+	cursor: pointer;
+	padding:5px 10px;
+	border-radius: 5px;
+	font-size: 14px;
+	font-weight: 700;
+	min-width: 180px;
+	
+}
+#ut-addToCart:hover {
+	background:#beecef;
+	color:#0c2a60;
+}
+#ut-goToCart {
+	background: #fe7f4a;
+    color: #fff;
+	height: 34px;
+	border: none;
+	cursor: pointer;
+	padding:9px 10px;
+	border-radius: 5px;
+	font-size: 14px;
+	font-weight: 700;
+	width: 180px;
+	
+}
+#ut-goToCart:hover {
+	background: #f6ed69;
+	text-decoration:none;
+	color:#e60050;
+}
+
+
+
+/*new modal*/
+body {font-family: Arial, Helvetica, sans-serif;}
+
+/* The Modal (background) */
+.modal-popup {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 99999999 !important; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+.modal-popup .btn {
+	display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+.modal-popup .btn-success {
+    color: #fff;
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+}
+.modal-popup .btn-primary {
+    color: #fff;
+    background-color: #fe7f4a;
+    border-color: #fe7f4a;
+}
+.modal-popup .btn-default {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+.modal-popup .btn_popup {
+	width: 40%;
+}
+/* Modal Content */
+.modal-content-popup {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 400px;;
+}
+.modal-content-popup p {
+	font-size: 16px;
+	text-align: center;
+}
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}

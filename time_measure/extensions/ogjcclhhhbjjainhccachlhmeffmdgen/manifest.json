@@ -1,0 +1,44 @@
+{
+"update_url": "https://clients2.google.com/service/update2/crx",
+
+    "name": "Zillstr",
+    "version": "1.0.8",
+    "description": "STR deal analysis made easy",
+    "manifest_version": 2,
+    "background": {
+        "scripts": [
+            "js/background.js"
+        ],
+        "persistent": false
+    },
+
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.zillow.com/*"
+            ],
+            "js": ["js/content.js"],
+            "css": ["css/content.css"],
+            "run_at": "document_end"
+
+        }
+    ],
+    "web_accessible_resources" : [
+      "/images/*"
+    ],
+    "permissions": [
+        "identity",
+        "identity.email",
+        "tabs",
+        "https://api.zillstr.com/*",
+        "https://dev-api.zillstr.com/*"
+    ],
+    "icons": {
+        "16": "images/logo.png",
+        "48": "images/logo.png",
+        "128": "images/logo.png"
+    },
+    "browser_action": {
+        "default_title": "Created by MHO, enjoy!"
+    }
+}

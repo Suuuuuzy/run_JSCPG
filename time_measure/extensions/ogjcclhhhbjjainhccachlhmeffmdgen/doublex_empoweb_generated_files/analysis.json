@@ -1,0 +1,48 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_empoweb_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "XMLHttpRequest.open",
+                "value": "{'XMLHttpRequest()': {}, 'onreadystatechange': <pdg_js.node.FunctionExpression object at 0x7f5ec99d6490>}.open(GET, https://api.zillstr.com/configs, True)",
+                "sink-param1": "GET",
+                "sink-param2": "https://api.zillstr.com/configs",
+                "sink-param3": true,
+                "line": "67 - 67",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "indirect_dangers": {
+            "danger1": {
+                "danger": "fetch",
+                "value": "fetch(document.location.href)",
+                "sink-param1": "document.location.href",
+                "line": "89 - 89",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "XMLHttpRequest.open",
+                "value": "{'XMLHttpRequest()': {}, 'onreadystatechange': <pdg_js.node.FunctionExpression object at 0x7f5eca009f40>}.open(GET, request.data.url&email=info.email, True)",
+                "sink-param1": "GET",
+                "sink-param2": "request.data.url&email=info.email",
+                "sink-param3": true,
+                "line": "48 - 48",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    }
+}

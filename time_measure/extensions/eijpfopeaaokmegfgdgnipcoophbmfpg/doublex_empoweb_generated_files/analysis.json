@@ -1,0 +1,94 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_empoweb_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "storage.sync.set",
+                "value": "chrome.storage.sync.set(<pdg_js.node.ValueExpr object at 0x7fd67ae4a460>, <pdg_js.node.FunctionExpression object at 0x7fd67ae4a490>)",
+                "sink-param1": "{\"json_pro\": items}",
+                "sink-param2": "function(data){\n console.log(\"ln u\");\n console.log(items);\n \n }",
+                "line": "849 - 853",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger2": {
+                "danger": "storage.sync.set",
+                "value": "chrome.storage.sync.set(<pdg_js.node.ValueExpr object at 0x7fd67ae4adc0>, <pdg_js.node.FunctionExpression object at 0x7fd67ae4adf0>)",
+                "sink-param1": "{\"json_pro\": items}",
+                "sink-param2": "function(data){\n console.log(\"ln sau\");\n console.log(items);\n \n }",
+                "line": "859 - 863",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger3": {
+                "danger": "storage.sync.set",
+                "value": "chrome.storage.sync.set(<pdg_js.node.ValueExpr object at 0x7fd6819b44f0>, <pdg_js.node.FunctionExpression object at 0x7fd6819b4520>)",
+                "sink-param1": "{\"json_pro\":[]}",
+                "sink-param2": "function(){\n // alert(\"Thm mi thnh cng\");\n // location.reload(true);\n window.location.href=HOST+\"/gio-hang-extension\";\n }",
+                "line": "938 - 942",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "indirect_dangers": {
+            "danger1": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(myKey, <pdg_js.node.FunctionExpression object at 0x7fd66b503340>)",
+                "sink-param1": "myKey",
+                "sink-param2": "function (obj) {\n console.log(obj);\n token=obj.myKey;\n // alert(token);\n return token;\n }",
+                "line": "780 - 785",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger2": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(json_pro, <pdg_js.node.FunctionExpression object at 0x7fd67ae61d00>)",
+                "sink-param1": "json_pro",
+                "sink-param2": "function (obj) {\n var obj_json_pro=obj.json_pro;\n if(Object.keys(obj).length === 0 && obj.constructor === Object){\n // if(obj.json_pro==\"\"){\n // ln u thit lp mng pro\n chrome.storage.sync.set({\"json_pro\": items},function(data){\n console.log(\"ln u\");\n console.log(items);\n \n });\n }else {\n // ln sau gn cc item mi vo\n for (var i = 0; i < obj_json_pro.length; i++) {\n items.push(obj_json_pro[i]);\n }\n chrome.storage.sync.set({\"json_pro\": items},function(data){\n console.log(\"ln sau\");\n console.log(items);\n \n });\n }\n }",
+                "line": "844 - 865",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger3": {
+                "danger": "ajax",
+                "value": "$.ajax(<pdg_js.node.ValueExpr object at 0x7fd67ae50fa0>)",
+                "sink-param1": "{\n url : HOST+'/ajaxs/search/get_rate_exchange.php',\n type: 'post',\n data: {\n\n },\n success:function (response) {\n if (response!=0) {\n price_extrade = parseFloat(response);\n ut.init();\n }\n },\n error:function (err) {\n // sendResponse({code: 205, message: 'Vui lng ng nhp thc hin mua hng!'});\n }\n }",
+                "line": "893 - 908",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger4": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(json_pro, <pdg_js.node.FunctionExpression object at 0x7fd66cbf8760>)",
+                "sink-param1": "json_pro",
+                "sink-param2": "function (obj) {\n if (obj.json_pro === undefined || obj.json_pro.length == 0) {\n // array empty or does not exist\n }else {\n $.ajax({\n url : HOST+'/ajaxs/search/addCartExtension_new.php',\n type: 'post',\n data: {\n \"json_pro\": obj\n },\n success:function (response) {\n console.log(response);\n if(response==\"ok\"){\n chrome.storage.sync.set({\"json_pro\":[]},function(){\n // alert(\"Thm mi thnh cng\");\n // location.reload(true);\n window.location.href=HOST+\"/gio-hang-extension\";\n }); \n }\n },\n error:function (err) {\n sendResponse({code: 205, message: 'Vui lng ng nhp thc hin mua hng!'});\n }\n });\n }\n }",
+                "line": "925 - 950",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger5": {
+                "danger": "ajax",
+                "value": "$.ajax(<pdg_js.node.ValueExpr object at 0x7fd66cbf8c70>)",
+                "sink-param1": "{\n url : HOST+'/ajaxs/search/addCartExtension_new.php',\n type: 'post',\n data: {\n \"json_pro\": obj\n },\n success:function (response) {\n console.log(response);\n if(response==\"ok\"){\n chrome.storage.sync.set({\"json_pro\":[]},function(){\n // alert(\"Thm mi thnh cng\");\n // location.reload(true);\n window.location.href=HOST+\"/gio-hang-extension\";\n }); \n }\n },\n error:function (err) {\n sendResponse({code: 205, message: 'Vui lng ng nhp thc hin mua hng!'});\n }\n }",
+                "line": "929 - 948",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    }
+}

@@ -1,0 +1,37 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/makmbhklgjochgddcfkebmjcnlkagjkh/doublex_empoweb_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "XMLHttpRequest.open",
+                "value": "{'XMLHttpRequest()': {}, 'onerror': <pdg_js.node.FunctionExpression object at 0x7f6c458e2670>, 'ontimeout': <pdg_js.node.FunctionExpression object at 0x7f6c458e28b0>, 'onabort': <pdg_js.node.FunctionExpression object at 0x7f6c458e2af0>, 'withCredentials': -1, 'responseType': 'blob', 'onreadystatechange': <pdg_js.node.FunctionExpression object at 0x7f6c458fdc40>}.open(['XMLHttpRequest().responseText', 'XMLHttpRequest().response'].method, ['XMLHttpRequest().responseText', 'XMLHttpRequest().response'].url, 0)",
+                "sink-param1": "['XMLHttpRequest().responseText', 'XMLHttpRequest().response'].method",
+                "sink-param2": "['XMLHttpRequest().responseText', 'XMLHttpRequest().response'].url",
+                "sink-param3": 0,
+                "line": "3 - 3",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/makmbhklgjochgddcfkebmjcnlkagjkh/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "indirect_dangers": {
+            "danger1": {
+                "danger": "fetch",
+                "value": "fetch(t, e)",
+                "sink-param1": "t",
+                "sink-param2": "e",
+                "line": "3 - 3",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/makmbhklgjochgddcfkebmjcnlkagjkh/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "exfiltration_dangers": {}
+    }
+}

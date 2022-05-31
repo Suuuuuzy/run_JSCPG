@@ -1,0 +1,88 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/afbalnlnpndpcccpiohigmnbhnjekopf/doublex_empoweb_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {},
+        "indirect_dangers": {
+            "danger1": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(hoverPosition, <pdg_js.node.FunctionExpression object at 0x7f47029a43a0>)",
+                "sink-param1": "hoverPosition",
+                "sink-param2": "function (obj) {\n hoverPosition = obj.hoverPosition;\n}",
+                "line": "13 - 15",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/afbalnlnpndpcccpiohigmnbhnjekopf/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger2": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(hoverDisabled, <pdg_js.node.FunctionExpression object at 0x7f47029a46d0>)",
+                "sink-param1": "hoverDisabled",
+                "sink-param2": "function (obj) {\n\thoverDisabled = obj.hoverDisabled;\n}",
+                "line": "17 - 19",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/afbalnlnpndpcccpiohigmnbhnjekopf/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "XMLHttpRequest.open",
+                "value": "XMLHttpRequest().open(GET, url, True)",
+                "sink-param1": "GET",
+                "sink-param2": "url",
+                "sink-param3": true,
+                "line": "19 - 19",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/afbalnlnpndpcccpiohigmnbhnjekopf/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger2": {
+                "danger": "tabs.executeScript",
+                "value": "P.chrome.tabs.executeScript(None, <pdg_js.node.ValueExpr object at 0x7f4701f7b0a0>)",
+                "sink-param1": null,
+                "sink-param2": "{ code: wallmarklet }",
+                "line": "58 - 58",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/afbalnlnpndpcccpiohigmnbhnjekopf/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger3": {
+                "danger": "tabs.executeScript",
+                "value": "chrome.tabs.executeScript(tab.id, <pdg_js.node.ValueExpr object at 0x7f4702faf610>)",
+                "sink-param1": "tab.id",
+                "sink-param2": "{\"allFrames\": true, \"code\": code}",
+                "line": "165 - 165",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/afbalnlnpndpcccpiohigmnbhnjekopf/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "indirect_dangers": {
+            "danger1": {
+                "danger": "storage.local.get",
+                "value": "P.chrome.storage.local.get(None, <pdg_js.node.FunctionExpression object at 0x7f4702e1a070>)",
+                "sink-param1": null,
+                "sink-param2": "function(data) {\n for (var i in data) {\n $.v[i] = data[i];\n }\n $.functions.init(); \t\n }",
+                "line": "299 - 304",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/afbalnlnpndpcccpiohigmnbhnjekopf/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "exfiltration_dangers": {
+            "danger1": {
+                "danger": "storage.local.get",
+                "value": "P.chrome.storage.local.get(None, <pdg_js.node.FunctionExpression object at 0x7f4702e1a070>)",
+                "sink-param1": null,
+                "sink-param2": "function(data) {\n for (var i in data) {\n $.v[i] = data[i];\n }\n $.functions.init(); \t\n }",
+                "line": "299 - 304",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/afbalnlnpndpcccpiohigmnbhnjekopf/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false
+            }
+        }
+    }
+}

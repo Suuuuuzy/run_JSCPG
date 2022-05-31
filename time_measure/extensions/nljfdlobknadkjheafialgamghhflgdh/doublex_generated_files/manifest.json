@@ -1,0 +1,26 @@
+{
+"update_url": "https://clients2.google.com/service/update2/crx",
+
+	"manifest_version": 2,
+
+	"name": "ExpandyCode for Reddit",
+	
+	"version": "0.1",
+	"description": "View Github gists and Ideone code inline.",
+	"icons": {
+		"128": "icon_128.png"  
+	},
+	"content_scripts": [
+		{
+			"matches": ["http://*.reddit.com/*","https://*.reddit.com/*"],
+			"css": ["content.css"],
+			"js": ["jquery-2.1.0.min.js", "content.js"]
+		}
+	],
+	"permissions": [
+		"http://*.reddit.com/", 
+		"https://*.reddit.com/",
+		"http://gist.github.com/",
+		"https://gist.github.com/"
+	]
+}

@@ -1,0 +1,103 @@
+(['13729', '13791', '14206', '14213'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli with localStorage_setItem_value
+from bg_chrome_runtime_MessageExternal to localStorage_setItem_value
+==========================
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 1055			setGAParams(request.params);
+	request.params
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 955		return source.hasOwnProperty(name) ? source[name] : "";
+	source[name]
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 971	        localStorage.setItem("GAParams", JSON.stringify(ga_params));
+	JSON.stringify(ga_params)
+
+(['13729', '13791', '13905', '14213'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli with localStorage_setItem_value
+from bg_chrome_runtime_MessageExternal to localStorage_setItem_value
+==========================
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 1055			setGAParams(request.params);
+	request.params
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 955		return source.hasOwnProperty(name) ? source[name] : "";
+	source[name]
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 971	        localStorage.setItem("GAParams", JSON.stringify(ga_params));
+	JSON.stringify(ga_params)
+
+(['13729', '13791', '14022', '14213'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli with localStorage_setItem_value
+from bg_chrome_runtime_MessageExternal to localStorage_setItem_value
+==========================
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 1055			setGAParams(request.params);
+	request.params
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 955		return source.hasOwnProperty(name) ? source[name] : "";
+	source[name]
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 971	        localStorage.setItem("GAParams", JSON.stringify(ga_params));
+	JSON.stringify(ga_params)
+
+(['13729', '13791', '13862', '14213'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli with localStorage_setItem_value
+from bg_chrome_runtime_MessageExternal to localStorage_setItem_value
+==========================
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 1055			setGAParams(request.params);
+	request.params
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 955		return source.hasOwnProperty(name) ? source[name] : "";
+	source[name]
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 971	        localStorage.setItem("GAParams", JSON.stringify(ga_params));
+	JSON.stringify(ga_params)
+
+(['13729', '13791', '14164', '14213'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli with localStorage_setItem_value
+from bg_chrome_runtime_MessageExternal to localStorage_setItem_value
+==========================
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 1055			setGAParams(request.params);
+	request.params
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 955		return source.hasOwnProperty(name) ? source[name] : "";
+	source[name]
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 971	        localStorage.setItem("GAParams", JSON.stringify(ga_params));
+	JSON.stringify(ga_params)
+
+(['13729', '13791', '14122', '14213'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli with localStorage_setItem_value
+from bg_chrome_runtime_MessageExternal to localStorage_setItem_value
+==========================
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 1055			setGAParams(request.params);
+	request.params
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 955		return source.hasOwnProperty(name) ? source[name] : "";
+	source[name]
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 971	        localStorage.setItem("GAParams", JSON.stringify(ga_params));
+	JSON.stringify(ga_params)
+
+(['13729', '13791', '14080', '14213'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli with localStorage_setItem_value
+from bg_chrome_runtime_MessageExternal to localStorage_setItem_value
+==========================
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 1055			setGAParams(request.params);
+	request.params
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 955		return source.hasOwnProperty(name) ? source[name] : "";
+	source[name]
+$FilePath$/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/opgen_generated_files/bg.js
+Line 971	        localStorage.setItem("GAParams", JSON.stringify(ga_params));
+	JSON.stringify(ga_params)
+
+(['9349'], 'management_getSelf_source')
+~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli with sendResponseExternal_sink
+from management_getSelf_source to sendResponseExternal_sink
+==========================
+

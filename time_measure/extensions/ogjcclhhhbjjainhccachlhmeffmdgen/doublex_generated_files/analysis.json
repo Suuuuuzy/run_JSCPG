@@ -1,0 +1,60 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "setInterval",
+                "value": "setInterval(<pdg_js.node.FunctionExpression object at 0x7fe36e686400>, 1000)",
+                "sink-param1": "() => {\n if (document.location.href !== url) {\n url = document.location.href;\n onChange();\n }\n }",
+                "sink-param2": 1000,
+                "line": "26 - 31",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_generated_files/cs_0.js",
+                "dataflow": false
+            },
+            "danger2": {
+                "danger": "setTimeout",
+                "value": "setTimeout(<pdg_js.node.FunctionExpression object at 0x7fe2fa2f1580>, 2000)",
+                "sink-param1": "function(){\n getFavoritesInfo().then(json => {\n favoritesInfo = json;\n processFavorites();\n }).catch(e => {\n console.log(e);\n });\n }",
+                "sink-param2": 2000,
+                "line": "46 - 53",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_generated_files/cs_0.js",
+                "dataflow": false
+            },
+            "danger3": {
+                "danger": "setInterval",
+                "value": "setInterval(<pdg_js.node.FunctionExpression object at 0x7fe368f83b50>, 100)",
+                "sink-param1": "function () {\n let selector = config.buttonGroup.Button_Options;\n let buttons = document.querySelectorAll(selector);\n if (buttons.length === 2 || (buttons.length === 1 && buttons[0].textContent.indexOf(config.buttonGroup.Button_TextContent) !== -1)) {\n clearInterval(timer);\n onReady();\n }\n }",
+                "sink-param2": 100,
+                "line": "73 - 80",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_generated_files/cs_0.js",
+                "dataflow": false
+            },
+            "danger4": {
+                "danger": "setInterval",
+                "value": "setInterval(<pdg_js.node.FunctionExpression object at 0x7fe36ee263d0>, 1000)",
+                "sink-param1": "function () {\n let input = document.querySelector('#down-payment');\n if (input) {\n let value = getDownPayment(input);\n if (input !== downPaymentInput) {\n input.addEventListener(\"change\", function () {\n console.log('Down payment change', this.value);\n if (onChange) onChange();\n });\n }\n if (downPaymentValue && downPaymentValue !== value) {\n onChange();\n }\n downPaymentInput = input;\n downPaymentValue = value;\n }\n let price = getMonthlyCost();\n if (priceValue && price !== priceValue) {\n if (onChange) onChange();\n }\n priceValue = price;\n }",
+                "sink-param2": 1000,
+                "line": "110 - 131",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_generated_files/cs_0.js",
+                "dataflow": false
+            },
+            "danger5": {
+                "danger": "setTimeout",
+                "value": "setTimeout(<pdg_js.node.Identifier object at 0x7fe375ba15e0>, 1000)",
+                "sink-param1": "<pdg_js.node.Identifier object at 0x7fe375ba15e0>",
+                "sink-param2": 1000,
+                "line": "168 - 168",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/ogjcclhhhbjjainhccachlhmeffmdgen/doublex_generated_files/cs_0.js",
+                "dataflow": false
+            }
+        },
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    }
+}

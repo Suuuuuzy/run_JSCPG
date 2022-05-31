@@ -343,7 +343,7 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                 ]
 
 valid_sources_starts = ["cs_window_", "document_"]
-invalid_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded"]
+invalid_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove"]
 # invalid: document_eventListener_scroll, document_eventListener_click, cs_window_eventListener_click, cs_window_eventListener_scroll
 # valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 invalid_attacks = ["bg_tabs_onupdated", "bg_externalNativePort_onMessage"]

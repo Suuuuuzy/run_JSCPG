@@ -1,0 +1,45 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/cebippnkfjmmeooechechophicncjjab/doublex_empoweb_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "storage.local.set",
+                "value": "browser.storage.local.set(<pdg_js.node.ValueExpr object at 0x7fd56fb82f70>)",
+                "sink-param1": "{ \"domain\": this.list }",
+                "line": "204 - 204",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cebippnkfjmmeooechechophicncjjab/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "indirect_dangers": {
+            "danger1": {
+                "danger": "storage.local.get",
+                "value": "browser.storage.local.get(<pdg_js.node.ValueExpr object at 0x7fd569493280>, <pdg_js.node.FunctionExpression object at 0x7fd5694932b0>)",
+                "sink-param1": "[\"domain\"]",
+                "sink-param2": "function (config) {\n var domainlist = [];\n if (typeof config[\"domain\"] === \"object\" && typeof config[\"domain\"].length === \"number\" && typeof config[\"domain\"].join === \"function\") {\n domainlist = config[\"domain\"];\n }\n _this.list = domainlist;\n callback();\n }",
+                "line": "169 - 176",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cebippnkfjmmeooechechophicncjjab/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "exfiltration_dangers": {
+            "danger1": {
+                "danger": "storage.local.get",
+                "value": "browser.storage.local.get(<pdg_js.node.ValueExpr object at 0x7fd569493280>, <pdg_js.node.FunctionExpression object at 0x7fd5694932b0>)",
+                "sink-param1": "[\"domain\"]",
+                "sink-param2": "function (config) {\n var domainlist = [];\n if (typeof config[\"domain\"] === \"object\" && typeof config[\"domain\"].length === \"number\" && typeof config[\"domain\"].join === \"function\") {\n domainlist = config[\"domain\"];\n }\n _this.list = domainlist;\n callback();\n }",
+                "line": "169 - 176",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cebippnkfjmmeooechechophicncjjab/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false
+            }
+        }
+    }
+}

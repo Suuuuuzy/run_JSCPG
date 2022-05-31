@@ -379,9 +379,19 @@ def fetch_new_thread(G):
             G.work_queue.add(result)
         result.resume()
 
+
 # the function to admin the threads, to use this, you have to pass G and the initial running thread
 def admin_threads(G, function, args):
+    FINAL_THREADS = 2 if options.list else 1 # this is because options.list uses tqdm, which will introduce another thread
     print('admin threads')
+    if G.measure_thread:
+        package_id = G.package_name.split("/")[-1]
+        thread_measure_file = "thread_measure/" + package_id + '.txt'
+        old_len = len(threading.enumerate())
+        old_time = time.time()
+        newline = "THREAD " + str(old_len) + " " + str(old_time)
+        with open(thread_measure_file, "w") as f:
+            f.write(newline + "\n")
     t = Thread(target=function, args=args)
     info = thread_info(thread=t, last_start_time=time.time(), thread_age=1)
     with G.thread_info_lock:
@@ -389,19 +399,13 @@ def admin_threads(G, function, args):
     t.start()
     with G.work_queue_lock:
         G.work_queue.add(info)
-    if G.measure_thread:
-        print()
-        package_id = G.package_name.split("/")[-1]
-        thread_measure_file = "thread_measure/" + package_id + '.txt'
-        old_len = 1
-        newline = "THREAD " + str(old_len) + " " + str(time.time())
-        with open(thread_measure_file, "a") as f:
-            f.write(newline + "\n")
     while True:
         if G.measure_thread:
-            if len(threading.enumerate())!=old_len:
+            new_time = time.time()
+            if len(threading.enumerate())!=old_len or new_time-old_time>0.1:
+                old_time = new_time
                 old_len = len(threading.enumerate())
-                newline = "THREAD " + str(old_len)+" "+str(time.time())
+                newline = "THREAD " + str(old_len)+" "+str(old_time)
                 # thread_time.append(newline)
                 with open(thread_measure_file, "a") as f:
                     f.write(newline + "\n")
@@ -461,11 +465,15 @@ def admin_threads(G, function, args):
         #     print('%%%%%%%%%work: ', tmp)
         #     tmp = [i.thread_self for i in G.pq]
         #     print('%%%%%%%%%pq: ', tmp)
-        if len(threading.enumerate())==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
-            # if G.measure_thread:
-            #     with open(thread_measure_file, "a") as f:
-            #         for i in thread_time:
-            #             f.write(i+"\n")
+        if len(threading.enumerate())==FINAL_THREADS and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
+            if G.measure_thread:
+                new_time = time.time()
+                if len(threading.enumerate()) != old_len or new_time - old_time > 0.1:
+                    old_time = new_time
+                    old_len = len(threading.enumerate())
+                    newline = "THREAD " + str(old_len) + " " + str(old_time)
+                    with open(thread_measure_file, "a") as f:
+                        f.write(newline + "\n")
             print('finish')
             return 1
 

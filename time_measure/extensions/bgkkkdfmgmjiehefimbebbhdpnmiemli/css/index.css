@@ -1,0 +1,448 @@
+        .speeddial-small {
+            width: 44px;
+            height: 44px;
+            padding: 0px 0px 0px 0px;
+            margin: 0px 10px 0 10px;
+        }
+        
+        p {
+            text-align: center;
+        }
+        
+        html,
+        body {
+            height: 100%;
+        }
+        
+        #content {
+            min-height: 100%;
+            height: auto !important;
+            margin: -10% auto -20%;
+            padding: 10% 0 20%;
+        }
+        /* Set the fixed height of the header here */
+        
+        #header {
+            margin-top: -10px;
+        }
+        
+        #header .container-fluid {
+            padding-right: 0px;
+            padding-left: 0px;
+        }
+        /* Set the fixed height of the footer here */
+        
+        #functional {}
+        
+        .speeddial {
+            padding-bottom: 30%;
+            width: 92%;
+            position: absolute;
+        }
+        
+        .speeddial img {
+            width: 100%;
+            border-radius: 10px;
+            border: 0px solid transparent;
+        }
+        
+        .speeddial .edit-tab {
+            position: absolute;
+            margin: 5px 0 0 83%;
+            height: 14%;
+            width: 14%;
+            border-bottom-right-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
+        
+        .speeddial span {
+            position: absolute;
+            height: 14%;
+            width: 100%;
+            bottom: 24%;
+            font-size: 18px;
+            background-color: #337ab7;
+            opacity: 0.9;
+            line-height: 36px;
+            padding-left: 12px;
+            color: #f7f7ec;
+            border-bottom-right-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
+        
+
+        
+        .speeddial div {
+            width: 88%px;
+            position: absolute;
+        }
+        
+        .closed img {
+            height: 0px !important;
+        }
+        
+        #functionalimg {
+            transition-duration: 0.6s;
+        }
+        
+        .search_autocomplite {
+            width: 100%;
+        }
+        
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 970px;
+            }
+        }
+        /* These style the container */
+        
+        body {
+            padding-top: 10px;
+            padding-bottom: 15px;
+        }
+        
+        body>.container {
+            padding: 0 0 0 0;
+            border: 0 solid transparent;
+            border-radius: 4px;
+            -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+        }
+        /* This creates an alert spanning the full container */
+        
+        .row.alert {
+            margin-right: 0;
+            margin-left: 0;
+            margin-bottom: 0;
+            border: 0 solid transparent;
+            border-radius: 0;
+        }
+        /* This removes the rounded corners from the bottom edge of the navbar */
+        
+        .navbar {
+            padding: 10px;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        /* This removes the space below the panel so the search can have a uniform background */
+        
+        .navbar-default {
+            margin-bottom: 0;
+            background-color: #dfdfdf;
+            border-bottom: 1px solid #b6bac0;
+            border-top: 1px solid #b6bac0;
+            font-size: 13px;
+        }
+        
+        .nav li {
+            height: 26px;
+        }
+        
+        .navbar-form .form-group {
+            
+            border-radius: .25em;
+            margin-top: 2px;
+            width: 368px;
+        }
+.navbar-left{
+
+}
+        
+        .margin_logo {
+            margin-top: 20px;
+        }
+        
+        .margin_content_mid {
+            margin-top: 160px;
+        }
+        
+        .margin_little_speeddials {
+            margin-top: 50px;
+        }
+        
+        .navbar-collapse {
+            padding-left: 0px;
+        }
+        
+        .speeddial-dropdown {
+            display: none;
+        }
+        
+        .standart-speeddial-holder {}
+        
+        .upgrade-speeddial-holder {
+            display: none;
+            
+        }
+.upgrade-speeddial-holder .row{
+    margin-top: 165px;
+}
+        
+        .navbar-form .form-group input {
+            border: 2px solid #186ca3;
+            height: 24px;
+            line-height: 12px;
+            width: 75%;
+        }
+        
+        .btn {
+            font-size: 24px;
+        }
+        
+        .navbar-form .btn-default {
+            font-size: 14px;
+            height: 24px;
+            line-height: 12px;
+            margin-top: 1px;
+            border-radius: 4px;
+            background-color: rgba(9, 140, 234, 0.61);
+            color: white;
+        }
+        
+        .navbar-form .btn-default:hover {
+            color: white;
+        }
+        
+        .search input {
+            height: 47px;
+        }
+        
+        .search button {
+            color: white;
+            height: 47px;
+            background-color: rgba(51, 122, 183, 0.79);
+        }
+        
+        search button:hover {
+            background-color: rgba(51, 122, 183, 0.92) !important;
+        }
+        
+        .input-group.search {
+            width: 90%;
+            margin-left: 5%;
+        }
+        
+        .logo_main {
+            text-align: right;
+        }
+        
+        .navbar-form {
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .navbar-nav {
+            padding-left: 10px;
+        }
+        
+        .navbar-nav>li>a {
+            padding-top: 3px;
+            margin-top: -20px;
+            margin-left: 6px;
+        }
+        
+        .navbar-nav>li>img {
+            margin-top: 5px;
+            margin-left: 2px;
+        }
+        
+        .navbar-nav>li {
+            border: 1px solid #dfdfdf;
+            border-radius: 0.25em;
+            cursor: pointer;
+        }
+        
+        .navbar-nav>li:hover {
+            border: 1px solid black;
+            background-color: #f9f9f9;
+        }
+        
+        .navbar-default .navbar-nav>.active>a {
+            height: 31px;
+        }
+        
+        .navbar-default .navbar-nav>li>a {}
+        
+        .navbar-default .navbar-nav>.open>a,
+        .navbar-default .navbar-nav>.open>a:focus,
+        .navbar-default .navbar-nav>.open>a:hover {
+            background-color: transparent !important;
+        }
+        /* This removes the rounded corners from the jumbotron */
+        
+        .container .jumbotron {
+            border-radius: 0;
+        }
+        /* This creates the outside gutter between panels and container */
+        
+        .row.main {
+            margin-right: 0;
+            margin-left: 0;
+        }
+        /* center search */
+        
+        .footer_info {
+            margin-top: 27%;
+            bottom: 0;
+            width: 100%;
+            background-color: transparent;
+        }
+        
+        footer .navbar-default {
+            background-color: transparent !important;
+            border: 0;
+        }
+        
+        hr {
+            border-top: 1px solid black;
+        }
+        
+        .hr-button {
+            margin-top: 8%;
+            margin-bottom: 4%;
+        }
+        
+        .hr-button .col-sm-2 {
+            text-align: center;
+        }
+        
+        .navbar-text.navbar-right {
+            margin-right: 1%;
+        }
+        
+        .modal-dialog {
+            width: 80%;
+        }
+
+        
+        .modal-body {
+            overflow-y: auto;
+            height: 500px;
+        }
+        
+        .modal-body p {
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        .disable-extension-modal {
+            height: 50% !important;
+            width: 60% !important;
+            top: 15%;
+        }
+        /*.disable-extension-modal .modal-dialog{
+            width:60%;
+        }*/
+        
+        .disable-extension-modal .modal-content {
+            height: auto;
+            text-align: center;
+        }
+        
+        .disable-extension-modal .modal-body {
+            height: auto;
+            text-align: center;
+        }
+        
+        .disable-extension-modal p {
+            text-align: center;
+        }
+        
+        .disable-extension-modal .modal-header {
+            border: 0;
+        }
+        
+        .disable-extension-modal .modal-footer {
+            border: 0;
+        }
+        
+        .edit-tab-modal form {
+            text-align: center;
+            width: 100%;
+            font-size: 23px;
+        }
+        
+        .edit-tab-modal form .tab-name {
+            display: none;
+        }
+        
+
+.edit-tab-modal{
+    width:600px;
+    align-content: center;
+    margin-top: 200px;
+
+}
+.edit-tab-modal .modal-footer p{
+    font-size: 20px;
+    font-weight: bold;
+}
+.edit-tab-modal .modal-body{
+   height: 200px;
+}
+.edit-tab-modal label{
+    width: 20%;
+    text-align: right;
+}
+.edit-tab-modal input{
+    width: 78%;
+
+}
+.edit-tab-modal .submit{
+    width:100%
+}
+.buy-upgrade{
+     width:600px;
+    align-content: center;
+}
+.buy-upgrade .modal-body{
+   height: 300px;
+}
+.buy-upgrade .modal-body .form-group input{
+    margin-top: 20px;
+}        
+
+.wrapper {
+    
+    margin:0 auto;
+    overflow:hidden;
+}
+
+.list {
+        margin: 0;
+    padding: 0;
+    display: inline-block;
+    margin-top:0px;
+}
+
+.list li{
+	display:table-cell;
+    position:relative;
+    cursor:grab;
+    cursor:-webkit-grab;
+    color:#efefef;
+    vertical-align:middle;
+}
+
+.scroller {
+        display: none;
+    line-height: 26px;
+    font-size: 20px;
+    color: #000;
+  text-align:center;
+  cursor:pointer;
+    width:20px;
+  vertical-align:middle;
+}
+
+.scroller-right{
+float:right;
+}
+
+.scroller-left {
+  float:left;
+}
+         
+  

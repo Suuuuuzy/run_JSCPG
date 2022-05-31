@@ -1,0 +1,24 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/eljfnjdjgekejmdmdbcofecejjamhfld/doublex_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "setTimeout",
+                "value": "setTimeout(replace_words, 500)",
+                "sink-param1": "replace_words",
+                "sink-param2": 500,
+                "line": "62 - 62",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eljfnjdjgekejmdmdbcofecejjamhfld/doublex_generated_files/cs_0.js",
+                "dataflow": false
+            }
+        },
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    }
+}

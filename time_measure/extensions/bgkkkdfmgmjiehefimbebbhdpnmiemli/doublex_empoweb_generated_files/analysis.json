@@ -1,0 +1,47 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/doublex_empoweb_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "XMLHttpRequest.open",
+                "value": "XMLHttpRequest().open(POST, https://extensionmatrix.com:3000/uninstallData/localStorage.getItem(ga:clientId), True)",
+                "sink-param1": "POST",
+                "sink-param2": "https://extensionmatrix.com:3000/uninstallData/localStorage.getItem(ga:clientId)",
+                "sink-param3": true,
+                "line": "148 - 148",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger2": {
+                "danger": "XMLHttpRequest.open",
+                "value": "{'XMLHttpRequest()': {}, 'onload': <pdg_js.node.FunctionExpression object at 0x7ff14a6e89a0>, 'onerror': <pdg_js.node.FunctionExpression object at 0x7ff14a6e8cd0>}.open(GET, https://www.google-analytics.com/collect?v=1&tid=UA-87955952-6&cid=localStorage.getItem(ga:clientId)&t=event&ec=extension&ea=install&el=NewGADate(Date.now())&cn=none&cs=direct&cm=none&ck=none&cc=none)",
+                "sink-param1": "GET",
+                "sink-param2": "https://www.google-analytics.com/collect?v=1&tid=UA-87955952-6&cid=localStorage.getItem(ga:clientId)&t=event&ec=extension&ea=install&el=NewGADate(Date.now())&cn=none&cs=direct&cm=none&ck=none&cc=none",
+                "line": "77 - 77",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger3": {
+                "danger": "management.setEnabled",
+                "value": "chrome.management.setEnabled(extensionInfo.id, False, <pdg_js.node.FunctionExpression object at 0x7ff1343e09d0>)",
+                "sink-param1": "extensionInfo.id",
+                "sink-param2": false,
+                "sink-param3": "function() {}",
+                "line": "19 - 19",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/bgkkkdfmgmjiehefimbebbhdpnmiemli/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    }
+}

@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+	<head>
+		<title>MJ Redirector</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+		<link href="assets/css/style.css" rel="stylesheet" />
+	</head>
+	<body style="width: 420px;">
+		<div id="tab1" class="container contain tabs">			
+			<form id="login_form">
+				<div class="msg" ></div>
+				<div class="form-group">
+				  <label for="Gebruikersnaam:">Gebruikersnaam:</label>
+				  <input type="text" name="user" class="form-control">
+				</div>
+				<div class="form-group">
+				  <label for="Wachtwoord">Wachtwoord:</label>
+				  <input type="password" name="pass" class="form-control">
+				</div>
+				<div class="form-group">
+				 <button type="submit" class="btn">INLOGGEN</button>
+				 <p><a href="https://www.onzeclubwinkel.nl/v2/index.php?page=aanmelden" target="_blank">of maak een nieuw account aan</a></p>
+				</div>
+				
+			</form>
+		</div>
+		<div id="tab2" class="container contain tabs">			
+			<div class="profile col-xs-12 text-center">
+				Beste <span id="title">{title}</span><br/>
+				<br/>
+				Je spaart voort <br/>
+				<span id="club_title" >{club_title}</span>
+			</div>
+			<div class="col-xs-12 text-right">
+				<a style="margin:15px 10px; position: fixed; bottom: 0; right: 0px;" id="logout-link" class="text-danger" href="javascript:void(0);">uitloggen</a>
+			</div>
+		</div>
+		<script src="assets/js/jquery-2.2.4.min.js"></script>
+		<script src="assets/bootstrap/js/bootstrap.min.js"></script>
+		<script src="assets/js/jquery.validate.js"></script>
+		<script src="assets/js/custom.js"></script>		
+	</body>
+</html>

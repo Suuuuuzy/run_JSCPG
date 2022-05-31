@@ -1,0 +1,184 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "storage.sync.set",
+                "value": "chrome.storage.sync.set({'items': {}, 'tabs': {'message.currentTab.id': {'status': 'on'}}})",
+                "sink-param1": {
+                    "items": {},
+                    "tabs": {
+                        "message.currentTab.id": {
+                            "status": "on"
+                        }
+                    }
+                },
+                "line": "408 - 408",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger2": {
+                "danger": "storage.sync.set",
+                "value": "chrome.storage.sync.set({'items': {}, 'extension': {'version': 'chrome.runtime.getManifest().version'}, 'options': {'reloadByDefault': None, 'useKeyboardToggle': None}, 'tabs': None})",
+                "sink-param1": {
+                    "items": {},
+                    "extension": {
+                        "version": "chrome.runtime.getManifest().version"
+                    },
+                    "options": {
+                        "reloadByDefault": null,
+                        "useKeyboardToggle": null
+                    },
+                    "tabs": null
+                },
+                "line": "235 - 235",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger3": {
+                "danger": "storage.sync.set",
+                "value": "chrome.storage.sync.set(items)",
+                "sink-param1": "items",
+                "line": "430 - 430",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger4": {
+                "danger": "storage.sync.set",
+                "value": "chrome.storage.sync.set(None)",
+                "sink-param1": null,
+                "line": "446 - 446",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "indirect_dangers": {
+            "danger1": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0ae95e21c0>, <pdg_js.node.FunctionExpression object at 0x7f0ae95e21f0>)",
+                "sink-param1": "['options']",
+                "sink-param2": "function (items) {\n var url = items.options.sourceUrl;\n\n // Only toggle if option is checked\n if (!url || url.length <= 5) {\n return;\n }\n\n chrome.tabs.sendMessage(tabId, {\n task: 'update-source-url',\n data: url\n });\n }",
+                "line": "337 - 349",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger2": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0aec3f6310>, <pdg_js.node.FunctionExpression object at 0x7f0aec3f6340>)",
+                "sink-param1": "['tabs']",
+                "sink-param2": "function (items) {\n if (items.tabs[tabId]) {\n var status = items.tabs[tabId].status;\n\n if (status === 'on' || (status === 'default' && getGlobalDefaultStatus() === 'defaultOn')) {\n status = 'off';\n removeScript(tabId);\n } else {\n status = 'on';\n addScript(tabId);\n }\n\n setIcon(status, tabId);\n\n items.tabs[tabId].status = status;\n syncStorage.set(items);\n }\n }",
+                "line": "393 - 410",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger3": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0aeca747f0>, <pdg_js.node.FunctionExpression object at 0x7f0aeca74820>)",
+                "sink-param1": "['options']",
+                "sink-param2": "function (items) {\n // Only toggle if option is checked\n if (!items.options.useKeyboardToggle) {\n return;\n }\n\n if (url.indexOf('editor.html/') !== -1 || url.indexOf('cf#/') !== -1) {\n openWcmDisabled(url);\n } else {\n openWcmEdit(url);\n }\n }",
+                "line": "322 - 333",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger4": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0aeee27bb0>, <pdg_js.node.FunctionExpression object at 0x7f0aeee27be0>)",
+                "sink-param1": "['options', 'tabs']",
+                "sink-param2": "function (items) {\n setGlobalDefaultStatus(items.options.reloadByDefault);\n\n if (isValidUrl(tab.url, items.options)) {\n updateTab(tab, items);\n }\n }",
+                "line": "383 - 389",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger5": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(None, <pdg_js.node.FunctionExpression object at 0x7f0ad57c8730>)",
+                "sink-param1": null,
+                "sink-param2": "function (items) {\n console.debug('STORAGE:', items);\n\n // Set version number\n items.extension = items.extension || {};\n\n // Cleanup stored data from previous version of this extension\n if (!items.extension.version || compareVersionNumbers(items.extension.version, '0.1') < 0) {\n clearStorage();\n }\n items.extension.version = OPTIONS.VERSION;\n\n // Set up default options\n items.options = items.options || {};\n if (items.options.reloadByDefault !== false) {\n items.options.reloadByDefault = items.options.reloadByDefault || true;\n }\n\n if (items.options.useKeyboardToggle !== false) {\n items.options.useKeyboardToggle = items.options.useKeyboardToggle || true;\n }\n\n items.tabs = items.tabs || {};\n\n syncStorage.set(items);\n }",
+                "line": "211 - 236",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger6": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0aeac96970>, <pdg_js.node.FunctionExpression object at 0x7f0aeac969a0>)",
+                "sink-param1": "['tabs']",
+                "sink-param2": "function (items) {\n\n if (items.tabs[tabId]) {\n delete items.tabs[tabId];\n syncStorage.set(items);\n }\n }",
+                "line": "426 - 432",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "exfiltration_dangers": {
+            "danger1": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0ae95e21c0>, <pdg_js.node.FunctionExpression object at 0x7f0ae95e21f0>)",
+                "sink-param1": "['options']",
+                "sink-param2": "function (items) {\n var url = items.options.sourceUrl;\n\n // Only toggle if option is checked\n if (!url || url.length <= 5) {\n return;\n }\n\n chrome.tabs.sendMessage(tabId, {\n task: 'update-source-url',\n data: url\n });\n }",
+                "line": "337 - 349",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false
+            },
+            "danger2": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0aec3f6310>, <pdg_js.node.FunctionExpression object at 0x7f0aec3f6340>)",
+                "sink-param1": "['tabs']",
+                "sink-param2": "function (items) {\n if (items.tabs[tabId]) {\n var status = items.tabs[tabId].status;\n\n if (status === 'on' || (status === 'default' && getGlobalDefaultStatus() === 'defaultOn')) {\n status = 'off';\n removeScript(tabId);\n } else {\n status = 'on';\n addScript(tabId);\n }\n\n setIcon(status, tabId);\n\n items.tabs[tabId].status = status;\n syncStorage.set(items);\n }\n }",
+                "line": "393 - 410",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false
+            },
+            "danger3": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0aeca747f0>, <pdg_js.node.FunctionExpression object at 0x7f0aeca74820>)",
+                "sink-param1": "['options']",
+                "sink-param2": "function (items) {\n // Only toggle if option is checked\n if (!items.options.useKeyboardToggle) {\n return;\n }\n\n if (url.indexOf('editor.html/') !== -1 || url.indexOf('cf#/') !== -1) {\n openWcmDisabled(url);\n } else {\n openWcmEdit(url);\n }\n }",
+                "line": "322 - 333",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false
+            },
+            "danger4": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0aeee27bb0>, <pdg_js.node.FunctionExpression object at 0x7f0aeee27be0>)",
+                "sink-param1": "['options', 'tabs']",
+                "sink-param2": "function (items) {\n setGlobalDefaultStatus(items.options.reloadByDefault);\n\n if (isValidUrl(tab.url, items.options)) {\n updateTab(tab, items);\n }\n }",
+                "line": "383 - 389",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false
+            },
+            "danger5": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(None, <pdg_js.node.FunctionExpression object at 0x7f0ad57c8730>)",
+                "sink-param1": null,
+                "sink-param2": "function (items) {\n console.debug('STORAGE:', items);\n\n // Set version number\n items.extension = items.extension || {};\n\n // Cleanup stored data from previous version of this extension\n if (!items.extension.version || compareVersionNumbers(items.extension.version, '0.1') < 0) {\n clearStorage();\n }\n items.extension.version = OPTIONS.VERSION;\n\n // Set up default options\n items.options = items.options || {};\n if (items.options.reloadByDefault !== false) {\n items.options.reloadByDefault = items.options.reloadByDefault || true;\n }\n\n if (items.options.useKeyboardToggle !== false) {\n items.options.useKeyboardToggle = items.options.useKeyboardToggle || true;\n }\n\n items.tabs = items.tabs || {};\n\n syncStorage.set(items);\n }",
+                "line": "211 - 236",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false
+            },
+            "danger6": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f0aeac96970>, <pdg_js.node.FunctionExpression object at 0x7f0aeac969a0>)",
+                "sink-param1": "['tabs']",
+                "sink-param2": "function (items) {\n\n if (items.tabs[tabId]) {\n delete items.tabs[tabId];\n syncStorage.set(items);\n }\n }",
+                "line": "426 - 432",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih/doublex_empoweb_generated_files/bg.js",
+                "dataflow": false
+            }
+        }
+    }
+}

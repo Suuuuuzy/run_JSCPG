@@ -1,0 +1,43 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "setTimeout",
+                "value": "setTimeout(<pdg_js.node.FunctionExpression object at 0x7fb820072820>, 2000)",
+                "sink-param1": "function() {\n var product2;\n if (factory instanceof Alibar) {\n\n\n // price_product = parseFloat(product2[0].price)*parseFloat(price_extrade);\n // if (product2.length > 0) {\n // $('#price-product').html(currency(price_product));\n // }\n\n if (parseFloat(price_product) === 0) {\n var price_product_str = '';\n var price_table = factory.getPriceTable();\n if(price_table.length>0){\n for (var i = 0; i < price_table.length; i++) {\n price_product_str += formatCurrency(parseFloat(price_table[i].price)*price_extrade);\n if (i !== (price_table.length - 1)) {\n price_product_str += ' ~ ';\n }\n }\n }\n $('#price-product').html(price_product_str);\n }\n }else{\n product2 = factory.getProduct();\n price_product = parseFloat(product2.price)*parseFloat(price_extrade);\n if (product2) {\n $('#price-product').html(formatCurrency(price_product));\n }\n }\n\n }",
+                "sink-param2": 2000,
+                "line": "720 - 751",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_generated_files/cs_0.js",
+                "dataflow": false
+            }
+        },
+        "indirect_dangers": {
+            "danger1": {
+                "danger": "ajax",
+                "value": "$.ajax(<pdg_js.node.ValueExpr object at 0x7fb81983af40>)",
+                "sink-param1": "{\n url : HOST+'/ajaxs/search/get_rate_exchange.php',\n type: 'post',\n data: {\n\n },\n success:function (response) {\n if (response!=0) {\n price_extrade = parseFloat(response);\n ut.init();\n }\n },\n error:function (err) {\n // sendResponse({code: 205, message: 'Vui lng ng nhp thc hin mua hng!'});\n }\n }",
+                "line": "893 - 908",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            },
+            "danger2": {
+                "danger": "ajax",
+                "value": "$.ajax(<pdg_js.node.ValueExpr object at 0x7fb81ba6fc10>)",
+                "sink-param1": "{\n url : HOST+'/ajaxs/search/addCartExtension_new.php',\n type: 'post',\n data: {\n \"json_pro\": obj\n },\n success:function (response) {\n console.log(response);\n if(response==\"ok\"){\n chrome.storage.sync.set({\"json_pro\":[]},function(){\n // alert(\"Thm mi thnh cng\");\n // location.reload(true);\n window.location.href=HOST+\"/gio-hang-extension\";\n }); \n }\n },\n error:function (err) {\n sendResponse({code: 205, message: 'Vui lng ng nhp thc hin mua hng!'});\n }\n }",
+                "line": "929 - 948",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/eijpfopeaaokmegfgdgnipcoophbmfpg/doublex_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    }
+}

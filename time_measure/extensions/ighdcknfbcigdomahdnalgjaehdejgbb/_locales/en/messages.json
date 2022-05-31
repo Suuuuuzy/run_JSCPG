@@ -1,0 +1,10 @@
+﻿{
+  "application_title": {
+    "message": "INTERNET SPEED TEST DSL",
+    "description": "Measure the speed of your DSL line. Test dsl free."
+  },
+  "application_description": {
+    "message": "Measure the speed of your DSL line. Test dsl free.",
+    "description": "This application will show the speed and your internet IP address of your line."
+  }
+}

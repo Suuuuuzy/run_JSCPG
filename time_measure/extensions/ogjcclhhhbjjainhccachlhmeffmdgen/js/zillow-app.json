@@ -1,0 +1,42 @@
+{
+    "@type": "SingleFamilyResidence",
+    "@context": "http://schema.org",
+    "name": "1607 S Jefferson St E, Salt Lake City, UT 84115",
+    "floorSize": {
+        "@type": "QuantitativeValue",
+        "@context": "http://schema.org",
+        "value": "960"
+    },
+    "numberOfRooms": 3,
+    "address": {
+        "@type": "PostalAddress",
+        "@context": "http://schema.org",
+        "streetAddress": "1607 S Jefferson St E",
+        "addressLocality": "Salt Lake City",
+        "addressRegion": "UT",
+        "postalCode": "84115"
+    },
+    "geo": {
+        "@type": "GeoCoordinates",
+        "@context": "http://schema.org",
+        "latitude": 40.734474182128906,
+        "longitude": -111.89493560791016
+    },
+    "url": "/homedetails/1607-S-Jefferson-St-E-Salt-Lake-City-UT-84115/2072179945_zpid/"
+}
+
+{
+    "@type": "Product",
+    "@context": "http://schema.org",
+    "offers": {
+        "@type": "Offer",
+        "@context": "http://schema.org",
+        "price": 17999,
+        "priceCurrency": "USD",
+        "availability": "http://schema.org/InStock",
+        "url": "https://www.zillow.com/homedetails/4065-E-University-Dr-LOT-438-Mesa-AZ-85205/2072169819_zpid/"
+    },
+    "name": "4065 E University Dr Lot 438, Mesa, AZ 85205",
+    "description": "2 beds, 2 baths, 1,248 Square Feet, -- sqft lot",
+    "image": "https://photos.zillowstatic.com/fp/3fe18853723e855f60d98bde3fba498d-p_h.jpg"
+}

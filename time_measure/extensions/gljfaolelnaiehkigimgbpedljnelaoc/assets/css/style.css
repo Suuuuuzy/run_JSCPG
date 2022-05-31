@@ -1,0 +1,22 @@
+body{margin:0; padding:0;background-image:url(../images/bg_html.png); background-repeat:no-repeat;background-size:cover;}
+h1,h2,h3,h4,h5,h6{margin:0;padding:0;}
+.tabs{ margin-bottom: 38px; }
+#tab2{display:none; }
+.container.contain {width: 100%; float:left;padding-left:0px; padding-right:0px;}
+label{color:#38637F;font-size: 14px; font-weight: bold;}
+form {margin:210px 40px 0 40px; }
+.form-control {padding: 4px;border-radius: 7px;border: 1px solid #D4D4D4;}
+.btn { background: #DE586C; color: white; width: 100%; border-radius: 8px; font-size: 18px;}
+.btn:hover{color:white;}
+form p{color:#38637F;text-align:center; font-weight:bold; margin-top:12px;}
+form p a{color:#38637F;}
+label.error {
+    color: red;
+    font-weight: 500;
+}
+.profile {
+    margin-top: 220px;
+    font-size: 20px;
+    color: #5AB4F6;
+    font-weight: bold;
+}

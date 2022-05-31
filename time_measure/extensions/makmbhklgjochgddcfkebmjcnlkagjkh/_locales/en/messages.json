@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Ferencvaros Chrome Extension",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "The latest Fradi news and wallpapers in Google Chrome. A must-have browser extension for all Fradi fans!",
+    "description": "Extension description"
+  },
+  "extDetailedDescription": {
+    "message": "Start your day with Ferencvaros!\n\nDownload the unique browser extension of Ferencvarosi Torna Club. Already when starting up your computer, you can learn about the latest news of the club. You also can directly reach FTC's social media channels. We will cheer your day with unique wallpapers as well, check every day!",
+    "description": "Extension detailed description"
+  }
+}
