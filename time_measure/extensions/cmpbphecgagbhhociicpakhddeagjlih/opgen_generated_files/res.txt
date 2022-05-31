@@ -1,3 +1,0 @@
-~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih with chrome_storage_sync_clear_sink
-~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih with chrome_storage_sync_clear_sink
-~~~tainted detected!~~~in extension: /media/data2/jianjia/extension_data/unzipped_extensions/cmpbphecgagbhhociicpakhddeagjlih with chrome_storage_sync_clear_sink
