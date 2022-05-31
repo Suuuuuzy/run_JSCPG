@@ -11,13 +11,15 @@ for id in ids:
 	with open(os.path.join(path, id, "opgen_generated_files/used_time.txt")) as f:
 		c = f.read()
 	lines = c.split("\n")
-	line = lines[-3]
-#	print(lines)
+	lines = [i for i in lines if i!='']
+	line = lines[-1]
+#	print(line)
 	try:
 		time = line.split("finish within ")[1]
 		time = time.split(" seconds####")[0]
 		times.append(float(time))
 		time_id[id] = float(time)
+		print(id, (time))
 	except:
 		if "timeout" in line:
 			print("timeout")
