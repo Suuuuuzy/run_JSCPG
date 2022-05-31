@@ -1,8 +1,8 @@
 import os
 import sys
 import json
-idfile = sys.argv[2]
 path = sys.argv[1]
+idfile = sys.argv[2]
 with open(idfile) as f:
 	ids = json.load(f)
 times = []

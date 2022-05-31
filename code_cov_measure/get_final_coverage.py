@@ -11,15 +11,17 @@ for id in ids:
 	with open(os.path.join(path, id, "opgen_generated_files/used_time.txt")) as f:
 		c = f.read()
 	lines = c.split("\n")
-	line = lines[-3]
-#	print(lines)
+	lines = [i for i in lines if i!='']
+	line = lines[-1]
+#	print(line)
 	try:
 		time = line.split("with code_cov ")[1]
 		time = time.split("% stmt covered####")[0]
 		times.append(float(time))
 		time_id[id] = float(time)
+		print(id, (time))
 	except:
-		print(id + " except")
+		print(id + " no cov")
 	
 time_id = dict(sorted(time_id.items(), key=lambda item: item[1]))
 print(len(times))
