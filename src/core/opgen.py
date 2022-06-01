@@ -143,6 +143,7 @@ class OPGen:
     def parse_run_extension(self, G, extension_path,dx, res_dir, result_file, vul_type):
         start_time = time.time()
         Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
+        covered_stat_rate = self.graph.get_code_cov()
         if Error_msg:
             with open(os.path.join(res_dir, result_file), 'w') as f:
                 f.write(Error_msg)
