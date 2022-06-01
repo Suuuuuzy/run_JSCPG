@@ -181,7 +181,7 @@ class PluginManager(object):
                         time_laps = time.time()-self.G.last_code_cov_time
                         speed = (code_cov-self.G.last_code_cov)/time_laps
                         # print(speed, time_laps)
-                        if speed < self.G.speed_threshold and time_laps>3 and self.G.last_code_cov!=0:
+                        if speed < self.G.speed_threshold and time_laps>30 and self.G.last_code_cov!=0:
                             print("too slow, set sign")
                             self.G.stop_sign = True
                             return NodeHandleResult()
