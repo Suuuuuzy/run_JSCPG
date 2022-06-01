@@ -359,7 +359,13 @@ extension_data_source = ['topSites_source',
 'iconURL_source',
 'BookmarkTreeNode_source',
 "management_getAll_source",
-"management_getSelf_source"
+"management_getSelf_source",
+"jQuery_ajax_result_source",
+"jQuery_get_source",
+"jQuery_post_source",
+"fetch_source",
+"XMLHttpRequest_responseText_source",
+"XMLHttpRequest_responseXML_source"
 ]
 
 extension_data_out = [
@@ -387,24 +393,25 @@ def decide_valid_attacks(type):
     return res
 
 def decide_valid_taint_flow(source_name, sink_name):
-    res = True
+    res = False
     # API  execution: sensitive info should be from attacker and to sink
     if source_name in bg_valid_execution_sources:
-        if sink_name not in cs_attack_execution_sink and sink_name not in bg_attack_execution_sink:
-            res = False
-    if source_name in cs_valid_execution_sources or \
+        if sink_name in cs_attack_execution_sink or sink_name in bg_attack_execution_sink:
+            res = True
+    elif source_name in cs_valid_execution_sources or \
             (source_name.split("eventListener_")[0] in cs_valid_execution_sources_starts and source_name.split("eventListener_")[1] not in cs_invalid_execution_sources_ends):
-        if sink_name not in cs_attack_execution_sink:
-            res = False
+        if sink_name in cs_attack_execution_sink:
+            res = True
     # data exfiltration: sensitive info should be out
-    if source_name in extension_data_source and sink_name not in extension_data_out:
-        res = False
+    elif source_name in extension_data_source:
+        if sink_name in extension_data_out:
+            res = True
     # user action or document load, onEvent
-    if source_name in invalid_execution_attacks or source_name in invalid_onEvents_attacks:
-        res = False
-    # invalid_taint
-    if (source_name, sink_name) in invalid_taint:
-        res = False
+    # elif source_name in invalid_execution_attacks or source_name in invalid_onEvents_attacks:
+    #     res = False
+    # # invalid_taint
+    # if (source_name, sink_name) in invalid_taint:
+    #     res = False
     return res
 
 
