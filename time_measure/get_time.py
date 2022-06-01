@@ -22,7 +22,7 @@ for id in ids:
 		print(id, (time))
 	except:
 		if "timeout" in line:
-			print("timeout")
+			print(id+" timeout")
 	
 time_id = dict(sorted(time_id.items(), key=lambda item: item[1]))
 print(len(times))
