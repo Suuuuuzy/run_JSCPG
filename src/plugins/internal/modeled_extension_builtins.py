@@ -258,7 +258,7 @@ def sink_function_in_graph(G: Graph, args, sink_name):
         if G.attacked:
             check = True
     if check:
-        # if no obj is required, control flow reaches
+    # if no obj is required, control flow reaches
         if len(sus_objs) == 0:
             print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
                   + G.package_name + ' with ' + sink_name + sty.rs.all)
@@ -271,67 +271,19 @@ def sink_function_in_graph(G: Graph, args, sink_name):
             if check_taint(G, obj, sink_name):
                 G.detected = True
     return NodeHandleResult()
-'''
-'''
-########A: API_execution
-'''
-source = []
-valid_sources_starts = ["cs_window_", "document_"]
-invalid_sources_ends = ["click", "scroll", "load"]
-valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
-
-sink = [
-    # storage
-    "chrome_storage_sync_set",
-    "chrome_storage_sync_remove",
-    "chrome_storage_sync_clear",
-    "chrome_storage_local_set",
-    "chrome_storage_local_remove",
-    "chrome_storage_local_clear",
 
 
-            ]
-
-'''
-########B: DATA_exfiltration
-'''
-source = ['topSites_source',
-'cookie_source',
-'CookieStores_source' ,
-'storage_sync_get_source',
-'storage_local_get_source',
-'HistoryItem_source',
-'VisitItem_source',
-'DownloadItem_source',
-'iconURL_source',
-'BookmarkTreeNode_source',
-"management_getAll_source",
-"management_getSelf_source",
-'localStorage_getItem_source',
-'Document_element_href',
-"document.body.innerText",
-'jQuery_ajax_result_source',
-'jQuery_get_source',
-'jQuery_post_source',
-'fetch_source',
-'XMLHttpRequest_responseText_source',
-'XMLHttpRequest_responseXML_source']
-
-sink = [
-    "sendResponseExternal_sink",
-    "bg_external_port_postMessage_sink",
-    "window_postMessage_sink",
-        ]
-'''
 
 invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
+                  ("cs_window_eventListener_message", "bg_external_port_postMessage_sink"),
                   ("bg_chrome_runtime_MessageExternal", "window_postMessage_sink"),
                   ("bg_chrome_runtime_MessageExternal", "sendResponseExternal_sink"),
                   ("bg_external_port_onMessage", "window_postMessage_sink"),
                   ("storage_sync_get_source", "chrome_storage_sync_set_sink"),
                   # ("storage_sync_get_source", "fetch_options_sink"),
                   ("XMLHttpRequest_responseText_source", "XMLHttpRequest_post_sink"),
-                  # ("cookies_source", "chrome_cookies_set_sink"),
+                  ("cookies_source", "chrome_cookies_set_sink"),
+                  ("cookie_source", "chrome_cookies_set_sink"),
                   # ("management_getAll_source", "management_setEnabled_id"),
                   # ("management_getAll_source", "management_setEnabled_enabled"),
                   ("storage_local_get_source", "chrome_storage_local_set_sink"),
@@ -342,20 +294,117 @@ invalid_taint  = [("cs_window_eventListener_message","window_postMessage_sink"),
                   # ("fetch_source", "chrome_storage_sync_set_sink"),
                 ]
 
-valid_sources_starts = ["cs_window_", "document_"]
-invalid_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove"]
+# invalid attack
+invalid_execution_attacks = ["bg_tabs_onupdated", "bg_externalNativePort_onMessage"]
+invalid_onEvents_attacks = ["onload", "onreadystatechange", "onerror", "ready"]
+
+# API execution
+bg_valid_execution_sources = ["bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
+cs_valid_execution_sources = ["document_on_event"]
+cs_valid_execution_sources_starts = ["cs_window_", "document_"]
+cs_invalid_execution_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove", "mousedown", "fetch"]
+
+cs_attack_execution_sink = [
+    # storage
+    "chrome_storage_sync_set",
+    "chrome_storage_sync_remove",
+    "chrome_storage_sync_clear",
+    "chrome_storage_local_set",
+    "chrome_storage_local_remove",
+    "chrome_storage_local_clear",
+    "jQuery_ajax_url_sink",
+    "jQuery_ajax_settings_data_sink",
+    "jQuery_ajax_settings_url_sink",
+    "jQuery_ajax_settings_data_sink",
+    "jQuery_get_url_sink",
+    "jQuery_post_data_sink",
+    "jQuery_post_url_sink",
+    "fetch_resource_sink",
+    "fetch_options_sink",
+    "XMLHttpRequest_url_sink",
+    "XMLHttpRequest_post_sink",
+    "eval_sink",
+    "chrome_tabs_executeScript_sink",
+    "chrome_cookies_set_sink",
+    "chrome_cookies_remove_sink",
+    "chrome_downloads_download_sink",
+    "chrome_downloads_removeFile_sink",
+    "chrome_downloads_erase_sink",
+    "chrome_browsingData_remove_sink",
+    "management_setEnabled_id",
+    "management_setEnabled_enabled",
+    "document_execCommand_sink"
+    ]
+
+bg_attack_execution_sink = [
+    "localStorage_remove_sink",
+    "localStorage_setItem_key",
+    "localStorage_setItem_value",
+    "localStorage_clear_sink",
+    "document_write_sink",
+    "JQ_obj_val_sink",
+    "JQ_obj_html_sink"
+]
+
+# DATA exfiltration
+extension_data_source = ['topSites_source',
+'cookie_source',
+'cookies_source',
+'CookieStores_source' ,
+'storage_sync_get_source',
+'storage_local_get_source',
+'HistoryItem_source',
+'VisitItem_source',
+'DownloadItem_source',
+'iconURL_source',
+'BookmarkTreeNode_source',
+"management_getAll_source",
+"management_getSelf_source"
+]
+
+extension_data_out = [
+    "window_postMessage_sink",
+    "bg_external_port_postMessage_sink",
+    "sendResponseExternal_sink",
+
+    "document_write_sink",
+    "JQ_obj_val_sink",
+    "JQ_obj_html_sink",
+    "localStorage_remove_sink",
+    "localStorage_setItem_key",
+    "localStorage_setItem_value",
+    "document_execCommand_sink"
+]
 # invalid: document_eventListener_scroll, document_eventListener_click, cs_window_eventListener_click, cs_window_eventListener_scroll
-# valid_sources = ["document_on_event", "bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
-invalid_attacks = ["bg_tabs_onupdated", "bg_externalNativePort_onMessage"]
-invalid_onEvents_attacks = ["onload", "onreadystatechange", "onerror"]
 
 def decide_valid_attacks(type):
     res = True
-    if type in invalid_attacks:
+    if type in invalid_execution_attacks:
         res = False
     elif "eventListener_" in type:
-        if type.split("eventListener_")[0] in valid_sources_starts and type.split("eventListener_")[1] in invalid_sources_ends:
+        if type.split("eventListener_")[0] in cs_valid_execution_sources_starts and type.split("eventListener_")[1] in cs_invalid_execution_sources_ends:
             res = False
+    return res
+
+def decide_valid_taint_flow(source_name, sink_name):
+    res = True
+    # API  execution: sensitive info should be from attacker and to sink
+    if source_name in bg_valid_execution_sources:
+        if sink_name not in cs_attack_execution_sink and sink_name not in bg_attack_execution_sink:
+            res = False
+    if source_name in cs_valid_execution_sources or \
+            (source_name.split("eventListener_")[0] in cs_valid_execution_sources_starts and source_name.split("eventListener_")[1] not in cs_invalid_execution_sources_ends):
+        if sink_name not in cs_attack_execution_sink:
+            res = False
+    # data exfiltration: sensitive info should be out
+    if source_name in extension_data_source and sink_name not in extension_data_out:
+        res = False
+    # user action or document load, onEvent
+    if source_name in invalid_execution_attacks or source_name in invalid_onEvents_attacks:
+        res = False
+    # invalid_taint
+    if (source_name, sink_name) in invalid_taint:
+        res = False
     return res
 
 
@@ -367,7 +416,7 @@ def check_taint(G, obj, sink_name):
         for flow in attrs['taint_flow']:
             path = flow[0]
             source_name = flow[1]
-            if (source_name, sink_name) in invalid_taint:
+            if not decide_valid_taint_flow(source_name, sink_name):
                 continue
             res += str(flow) + '\n'
             ast_path = [G.get_obj_def_ast_node(node) for node in path]

@@ -1,3 +1,46 @@
+//  ========= window ========= 
+
+// targetWindow.postMessage(message, targetOrigin, [transfer]);
+// window.postMessage = function(message, targetOrigin, [transfer]){
+//     sink_function(message, 'window_postMessage_sink');
+// };
+
+// // target.addEventListener(type, listener [, options]);
+// // the 'e' parameter passed to listener can be ignored, otherwise, it is the event object
+// window.addEventListener = function(type, listener,  [options]){
+//     MarkAttackEntry('cs_window_eventListener_' + type, listener);
+// };
+
+
+window.top = new Object();
+window.top.addEventListener = window.addEventListener;
+
+window.localStorage = new Object();
+window.localStorage.removeItem = function(a){
+    sink_function(a, 'localStorage_remove_sink');
+};
+
+window.localStorage.setItem = function(a, b){
+    sink_function(a, 'localStorage_setItem_key');
+    sink_function(b, 'localStorage_setItem_value');
+};
+
+window.localStorage.getItem = function(a){
+    var localStorage_getItem = 'value';
+    MarkSource(localStorage_getItem, 'localStorage_getItem_source');
+};
+
+window.localStorage.clear = function(){
+    sink_function('localStorage_clear_sink');
+};
+
+
+window.frames[0] = window;
+window.frames[1] = window;
+
+var self = window;
+var top = window;
+
 // ========= port ========= 
 function Port(info){
     if (info.includeTlsChannelId){
