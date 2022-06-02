@@ -23,7 +23,7 @@ for id in ids:
 			else:
 				pq = False
 	if not pq:
-		times.append(i)
+		times.append(id)
 	
 print(len(times))
 with open("final_code_cov/not_pq.txt", "w") as f:
