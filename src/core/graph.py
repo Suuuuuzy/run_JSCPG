@@ -355,7 +355,8 @@ class Graph:
             self.add_edge(from_ID, to_ID, attr)
 
     def set_edge_attr(self, from_ID, to_ID, edge_id, attr):
-        self.graph[from_ID][to_ID][attr[0]][edge_id] = attr[1]
+        with self.graph_lock:
+            self.graph[from_ID][to_ID][attr[0]][edge_id] = attr[1]
 
     def get_edge_attr(self, from_ID, to_ID, edge_id = None):
         self.op_cnt['get_edge_attr'] += 1
