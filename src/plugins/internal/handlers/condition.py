@@ -103,6 +103,7 @@ class HandleIf(Handler):
                 blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
                 # break
             else:
+                possibility, deterministic = check_condition(G, condition, extra)
                 branch_tag = \
                     BranchTag(point=stmt_id, branch=str(branch_num_counter))
                 # print('test tmp_cur_scope: ', body, tmp_cur_scope, branches + [branch_tag])

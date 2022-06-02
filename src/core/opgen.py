@@ -383,7 +383,6 @@ def fetch_new_thread(G):
 
 # the function to admin the threads, to use this, you have to pass G and the initial running thread
 def admin_threads(G, function, args):
-    FINAL_THREADS = 2 if options.list else 1 # this is because options.list uses tqdm, which will introduce another thread
     print('admin threads')
     if G.measure_thread:
         package_id = G.package_name.split("/")[-1]
@@ -466,7 +465,8 @@ def admin_threads(G, function, args):
         #     print('%%%%%%%%%work: ', tmp)
         #     tmp = [i.thread_self for i in G.pq]
         #     print('%%%%%%%%%pq: ', tmp)
-        if len(threading.enumerate())==FINAL_THREADS and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
+        active_thread = [i for i in threading.enumerate()if not i.daemon]
+        if len(active_thread)==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
             if G.measure_thread:
                 new_time = time.time()
                 if len(threading.enumerate()) != old_len or new_time - old_time > 0.1:

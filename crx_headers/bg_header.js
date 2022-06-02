@@ -207,7 +207,7 @@ Chrome.prototype.runtime.connectNative = function(extensionId, connectInfo){
         var extensionId = undefined;
     }
     // var info = {extensionId:extensionId, connectInfo:connectInfo};
-    return new externalPort(connectInfo);
+    return new externalNativePort(connectInfo);
 };
 
 Chrome.prototype.topSites = new Object();

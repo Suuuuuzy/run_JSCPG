@@ -836,7 +836,8 @@ def merge(G, stmt, num_of_branches, parent_branch):
 
 
 def emit_thread(G: Graph, function, args, thread_age=1, is_event = False ):
-    if len(threading.enumerate())==1:
+    active_thread = [i for i in threading.enumerate() if not i.daemon]
+    if len(active_thread)==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
         from src.core.opgen import admin_threads
         admin_threads(G, function, args)
     else:

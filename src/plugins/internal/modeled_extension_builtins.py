@@ -48,10 +48,12 @@ def register_event_check(G:Graph, listener, func):
             G.eventRegisteredFuncs[listener] = [func]
     event = G.listener_event_dic[listener]
     with G.event_loop_lock:
+        print("register_event_check")
         # names = [i['eventName'] for i in G.event_loop]
         if event in G.event_loop:
             for ev in G.event_loop[event]:
                 emit_thread(G, event_loop_threading, (G, ev, G.mydata.pickle_up()))
+            del G.event_loop[event]
 
 def UnregisterFunc(G: Graph, caller_ast, extra, _, *args):
     event = args[0].values[0]
@@ -102,6 +104,7 @@ def TriggerEvent(G: Graph, caller_ast, extra, _, *args):
                 # print("happen > 5 times")
                 emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()), thread_age = -1)
             else:
+                print("emit_thread directly")
                 emit_thread(G, event_loop_threading, (G, event, G.mydata.pickle_up()))
     else:
         G.eventQueue.insert(0, event)
@@ -302,7 +305,7 @@ invalid_onEvents_attacks = ["onload", "onreadystatechange", "onerror", "ready"]
 bg_valid_execution_sources = ["bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 cs_valid_execution_sources = ["document_on_event"]
 cs_valid_execution_sources_starts = ["cs_window_", "document_"]
-cs_invalid_execution_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove", "mousedown", "fetch"]
+cs_invalid_execution_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove", "mousedown", "fetch", "keydown"]
 
 cs_attack_execution_sink = [
     # storage
@@ -315,7 +318,6 @@ cs_attack_execution_sink = [
     "jQuery_ajax_url_sink",
     "jQuery_ajax_settings_data_sink",
     "jQuery_ajax_settings_url_sink",
-    "jQuery_ajax_settings_data_sink",
     "jQuery_get_url_sink",
     "jQuery_post_data_sink",
     "jQuery_post_url_sink",
