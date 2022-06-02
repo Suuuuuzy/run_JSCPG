@@ -160,6 +160,9 @@ def main():
     if mode == 'doublex_de':
         res_dir = '/media/data2/jianjia/extension_data/opgen_results/detected_by_doublex'
         idfile = '/media/data2/jianjia/extension_data/doublex_result/detected.txt'
+    elif mode == 'empoweb_de':
+        res_dir = '/media/data2/jianjia/extension_data/opgen_results/detected_by_empoweb'
+        idfile = '/media/data2/jianjia/extension_data/doublex_empoweb_api_result/detected.txt'
     elif mode == 'doublex_sus':
         res_dir = '/media/data2/jianjia/extension_data/opgen_results/suspect_by_doublex'
         idfile = '/media/data2/jianjia/extension_data/doublex_result/suspect.txt'

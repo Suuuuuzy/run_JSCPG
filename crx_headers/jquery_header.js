@@ -170,6 +170,10 @@ $.each = function(obj, callback){
     }
 }
 
+$.when = function(func1, func2){
+    func1();
+    func2();
+}
 
 
 jQuery = $;
