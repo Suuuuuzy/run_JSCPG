@@ -8,7 +8,10 @@ with open(idfile) as f:
 times = []
 time_id = {}
 for id in ids:
-	with open(os.path.join(path, id, "opgen_generated_files/used_time.txt")) as f:
+	timefile = os.path.join(path, id, "opgen_generated_files/used_time.txt")
+	if not os.path.exists(timefile):
+		continue
+	with open(timefile) as f:
 		c = f.read()
 	lines = c.split("\n")
 	lines = [i for i in lines if i!='']
