@@ -1,3 +1,4 @@
+thread_measure/extensions/
 time_measure/extensions/
 code_cov_measure/data
 memory_usage_measure/extensions/
