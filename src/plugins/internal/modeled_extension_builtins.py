@@ -335,7 +335,10 @@ cs_attack_execution_sink = [
     "chrome_browsingData_remove_sink",
     "management_setEnabled_id",
     "management_setEnabled_enabled",
-    "document_execCommand_sink"
+    "document_execCommand_sink",
+    "BookmarkCreate_sink",
+    "BookmarkRemove_sink",
+    "BookmarkSearchQuery_sink"
     ]
 
 bg_attack_execution_sink = [

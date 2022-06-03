@@ -464,6 +464,33 @@ Chrome.prototype.bookmarks.getTree = function(callback){
     callback(BookmarkTreeNode_source);
 }
 
+Chrome.prototype.bookmarks.search = function(query, callback){
+    var node = new BookmarkTreeNode();
+    var child = new BookmarkTreeNode();
+    node.children = [child];
+    var BookmarkTreeNode_source = [node];
+    MarkSource(BookmarkTreeNode_source, 'BookmarkTreeNode_source');
+    callback(BookmarkTreeNode_source);
+    sink_function(query, 'BookmarkSearchQuery_sink');
+}
+
+Chrome.prototype.bookmarks.create = function(bookmark, callback){
+    var node = new BookmarkTreeNode();
+    var child = new BookmarkTreeNode();
+    node.children = [child];
+    var BookmarkTreeNode_source = [node];
+    sink_function(bookmark, 'BookmarkCreate_sink');
+    MarkSource(BookmarkTreeNode_source, 'BookmarkTreeNode_source');
+    callback(BookmarkTreeNode_source);
+}
+
+Chrome.prototype.bookmarks.remove = function(id, callback){
+    sink_function(bookmark, 'BookmarkRemove_sink');
+    callback();
+}
+
+
+
 
 Chrome.prototype.webRequest = new Object();
 Chrome.prototype.webRequest.onBeforeSendHeaders = new Object();
