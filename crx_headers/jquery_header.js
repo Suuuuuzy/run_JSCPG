@@ -175,6 +175,19 @@ $.when = function(func1, func2){
     func2();
 }
 
+function require(para){
+    if (para=='jquery'){
+         return $;
+    }
+}
+
+Deferred_obj = function(){}
+
+Deferred_obj.prototype.promise = new Promise()
+
+$.Deferred = function(){
+    return Deferred_obj();
+}
 
 jQuery = $;
 
