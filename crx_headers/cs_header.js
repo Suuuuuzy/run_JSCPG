@@ -17,21 +17,21 @@ window.top.addEventListener = window.addEventListener;
 
 window.localStorage = new Object();
 window.localStorage.removeItem = function(a){
-    sink_function(a, 'localStorage_remove_sink');
+    sink_function(a, 'cs_localStorage_remove_sink');
 };
 
 window.localStorage.setItem = function(a, b){
-    sink_function(a, 'localStorage_setItem_key');
-    sink_function(b, 'localStorage_setItem_value');
+    sink_function(a, 'cs_localStorage_setItem_key_sink');
+    sink_function(b, 'cs_localStorage_setItem_value_sink');
 };
 
 window.localStorage.getItem = function(a){
     var localStorage_getItem = 'value';
-    MarkSource(localStorage_getItem, 'localStorage_getItem_source');
+    MarkSource(localStorage_getItem, 'cs_localStorage_getItem_source');
 };
 
 window.localStorage.clear = function(){
-    sink_function('localStorage_clear_sink');
+    sink_function('cs_localStorage_clear_sink');
 };
 
 

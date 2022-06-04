@@ -221,23 +221,23 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
     for obj in sus_objs:
         SpringObjs.update(G.get_off_spring(obj))
     sus_objs.update(SpringObjs)
-    # check whether the taint flow is vulnerable, check first whether it is attacked yet.
-    check = False
-    with G.attacked_lock:
-        if G.attacked:
-            check = True
-    if check:
-        # if no obj is required, control flow reaches
-        if len(sus_objs)==0:
-            print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
-                  + G.package_name + ' with ' + sink_name + sty.rs.all)
-            res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
-            res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-            with open(os.path.join(res_dir, G.result_file), 'a') as f:
-                f.write(res)
-            G.detected = True
+    # if no obj is required, control flow reaches
+    if len(sus_objs)==0:
+        print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
+              + G.package_name + ' with ' + sink_name + sty.rs.all)
+        res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
+        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+        with open(os.path.join(res_dir, G.result_file), 'a') as f:
+            f.write(res)
+        G.detected = True
+    else:
+        # check whether the taint flow is vulnerable, check first whether it is attacked yet.
+        check = False
+        with G.attacked_lock:
+            if G.attacked:
+                check = True
         for obj in sus_objs:
-            if check_taint(G, obj, sink_name):
+            if check_taint(G, obj, sink_name, check):
                 G.detected = True
     return NodeHandleResult()
 
@@ -255,23 +255,23 @@ def sink_function_in_graph(G: Graph, args, sink_name):
     for obj in sus_objs:
         SpringObjs.update(G.get_off_spring(obj))
     sus_objs.update(SpringObjs)
-    # check whether the taint flow is vulnerable, check first whether it is attacked yet.
-    check = False
-    with G.attacked_lock:
-        if G.attacked:
-            check = True
-    if check:
     # if no obj is required, control flow reaches
-        if len(sus_objs) == 0:
-            print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
-                  + G.package_name + ' with ' + sink_name + sty.rs.all)
-            res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
-            res_dir = os.path.join(G.package_name, 'opgen_generated_files')
-            with open(os.path.join(res_dir, G.result_file), 'a') as f:
-                f.write(res)
-            G.detected = True
+    if len(sus_objs) == 0:
+        print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
+              + G.package_name + ' with ' + sink_name + sty.rs.all)
+        res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
+        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+        with open(os.path.join(res_dir, G.result_file), 'a') as f:
+            f.write(res)
+        G.detected = True
+    else:
+        # check whether the taint flow is vulnerable, check first whether it is attacked yet.
+        check = False
+        with G.attacked_lock:
+            if G.attacked:
+                check = True
         for obj in sus_objs:
-            if check_taint(G, obj, sink_name):
+            if check_taint(G, obj, sink_name, check):
                 G.detected = True
     return NodeHandleResult()
 
@@ -306,15 +306,28 @@ bg_valid_execution_sources = ["bg_external_port_onMessage", "bg_chrome_runtime_M
 cs_valid_execution_sources = ["document_on_event"]
 cs_valid_execution_sources_starts = ["cs_window_", "document_"]
 cs_invalid_execution_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove", "mousedown", "fetch", "keydown"]
-
+doc_valid_sources = [
+    "Document_element_href",
+    "document_body_innerText",
+    "jQuery_ajax_result_source",
+    "jQuery_get_source",
+    "jQuery_post_source",
+    "fetch_source",
+    "XMLHttpRequest_responseText_source",
+    "XMLHttpRequest_responseXML_source"
+]
 cs_attack_execution_sink = [
     # storage
-    "chrome_storage_sync_set",
-    "chrome_storage_sync_remove",
-    "chrome_storage_sync_clear",
-    "chrome_storage_local_set",
-    "chrome_storage_local_remove",
-    "chrome_storage_local_clear",
+    "chrome_storage_sync_set_sink",
+    "chrome_storage_sync_remove_sink",
+    "chrome_storage_sync_clear_sink",
+    "chrome_storage_local_set_sink",
+    "chrome_storage_local_remove_sink",
+    "chrome_storage_local_clear_sink",
+    "bg_localStorage_remove_sink",
+    "bg_localStorage_setItem_key_sink",
+    "bg_localStorage_setItem_value_sink",
+    "bg_localStorage_clear_sink"
     "jQuery_ajax_url_sink",
     "jQuery_ajax_settings_data_sink",
     "jQuery_ajax_settings_url_sink",
@@ -341,18 +354,22 @@ cs_attack_execution_sink = [
     "BookmarkSearchQuery_sink"
     ]
 
+# bg attack sink only
 bg_attack_execution_sink = [
-    "localStorage_remove_sink",
-    "localStorage_setItem_key",
-    "localStorage_setItem_value",
-    "localStorage_clear_sink",
+    "cs_localStorage_remove_sink",
+    "cs_localStorage_setItem_key_sink",
+    "cs_localStorage_setItem_value_sink",
+    "cs_localStorage_clear_sink",
     "document_write_sink",
+    "document_execCommand_sink",
     "JQ_obj_val_sink",
     "JQ_obj_html_sink"
 ]
 
 # DATA exfiltration
-extension_data_source = ['topSites_source',
+extension_data_source = [
+"bg_localStorage_getItem_source",
+'topSites_source',
 'cookie_source',
 'cookies_source',
 'CookieStores_source' ,
@@ -364,7 +381,11 @@ extension_data_source = ['topSites_source',
 'iconURL_source',
 'BookmarkTreeNode_source',
 "management_getAll_source",
-"management_getSelf_source",
+"management_getSelf_source"
+]
+
+extension_data_source_no_attack = [
+"cs_localStorage_getItem_source",
 "jQuery_ajax_result_source",
 "jQuery_get_source",
 "jQuery_post_source",
@@ -397,10 +418,10 @@ def decide_valid_attacks(type):
             res = False
     return res
 
-def decide_valid_taint_flow(source_name, sink_name):
+def decide_valid_taint_flow(source_name, sink_name, attacked):
     res = False
     # API  execution: sensitive info should be from attacker and to sink
-    if source_name in bg_valid_execution_sources:
+    if source_name in bg_valid_execution_sources or source_name in doc_valid_sources:
         if sink_name in cs_attack_execution_sink or sink_name in bg_attack_execution_sink:
             res = True
     elif source_name in cs_valid_execution_sources or \
@@ -408,7 +429,10 @@ def decide_valid_taint_flow(source_name, sink_name):
         if sink_name in cs_attack_execution_sink:
             res = True
     # data exfiltration: sensitive info should be out
-    elif source_name in extension_data_source:
+    if source_name in extension_data_source:
+        if sink_name in extension_data_out and attacked:
+            res = True
+    elif source_name in extension_data_source_no_attack:
         if sink_name in extension_data_out:
             res = True
     # user action or document load, onEvent
@@ -420,7 +444,7 @@ def decide_valid_taint_flow(source_name, sink_name):
     return res
 
 
-def check_taint(G, obj, sink_name):
+def check_taint(G, obj, sink_name, attacked):
     attrs = G.get_node_attr(obj)
     check_res = False
     if attrs.get('tainted') and 'taint_flow' in attrs:
@@ -428,7 +452,7 @@ def check_taint(G, obj, sink_name):
         for flow in attrs['taint_flow']:
             path = flow[0]
             source_name = flow[1]
-            if not decide_valid_taint_flow(source_name, sink_name):
+            if not decide_valid_taint_flow(source_name, sink_name, attacked):
                 continue
             res += str(flow) + '\n'
             ast_path = [G.get_obj_def_ast_node(node) for node in path]
