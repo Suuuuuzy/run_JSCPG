@@ -49,6 +49,7 @@ coco_api= [
 "chrome_storage_sync_set_sink",
 "chrome_storage_local_set_sink",
 "management_setEnabled_enabled",
+"management_setEnabled_enabled",
 "management_getAll_source"
 ]
 def ana_opgen(extension_path, id, res_name):
