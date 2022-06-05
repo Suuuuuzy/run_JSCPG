@@ -223,6 +223,9 @@ def sink_function(G: Graph, caller_ast, extra, _, *args):
     sus_objs.update(SpringObjs)
     # if no obj is required, control flow reaches
     if len(sus_objs)==0:
+        with G.attacked_lock:
+            if not G.attacked:
+                return NodeHandleResult()
         print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
               + G.package_name + ' with ' + sink_name + sty.rs.all)
         res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
@@ -257,6 +260,9 @@ def sink_function_in_graph(G: Graph, args, sink_name):
     sus_objs.update(SpringObjs)
     # if no obj is required, control flow reaches
     if len(sus_objs) == 0:
+        with G.attacked_lock:
+            if not G.attacked:
+                return NodeHandleResult()
         print(sty.fg.li_green + sty.ef.inverse + f'~~~tainted detected!~~~in extension: ' \
               + G.package_name + ' with ' + sink_name + sty.rs.all)
         res = '~~~tainted detected!~~~in extension: ' + G.package_name + ' with ' + sink_name + '\n'
@@ -305,7 +311,7 @@ invalid_onEvents_attacks = ["onload", "onreadystatechange", "onerror", "ready"]
 bg_valid_execution_sources = ["bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 cs_valid_execution_sources = ["document_on_event"]
 cs_valid_execution_sources_starts = ["cs_window_", "document_"]
-cs_invalid_execution_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove", "mousedown", "fetch", "keydown"]
+cs_invalid_execution_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove", "mousedown", "fetch", "keydown", "touchmove", "resize"]
 doc_valid_sources = [
     "Document_element_href",
     "document_body_innerText",

@@ -210,6 +210,14 @@ Chrome.prototype.runtime.connectNative = function(extensionId, connectInfo){
     return new externalNativePort(connectInfo);
 };
 
+Chrome.prototype.runtime.sendNativeMessage = function(application, message, callback){
+    var response;
+    MarkSource(response, 'sendNativeMessage_response_source');
+    callback();
+}
+
+
+
 Chrome.prototype.topSites = new Object();
 Chrome.prototype.topSites.get = function(myCallback){
     var mostVisitedUrls_source = [{title:'title', url:'url'}];
