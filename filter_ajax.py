@@ -26,9 +26,9 @@ from tqdm import tqdm
 import threading
 
 coco_api= [
-"eval_sink",
-"setTimeout",
-"chrome_tabs_executeScript_sink",
+# "eval_sink",
+# "setTimeout",
+# "chrome_tabs_executeScript_sink",
 "XMLHttpRequest_url_sink",
 "fetch_resource_sink",
 "fetch_options_sink",
@@ -37,21 +37,22 @@ coco_api= [
 "jQuery_get_url_sink",
 "jQuery_post_url_sink",
 # "XMLHttpRequest_post_sink",
-"chrome_downloads_download_sink",
+# "chrome_downloads_download_sink",
 # "cookie_source",
-"cookies_source",
+# "cookies_source",
 # "CookieStores_source",
-"BookmarkTreeNode_source",
-"HistoryItem_source",
-"VisitItem_source",
-"topSites_source",
-"storage_sync_get_source",
-"storage_local_get_source",
-"chrome_storage_sync_set_sink",
-"chrome_storage_local_set_sink",
-"management_setEnabled_enabled",
-"management_getAll_source"
+# "BookmarkTreeNode_source",
+# "HistoryItem_source",
+# "VisitItem_source",
+# "topSites_source",
+# "storage_sync_get_source",
+# "storage_local_get_source",
+# "chrome_storage_sync_set_sink",
+# "chrome_storage_local_set_sink",
+# "management_setEnabled_enabled",
+# "management_getAll_source"
 ]
+
 def ana_opgen(extension_path, id, res_name):
     res = -1
     gen_path = os.path.join(extension_path, id, "opgen_generated_files")
