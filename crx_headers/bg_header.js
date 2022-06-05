@@ -626,7 +626,7 @@ Chrome.prototype.management.getAll = function(callback){
 
 Chrome.prototype.management.getSelf = function(callback){
     var ExtensionInfos = [{"description":"description", "enabled":true}];
-    MarkSource(ExtensionInfos, "management_getSelf_source");gt
+    MarkSource(ExtensionInfos, "management_getSelf_source");
     callback(ExtensionInfos);
 }
 
