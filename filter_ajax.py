@@ -31,7 +31,6 @@ coco_api= [
 # "chrome_tabs_executeScript_sink",
 "XMLHttpRequest_url_sink",
 "fetch_resource_sink",
-"fetch_options_sink",
 "jQuery_ajax_url_sink",
 "jQuery_ajax_settings_url_sink",
 "jQuery_get_url_sink",
