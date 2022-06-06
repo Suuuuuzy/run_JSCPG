@@ -5,8 +5,8 @@ import json
 path = sys.argv[1]
 if path =='t':# test
 	path = "../demos/"
-	path = "/Users/jianjia/Documents/final_results/venn_graph_data/add_more/extensions/"
-	ids = ["cgifdpikilmphplddaagnmhpdcnohhda"]
+	path = "/Users/jianjia/Desktop/help"
+	ids = ["test"]
 else:
 	idfile = sys.argv[2]
 	with open(idfile) as f:
@@ -14,7 +14,7 @@ else:
 
 timeout_id = {}
 timeout_id_imp = {}
-cnt = 0
+timeoutcnt = 0
 finish = 0
 for id in ids:
 	timefile = os.path.join(path, id, "opgen_generated_files/used_time.txt")
@@ -24,54 +24,43 @@ for id in ids:
 		c = f.read()
 	parts = c.split("\n\n")
 	# print(parts)
-	pq_cov = 0
-	no_pq_cov = 0
+	pq_cov = -1
+	no_pq_cov = -1
 	old_run = 0
 	fi = 0
 	for part in parts:
+		if "with code_cov " not in part:
+			continue
+		elif "with code_cov " in part and "finish" in part:
+			finish += 1
+			break
 		lines = part.split("\n")
 		lines = [i.strip() for i in lines]
+		line = lines[-1]
 		# we need timeout ones
-		if "timeout" not in lines[-1]:
+		if "timeout" not in line:
 			continue
 		if "run_with_pq: False" in lines:
-			line = lines[-1]
-			try:
-				cov = line.split("with code_cov ")[1]
-				cov = float(cov.split("% stmt covered####")[0])
-				if cov > no_pq_cov:
-					no_pq_cov=cov
-				if "finish" in line:
-					fi = 1
-			except:
-				old_run = 1
+			cov = line.split("with code_cov ")[1]
+			cov = float(cov.split("% stmt covered####")[0])
+			if cov > no_pq_cov:
+				no_pq_cov=cov
 		elif "run_with_pq: True" in lines:
-			line = lines[-1]
-			try:
-				cov = line.split("with code_cov ")[1]
-				cov = float(cov.split("% stmt covered####")[0])
-				if cov > pq_cov:
-					pq_cov=cov
-				if "finish" in line:
-					fi = 1
-			except:
-				old_run = 1
-	# if old_run:
-	# 	cnt+=1
-	if fi==1:
-		finish += 1
-	else:
+			cov = line.split("with code_cov ")[1]
+			cov = float(cov.split("% stmt covered####")[0])
+			if cov > pq_cov:
+				pq_cov=cov
+	if no_pq_cov>0 and pq_cov>0:
 		timeout_id[id] = [pq_cov, no_pq_cov]
 		timeout_id_imp[id] = pq_cov-no_pq_cov
 		if no_pq_cov != 0 and pq_cov>no_pq_cov:
 			print(pq_cov, no_pq_cov, id)
-			cnt+=1
+			timeoutcnt+=1
 
 print(str(finish) + " finishes")
 print(str(len(timeout_id))+" timeout")
-print(str(cnt) + " imp")
+print(str(timeoutcnt) + " imp")
 
-# print(str(cnt)+" can not get cov")
 
 with open("timeout_id.txt", "w") as f:
 	# json.dump(timeout_id, f)
