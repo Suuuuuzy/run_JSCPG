@@ -46,7 +46,7 @@ for id in ids:
 					pq_cov=cov
 			except:
 				print("can not get cov")
-	if pq_cov>no_pq_cov:
+	if no_pq_cov != 0 and pq_cov>no_pq_cov:
 		timeout_id[id] = pq_cov-no_pq_cov
 		print(pq_cov, no_pq_cov, id)
 
