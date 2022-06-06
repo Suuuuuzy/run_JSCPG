@@ -27,6 +27,7 @@ for id in ids:
 	pq_cov = 0
 	no_pq_cov = 0
 	old_run = 0
+	fi = 0
 	for part in parts:
 		lines = part.split("\n")
 		lines = [i.strip() for i in lines]
@@ -40,6 +41,8 @@ for id in ids:
 				cov = float(cov.split("% stmt covered####")[0])
 				if cov > no_pq_cov:
 					no_pq_cov=cov
+				if "finish" in line:
+					fi = 1
 			except:
 				old_run = 1
 		elif "run_with_pq: True" in lines:
@@ -49,26 +52,36 @@ for id in ids:
 				cov = float(cov.split("% stmt covered####")[0])
 				if cov > pq_cov:
 					pq_cov=cov
+				if "finish" in line:
+					fi = 1
 			except:
 				old_run = 1
-	if "finish" in c:
+	# if old_run:
+	# 	cnt+=1
+	if fi==1:
 		finish += 1
-	if old_run:
-		cnt+=1
-	timeout_id[id] = [pq_cov, no_pq_cov]
-	timeout_id_imp[id] = pq_cov-no_pq_cov
-	if no_pq_cov != 0 and pq_cov>no_pq_cov:
-		# timeout_id_imp[id] = pq_cov-no_pq_cov
-		print(pq_cov, no_pq_cov, id)
+	else:
+		timeout_id[id] = [pq_cov, no_pq_cov]
+		timeout_id_imp[id] = pq_cov-no_pq_cov
+		if no_pq_cov != 0 and pq_cov>no_pq_cov:
+			print(pq_cov, no_pq_cov, id)
+			cnt+=1
 
 print(str(finish) + " finishes")
-print(str(cnt)+" can not get cov")
+print(str(len(timeout_id))+" timeout")
+print(cnt + " imp")
+
+# print(str(cnt)+" can not get cov")
 
 with open("timeout_id.txt", "w") as f:
-	json.dump(timeout_id, f)
+	# json.dump(timeout_id, f)
+	for i in timeout_id:
+		f.write(str(i)+"\n")
 
 with open("timeout_id_imp.txt", "w") as f:
-	json.dump(timeout_id_imp, f)
+	# json.dump(timeout_id_imp, f)
+	for i in timeout_id_imp:
+		f.write(i+"\n")
 
 
 	# python3 get_timeout.py  /media/data2/jianjia/extension_data/unzipped_extensions/ random_500.txt
