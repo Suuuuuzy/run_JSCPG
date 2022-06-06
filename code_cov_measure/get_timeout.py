@@ -48,8 +48,11 @@ for id in ids:
 				print("can not get cov")
 	if pq_cov>no_pq_cov:
 		timeout_id[id] = pq_cov-no_pq_cov
-		print(pq_cov, no_pq_cov)
+		print(pq_cov, no_pq_cov, id)
 
 
 with open("pq_timeout_imp.txt", "w") as f:
-	f.dump(timeout_id, f)
+	json.dump(timeout_id, f)
+
+
+	# python3 get_timeout.py  /media/data2/jianjia/extension_data/unzipped_extensions/ random_500.txt
