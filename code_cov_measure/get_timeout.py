@@ -32,7 +32,7 @@ for id in ids:
 	for part in parts:
 		if "with code_cov " not in part:
 			continue
-		elif "with code_cov " in part and "finish" in part:
+		elif "with code_cov " in part and "finish" in part and "autostop: False" in part:
 			finish += 1
 			pq_cov = -1
 			no_pq_cov = -1
@@ -66,14 +66,14 @@ print(str(finish) + " finishes")
 print(str(len(timeout_id))+" timeout")
 print(str(timeoutcnt) + " imp")
 
-
-with open("timeout_id.txt", "w") as f:
+num = idfile.split("/")[-1].split("_")[0]
+with open(num+"_timeout_id.txt", "w") as f:
 	# json.dump(timeout_id, f)
 	for i in timeout_id:
 		f.write(str(i) + "\t" + str(timeout_id[i])+"\n")
 
 
-with open("not_imp_ids.txt", "w") as f:
+with open(num+"_not_imp_ids.txt", "w") as f:
 	json.dump(not_imp_ids, f)
 
 
