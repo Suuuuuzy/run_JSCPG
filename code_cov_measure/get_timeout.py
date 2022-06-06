@@ -81,5 +81,9 @@ if mode !='t':# test
 	with open(num+"_not_imp_ids.txt", "w") as f:
 		json.dump(not_imp_ids, f)
 
+	with open(num+"_timeout_ids.json", "w") as f:
+		tmp = [i for i in timeout_id]
+		json.dump(tmp, f)
+
 
 	# python3 get_timeout.py  /media/data2/jianjia/extension_data/unzipped_extensions/ random_500.txt

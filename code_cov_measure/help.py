@@ -7,7 +7,7 @@ with open("500_timeout_id.json") as f:
 	c_500 = json.load(f)
 
 
-c_100.update(c_500)
+# c_100.update(c_500)
 
 c_100 = dict(sorted(c_100.items(), key=lambda item: item[1][0]))
 # pq_cov =
