@@ -76,7 +76,7 @@ print(str(cnt) + " imp")
 with open("timeout_id.txt", "w") as f:
 	# json.dump(timeout_id, f)
 	for i in timeout_id:
-		f.write(str(timeout_id[i])+"\n")
+		f.write(str(i) + "\t" + str(timeout_id[i])+"\n")
 
 with open("timeout_id_imp.txt", "w") as f:
 	# json.dump(timeout_id_imp, f)
