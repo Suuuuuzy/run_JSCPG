@@ -85,5 +85,11 @@ if mode !='t':# test
 		tmp = [i for i in timeout_id]
 		json.dump(tmp, f)
 
+	# help get the 0 seq time code cov
+	with open("seq_time/" + num+"_0_.json", "w") as f:
+		tmp = {}
+		for i in timeout_id:
+			tmp[i] = timeout_id[i][1]
+		json.dump(tmp, f)
 
 	# python3 get_timeout.py  /media/data2/jianjia/extension_data/unzipped_extensions/ random_500.txt
