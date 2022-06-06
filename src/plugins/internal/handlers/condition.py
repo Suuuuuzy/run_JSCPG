@@ -72,6 +72,7 @@ class HandleIf(Handler):
                     # print('test tmp_cur_scope: ', body, tmp_cur_scope, branches + [branch_tag])
                     blocks.simurun_block(G, body, tmp_cur_scope, branches + [branch_tag])
             else:
+                possibility, deterministic = check_condition(G, condition, extra)
                 if G.get_node_attr(condition).get('type') == 'NULL':  # else
                     # not deterministic, create branch
                     branch_tag = BranchTag(
