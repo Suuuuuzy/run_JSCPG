@@ -13,7 +13,8 @@ else:
 		ids = json.load(f)
 
 timeout_id = {}
-timeout_id_imp = {}
+not_imp_ids = []
+# timeout_id_imp = {}
 timeoutcnt = 0
 finish = 0
 for id in ids:
@@ -53,11 +54,13 @@ for id in ids:
 			if cov > pq_cov:
 				pq_cov=cov
 	if no_pq_cov>0 and pq_cov>0:
-		timeout_id[id] = [pq_cov, no_pq_cov]
-		timeout_id_imp[id] = pq_cov-no_pq_cov
-		if no_pq_cov != 0 and pq_cov>no_pq_cov:
+		timeout_id[id] = [pq_cov-no_pq_cov, pq_cov, no_pq_cov]
+		# timeout_id_imp[id] = pq_cov-no_pq_cov
+		if pq_cov>no_pq_cov:
 			print(pq_cov, no_pq_cov, id)
 			timeoutcnt+=1
+		else:
+			not_imp_ids.append(id)
 
 print(str(finish) + " finishes")
 print(str(len(timeout_id))+" timeout")
@@ -69,10 +72,9 @@ with open("timeout_id.txt", "w") as f:
 	for i in timeout_id:
 		f.write(str(i) + "\t" + str(timeout_id[i])+"\n")
 
-with open("timeout_id_imp.txt", "w") as f:
-	# json.dump(timeout_id_imp, f)
-	for i in timeout_id_imp:
-		f.write(i+"\t"+str(timeout_id_imp[i])+"\n")
+
+with open("not_imp_ids.txt", "w") as f:
+	json.dump(not_imp_ids, f)
 
 
 	# python3 get_timeout.py  /media/data2/jianjia/extension_data/unzipped_extensions/ random_500.txt
