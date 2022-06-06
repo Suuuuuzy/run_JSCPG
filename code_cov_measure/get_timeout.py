@@ -13,6 +13,7 @@ else:
 		ids = json.load(f)
 
 timeout_id = {}
+timeout_id_imp = {}
 cnt = 0
 finish = 0
 for id in ids:
@@ -54,15 +55,20 @@ for id in ids:
 		finish += 1
 	if old_run:
 		cnt+=1
+	timeout_id[id] = [pq_cov, no_pq_cov]
+	timeout_id_imp[id] = pq_cov-no_pq_cov
 	if no_pq_cov != 0 and pq_cov>no_pq_cov:
-		timeout_id[id] = pq_cov-no_pq_cov
+		# timeout_id_imp[id] = pq_cov-no_pq_cov
 		print(pq_cov, no_pq_cov, id)
 
 print(str(finish) + " finishes")
 print(str(cnt)+" can not get cov")
 
-with open("pq_timeout_imp.txt", "w") as f:
+with open("timeout_id.txt", "w") as f:
 	json.dump(timeout_id, f)
+
+with open("timeout_id_imp.txt", "w") as f:
+	json.dump(timeout_id_imp, f)
 
 
 	# python3 get_timeout.py  /media/data2/jianjia/extension_data/unzipped_extensions/ random_500.txt
