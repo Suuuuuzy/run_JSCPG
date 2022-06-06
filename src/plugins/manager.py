@@ -177,7 +177,7 @@ class PluginManager(object):
                         if code_cov==self.G.last_code_cov:
                             time_laps = time.time()-self.G.last_code_cov_time
                             # print(time_laps)
-                            if time_laps > 60git0 and self.G.last_code_cov != 0:
+                            if time_laps > 600 and self.G.last_code_cov != 0:
                                 # print("too slow, set sign")
                                 self.G.stop_sign = True
                                 return NodeHandleResult()
