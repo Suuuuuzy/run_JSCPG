@@ -70,7 +70,7 @@ num = idfile.split("/")[-1].split("_")[0]
 with open(num+"_timeout_id.txt", "w") as f:
 	# json.dump(timeout_id, f)
 	for i in timeout_id:
-		f.write(str(i) + "\t" + str(timeout_id[i])+"\n")
+		f.write(str(i) + "\t" + str(timeout_id[i][0]) + "\t" +str(timeout_id[i][1])+ "\t"+ str(timeout_id[i][2]) + "\n")
 
 
 with open(num+"_not_imp_ids.txt", "w") as f:
