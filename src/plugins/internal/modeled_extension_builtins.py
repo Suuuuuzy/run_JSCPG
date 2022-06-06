@@ -311,7 +311,7 @@ invalid_onEvents_attacks = ["onload", "onreadystatechange", "onerror", "ready"]
 bg_valid_execution_sources = ["bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
 cs_valid_execution_sources = ["document_on_event"]
 cs_valid_execution_sources_starts = ["cs_window_", "document_"]
-cs_invalid_execution_sources_ends = ["click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove", "mousedown", "fetch", "keydown", "touchmove", "resize"]
+cs_invalid_execution_sources_ends = ["change", "click", "scroll", "load", "mouseover", "mouseout", "unload", "DOMContentLoaded", "mousemove", "mousedown", "fetch", "keydown", "touchmove", "resize", "touch"]
 doc_valid_sources = [
     "Document_element_href",
     "document_body_innerText",
