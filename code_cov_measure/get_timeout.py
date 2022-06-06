@@ -13,6 +13,7 @@ else:
 		ids = json.load(f)
 
 timeout_id = {}
+cnt = 0
 for id in ids:
 	timefile = os.path.join(path, id, "opgen_generated_files/used_time.txt")
 	if not os.path.exists(timefile):
@@ -37,7 +38,7 @@ for id in ids:
 				if cov > no_pq_cov:
 					no_pq_cov=cov
 			except:
-				print("can not get cov")
+				cnt += 1
 		elif "run_with_pq: True" in lines:
 			line = lines[-1]
 			try:
@@ -46,11 +47,13 @@ for id in ids:
 				if cov > pq_cov:
 					pq_cov=cov
 			except:
-				print("can not get cov")
+				cnt += 1
 	if no_pq_cov != 0 and pq_cov>no_pq_cov:
 		timeout_id[id] = pq_cov-no_pq_cov
 		print(pq_cov, no_pq_cov, id)
 
+
+print(str(cnt)+" can not get cov")
 
 with open("pq_timeout_imp.txt", "w") as f:
 	json.dump(timeout_id, f)
