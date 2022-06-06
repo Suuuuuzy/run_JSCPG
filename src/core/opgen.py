@@ -129,6 +129,8 @@ class OPGen:
                     self.parse_run_extension(G, extension_path,dx, res_dir, result_file, vul_type)
             except TimeoutError as err:
                 covered_stat_rate = self.graph.get_code_cov()
+                if G.measure_code_cov_progress:
+                    G.record_code_cov(covered_stat_rate)
                 with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
                     f.write(self.output_args_str())
                     f.write(str(err) + " with code_cov {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
@@ -144,10 +146,11 @@ class OPGen:
         start_time = time.time()
         Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
         covered_stat_rate = self.graph.get_code_cov()
+        if G.measure_code_cov_progress:
+            G.record_code_cov(covered_stat_rate)
         if Error_msg:
             with open(os.path.join(res_dir, result_file), 'w') as f:
                 f.write(Error_msg)
-            return -1
         Error_msg = self._test_graph(G, vul_type=vul_type)
         file_size = 0
         if os.path.exists(os.path.join(res_dir, result_file)):
@@ -155,9 +158,10 @@ class OPGen:
         if Error_msg and file_size == 0:
             with open(os.path.join(res_dir, result_file), 'w') as f:
                 f.write(Error_msg)
-            return -1
         end_time = time.time()
         covered_stat_rate = self.graph.get_code_cov()
+        if G.measure_code_cov_progress:
+            G.record_code_cov(covered_stat_rate)
         with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
             f.write(self.output_args_str())
             f.write(extension_path + " finish within {} seconds#### with code_cov {}% stmt covered####".format(str(end_time - start_time), covered_stat_rate) + "\n\n")
@@ -176,16 +180,16 @@ class OPGen:
             list: the test result pathes of the module
         """
         Error_msg = None
-        try:
-            setup_opg(G)
-            G.export_node = True
-            internal_plugins = PluginManager(G, init=True)
-            entry_id = '0'
-            generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
-            if not G.thread_version:
-                event_loop_no_threading(G)
-        except:
-            Error_msg = "Error: " + G.package_name + " error during test graph"
+        # try:
+        setup_opg(G)
+        G.export_node = True
+        internal_plugins = PluginManager(G, init=True)
+        entry_id = '0'
+        generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
+        if not G.thread_version:
+            event_loop_no_threading(G)
+        # except:
+        #     Error_msg = "Error: " + G.package_name + " error during test graph"
         return Error_msg
 
     def test_module(self, module_path, vul_type='os_command', G=None, 

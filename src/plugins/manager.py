@@ -165,11 +165,7 @@ class PluginManager(object):
                         code_cov = self.G.get_code_cov()
                         # thread_time.append(newline)
                         if self.G.measure_code_cov_progress:
-                            newline = "CODE_COV " + str(code_cov) + " " + str(time.time())
-                            package_id = self.G.package_name.split("/")[-1]
-                            code_cov_measure_file = "code_cov_measure/data/" + package_id + '.txt'
-                            with open(code_cov_measure_file, "a") as f:
-                                f.write(newline + "\n")
+                            self.G.record_code_cov(code_cov)
                         loggers.progress_logger.info(
                             "{}% stmt covered.".format(100 * code_cov))
                     else:

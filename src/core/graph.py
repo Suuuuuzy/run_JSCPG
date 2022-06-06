@@ -14,7 +14,7 @@ from queue import PriorityQueue
 from threading import Thread, Event, Lock, Condition
 import threading
 import copy
-
+import time
 class MyData(threading.local):
     def __init__(self):
         self.cur_objs = []
@@ -2135,6 +2135,14 @@ class Graph:
         header_stat = self.get_header_stat()
         all_stat = self.get_all_stat()
         return all_stat - header_stat
+
+
+    def record_code_cov(self, code_cov):
+        newline = "CODE_COV " + str(code_cov) + " " + str(time.time())
+        package_id = self.package_name.split("/")[-1]
+        code_cov_measure_file = self.package_name +'/opgen_generated_files/code_cov.txt'
+        with open(code_cov_measure_file, "a") as f:
+            f.write(newline + "\n")
 
     # ASToperators = [
     #                 'AST_ASSIGN': self.HandleAssign,

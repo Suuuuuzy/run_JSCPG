@@ -5,7 +5,8 @@ import json
 path = sys.argv[1]
 if path =='t':# test
 	path = "../demos/"
-	ids = ["test"]
+	path = "/Users/jianjia/Documents/final_results/venn_graph_data/add_more/extensions/"
+	ids = ["cgifdpikilmphplddaagnmhpdcnohhda"]
 else:
 	idfile = sys.argv[2]
 	with open(idfile) as f:
