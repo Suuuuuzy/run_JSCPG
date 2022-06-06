@@ -69,7 +69,7 @@ for id in ids:
 
 print(str(finish) + " finishes")
 print(str(len(timeout_id))+" timeout")
-print(cnt + " imp")
+print(str(cnt) + " imp")
 
 # print(str(cnt)+" can not get cov")
 
