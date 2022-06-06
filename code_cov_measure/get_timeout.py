@@ -33,6 +33,8 @@ for id in ids:
 			continue
 		elif "with code_cov " in part and "finish" in part:
 			finish += 1
+			pq_cov = -1
+			no_pq_cov = -1
 			break
 		lines = part.split("\n")
 		lines = [i.strip() for i in lines]
@@ -70,7 +72,7 @@ with open("timeout_id.txt", "w") as f:
 with open("timeout_id_imp.txt", "w") as f:
 	# json.dump(timeout_id_imp, f)
 	for i in timeout_id_imp:
-		f.write(i+"\n")
+		f.write(i+"\t"+str(timeout_id_imp[i])+"\n")
 
 
 	# python3 get_timeout.py  /media/data2/jianjia/extension_data/unzipped_extensions/ random_500.txt
