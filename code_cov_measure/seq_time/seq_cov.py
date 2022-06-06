@@ -61,7 +61,7 @@ if mode !='t':# test
 	num = idfile.split("/")[-1].split("_")[0]
 	for time_setting in code_cov:
 		with open(num+"_"+time_setting+".json", "w") as f:
-			json.dump(code_cov[time_setting])
+			json.dump(code_cov[time_setting], f)
 else:
 	for time_setting in code_cov:
 		with open(time_setting+".json", "w") as f:
