@@ -51,7 +51,7 @@ for id in ids:
 					pq_cov=cov
 			except:
 				old_run = 1
-	if "finish" in parts[-1]:
+	if "finish" in c:
 		finish += 1
 	if old_run:
 		cnt+=1
