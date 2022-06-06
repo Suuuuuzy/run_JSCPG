@@ -2,12 +2,13 @@ import os
 import sys
 import json
 
-path = sys.argv[1]
-if path =='t':# test
+mode = sys.argv[1]
+if mode =='t':# test
 	path = "../demos/"
 	path = "/Users/jianjia/Desktop/help"
 	ids = ["test"]
 else:
+	path = sys.argv[1]
 	idfile = sys.argv[2]
 	with open(idfile) as f:
 		ids = json.load(f)
@@ -19,6 +20,7 @@ timeoutcnt = 0
 finish = 0
 for id in ids:
 	timefile = os.path.join(path, id, "opgen_generated_files/used_time.txt")
+	# resfile = os.path.join(path, id, "opgen_generated_files/res.txt")
 	if not os.path.exists(timefile):
 		continue
 	with open(timefile) as f:
@@ -66,17 +68,18 @@ print(str(finish) + " finishes")
 print(str(len(timeout_id))+" timeout")
 print(str(timeoutcnt) + " imp")
 
-num = idfile.split("/")[-1].split("_")[0]
-with open(num+"_timeout_id.txt", "w") as f:
-	# json.dump(timeout_id, f)
-	for i in timeout_id:
-		f.write(str(i) + "\t" + str(timeout_id[i][0]) + "\t" +str(timeout_id[i][1])+ "\t"+ str(timeout_id[i][2]) + "\n")
+if mode !='t':# test
+	num = idfile.split("/")[-1].split("_")[0]
+	with open(num+"_timeout_id.txt", "w") as f:
+		# json.dump(timeout_id, f)
+		for i in timeout_id:
+			f.write(str(i) + "\t" + str(timeout_id[i][0]) + "\t" +str(timeout_id[i][1])+ "\t"+ str(timeout_id[i][2]) + "\n")
 
-with open(num+"_timeout_id.json", "w") as f:
-	json.dump(timeout_id, f)
+	with open(num+"_timeout_id.json", "w") as f:
+		json.dump(timeout_id, f)
 
-with open(num+"_not_imp_ids.txt", "w") as f:
-	json.dump(not_imp_ids, f)
+	with open(num+"_not_imp_ids.txt", "w") as f:
+		json.dump(not_imp_ids, f)
 
 
 	# python3 get_timeout.py  /media/data2/jianjia/extension_data/unzipped_extensions/ random_500.txt

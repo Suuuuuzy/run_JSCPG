@@ -180,16 +180,16 @@ class OPGen:
             list: the test result pathes of the module
         """
         Error_msg = None
-        # try:
-        setup_opg(G)
-        G.export_node = True
-        internal_plugins = PluginManager(G, init=True)
-        entry_id = '0'
-        generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
-        if not G.thread_version:
-            event_loop_no_threading(G)
-        # except:
-        #     Error_msg = "Error: " + G.package_name + " error during test graph"
+        try:
+            setup_opg(G)
+            G.export_node = True
+            internal_plugins = PluginManager(G, init=True)
+            entry_id = '0'
+            generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
+            if not G.thread_version:
+                event_loop_no_threading(G)
+        except:
+            Error_msg = "Error: " + G.package_name + " error during test graph"
         return Error_msg
 
     def test_module(self, module_path, vul_type='os_command', G=None, 
@@ -533,6 +533,7 @@ def setup_graph_env(G: Graph):
     G.no_merge = options.no_merge
     G.thread_stmt = options.thread_stmt
     G.time_slice = options.time_slice
+    G.seq_timeout = options.seq_timeout
     G.measure_thread = options.measure_thread
     G.measure_code_cov_progress = options.measure_code_cov_progress
     G.war = options.war

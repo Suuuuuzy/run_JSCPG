@@ -3,6 +3,7 @@ from src.core.utils import ExtraInfo, BranchTagContainer
 from ..utils import decl_vars_and_funcs, to_obj_nodes
 from src.plugins.internal.utils import emit_thread
 import threading
+import time
 
 def simurun_block(G, ast_node, parent_scope=None, branches=None,
     block_scope=True, decl_var=False):
@@ -34,43 +35,44 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
     # simulate statements
     break_signal = False
 
-    if G.thread_stmt:
+
+    if not G.thread_stmt:
+        for (i,stmt) in enumerate(stmts):
+            if check_return(G, branches):
+                break
+            node_attr = G.get_node_attr(stmt)
+            # print(node_id)
+            node_type = node_attr['type']
+            if node_type=="AST_BREAK":
+                break_signal = True
+                break
+            elif node_type=="AST_RETURN":
+                handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
+                break
+            if G.cfg_stmt is not None:
+                G.add_edge_if_not_exist(G.cfg_stmt, stmt, {"type:TYPE": "FLOWS_TO"})
+            if G.thread_version:
+                G.mydata.cur_stmt = stmt
+            else:
+                G.cur_stmt = stmt
+            G.cfg_stmt = stmt
+            handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
+    else:
         current_thread = threading.current_thread()
         with G.thread_info_lock:
             cur_info = G.thread_infos[current_thread.name]
         thread_age = cur_info.thread_age
-
-    for (i,stmt) in enumerate(stmts):
-        if check_return(G, branches):
-            break
-        node_attr = G.get_node_attr(stmt)
-        # print(node_id)
-        node_type = node_attr['type']
-        if node_type=="AST_BREAK":
-            break_signal = True
-            break
-        elif node_type=="AST_RETURN":
-            handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
-            break
-        if G.cfg_stmt is not None:
-            G.add_edge_if_not_exist(G.cfg_stmt, stmt, {"type:TYPE": "FLOWS_TO"})
-        if G.thread_version:
-            G.mydata.cur_stmt = stmt
-        else:
-            G.cur_stmt = stmt
-        G.cfg_stmt = stmt
-        # add control flow edges here
-        # jianjia add thread_stmt here
-        stmt_length = G.get_AST_num(stmt)
-        if G.thread_stmt:
-            stmt_age = thread_age+i
-            # print("new thread for stmt: ", stmt_age)
-            # print("length of this stmt: ")
-            # print(G.get_AST_num(stmt))
-            stmt_thread = emit_thread(G, internal_manager.dispatch_node, (stmt, ExtraInfo(branches=branches), G.mydata.pickle_up()), thread_age = stmt_age)
-            # print("stmt_thread", stmt_thread.ident)
-        else:
-            handled_res = internal_manager.dispatch_node(stmt, ExtraInfo(branches=branches))
+        for (i, stmt) in enumerate(stmts):
+            stmt_age = thread_age + i
+            start_time = time.time()
+            stmt_thread = emit_thread(G, internal_manager.dispatch_node, (stmt, ExtraInfo(branches=branches), G.mydata.pickle_up()), thread_age=stmt_age)
+            while True:
+                # time.sleep(0.05)
+                if stmt_thread.is_alive() and time.time()-start_time>G.seq_timeout:
+                    break
+                else:
+                    break
+            # print("seq_timeout: ", G.seq_timeout)
 
 
 

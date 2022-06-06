@@ -417,7 +417,8 @@ class Graph:
         if edge_type == None:
             return self.graph.in_edges(node_id, data = data, keys = keys)
         edges = self.graph.in_edges(node_id, data = data, keys = keys)
-        edges = [edge for edge in edges]
+        with self.graph_lock:
+            edges = [edge for edge in edges]
         # print('get_in_edges: ', len(edges))
         idx = 2
         if keys == True:
