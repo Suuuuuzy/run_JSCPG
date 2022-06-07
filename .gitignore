@@ -34,7 +34,6 @@ TAJS/
 logs
 *.log
 *.csv
-*.dat
 *.out
 
 # esprima-csv
