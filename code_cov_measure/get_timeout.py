@@ -2,6 +2,15 @@ import os
 import sys
 import json
 
+def morethan_600(line):
+	if "finish within " in line:
+		tmp = line.split("finish within ")[1].split(" seconds####")[0]
+		if float(tmp)>=600:
+			print("600")
+			return True
+	else:
+		return False
+
 mode = sys.argv[1]
 if mode =='t':# test
 	path = "../demos/"
@@ -26,7 +35,7 @@ for id in ids:
 	with open(timefile) as f:
 		c = f.read()
 	parts = c.split("\n\n")
-	# print(parts)
+	# print(len(parts))
 	pq_cov = -1
 	no_pq_cov = -1
 	old_run = 0
@@ -34,27 +43,27 @@ for id in ids:
 	for part in parts:
 		if "with code_cov " not in part:
 			continue
-		elif "with code_cov " in part and "finish" in part and "autostop: False" in part:
-			finish += 1
-			pq_cov = -1
-			no_pq_cov = -1
-			break
+		print(1)
+		# elif "with code_cov " in part and "finish" in part and "autostop: False" in part:
+		# 	finish += 1
+		# 	pq_cov = -1
+		# 	no_pq_cov = -1
+		# 	break
 		lines = part.split("\n")
 		lines = [i.strip() for i in lines]
 		line = lines[-1]
 		# we need timeout ones
-		if "timeout" not in line:
-			continue
-		if "run_with_pq: False" in lines:
-			cov = line.split("with code_cov ")[1]
-			cov = float(cov.split("% stmt covered####")[0])
-			if cov > no_pq_cov:
-				no_pq_cov=cov
-		elif "run_with_pq: True" in lines:
-			cov = line.split("with code_cov ")[1]
-			cov = float(cov.split("% stmt covered####")[0])
-			if cov > pq_cov:
-				pq_cov=cov
+		if "timeout" in line or morethan_600(line):
+			if "run_with_pq: False" in lines:
+				cov = line.split("with code_cov ")[1]
+				cov = float(cov.split("% stmt covered####")[0])
+				if cov > no_pq_cov:
+					no_pq_cov=cov
+			elif "run_with_pq: True" in lines:
+				cov = line.split("with code_cov ")[1]
+				cov = float(cov.split("% stmt covered####")[0])
+				if cov > pq_cov:
+					pq_cov=cov
 	if no_pq_cov>0 and pq_cov>0:
 		timeout_id[id] = [pq_cov-no_pq_cov, pq_cov, no_pq_cov]
 		# timeout_id_imp[id] = pq_cov-no_pq_cov
