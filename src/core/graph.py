@@ -423,7 +423,9 @@ class Graph:
         idx = 2
         if keys == True:
             idx = 3
-        return [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
+        with self.graph_lock:
+            res = [edge for edge in edges if 'type:TYPE' in edge[idx] and edge[idx]['type:TYPE'] == edge_type]
+        return res
 
     def get_sub_graph_by_edge_type(self, edge_type):
         """
