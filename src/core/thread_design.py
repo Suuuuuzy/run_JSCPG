@@ -12,6 +12,7 @@ class thread_info():
         self.running = threading.Event()      # 用于停止线程的标识
         self.running.set()      # 将running设置为True
         self.last_start_time = last_start_time
+        self.code_cov_imp = 0
         self.thread_age = thread_age
         self.handled = False
 

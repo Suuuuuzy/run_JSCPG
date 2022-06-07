@@ -132,7 +132,10 @@ class HandleIf(Handler):
             cv = Condition()
             for idx, if_elem in enumerate(if_elems):
                 args=(if_elem, idx, G.mydata.pickle_up())
-                t = emit_thread(G, run_if_elem_pq, args, thread_age=son_age)
+                depth = G.get_node_attr(if_elem)['branch']
+                # print("depth: ", depth)
+                # print("son_age: ", son_age+G.beta*depth)
+                t = emit_thread(G, run_if_elem_pq, args, thread_age=son_age+G.beta*depth)
                 """
                 t = Thread(target=run_if_elem_pq, args=(if_elem, idx, G.mydata.pickle_up()))
                 info = thread_info(thread=t, last_start_time=time.time_ns(), thread_age=son_age)

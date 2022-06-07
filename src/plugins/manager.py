@@ -132,7 +132,9 @@ class PluginManager(object):
                         with self.G.work_queue_lock:
                             if cur_info in self.G.work_queue:
                                 self.G.work_queue.remove(cur_info)
-                        cur_info.thread_age += 1
+                        CovInclast = cur_info.code_cov_imp
+                        # print("CovInclast: ", CovInclast)
+                        cur_info.thread_age += (self.G.gamma*1 - self.G.alpha*CovInclast)
                         cur_info.pause()
                         with self.G.pq_lock:
                             self.G.pq.append(cur_info)
@@ -142,6 +144,11 @@ class PluginManager(object):
                             fetch_new_thread(self.G)
                         continue
                     else:
+                        if self.G.is_statement(node_id):
+                            if node_id in self.G.get_all_but_header_stmt():
+                                if node_id not in self.G.covered_stat:
+                                    with self.G.thread_info_lock:
+                                        self.G.thread_infos[current_thread.name].code_cov_imp += 1
                         handle_res = self.inner_dispatch_node(node_id, extra)
                         break
             else:
@@ -159,7 +166,7 @@ class PluginManager(object):
             if self.G.is_statement(node_id):
                 line_mark = self.G.get_node_attr(node_id)['namespace'].split(":")
                 loggers.main_logger.info(f"Running Line {line_mark[0]} to {line_mark[2]}")
-                if node_id  in self.G.get_all_but_header_stmt():
+                if node_id in self.G.get_all_but_header_stmt():
                     if node_id not in self.G.covered_stat:
                         self.G.covered_stat[node_id] = 0
                         code_cov = self.G.get_code_cov()

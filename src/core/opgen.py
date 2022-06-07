@@ -185,6 +185,7 @@ class OPGen:
             G.export_node = True
             internal_plugins = PluginManager(G, init=True)
             entry_id = '0'
+            generate_branch_graph(G)
             generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
             if not G.thread_version:
                 event_loop_no_threading(G)
@@ -545,6 +546,9 @@ def setup_graph_env(G: Graph):
     G.time_slice = options.time_slice
     G.seq_timeout = options.seq_timeout
     G.measure_thread = options.measure_thread
+    G.alpha = options.alpha
+    G.beta = options.beta
+    G.gamma = options.gamma
     G.measure_code_cov_progress = options.measure_code_cov_progress
     G.war = options.war
     if G.war:
@@ -624,10 +628,9 @@ def generate_branch_graph(G, entry_nodeid='0'):
     visited = set()
     depth = 0
     DFS(G, entry_nodeid, visited, depth)
-    print('jianjia see branch graph')
-    for node in G.graph.nodes:
-        if 'branch' in G.get_node_attr(node):
-            print(node, G.get_node_attr(node)['branch'])
+    # for node in G.graph.nodes:
+    #     if 'branch' in G.get_node_attr(node):
+    #         print(node, G.get_node_attr(node)['branch'])
 
 
 def DFS(G, nodeid, visited, depth):
