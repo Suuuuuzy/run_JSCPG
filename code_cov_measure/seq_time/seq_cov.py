@@ -73,6 +73,9 @@ if mode !='t':# test
 		tmp = code_cov
 	else:
 		tmp = oldcode_cov
+	for i in tmp:
+		print(i)
+		print(len(tmp[i]))
 	with open(num+".json", "w") as f:
 		json.dump(tmp, f)
 else:
