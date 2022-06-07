@@ -90,10 +90,13 @@ if mode !='t':# test
 	newcode_cov = {}
 	code_cov = {}
 	for i in timeout_id:
-		code_cov[i] = timeout_id[i][1]
+		tmp = {}
+		for i in timeout_id:
+			tmp[i] = timeout_id[i][1]
+		code_cov["0"] = tmp
 	oldcode_cov=None
 	if os.path.exists("seq_time/"+num+".json"):
-		with open(num+".json") as f:
+		with open("seq_time/"+num+".json") as f:
 			oldcode_cov =json.load(f)
 		for key in oldcode_cov:
 			if key in code_cov:
