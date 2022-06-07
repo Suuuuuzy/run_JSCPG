@@ -58,14 +58,21 @@ print(code_cov)
 print(str(len(code_cov))+" code_cov")
 
 if mode !='t':# test
+	newcode_cov = {}
 	num = idfile.split("/")[-1].split("_")[0]
-	for time_setting in code_cov:
-		with open(num+"_"+time_setting+".json", "w") as f:
-			json.dump(code_cov[time_setting], f)
+	if os.path.exists(num+".json"):
+		with open(num+".json") as f:
+			oldcode_cov =json.load(f)
+		for key in oldcode_cov:
+			newcode_cov[key] = oldcode_cov[key].update(code_cov[key])
+		for key in code_cov:
+			if key not in oldcode_cov:
+				newcode_cov[key] = code_cov[key]
+	with open(num+".json", "w") as f:
+		json.dump(newcode_cov, f)
 else:
-	for time_setting in code_cov:
-		with open(time_setting+".json", "w") as f:
-			json.dump(code_cov[time_setting], f)
+	with open("test.json", "w") as f:
+		json.dump(code_cov, f)
 
 
 	# python3 seq_cov.py /media/data2/jianjia/extension_data/unzipped_extensions/ ../100_timeout_ids.json
