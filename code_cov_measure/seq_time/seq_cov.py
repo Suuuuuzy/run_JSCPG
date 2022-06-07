@@ -34,13 +34,17 @@ for id in ids:
 	# old_run = 0
 	# fi = 0
 	for part in parts:
+		if "with code_cov " not in part:
+			continue
 		# pq with seq_timeout
-		if "seq_timeout:" not in part:
+		if "seq_timeout:" in part:
 			time_setting = (part.split("seq_timeout: ")[-1]).split("\n")[0]
 			time_setting = time_setting.replace(".", "_")
 		# pq but no thread_stmt
 		elif "run_with_pq: True" in part and "thread_stmt: False" in part:
 			time_setting = "no_seq_timeout"
+		elif "run_with_pq: True" in part and "thread_stmt: True"  and "seq_timeout:" not in part:
+			time_setting = "0"
 		if time_setting not in code_cov:
 			code_cov[time_setting] = {}
 		lines = part.split("\n")
