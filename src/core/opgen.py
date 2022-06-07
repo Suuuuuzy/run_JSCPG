@@ -441,7 +441,7 @@ def admin_threads(G, function, args):
                         if G.branch_son_dad[son][0]==dad_thread:
                             sons.append(son)
                     ## POLICY1 or 3: if one son finishes, the father is notified
-                    if G.policy in [1,3]:
+                    if G.policy in [1,3,4]:
                         cv = G.branch_son_dad[sons[0]][1]
                         for son in sons:
                             del G.branch_son_dad[son]
