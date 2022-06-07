@@ -85,11 +85,21 @@ if mode !='t':# test
 		tmp = [i for i in timeout_id]
 		json.dump(tmp, f)
 
+
 	# help get the 0 seq time code cov
-	with open("seq_time/" + num+"_0_.json", "w") as f:
-		tmp = {}
-		for i in timeout_id:
-			tmp[i] = timeout_id[i][1]
-		json.dump(tmp, f)
+	newcode_cov = {}
+	code_cov = {}
+	for i in timeout_id:
+		code_cov[i] = timeout_id[i][1]
+	if os.path.exists("seq_time/"+num+".json"):
+		with open(num+".json") as f:
+			oldcode_cov =json.load(f)
+		for key in oldcode_cov:
+			newcode_cov[key] = oldcode_cov[key].update(code_cov[key])
+		for key in code_cov:
+			if key not in oldcode_cov:
+				newcode_cov[key] = code_cov[key]
+	with open("seq_time/"+num+".json", "w") as f:
+		json.dump(newcode_cov, f)
 
 	# python3 get_timeout.py  /media/data2/jianjia/extension_data/unzipped_extensions/ random_500.txt
