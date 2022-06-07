@@ -432,7 +432,7 @@ def admin_threads(G, function, args):
             tmp = [i.thread_self for i in G.pq]
             print('%%%%%%%%%pq: ', tmp)"""
 
-            # if this thread has a father thread, ## VERSION1: if one son finishes, the father stops waiting
+            # if this thread has a father thread,
             if t.thread_self.name in G.branch_son_dad:
                 with G.branch_son_dad_lock:
                     dad_thread = G.branch_son_dad[t.thread_self.name][0]
@@ -440,12 +440,21 @@ def admin_threads(G, function, args):
                     for son in G.branch_son_dad:
                         if G.branch_son_dad[son][0]==dad_thread:
                             sons.append(son)
-                    cv = G.branch_son_dad[sons[0]][1]
-                    for son in sons:
-                        del G.branch_son_dad[son]
-                    with cv:
-                        # print('notify father ' + dad_thread.name)
-                        cv.notify()
+                    ## POLICY1 or 3: if one son finishes, the father is notified
+                    if G.policy in [1,3]:
+                        cv = G.branch_son_dad[sons[0]][1]
+                        for son in sons:
+                            del G.branch_son_dad[son]
+                        with cv:
+                            # print('notify father ' + dad_thread.name)
+                            cv.notify()
+                    ## POLICY1: father waits for all sons, until the last one finishes
+                    elif G.policy==2:
+                        if len(sons)==1:
+                            cv = G.branch_son_dad[sons[0]][1]
+                            with cv:
+                                cv.notify()
+                        del G.branch_son_dad[t.thread_self.name]
         # with G.wait_queue_lock:
         #     for t in G.wait_queue:
         #         if not t.thread_self.is_alive():
@@ -532,6 +541,7 @@ def setup_graph_env(G: Graph):
     G.detection_res[options.vul_type] = set()
     G.no_merge = options.no_merge
     G.thread_stmt = options.thread_stmt
+    G.policy = options.policy
     G.time_slice = options.time_slice
     G.seq_timeout = options.seq_timeout
     G.measure_thread = options.measure_thread

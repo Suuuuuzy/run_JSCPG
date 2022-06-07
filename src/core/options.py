@@ -58,6 +58,8 @@ def parse_args():
     parser.add_argument('-measure_code_cov_progress', '--measure_code_cov_progress', action='store_true', default=False, help="measure code coverage with time")
     parser.add_argument('-slice', '--time_slice', type=float, default=0.1, help="find the best time slice")
     parser.add_argument('-seq_timeout', '--seq_timeout', type=float, default=0.02, help="find the best seq_timeout, use with thread_stmt")
+    parser.add_argument('-policy', '--policy', type=int, default=1,help="which policy is the best?")
+
 
 
     args = parser.parse_args()

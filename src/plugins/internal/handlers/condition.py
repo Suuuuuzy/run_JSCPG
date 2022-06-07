@@ -165,7 +165,8 @@ class HandleIf(Handler):
                     G.work_queue.add(cur_info)
                 # tmp = [i.thread_self for i in G.work_queue]
                 # print('%%%%%%%%%work in condition: ', tmp)
-            time.sleep(0.05)
+            if G.policy==3:
+                time.sleep(5)
             # print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
             branch_num_counter = len(if_elems)
             if not has_else(G, node_id):
