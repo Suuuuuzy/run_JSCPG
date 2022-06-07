@@ -58,18 +58,23 @@ print(code_cov)
 print(str(len(code_cov))+" code_cov")
 
 if mode !='t':# test
-	newcode_cov = {}
 	num = idfile.split("/")[-1].split("_")[0]
+	oldcode_cov=None
 	if os.path.exists(num+".json"):
 		with open(num+".json") as f:
 			oldcode_cov =json.load(f)
 		for key in oldcode_cov:
-			newcode_cov[key] = oldcode_cov[key].update(code_cov[key])
+			if key in code_cov:
+				oldcode_cov[key].update(code_cov[key])
 		for key in code_cov:
 			if key not in oldcode_cov:
-				newcode_cov[key] = code_cov[key]
+				oldcode_cov[key] = code_cov[key]
+	if oldcode_cov==None:
+		tmp = code_cov
+	else:
+		tmp = oldcode_cov
 	with open(num+".json", "w") as f:
-		json.dump(newcode_cov, f)
+		json.dump(tmp, f)
 else:
 	with open("test.json", "w") as f:
 		json.dump(code_cov, f)
