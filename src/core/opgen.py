@@ -1,7 +1,7 @@
 from .graph import Graph
 from .helpers import *
 from .timeout import timeout, TimeoutError
-from ..plugins.manager import PluginManager
+from ..plugins.manager import PluginManager 
 from ..plugins.internal.setup_env import setup_opg
 from .checker import traceback, vul_checking, traceback_crx, obj_traceback, obj_traceback_crx
 from .multi_run_helper import validate_package, get_entrance_files_of_package, validate_chrome_extension
@@ -18,7 +18,6 @@ from src.core.thread_design import thread_info
 import json
 from src.plugins.internal.handlers.event_loop import event_loop_no_threading
 
-
 class OPGen:
     """
     This is the major class for the whole opgen
@@ -32,14 +31,14 @@ class OPGen:
         else:
             header_path = 'crx_headers/'
         with open(os.path.join(header_path, 'jquery_header.js')) as f:
-            self.jq_header_lines = len(f.read().split('\n')) + 2
+            self.jq_header_lines = len(f.read().split('\n'))+2
         with open(os.path.join(header_path, 'cs_header.js')) as f:
-            self.cs_header_lines = len(f.read().split('\n')) + 2
+            self.cs_header_lines = len(f.read().split('\n'))+2
         with open(os.path.join(header_path, 'bg_header.js')) as f:
-            self.bg_header_lines = len(f.read().split('\n')) + 2
+            self.bg_header_lines = len(f.read().split('\n'))+2
         self.graph = Graph(cs_header_lines=self.cs_header_lines + self.jq_header_lines, \
                            bg_header_lines=self.bg_header_lines + self.jq_header_lines,
-                           thread_version=self.options.run_with_pq)
+                           thread_version = self.options.run_with_pq)
         self.graph.package_name = options.input_file
         setup_graph_env(self.graph)
 
@@ -56,7 +55,7 @@ class OPGen:
         check different type of vulnerabilities
         Args:
             vul_type: the type of vuls
-            G: the graph
+            G: the graph 
         Returns:
             the test result pathes of the module
         """
@@ -97,7 +96,7 @@ class OPGen:
         test_res = self._test_graph(G, vul_type=vul_type)
         return test_res
 
-    def test_chrome_extension(self, extension_path, vul_type, G=None, timeout_s=None, dx=False):
+    def test_chrome_extension(self, extension_path, vul_type, G=None,  timeout_s=None, dx=False):
         """
         test a dir of files as an chrome extension
         Args:
@@ -109,7 +108,7 @@ class OPGen:
         """
         # preprocess of the files in chrome extension
         print('process chrome extension: ', extension_path)
-        loggers.crx_record_logger.info('process chrome extension: ' + extension_path)
+        loggers.crx_record_logger.info('process chrome extension: '+ extension_path)
         if G is None:
             G = self.graph
         test_res = None
@@ -126,16 +125,15 @@ class OPGen:
             return -1
         if timeout_s is not None:
             try:
-                with timeout(seconds=timeout_s,
-                             error_message="{} timeout after {} seconds".format(extension_path, timeout_s)):
-                    self.parse_run_extension(G, extension_path, dx, res_dir, result_file, vul_type)
+                with timeout(seconds=timeout_s,error_message="{} timeout after {} seconds".format(extension_path, timeout_s)):
+                    self.parse_run_extension(G, extension_path,dx, res_dir, result_file, vul_type)
             except TimeoutError as err:
                 covered_stat_rate = self.graph.get_code_cov()
                 if G.measure_code_cov_progress:
                     G.record_code_cov(covered_stat_rate)
                 with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
                     f.write(self.output_args_str())
-                    f.write(str(err) + " with code_cov {}% stmt covered####".format(covered_stat_rate) + "\n\n")
+                    f.write(str(err) + " with code_cov {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
                 if not G.detected:
                     with open(os.path.join(res_dir, result_file), 'w') as f:
                         f.write('timeout')
@@ -144,7 +142,7 @@ class OPGen:
         # test_res = None
         return test_res
 
-    def parse_run_extension(self, G, extension_path, dx, res_dir, result_file, vul_type):
+    def parse_run_extension(self, G, extension_path,dx, res_dir, result_file, vul_type):
         start_time = time.time()
         Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
         covered_stat_rate = self.graph.get_code_cov()
@@ -153,7 +151,6 @@ class OPGen:
         if Error_msg:
             with open(os.path.join(res_dir, result_file), 'w') as f:
                 f.write(Error_msg)
-            return -1
         Error_msg = self._test_graph(G, vul_type=vul_type)
         file_size = 0
         if os.path.exists(os.path.join(res_dir, result_file)):
@@ -167,8 +164,7 @@ class OPGen:
             G.record_code_cov(covered_stat_rate)
         with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
             f.write(self.output_args_str())
-            f.write(extension_path + " finish within {} seconds#### with code_cov {}% stmt covered####".format(
-                str(end_time - start_time), covered_stat_rate) + "\n\n")
+            f.write(extension_path + " finish within {} seconds#### with code_cov {}% stmt covered####".format(str(end_time - start_time), covered_stat_rate) + "\n\n")
         if not G.detected:
             with open(os.path.join(res_dir, result_file), 'w') as f:
                 f.write('nothing detected')
@@ -197,8 +193,8 @@ class OPGen:
             Error_msg = "Error: " + G.package_name + " error during test graph"
         return Error_msg
 
-    def test_module(self, module_path, vul_type='os_command', G=None,
-                    timeout_s=None, pq=False):
+    def test_module(self, module_path, vul_type='os_command', G=None, 
+            timeout_s=None, pq=False):
         """
         test a file as a module
         Args:
@@ -221,9 +217,9 @@ class OPGen:
         js_call_templete = "var main_func=require('{}');".format(module_path)
         if timeout_s is not None:
             try:
-                with timeout(seconds=timeout_s,
-                             error_message="{} timeout after {} seconds". \
-                                     format(module_path, timeout_s)):
+                with timeout(seconds=timeout_s, 
+                        error_message="{} timeout after {} seconds".\
+                                format(module_path, timeout_s)):
                     parse_string(G, js_call_templete)
                     test_res = self._test_graph(G, vul_type=vul_type)
             except TimeoutError as err:
@@ -234,8 +230,8 @@ class OPGen:
 
         return test_res
 
-    def test_nodejs_package(self, package_path, vul_type='os_command', G=None,
-                            timeout_s=None):
+    def test_nodejs_package(self, package_path, vul_type='os_command', G=None, 
+            timeout_s=None):
         """
         test a nodejs package
         Args:
@@ -256,14 +252,14 @@ class OPGen:
             test_res = self.test_module(entrance_file, vul_type, G, timeout_s=timeout_s)
             if len(test_res) != 0:
                 break
-
-    def get_new_graph(self, package_name=None):
+    
+    def get_new_graph(self,  package_name=None):
         """
         set up a new graph
         """
-        self.graph = Graph(cs_header_lines=self.cs_header_lines + self.jq_header_lines, \
-                           bg_header_lines=self.bg_header_lines + self.jq_header_lines,
-                           thread_version=self.options.run_with_pq)
+        self.graph = Graph(cs_header_lines = self.cs_header_lines + self.jq_header_lines, \
+                            bg_header_lines = self.bg_header_lines + self.jq_header_lines,
+                           thread_version = self.options.run_with_pq)
         if not package_name:
             self.graph.package_name = options.input_file
         else:
@@ -275,18 +271,18 @@ class OPGen:
         loggers.main_logger.info("All args:")
         keys = [i for i in options.instance.__dict__.keys() if i[:1] != '_']
         for key in keys:
-            loggers.main_logger.info("{}: {}".format(key,
-                                                     options.instance.__dict__[key]))
+            loggers.main_logger.info("{}: {}".format(key, 
+                options.instance.__dict__[key]))
 
     def output_args_str(self):
         argsStr = "All args:\n"
         keys = [i for i in options.instance.__dict__.keys() if i[:1] != '_']
         for key in keys:
-            argsStr += ("{}: {}".format(key,
-                                        options.instance.__dict__[key]))
-            argsStr += "\n"
+            argsStr+=("{}: {}".format(key,
+                options.instance.__dict__[key]))
+            argsStr+="\n"
         return argsStr
-
+    
     def run(self):
         self.output_args()
         if not os.path.exists(options.run_env):
@@ -315,7 +311,7 @@ class OPGen:
                 cur_cmd = ' '.join(tmp_args)
                 print(f"screen -S opgen_{i} -dm {cur_cmd}")
                 os.system(f"screen -S opgen_{i} -dm {cur_cmd}")
-            return
+            return 
 
         if options.babel:
             babel_convert()
@@ -323,28 +319,25 @@ class OPGen:
             with open(options.list, 'r') as fp:
                 package_list = json.load(fp)
                 if options.package_path:
-                    package_list = [os.path.join(options.package_path, i) for i in package_list]
+                    package_list = [os.path.join(options.package_path,i) for i in package_list]
 
             for package_path in tqdm(package_list):
                 # init a new graph
                 self.get_new_graph(package_name=package_path)
                 if options.chrome_extension:
-                    self.test_chrome_extension(package_path, options.vul_type, self.graph, timeout_s=timeout_s,
-                                               dx=options.dx)
+                    self.test_chrome_extension(package_path, options.vul_type, self.graph, timeout_s=timeout_s, dx = options.dx)
                 else:
                     self.test_nodejs_package(package_path,
-                                             options.vul_type, self.graph, timeout_s=timeout_s)
+                        options.vul_type, self.graph, timeout_s=timeout_s)
 
         else:
             if options.module:
-                self.test_module(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s,
-                                 pq=options.run_with_pq)
+                self.test_module(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, pq=options.run_with_pq)
             elif options.nodejs:
-                self.test_nodejs_package(options.input_file,
-                                         options.vul_type, G=self.graph, timeout_s=timeout_s)
+                self.test_nodejs_package(options.input_file, 
+                        options.vul_type, G=self.graph, timeout_s=timeout_s)
             elif options.chrome_extension:
-                self.test_chrome_extension(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s,
-                                           dx=options.dx)
+                self.test_chrome_extension(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s, dx = options.dx)
             else:
                 # analyze from JS source code files
                 self.test_file(options.input_file, options.vul_type, self.graph, timeout_s=timeout_s)
@@ -376,14 +369,13 @@ def generate_obj_graph(G, internal_plugins, entry_nodeid='0'):
         admin_threads(G, internal_plugins.dispatch_node, (entry_nodeid))
     else:
         internal_plugins.dispatch_node(entry_nodeid)
-    # add_edges_between_funcs(G)
-
+    #add_edges_between_funcs(G)
 
 def fetch_new_thread(G):
     with G.pq_lock:
         result = G.pq[0]
         del G.pq[0]
-        while result in G.work_queue and len(G.pq) > 0:
+        while result in G.work_queue and len(G.pq)>0:
             result = G.pq[0]
             del G.pq[0]
     if result not in G.work_queue:
@@ -415,10 +407,10 @@ def admin_threads(G, function, args):
     while True:
         if G.measure_thread:
             new_time = time.time()
-            if len(threading.enumerate()) != old_len or new_time - old_time > 0.1:
+            if len(threading.enumerate())!=old_len or new_time-old_time>0.1:
                 old_time = new_time
                 old_len = len(threading.enumerate())
-                newline = "THREAD " + str(old_len) + " " + str(old_time)
+                newline = "THREAD " + str(old_len)+" "+str(old_time)
                 # thread_time.append(newline)
                 with open(thread_measure_file, "a") as f:
                     f.write(newline + "\n")
@@ -432,63 +424,39 @@ def admin_threads(G, function, args):
             # print('%%%%%%%%%work in admin: ', tmp)
         for t in dead:
             # if this thread is dead
-            """print(t.thread_self.name + ' is dead')
-            print('%%%%%%%%%all: ', threading.enumerate())
-            tmp = [i.thread_self for i in G.wait_queue]
-            print('%%%%%%%%%wait: ', tmp)
-            tmp = [i.thread_self for i in G.work_queue]
-            print('%%%%%%%%%work: ', tmp)
-            tmp = [i.thread_self for i in G.pq]
-            print('%%%%%%%%%pq: ', tmp)"""
-
             # if this thread has a father thread,
             if t.thread_self.name in G.branch_son_dad:
                 with G.branch_son_dad_lock:
                     dad_thread = G.branch_son_dad[t.thread_self.name][0]
                     sons = []
                     for son in G.branch_son_dad:
-                        if G.branch_son_dad[son][0] == dad_thread:
+                        if G.branch_son_dad[son][0]==dad_thread:
                             sons.append(son)
-                    ## POLICY1 or 3: if one son finishes, the father is notified
-                    if G.policy in [1, 3, 4]:
+                    ## POLICY1: if one son finishes, the father is notified
+                    if G.policy ==1:
                         cv = G.branch_son_dad[sons[0]][1]
                         for son in sons:
                             del G.branch_son_dad[son]
                         with cv:
                             # print('notify father ' + dad_thread.name)
                             cv.notify()
-                    ## POLICY2: father waits for all sons, until the last one finishes
-                    elif G.policy == 2:
-                        if len(sons) == 1:
+                    ## POLICY1: father waits for all sons, until the last one finishes
+                    elif G.policy==2:
+                        if len(sons)==1:
                             cv = G.branch_son_dad[sons[0]][1]
                             with cv:
                                 cv.notify()
                         del G.branch_son_dad[t.thread_self.name]
-        # with G.wait_queue_lock:
-        #     for t in G.wait_queue:
-        #         if not t.thread_self.is_alive():
-        #             t.handled = True
-        #     G.wait_queue = set([i for i in G.wait_queue if not i.handled])
-        # with G.pq_lock:
-        #     for t in G.pq:
-        #         if not t.thread_self.is_alive():
-        #             t.handled = True
-        #     G.pq = [i for i in G.pq if not i.handled]
-        #     G.pq.sort(key=lambda x: x.thread_age, reverse=False)
-        while len(G.work_queue) < 1 and len(G.pq) > 0:
+                    elif G.policy ==3:
+                        cv = G.branch_son_dad[sons[0]][1]
+                        del G.branch_son_dad[t.thread_self.name]
+                        with cv:
+                            # print('notify father ' + dad_thread.name)
+                            cv.notify()
+        while len(G.work_queue)<1 and len(G.pq)>0:
             fetch_new_thread(G)
-            # tmp = [i.thread_self for i in G.work_queue]
-            # print('%%%%%%%%%work in admin: ', tmp)
-        # if len(threading.enumerate()) != len(G.wait_queue) + len(G.work_queue) + len(G.pq) + 1:
-        #     print('%%%%%%%%%all: ', threading.enumerate())
-        #     tmp = [i.thread_self for i in G.wait_queue]
-        #     print('%%%%%%%%%wait: ', tmp)
-        #     tmp = [i.thread_self for i in G.work_queue]
-        #     print('%%%%%%%%%work: ', tmp)
-        #     tmp = [i.thread_self for i in G.pq]
-        #     print('%%%%%%%%%pq: ', tmp)
-        active_thread = [i for i in threading.enumerate() if not i.daemon]
-        if len(active_thread) == 1 and len(G.work_queue) == 0 and len(G.pq) == 0 and len(G.wait_queue) == 0:
+        active_thread = [i for i in threading.enumerate()if not i.daemon]
+        if len(active_thread)==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
             if G.measure_thread:
                 new_time = time.time()
                 if len(threading.enumerate()) != old_len or new_time - old_time > 0.1:
@@ -499,6 +467,9 @@ def admin_threads(G, function, args):
                         f.write(newline + "\n")
             print('finish')
             return 1
+
+
+
 
 
 def install_list_of_packages(package_list):
@@ -529,17 +500,17 @@ def setup_graph_env(G: Graph):
     """
     if options.print:
         G.print = True
-    G.run_all = options.run_all or options.list
+    G.run_all = options.run_all or options.list 
     if G.run_all is None:
         G.run_all = False
-    # options.module or options.nodejs or options.list
+    #options.module or options.nodejs or options.list
     G.function_time_limit = options.function_timeout
     G.exit_when_found = options.exit
     G.single_branch = options.single_branch
     G.vul_type = options.vul_type
     G.func_entry_point = options.entry_func
     G.no_file_based = options.no_file_based
-    G.check_proto_pollution = (options.prototype_pollution or
+    G.check_proto_pollution = (options.prototype_pollution or 
                                options.vul_type == 'proto_pollution')
     G.check_ipt = (options.vul_type == 'ipt')
     G.call_limit = options.call_limit
@@ -557,7 +528,7 @@ def setup_graph_env(G: Graph):
     G.war = options.war
     if G.war:
         G.result_file = "res_war.txt"
-        G.result_file_old = "res_war_old.txt"
+        G.result_file_old =  "res_war_old.txt"
     else:
         G.result_file = "res.txt"
         G.result_file_old = "res_old.txt"
@@ -577,7 +548,7 @@ def babel_convert():
     except:
         # sames the run_env does not exsit
         pass
-    babel_location = "./node_modules/@babel/cli/bin/babel.js"
+    babel_location = "./node_modules/@babel/cli/bin/babel.js" 
     babel_cp_dir = os.path.join(options.run_env, 'babel_cp')
     babel_env_dir = os.path.join(options.run_env, 'babel_env')
 
@@ -588,7 +559,6 @@ def babel_convert():
     os.system("{} {} --out-dir {}".format(babel_location, babel_cp_dir, babel_env_dir))
     print("New entray point {}".format(options.input_file))
 
-
 def prepare_split_list():
     """
     split the list into multiple sub lists
@@ -596,13 +566,13 @@ def prepare_split_list():
     # if the parallel is true, we will start a list of screens
     # each of the screen will include another run
     num_thread = int(options.parallel)
-    # make a tmp dir to store the
+    # make a tmp dir to store the 
     tmp_list_dir = "tmp_split_list"
     os.system("mkdir {}".format(os.path.join(options.run_env, tmp_list_dir)))
     with open(options.list) as fp:
         package_list = json.load(fp)
 
-    num_packages = len(package_list)
+    num_packages = len(package_list) 
     chunk_size = math.floor(num_packages / num_thread)
     sub_package_lists = [[] for i in range(num_thread)]
     file_pointer = 0
@@ -615,6 +585,7 @@ def prepare_split_list():
         with open(os.path.join(options.run_env, tmp_list_dir, str(cnt)), 'w') as fp:
             json.dump(sub_packages, fp)
         cnt += 1
+
 
 
 def generate_branch_graph(G, entry_nodeid='0'):
@@ -632,9 +603,6 @@ def generate_branch_graph(G, entry_nodeid='0'):
     visited = set()
     depth = 0
     DFS(G, entry_nodeid, visited, depth)
-    # for node in G.graph.nodes:
-    #     if 'branch' in G.get_node_attr(node):
-    #         print(node, G.get_node_attr(node)['branch'])
 
 
 def DFS(G, nodeid, visited, depth):
@@ -649,5 +617,5 @@ def DFS(G, nodeid, visited, depth):
         G.set_node_attr(nodeid, ('branch', depth))
     for child in G.get_child_nodes(nodeid):
         if child not in visited:
-            DFS(G, child, visited, depth + 1)
+            DFS(G, child, visited, depth+1)
 

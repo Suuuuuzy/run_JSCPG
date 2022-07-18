@@ -1,1 +1,0 @@
-Error: media/data2/jianjia/extension_data/unzipped_extensions/nobhnhlogljpifhknpeamahkhffbccal/ manifest.json does not exist

@@ -993,7 +993,6 @@ def call_function(G, func_objs, args=[], this=NodeHandleResult(), extra=None,
             #     caller_ast, func_ast, {"type:TYPE": "CALLS"})
             # add a call edge from the calling function to the callee
             # (called function)
-            # jianjia cancel add_edge_if_not_exist
             # G.add_edge_if_not_exist(
             #     find_function(G, caller_ast), func_ast, {"type:TYPE": "CALLS"})
             # then add a control flow edge from the statement to the

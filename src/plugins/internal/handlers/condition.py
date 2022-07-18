@@ -142,7 +142,6 @@ class HandleIf(Handler):
                 info.pause()
                 with G.thread_info_lock:
                     G.thread_infos[t.name] = info
-                # print('jianjia see if_elem in dispatch pq: ', if_elem, t.name)
                 t.start()
                 with G.pq_lock:
                     G.pq.append(info)
@@ -169,9 +168,9 @@ class HandleIf(Handler):
                 # tmp = [i.thread_self for i in G.work_queue]
                 # print('%%%%%%%%%work in condition: ', tmp)
             if G.policy==3:
-                time.sleep(5)
-            if G.policy==4:
-                time.sleep(1)
+                with G.thread_info_lock:
+                    self.G.thread_infos[current_thread.name].copy = True
+                # time.sleep(1)
             # print('debug merge',threading.current_thread().name, stmt_id, parent_branch)
             branch_num_counter = len(if_elems)
             if not has_else(G, node_id):

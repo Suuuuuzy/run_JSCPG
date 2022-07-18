@@ -1958,28 +1958,6 @@ class Graph:
         self.get_total_num_statements()
         return self.all_stat
 
-    # def initialize_header_stat(self):
-    #     self.header_stat = set()
-    #     all_nodes = self.get_all_nodes()
-    #     for n in all_nodes:
-    #         if 'type' in all_nodes[n] and 'AST_' in all_nodes[n]['type'] and self.is_statement(n):
-    #             filepath = self.get_node_file_path(n)
-    #             print("filepath: ", filepath)
-    #             if "/bg.js" in filepath:
-    #                 threshold = self.bg_header_lines
-    #             elif "/cs" in filepath:
-    #                 threshold = self.cs_header_lines
-    #             cur_node_attr = self.get_node_attr(n)
-    #             if cur_node_attr.get('lineno:int') is None:
-    #                 continue
-    #             else:
-    #                 try:
-    #                     line_num = int(cur_node_attr.get('lineno:int'))
-    #                     if line_num < threshold:
-    #                         self.header_stat.add(n)
-    #                 except:
-    #                     pass
-
     def get_header_num_statements(self):
         if len(self.header_stat) != 0:
             return len(self.header_stat)
@@ -2057,14 +2035,6 @@ class Graph:
                 names = self.get_prop_name_nodes(item)
                 for name in names:
                     print(self.get_node_attr(name))
-            # if len(offspring)>20:
-            #     print(len(offspring))
-
-        # offspring = offspring.union(sons)
-        # # now sons is the set of the next level offspring
-        # if len(sons) != 0:
-        #     for son in sons:
-        #         offspring = offspring.union(self.get_off_spring(son))
         return offspring
 
     def get_cur_window_obj(self):
@@ -2088,12 +2058,6 @@ class Graph:
         return file_scope
 
     def get_parent_obj_from_property_name(self, name_node):
-        # if node_id in self.nearest_upper_CPG_cache:
-        #     return self.nearest_upper_CPG_cache[node_id]
-        #
-        # ori_node_id = node_id
-        # result = None
-        # assert node_id is not None
         parent_edges = self.get_in_edges(name_node, edge_type = "OBJ_TO_PROP")
         if parent_edges is None or len(parent_edges) == 0:
             parent_node =  None
@@ -2123,7 +2087,6 @@ class Graph:
         return num
 
     def get_code_cov(self):
-        # print("jianjia")
         # print(self.get_total_num_statements())
         # print(self.get_total_num_statements() - self.get_header_num_statements())
         # print(len(self.covered_stat))

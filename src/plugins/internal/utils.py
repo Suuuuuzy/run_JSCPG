@@ -849,7 +849,6 @@ def emit_thread(G: Graph, function, args, thread_age=1, is_event = False ):
             thread_age = cur_info.thread_age + 5
             # print("thread_age ", thread_age)
         info = thread_info(thread=t, last_start_time=time.time(), thread_age=thread_age)
-        # print('jianjia see new thread in emit_thread: ', args[1], t.name)
         if is_event:
             with G.thread_info_lock:
                 G.thread_infos[t.name] = info

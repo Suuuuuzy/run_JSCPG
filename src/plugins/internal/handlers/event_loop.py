@@ -256,7 +256,7 @@ def cs_chrome_runtime_sendMessage(G, event):
                   func_name='MessageSender',
                   mark_fake_args=False)
     MessageSender.obj_nodes = created_objs
-    sendResponse = G.get_objs_by_name('sendResponse', scope=G.bg_scope, branches=[])
+    sendResponse = G.get_objs_by_name('sendResponse', scope=G.get_cur_window_scope(), branches=[])
     args = [NodeHandleResult(obj_nodes=copied_messages), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
     with G.eventRegisteredFuncs_lock:
         func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onMessage']

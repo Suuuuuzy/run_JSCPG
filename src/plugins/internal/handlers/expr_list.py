@@ -9,7 +9,6 @@ class HandleExprList(Handler):
     """
     def process(self):
         result = NodeHandleResult()
-        # jianjia add thread_stmt here
         if self.G.thread_stmt:
             for child in self.G.get_ordered_ast_child_nodes(self.node_id):
                 # print("HandleExprList", child)
