@@ -1,8 +1,8 @@
 import os
 import json
 def main_func():
-    path = "/media/data2/jianjia/extension_data/unzipped_extensions"
-    #path = "thread_measure/extensions"
+    # path = "/media/data2/jianjia/extension_data/unzipped_extensions"
+    path = "thread_measure/extensions"
     with open("time_measure/new_5.json") as f:
         ids = json.load(f)
     for id in ids:

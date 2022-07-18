@@ -15,7 +15,7 @@ def createSSHClient(server, port, user, password):
 password = 'z*Wks#Q5C98H'
 ssh = createSSHClient("10.161.161.14", 30022, "jianjia", password)
 scp = SCPClient(ssh.get_transport())
-with open("5_from_time.json") as f:
+with open("../time_measure/new_5.json") as f:
     content = json.load(f)
 ids = content
 dst = "extensions/"
