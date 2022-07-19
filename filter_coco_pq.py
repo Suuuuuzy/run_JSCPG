@@ -43,13 +43,17 @@ coco_api= [
 "management_getAll_source"
 ]
 
-def check_pq(timefile):
+def check_pq(timefile, old=False):
     pq = False
     if not os.path.exists(timefile):
         return False
     with open(timefile) as f:
         c = f.read()
-    lines = c.split("\n")
+    blocks = c.split("\n\n")
+    # find the corresponding block first
+    blocks = [i for i in blocks if i != '']
+    lines = blocks[-2] if old else blocks[-1]
+    lines = lines.split("\n")
     lines = [i for i in lines if i != '']
     for i in lines:
         if i.startswith("run_with_pq"):
@@ -65,7 +69,10 @@ def ana_opgen(extension_path, id, res_name):
     filename = os.path.join(gen_path, res_name)
     # check the used_time_file to see whether the result id from pq or no_pq
     used_time_file = os.path.join(gen_path, "used_time.txt")
-    pq =  check_pq(used_time_file)
+    if res_name == "res_old.txt":
+        pq = check_pq(used_time_file, old=True)
+    else:
+        pq =  check_pq(used_time_file, old=False)
     if os.path.exists(gen_path) and os.path.exists(filename):
         with open(filename) as f:
             c = f.read()
@@ -176,45 +183,31 @@ def sum_all_files(pathDir, prefix):
 
 
 def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num = 200, mode=None):
-    if mode!="cuslog":
-        threads = []
-        flag = 0
-        prefix = 'opgen_results'
-        with open(idfile) as f:
-            ids = json.load(f)
-        old_results_file = os.path.join(resDir, prefix + '.txt')
-        if os.path.exists(old_results_file):
-            with open(old_results_file) as f:
-                c = json.load(f)
-                ids = c['not_done']
-                if "detected_by_doublex" in resDir:
-                    ids.extend(c['benign'])
-        step = len(ids) // thread_num
-        print('Task started with %d threads.'%thread_num)
-        for i in range(thread_num - 1):
-            t = threading.Thread(target=func, args=(i, resDir, extension_path, ids[flag:flag+step], res_name))
-            t.start()
-            threads.append(t)
-            flag += step
-        t = threading.Thread(target=func, args=(thread_num - 1, resDir, extension_path, ids[flag:], res_name))
+    threads = []
+    flag = 0
+    prefix = 'opgen_results'
+    with open(idfile) as f:
+        ids = json.load(f)
+    old_results_file = os.path.join(resDir, prefix + '.txt')
+    if os.path.exists(old_results_file):
+        with open(old_results_file) as f:
+            c = json.load(f)
+            ids = c['not_done']
+            if "detected_by_doublex" in resDir:
+                ids.extend(c['benign'])
+    step = len(ids) // thread_num
+    print('Task started with %d threads.'%thread_num)
+    for i in range(thread_num - 1):
+        t = threading.Thread(target=func, args=(i, resDir, extension_path, ids[flag:flag+step], res_name))
         t.start()
         threads.append(t)
-        for t in threads:
-            t.join()
-        sum_all_files(resDir, prefix)
-    else:
-        with open(idfile) as f:
-            ids = json.load(f)
-        try:
-            with open("crx_record.log") as f:
-                logContent = f.read()
-            ids = [i for i in ids if i not in logContent]
-        except:
-            pass
-        print("not_done")
-        print(len(ids))
-        with open(os.path.join(resDir, 'not_done.txt'), 'w') as f:
-            json.dump(ids, f)
+        flag += step
+    t = threading.Thread(target=func, args=(thread_num - 1, resDir, extension_path, ids[flag:], res_name))
+    t.start()
+    threads.append(t)
+    for t in threads:
+        t.join()
+    sum_all_files(resDir, prefix)
 
 def main():
     res_dir = ''
@@ -222,32 +215,12 @@ def main():
     thread_num = 200
     extension_path = "/media/data2/jianjia/extension_data/unzipped_extensions"
     idfile = ''
-    res_name = "res.txt"
-    if mode == 'doublex_de':
-        res_dir = '/media/data2/jianjia/extension_data/opgen_results/detected_by_doublex'
-        idfile = '/media/data2/jianjia/extension_data/doublex_result/detected.txt'
-    elif mode == 'empoweb_de':
-        res_dir = '/media/data2/jianjia/extension_data/opgen_results/detected_by_empoweb'
-        idfile = '/media/data2/jianjia/extension_data/doublex_empoweb_api_result/detected.txt'
-    elif mode == 'doublex_sus':
-        res_dir = '/media/data2/jianjia/extension_data/opgen_results/suspect_by_doublex'
-        idfile = '/media/data2/jianjia/extension_data/doublex_result/suspect.txt'
-    elif mode == 'all':
-        res_dir = '/media/data2/jianjia/extension_data/opgen_results/all'
-        idfile = '/media/data2/jianjia/extension_data/filtered_file.txt'
-    elif mode == 'allwar':
-        res_dir = '/media/data2/jianjia/extension_data/opgen_results/allwar'
-        idfile = '/media/data2/jianjia/extension_data/filtered_file.txt'
-        res_name = "res_war.txt"
-    elif mode== "doublex_de_empoweb_local":
-        extension_path = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_empoweb_api_result/detected"
-        res_dir = '/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_empoweb_api_result/opgen_results'
-        idfile = '/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_empoweb_api_result/detected.txt'
-    elif mode== "doublex_de_local":
-        extension_path = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected"
-        res_dir = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/opgen_results"
-        idfile = "/Users/jianjia/Documents/tmp/EOPG/result_analyze/opgen_results/server/doublex_result/detected.txt"
-    elif mode in ["cus", "cuslog"]:
+    res_name = ''
+    if mode in ["new", "old"]:
+        if mode=="old":
+            res_name = "res_old.txt"
+        else:
+            res_name = "res.txt"
         extension_path = sys.argv[2]
         idfile = sys.argv[3]
         res_dir = sys.argv[4]
