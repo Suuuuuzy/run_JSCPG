@@ -52,7 +52,13 @@ def check_pq(timefile, old=False):
     blocks = c.split("\n\n")
     # find the corresponding block first
     blocks = [i for i in blocks if i != '']
-    lines = blocks[-2] if old else blocks[-1]
+    if old:
+        if len(blocks)>1:
+            lines = blocks[-2]
+        else:
+            return False
+    else:
+        lines = blocks[-1]
     lines = lines.split("\n")
     lines = [i for i in lines if i != '']
     for i in lines:
@@ -65,15 +71,18 @@ def check_pq(timefile, old=False):
 
 def ana_opgen(extension_path, id, res_name):
     res = -1
+    pq = False
     gen_path = os.path.join(extension_path, id, "opgen_generated_files")
     filename = os.path.join(gen_path, res_name)
+    if not os.path.exists(filename):
+        return res, pq
     # check the used_time_file to see whether the result id from pq or no_pq
     used_time_file = os.path.join(gen_path, "used_time.txt")
     if res_name == "res_old.txt":
         pq = check_pq(used_time_file, old=True)
     else:
         pq =  check_pq(used_time_file, old=False)
-    if os.path.exists(gen_path) and os.path.exists(filename):
+    if os.path.exists(gen_path) :
         with open(filename) as f:
             c = f.read()
             if "nothing detected" in c:
