@@ -1,8 +1,12 @@
-# this is used to find the extensions we run are in one of the 4 catogaries:
+# this is used to find the extensions we run are in one of the 8 catogaries:
 # benign
 # detected
 # error
 # timeout
+# pq_benign
+# pq_detected
+# pq_error
+# pq_timeout
 # we use the same APIs in doublex+empoweb
 
 import os
@@ -38,10 +42,30 @@ coco_api= [
 "management_setEnabled_enabled",
 "management_getAll_source"
 ]
+
+def check_pq(timefile):
+    pq = False
+    if not os.path.exists(timefile):
+        return False
+    with open(timefile) as f:
+        c = f.read()
+    lines = c.split("\n")
+    lines = [i for i in lines if i != '']
+    for i in lines:
+        if i.startswith("run_with_pq"):
+            if i == "run_with_pq: True":
+                pq = True
+            else:
+                pq = False
+    return pq
+
 def ana_opgen(extension_path, id, res_name):
     res = -1
     gen_path = os.path.join(extension_path, id, "opgen_generated_files")
     filename = os.path.join(gen_path, res_name)
+    # check the used_time_file to see whether the result id from pq or no_pq
+    used_time_file = os.path.join(gen_path, "used_time.txt")
+    pq =  check_pq(used_time_file)
     if os.path.exists(gen_path) and os.path.exists(filename):
         with open(filename) as f:
             c = f.read()
@@ -60,7 +84,7 @@ def ana_opgen(extension_path, id, res_name):
                     res = 0
             elif "Error:" in c:
                 res = 2
-    return res
+    return res, pq
 
 def analyze_results(flag, resDir, extension_path, ids, res_name):
     detected = []
@@ -68,19 +92,36 @@ def analyze_results(flag, resDir, extension_path, ids, res_name):
     timeout = []
     benign = []
     error = []
+    pq_detected = []
+    # pq_not_done = []
+    pq_timeout = []
+    pq_benign = []
+    pq_error = []
     for id in tqdm(ids):
-        res = ana_opgen(extension_path, id, res_name)
+        res, pq = ana_opgen(extension_path, id, res_name)
         if res==1:
-            detected.append(id)
+            if pq:
+                pq_detected.append(id)
+            else:
+                detected.append(id)
         elif res==-1:
             not_done.append(id)
         elif res==-2:
-            timeout.append(id)
+            if pq:
+                pq_timeout.append(id)
+            else:
+                timeout.append(id)
         elif res==0:
-            benign.append(id)
+            if pq:
+                pq_benign.append(id)
+            else:
+                benign.append(id)
         elif res==2:
-            error.append(id)
-    dic = {"detected": detected, "not_done":not_done, "timeout":timeout, "benign":benign, "error":error}
+            if pq:
+                pq_error.append(id)
+            else:
+                error.append(id)
+    dic = {"detected": detected, "not_done":not_done, "timeout":timeout, "benign":benign, "error":error, "pq_detected": pq_detected, "pq_timeout":pq_timeout, "pq_benign":pq_benign, "pq_error":pq_error}
     os.makedirs(resDir, exist_ok=True)
     with open(os.path.join(resDir, str(flag) + 'opgen_results.txt'), 'w') as f:
         json.dump(dic, f)
@@ -97,7 +138,7 @@ def sum_all_files(pathDir, prefix):
             if "detected_by_doublex" in pathDir:
                 all_dic['benign'] = []
     else:
-        all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[]}
+        all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[], "pq_detected": [], "pq_timeout":[], "pq_benign":[], "pq_error":[]}
     with open(old_results_file, 'w') as f:
         for i in range(0, thread_num):
             with open(os.path.join(pathDir, str(i) + prefix+'.txt')) as fr:
@@ -107,6 +148,11 @@ def sum_all_files(pathDir, prefix):
                 all_dic["timeout"].extend(c["timeout"])
                 all_dic["benign"].extend(c["benign"])
                 all_dic["error"].extend(c["error"])
+                # for pq
+                all_dic["pq_detected"].extend(c["pq_detected"])
+                all_dic["pq_timeout"].extend(c["pq_timeout"])
+                all_dic["pq_benign"].extend(c["pq_benign"])
+                all_dic["pq_error"].extend(c["pq_error"])
         json.dump(all_dic, f)
     cnt = 0
     for i in all_dic:
