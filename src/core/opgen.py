@@ -135,6 +135,8 @@ class OPGen:
                 with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
                     f.write(str(datetime.datetime.now()) + "\n")
                     f.write(self.output_args_str())
+                    if G.detected:
+                        f.write("~~taint detected\n")
                     f.write(str(err) + " with code_cov {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
                 if not G.detected:
                     with open(os.path.join(res_dir, result_file), 'w') as f:
@@ -167,6 +169,8 @@ class OPGen:
         with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
             f.write(str(datetime.datetime.now())+"\n")
             f.write(self.output_args_str())
+            if G.detected:
+                f.write("~~taint detected\n")
             f.write(extension_path + " finish within {} seconds#### with code_cov {}% stmt covered####".format(str(end_time - start_time), covered_stat_rate) + "\n\n")
         if not G.detected:
             with open(os.path.join(res_dir, result_file), 'w') as f:
