@@ -61,7 +61,7 @@ def ana_opgen(extension_path, id, res_name):
             c = f.read()
             if "nothing detected" in c:
                 res = 0
-            elif "timeout" in c:
+            elif "timeout" == c:
                 res = -2
             elif "tainted detected" in c:
                 suc = 0
