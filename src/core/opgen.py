@@ -17,6 +17,7 @@ import threading
 from src.core.thread_design import thread_info
 import json
 from src.plugins.internal.handlers.event_loop import event_loop_no_threading
+import datetime
 
 class OPGen:
     """
@@ -132,6 +133,7 @@ class OPGen:
                 if G.measure_code_cov_progress:
                     G.record_code_cov(covered_stat_rate)
                 with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
+                    f.write(str(datetime.datetime.now()) + "\n")
                     f.write(self.output_args_str())
                     f.write(str(err) + " with code_cov {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
                 if not G.detected:
@@ -163,6 +165,7 @@ class OPGen:
         if G.measure_code_cov_progress:
             G.record_code_cov(covered_stat_rate)
         with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
+            f.write(str(datetime.datetime.now())+"\n")
             f.write(self.output_args_str())
             f.write(extension_path + " finish within {} seconds#### with code_cov {}% stmt covered####".format(str(end_time - start_time), covered_stat_rate) + "\n\n")
         if not G.detected:
