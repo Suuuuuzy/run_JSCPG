@@ -182,13 +182,13 @@ def sum_all_files(pathDir, prefix):
         json.dump(all_dic['benign'], f)
     with open(os.path.join(pathDir, 'detected.txt'), 'w') as f:
         json.dump(all_dic['detected'], f)
-    benign = all_dic['benign']
+    benign = all_dic['pq_benign']
     not_done = all_dic['not_done']
     benign.extend(not_done)
     with open(os.path.join(pathDir, 'not_done_benign.txt'), 'w') as f:
         json.dump(benign, f)
-    benign.extend(all_dic['error'])
-    benign.extend(all_dic['timeout'])
+    benign.extend(all_dic['pq_error'])
+    benign.extend(all_dic['pq_timeout'])
     with open(os.path.join(pathDir, 'not_detected.txt'), 'w') as f:
         json.dump(benign, f)
     for i in range(0, thread_num):
