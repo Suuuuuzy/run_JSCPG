@@ -11,6 +11,7 @@ from matplotlib.pyplot import MultipleLocator
 # all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[], "pq_detected": [], "pq_timeout":[], "pq_benign":[], "pq_error":[]}
 new_sets = {}
 old_sets = {}
+new720_sets = {}
 
 with open("crx_lists/filtered_file.txt") as f:
 	all_ids = set(json.load(f))
@@ -34,6 +35,17 @@ with open("odgen_cmp_old/opgen_results.txt") as f:
 		print(len(c[i]))
 
 
+print("\n\n")
+
+with open("720nopq/opgen_results.txt") as f:
+	c = json.load(f)
+	print("720")
+	for i in c:
+		print(i)
+		new720_sets[i] = set(c[i])
+		print(len(c[i]))
+
+print("\n\n")
 
 # get pq not done and no_pq not done
 pq_not_done = all_ids.copy()
@@ -41,15 +53,15 @@ not_done = all_ids.copy()
 pq_except_not_done = ["pq_detected", "pq_timeout", "pq_benign", "pq_error"]
 except_not_done = ["detected", "timeout", "benign", "error"]
 for i in pq_except_not_done:
-	print(len(pq_not_done))
-	print(i)
 	pq_not_done -= new_sets[i]
 	pq_not_done -= old_sets[i]
+	pq_not_done -= new720_sets[i]
 
 
 for i in except_not_done:
 	not_done -= new_sets[i]
 	not_done -= old_sets[i]
+	not_done -= new720_sets[i]
 
 print("=============what we should know=============")
 print(("no_pq_not_done"))
@@ -63,6 +75,21 @@ print(len(pq_not_done))
 # print(list(pq_not_done)[0])
 with open("odgen_cmp/pq_not_done.txt", "w") as f:
 	json.dump(list(pq_not_done), f)
+
+
+
+print("=============what we should know about detected=============")
+print(("no_pq_detected"))
+tmp = new_sets["detected"]|old_sets["detected"]|new720_sets["detected"]
+print(len(tmp))
+with open("odgen_cmp/no_pq_detected720.txt", "w") as f:
+	json.dump(list(tmp), f)
+
+# print(list(not_done)[0])
+print(("pq_detected"))
+# print(len(pq_not_done))
+
+
 
 
 # the operation for old and new results should be or
