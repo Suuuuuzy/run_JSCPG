@@ -288,7 +288,7 @@ def bg_chrome_tabs_sendMessage(G, event):
                 G.eventRegisteredFuncs[new_event] = [sender_responseCallback]
     message = G.get_prop_obj_nodes(event['info'], prop_name='message')[0]
     message = G.copy_obj(message, ast_node=None, deep=True)
-    func_objs = G.get_objs_by_name('MessageSender', scope=G.get_cur_window_scope(), branches=[])
+    func_objs = G.get_objs_by_name('MessageSender', scope=G.bg_scope, branches=[])
     MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
                                                 extra=None,
                                                 caller_ast=None, is_new=True, stmt_id='Unknown',
