@@ -57,7 +57,7 @@ def parse_args():
     parser.add_argument('-measure_thread', '--measure_thread', action='store_true', default=False, help="measure thread with time")
     parser.add_argument('-measure_code_cov_progress', '--measure_code_cov_progress', action='store_true', default=False, help="measure code coverage with time")
     parser.add_argument('-slice', '--time_slice', type=float, default=1, help="find the best time slice")
-    parser.add_argument('-seq_timeout', '--seq_timeout', type=float, default=0.02, help="find the best seq_timeout, use with thread_stmt")
+    parser.add_argument('-seq_timeout', '--seq_timeout', type=float, default=5, help="find the best seq_timeout, use with thread_stmt")
     parser.add_argument('-policy', '--policy', type=int, default=1,help="which policy is the best?")
     parser.add_argument('-alpha', '--alpha', type=float, default=0, help="choose aplha")
     parser.add_argument('-beta', '--beta', type=float, default=0, help="choose beta")

@@ -55,6 +55,7 @@ Port.prototype.onMessage = new Object();
 
 
 Port.prototype.onMessage.addListener = function(content_myCallback){
+    // debug_sink("cs_port_onMessageheader")
         RegisterFunc("cs_port_onMessage", content_myCallback);
 };
 
