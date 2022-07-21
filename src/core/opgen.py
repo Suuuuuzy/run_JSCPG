@@ -213,7 +213,7 @@ class OPGen:
         Returns:
             list: the test result pathes of the module
         """
-        Error_msg = None
+        Error_msg = ''
         if timeout_s is not None:
             try:
                 with timeout(seconds=timeout_s, error_message="{} timeout after {} seconds".format(extension_path, timeout_s)):
