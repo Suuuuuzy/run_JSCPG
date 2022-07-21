@@ -128,6 +128,7 @@ class HandleIf(Handler):
             current_thread = threading.current_thread()
             with G.thread_info_lock:
                 cur_info = self.G.thread_infos[current_thread.name]
+                cur_info.pause()
             son_age = cur_info.thread_age
             cv = Condition()
             for idx, if_elem in enumerate(if_elems):
@@ -164,6 +165,7 @@ class HandleIf(Handler):
                 with G.wait_queue_lock:
                     G.wait_queue.remove(cur_info)
                 with G.work_queue_lock:
+                    cur_info.resume()
                     G.work_queue.add(cur_info)
                 # tmp = [i.thread_self for i in G.work_queue]
                 # print('%%%%%%%%%work in condition: ', tmp)

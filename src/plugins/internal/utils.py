@@ -842,6 +842,7 @@ def emit_thread(G: Graph, function, args, thread_age=1, is_event = False ):
         admin_threads(G, function, args)
     else:
         t = Thread(target=function, args=args)
+        # print("new thread: " + str(t))
         if thread_age == -1:
             current_thread = threading.current_thread()
             with G.thread_info_lock:

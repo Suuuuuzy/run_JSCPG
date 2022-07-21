@@ -125,30 +125,6 @@ class OPGen:
                 f.write(Error_msg)
             return -1
         self.parse_run_extension(G, extension_path, dx, res_dir, result_file, vul_type, timeout_s)
-        """
-        if timeout_s is not None:
-            try:
-                with timeout(seconds=timeout_s,error_message="{} timeout after {} seconds".format(extension_path, timeout_s)):
-                    self.parse_run_extension(G, extension_path,dx, res_dir, result_file, vul_type)
-            except TimeoutError as err:
-                with G.TimeoutErrorLock:
-                    G.TimeoutError = True
-                covered_stat_rate = self.graph.get_code_cov()
-                if G.measure_code_cov_progress:
-                    G.record_code_cov(covered_stat_rate)
-                with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
-                    f.write(str(datetime.datetime.now()) + "\n")
-                    f.write(self.output_args_str())
-                    if G.detected:
-                        f.write("~~taint detected\n")
-                    f.write(str(err) + " with code_cov {}% stmt covered####".format(covered_stat_rate)+ "\n\n")
-                if not G.detected:
-                    with open(os.path.join(res_dir, result_file), 'w') as f:
-                        f.write('timeout')
-        else:
-            self.parse_run_extension(G, extension_path, dx, res_dir, result_file, vul_type)
-        """
-        # test_res = None
         return test_res
 
     def parse_run_extension(self, G, extension_path,dx, res_dir, result_file, vul_type, timeout_s):
@@ -226,7 +202,47 @@ class OPGen:
                     if not G.thread_version:
                         event_loop_no_threading(G)
             except TimeoutError as err:
+                with G.TimeoutErrorLock:
+                    G.TimeoutError = True
                 Error_msg = str(err)
+                active_thread = [i for i in threading.enumerate() if not i.daemon]
+                # print("========before exit========")
+                # print("work_queue_infos")
+                work_queue_infos = [i for i in G.work_queue]
+                # for i in work_queue_infos:
+                #     print(i.thread_self)
+                #     # i.stop()
+                # print("pq_infos")
+                pq_infos = [i for i in G.pq]
+                # for i in pq_infos:
+                #     print(i.thread_self)
+                #     # i.stop()
+                # print("wait_queue_infos")
+                wait_queue_infos = [i for i in G.wait_queue]
+                # for i in wait_queue_infos:
+                #     print(i.thread_self)
+                    # print(i.see())
+                    # i.stop()
+                # notify all the threads to kill them
+                for i in G.branch_son_dad:
+                    cv = G.branch_son_dad[i][1]
+                    with cv:
+                        # print('notify father ' + dad_thread.name)
+                        cv.notify()
+
+                work_queue_infos.extend(pq_infos)
+                work_queue_infos.extend(wait_queue_infos)
+                # print(len(work_queue_infos))
+                for i in work_queue_infos:
+                    # print(i.thread_self)
+                    # print("before ",i.see())
+                    i.stop()
+                    # print("after ", i.see())
+                # time.sleep(5)
+                # print(len(active_thread))
+                # for i in active_thread:
+                #     print(i)
+                print(Error_msg) #####
             except:
                 Error_msg = "Error: " + G.package_name + " error during test graph"
         else:
@@ -448,6 +464,7 @@ def admin_threads(G, function, args):
         with open(thread_measure_file, "a") as f:
             f.write(newline + "\n")
     t = Thread(target=function, args=args)
+    # print("new thread in admin: " + str(t))
     info = thread_info(thread=t, last_start_time=time.time(), thread_age=1)
     with G.thread_info_lock:
         G.thread_infos[t.name] = info
@@ -471,7 +488,11 @@ def admin_threads(G, function, args):
             dead = [i for i in G.work_queue if i.handled]
             G.work_queue = set([i for i in G.work_queue if not i.handled])
             # tmp = [i.thread_self for i in G.work_queue]
-            # print('%%%%%%%%%work in admin: ', tmp)
+            # dead_info = []
+            # if dead:
+            #     for i in dead:
+            #         dead_info.append(i.thread_self)
+            #     print('%%%%%%%%%dead work in admin: ', str(dead_info))
         for t in dead:
             # if this thread is dead
             # if this thread has a father thread,

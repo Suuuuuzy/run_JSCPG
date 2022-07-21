@@ -120,11 +120,10 @@ class PluginManager(object):
                 print('see sign, stop')
                 return NodeHandleResult()
             # check whether timeout
-            with self.G.TimeoutErrorLock:
-                if self.G.TimeoutError:
-                    # print('see TimeoutError, stop')
-                    # print(threading.current_thread())
-                    return NodeHandleResult()
+            # with self.G.TimeoutErrorLock:
+            #     if self.G.TimeoutError:
+            #         print('see TimeoutError, stop' + str(threading.current_thread()))
+            #         return NodeHandleResult()
             if self.G.thread_version:
                 current_thread = threading.current_thread()
                 with self.G.thread_info_lock:
@@ -141,6 +140,7 @@ class PluginManager(object):
                         CovInclast = cur_info.code_cov_imp
                         # print("CovInclast: ", CovInclast)
                         cur_info.thread_age += (self.G.gamma*1 - self.G.alpha*CovInclast)
+                        # print(str(cur_info.thread_self) + " is paused")
                         cur_info.pause()
                         with self.G.pq_lock:
                             self.G.pq.append(cur_info)
