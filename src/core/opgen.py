@@ -121,14 +121,18 @@ class OPGen:
             os.rename(os.path.join(res_dir, result_file), os.path.join(res_dir, result_file_old))
         Error_msg = validate_chrome_extension(extension_path, dx)
         if Error_msg:
-            with open(os.path.join(res_dir, result_file), 'w') as f:
+            with open(os.path.join(res_dir, result_file), 'a') as f:
                 f.write(Error_msg)
             return -1
+        self.parse_run_extension(G, extension_path, dx, res_dir, result_file, vul_type, timeout_s)
+        """
         if timeout_s is not None:
             try:
                 with timeout(seconds=timeout_s,error_message="{} timeout after {} seconds".format(extension_path, timeout_s)):
                     self.parse_run_extension(G, extension_path,dx, res_dir, result_file, vul_type)
             except TimeoutError as err:
+                with G.TimeoutErrorLock:
+                    G.TimeoutError = True
                 covered_stat_rate = self.graph.get_code_cov()
                 if G.measure_code_cov_progress:
                     G.record_code_cov(covered_stat_rate)
@@ -143,25 +147,42 @@ class OPGen:
                         f.write('timeout')
         else:
             self.parse_run_extension(G, extension_path, dx, res_dir, result_file, vul_type)
+        """
         # test_res = None
         return test_res
 
-    def parse_run_extension(self, G, extension_path,dx, res_dir, result_file, vul_type):
-        start_time = time.time()
+    def parse_run_extension(self, G, extension_path,dx, res_dir, result_file, vul_type, timeout_s):
+
         Error_msg = parse_chrome_extension(G, extension_path, dx, easy_test=options.easy_test)
         covered_stat_rate = self.graph.get_code_cov()
         if G.measure_code_cov_progress:
             G.record_code_cov(covered_stat_rate)
         if Error_msg:
-            with open(os.path.join(res_dir, result_file), 'w') as f:
+            with open(os.path.join(res_dir, result_file), 'a') as f:
                 f.write(Error_msg)
-        Error_msg = self._test_graph(G, vul_type=vul_type)
-        file_size = 0
-        if os.path.exists(os.path.join(res_dir, result_file)):
-            file_size = os.path.getsize(os.path.join(res_dir, result_file))
-        if Error_msg and file_size == 0:
-            with open(os.path.join(res_dir, result_file), 'w') as f:
-                f.write(Error_msg)
+                f.write("\n")
+        # if timeout_s is not None:
+        #     try:
+        #         with timeout(seconds=timeout_s,error_message="{} timeout after {} seconds".format(extension_path, timeout_s)):
+        #             self._test_graph(G, vul_type=vul_type)
+        #     except TimeoutError as err:
+        #         with G.TimeoutErrorLock:
+        #             G.TimeoutError = True
+        #         covered_stat_rate = self.graph.get_code_cov()
+        #         if G.measure_code_cov_progress:
+        #             G.record_code_cov(covered_stat_rate)
+        #         with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
+        #             f.write(str(datetime.datetime.now()) + "\n")
+        #             f.write(self.output_args_str())
+        #             if G.detected:
+        #                 f.write("~~taint detected\n")
+        #             f.write(str(err) + " with code_cov {}% stmt covered####".format(covered_stat_rate) + "\n\n")
+        #         if not G.detected:
+        #             with open(os.path.join(res_dir, result_file), 'w') as f:
+        #                 f.write('timeout')
+        # else:
+        start_time = time.time()
+        Error_msg = self._test_graph(G, extension_path, timeout_s, vul_type=vul_type)
         end_time = time.time()
         covered_stat_rate = self.graph.get_code_cov()
         if G.measure_code_cov_progress:
@@ -171,12 +192,18 @@ class OPGen:
             f.write(self.output_args_str())
             if G.detected:
                 f.write("~~taint detected\n")
-            f.write(extension_path + " finish within {} seconds#### with code_cov {}% stmt covered####".format(str(end_time - start_time), covered_stat_rate) + "\n\n")
+            if "timeout" in Error_msg:
+                f.write(Error_msg + " with code_cov {}% stmt covered####".format(covered_stat_rate) + "\n\n")
+            else:
+                f.write(extension_path + " finish within {} seconds#### with code_cov {}% stmt covered####".format(str(end_time - start_time), covered_stat_rate) + "\n\n")
         if not G.detected:
-            with open(os.path.join(res_dir, result_file), 'w') as f:
-                f.write('nothing detected')
+            with open(os.path.join(res_dir, result_file), 'a') as f:
+                if "timeout" in Error_msg:
+                    f.write('timeout')
+                else:
+                    f.write('nothing detected')
 
-    def _test_graph(self, G: Graph, vul_type='os_command'):
+    def _test_graph(self, G: Graph,extension_path, timeout_s, vul_type='os_command' ):
         """
         for a parsed AST graph, generate OPG and test vul
         Args:
@@ -187,17 +214,33 @@ class OPGen:
             list: the test result pathes of the module
         """
         Error_msg = None
-        try:
-            setup_opg(G)
-            G.export_node = True
-            internal_plugins = PluginManager(G, init=True)
-            entry_id = '0'
-            generate_branch_graph(G)
-            generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
-            if not G.thread_version:
-                event_loop_no_threading(G)
-        except:
-            Error_msg = "Error: " + G.package_name + " error during test graph"
+        if timeout_s is not None:
+            try:
+                with timeout(seconds=timeout_s, error_message="{} timeout after {} seconds".format(extension_path, timeout_s)):
+                    setup_opg(G)
+                    G.export_node = True
+                    internal_plugins = PluginManager(G, init=True)
+                    entry_id = '0'
+                    generate_branch_graph(G)
+                    generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
+                    if not G.thread_version:
+                        event_loop_no_threading(G)
+            except TimeoutError as err:
+                Error_msg = str(err)
+            except:
+                Error_msg = "Error: " + G.package_name + " error during test graph"
+        else:
+            try:
+                setup_opg(G)
+                G.export_node = True
+                internal_plugins = PluginManager(G, init=True)
+                entry_id = '0'
+                generate_branch_graph(G)
+                generate_obj_graph(G, internal_plugins, entry_nodeid=entry_id)
+                if not G.thread_version:
+                    event_loop_no_threading(G)
+            except:
+                Error_msg = "Error: " + G.package_name + " error during test graph"
         return Error_msg
 
     def test_module(self, module_path, vul_type='os_command', G=None, 
@@ -462,7 +505,10 @@ def admin_threads(G, function, args):
                             cv.notify()
         while len(G.work_queue)<1 and len(G.pq)>0:
             fetch_new_thread(G)
-        active_thread = [i for i in threading.enumerate()if not i.daemon]
+        active_thread = [i for i in threading.enumerate() if not i.daemon]
+        # print(len(active_thread))
+        # for i in active_thread:
+        #     print(i)
         if len(active_thread)==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
             if G.measure_thread:
                 new_time = time.time()
@@ -533,12 +579,11 @@ def setup_graph_env(G: Graph):
     G.gamma = options.gamma
     G.measure_code_cov_progress = options.measure_code_cov_progress
     G.war = options.war
+    G.result_file = "res.txt"
+    G.result_file_old = "res_old.txt"
     if G.war:
         G.result_file = "res_war.txt"
         G.result_file_old =  "res_war_old.txt"
-    else:
-        G.result_file = "res.txt"
-        G.result_file_old = "res_old.txt"
     G.thread_version = options.run_with_pq
     G.all_branch = options.all_branch
     G.client_side = options.chrome_extension

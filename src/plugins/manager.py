@@ -119,6 +119,12 @@ class PluginManager(object):
             if self.G.auto_stop and self.G.stop_sign:
                 print('see sign, stop')
                 return NodeHandleResult()
+            # check whether timeout
+            with self.G.TimeoutErrorLock:
+                if self.G.TimeoutError:
+                    # print('see TimeoutError, stop')
+                    # print(threading.current_thread())
+                    return NodeHandleResult()
             if self.G.thread_version:
                 current_thread = threading.current_thread()
                 with self.G.thread_info_lock:
@@ -162,10 +168,9 @@ class PluginManager(object):
             # print('pq in inner_dispatch_node', pq)
             if self.G.finished:
                 return NodeHandleResult()
-
             if self.G.is_statement(node_id):
                 line_mark = self.G.get_node_attr(node_id)['namespace'].split(":")
-                loggers.main_logger.info(f"Running Line {line_mark[0]} to {line_mark[2]}")
+                # loggers.main_logger.info(f"Running Line {line_mark[0]} to {line_mark[2]}")
                 if node_id in self.G.get_all_but_header_stmt():
                     if node_id not in self.G.covered_stat:
                         self.G.covered_stat[node_id] = 0

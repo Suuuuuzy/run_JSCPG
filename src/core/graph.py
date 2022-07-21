@@ -44,6 +44,9 @@ class MyData(threading.local):
 class Graph:
 
     def __init__(self, cs_header_lines, bg_header_lines, thread_version):
+        self.measure_code_cov_progress = None
+        self.result_file = "res.txt"
+        self.result_file_old = "res_old.txt"
         self.cs_header_lines = cs_header_lines
         self.bg_header_lines = bg_header_lines
         self.thread_version = thread_version
@@ -233,6 +236,10 @@ class Graph:
 
         self.attacked = False
         self.attacked_lock = Lock()
+
+        self.TimeoutError = False
+        self.TimeoutErrorLock = Lock()
+
 
     # Basic graph operations
     # node
