@@ -88,8 +88,8 @@ def simurun_block(G, ast_node, parent_scope=None, branches=None,
             stmt_age = thread_age + i
             start_time = time.time()
             stmt_thread = emit_thread(G, internal_manager.dispatch_node, (stmt, ExtraInfo(branches=branches), G.mydata.pickle_up()), thread_age=stmt_age)
-            print("new thread for stmt: ", (stmt))
-            print(str(start_time))
+            # print("new thread for stmt: ", (stmt))
+            # print(str(start_time))
             while True:
                 # time.sleep(0.05)
                 if stmt_thread.is_alive() and time.time()-start_time<G.seq_timeout:
