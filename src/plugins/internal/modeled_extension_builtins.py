@@ -436,7 +436,7 @@ def decide_valid_taint_flow(source_name, sink_name, attacked):
             res = True
     # data exfiltration: sensitive info should be out
     if source_name in extension_data_source:
-        if sink_name in extension_data_out: # and attacked:
+        if sink_name in extension_data_out and attacked:
             res = True
     elif source_name in extension_data_source_no_attack:
         if sink_name in extension_data_out:
