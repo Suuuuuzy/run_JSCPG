@@ -1,0 +1,25 @@
+(['21493', '22407'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/storage_from_external with bg_localStorage_setItem_value_sink
+from bg_chrome_runtime_MessageExternal to bg_localStorage_setItem_value_sink
+==========================
+$FilePath$demos/storage_from_external/opgen_generated_files/bg.js
+Line 1204	                L64B.curlang = details.lang;
+	details.lang
+
+(['20736', '20800', '21404', '25553'], 'document_eventListener_link64_msgAddLinks')
+~~~tainted detected!~~~in extension: demos/storage_from_external with bg_localStorage_setItem_value_sink
+from document_eventListener_link64_msgAddLinks to bg_localStorage_setItem_value_sink
+==========================
+$FilePath$demos/storage_from_external/opgen_generated_files/cs_0.js
+Line 496	document.addEventListener('link64_msgAddLinks', function (e, x) {
+	e
+$FilePath$demos/storage_from_external/opgen_generated_files/cs_0.js
+Line 501	    if (!e.detail) {
+	e.detail
+$FilePath$demos/storage_from_external/opgen_generated_files/cs_0.js
+Line 501	    if (!e.detail) {
+	e.detail
+$FilePath$demos/storage_from_external/opgen_generated_files/bg.js
+Line 1204	                L64B.curlang = details.lang;
+	details.lang
+

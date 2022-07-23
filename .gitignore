@@ -14,7 +14,7 @@ run_results.txt
 myout.txt
 crx_tmp/
 crx_record/
-demos/
+
 
 *.report
 /package-lock.json

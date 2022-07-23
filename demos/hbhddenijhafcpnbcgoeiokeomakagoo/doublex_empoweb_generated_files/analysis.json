@@ -1,0 +1,25 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/hbhddenijhafcpnbcgoeiokeomakagoo/doublex_empoweb_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {},
+        "indirect_dangers": {
+            "danger1": {
+                "danger": "storage.sync.get",
+                "value": "chrome.storage.sync.get(<pdg_js.node.ValueExpr object at 0x7f4740a04f10>, <pdg_js.node.FunctionExpression object at 0x7f4740a04f40>)",
+                "sink-param1": "{\n linkType: 'DEFAULT',\n changeImage: true,\n animateOnlyOnArrive: true,\n animationSpeed: 1000\n }",
+                "sink-param2": "function(items) { \n $(window).ready(() => {\n let button = document.getElementsByClassName(\"brandingImgWrap\")[0].getElementsByTagName(\"a\")[0];\n if(items.changeImage){\n let img = button.getElementsByTagName(\"img\")[0]\n let imgQuery = $( img )\n let originalSrc = img.src\n let myImg = chrome.runtime.getURL(\"kridt-logo.png\")\n if(items.animationSpeed > 0 && !(items.animateOnlyOnArrive && document.referrer.includes(\"blackboard.au.dk\"))) {\n imgQuery.animate({opacity: 0}, items.animationSpeed / 2, () => {\n set_image(img, myImg);\n imgQuery.animate({opacity: 1}, items.animationSpeed / 2) }\n )\n }\n else{\n set_image(img, myImg);\n }\n }\n if(items.linkType != \"DEFAULT\"){\n button.target = items.linkType;\n }\n console.log(\"Loaded kridttavle: linkType: \"+items.linkType+\", changeImage: \"+items.changeImage+\".\");\n });\n}",
+                "line": "12 - 40",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/hbhddenijhafcpnbcgoeiokeomakagoo/doublex_empoweb_generated_files/cs_0.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    }
+}

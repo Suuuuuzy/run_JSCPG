@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head><title>Kridttavle Settings</title></head>
+<body>
+
+<div>
+    Link type:
+    <select id="link_type">
+     <option value="DEFAULT">Default (new tab)</option>
+     <option value="_blank">Open new tab</option>
+     <option value="">Navigate in tab</option>
+    </select>
+
+    <label>
+      <input type="checkbox" id="change_image">
+      Change image
+    </label>
+</div>
+
+<div>
+    <label>
+      <input type="number" id="animation_speed" min="0" max="10000">
+      Animation speed [ms] (set to 0 to disable animation)
+    </label>
+    <label>
+      <input type="checkbox" id="animate_only_on_arrive">
+      Animate only on arrive
+    </label>
+</div>
+
+<div id="status"></div>
+<button id="save">Save</button>
+
+<script src="options.js"></script>
+</body>
+</html>

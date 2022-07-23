@@ -1,0 +1,27 @@
+{
+"update_url": "https://clients2.google.com/service/update2/crx",
+
+    "manifest_version": 2,
+    "name": "Kridttavle",
+    "version": "900.1",
+    "permissions": [
+        "storage"
+    ],
+    "icons": { "16": "icon16.png",
+           "48": "icon48.png",
+          "128": "icon128.png" },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://blackboard.au.dk/*"
+            ],
+            "run_at": "document_start",
+            "js": ["jquery-3.4.1.min.js", "content.js"]
+        }
+    ],
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": false
+    },
+    "web_accessible_resources": ["kridt-logo.png"]
+}
