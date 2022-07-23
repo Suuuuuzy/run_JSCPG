@@ -193,6 +193,13 @@ def sum_all_files(pathDir, prefix):
         json.dump(benign, f)
     for i in range(0, thread_num):
         os.remove(os.path.join(pathDir, str(i) + prefix+'.txt'))
+    with open("/media/data2/jianjia/extension_data/filtered_file.txt") as f:
+        filtered_ids = json.load(f)
+        filtered_ids = set(filtered_ids)
+    pq_not_done = filtered_ids-set(all_dic["pq_detected"]) -set(all_dic["pq_timeout"])-set(all_dic["pq_benign"])-set(all_dic["pq_error"])
+    with open(os.path.join(pathDir, 'pq_not_done.txt'), 'w') as f:
+        json.dump(pq_not_done, f)
+
 
 
 def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num = 200, mode=None):
