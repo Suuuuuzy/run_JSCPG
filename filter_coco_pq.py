@@ -198,7 +198,7 @@ def sum_all_files(pathDir, prefix):
         filtered_ids = set(filtered_ids)
     pq_not_done = filtered_ids-set(all_dic["pq_detected"]) -set(all_dic["pq_timeout"])-set(all_dic["pq_benign"])-set(all_dic["pq_error"])
     with open(os.path.join(pathDir, 'pq_not_done.txt'), 'w') as f:
-        json.dump(pq_not_done, f)
+        json.dump(list(pq_not_done), f)
 
 
 
