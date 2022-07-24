@@ -487,7 +487,7 @@ location.href = 'http://www.example.com/search?q=q&oq=oq&chrome=chrome&sourceid=
 
 
 
-// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/storage_from_external/video/content.js
+// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/timeout2/video/content.js
 
 
 setTimeout(function(){  sendAllLinks()  }, 300);

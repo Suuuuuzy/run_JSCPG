@@ -1,4 +1,4 @@
-(['21849', '21892', '21911'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '21848'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -9,7 +9,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1110				chrome.tabs.executeScript( telaid, {code:"$('.gc-print-ports').html('"+msg+"');"},function(results){} );
 	
 
-(['21849', '21892', '21990'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '21912'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -20,7 +20,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1116			chrome.tabs.executeScript( telaid, {code:"$('.gc-print-drive').html('"+msg+"');"},function(results){} );
 	
 
-(['21849', '21892', '22056'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22018'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -31,7 +31,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1122			chrome.tabs.executeScript( telaid, {code:"$('.status').html('"+msg+"');"},function(results){} );
 	
 
-(['21849', '21892', '22233', '22313'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22159', '22275'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -45,38 +45,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
 	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
 
-(['21849', '21892', '22183', '22233', '22313'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1091			msg = msg+'';
-	msg = msg+''
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
-	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
-
-(['21849', '21892', '22197', '22313'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
-	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
-
-(['21849', '21892', '22183', '22197', '22313'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22145', '22159', '22275'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -93,7 +62,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
 	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
 
-(['21849', '21892', '22233', '22402', '22436'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22195', '22275'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -104,260 +73,10 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
 	msg.replace(/(\r\n|\n|\r)/gm,"")
 $FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
+Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
+	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
 
-(['21849', '21892', '22183', '22233', '22402', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1091			msg = msg+'';
-	msg = msg+''
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22402', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22197', '22402', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22183', '22197', '22402', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1091			msg = msg+'';
-	msg = msg+''
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22233', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22183', '22233', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1091			msg = msg+'';
-	msg = msg+''
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22197', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22183', '22197', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1091			msg = msg+'';
-	msg = msg+''
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22233', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22183', '22233', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1091			msg = msg+'';
-	msg = msg+''
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22197', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22183', '22197', '22394', '22436'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1091			msg = msg+'';
-	msg = msg+''
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22544', '22575', '22662'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22145', '22195', '22275'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -374,7 +93,271 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
 	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
 
-(['21849', '21892', '22575', '22662'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22159', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22145', '22159', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1091			msg = msg+'';
+	msg = msg+''
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22195', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22145', '22195', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1091			msg = msg+'';
+	msg = msg+''
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22159', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22145', '22159', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1091			msg = msg+'';
+	msg = msg+''
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22195', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22145', '22195', '22376', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1091			msg = msg+'';
+	msg = msg+''
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22159', '22335', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22145', '22159', '22335', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1091			msg = msg+'';
+	msg = msg+''
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22335', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22195', '22335', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22145', '22195', '22335', '22398'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1091			msg = msg+'';
+	msg = msg+''
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22560', '22666'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -388,7 +371,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
 	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
 
-(['21849', '21892', '22544', '22567', '22662'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22548', '22560', '22666'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -405,7 +388,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
 	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
 
-(['21849', '21892', '22567', '22662'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22586', '22666'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -419,7 +402,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
 	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
 
-(['21849', '21892', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22548', '22586', '22666'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -427,13 +410,33 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1146				ScriptListCom(request.retorno);
 	request.retorno
 $FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1091			msg = msg+'';
+	msg = msg+''
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1094			var src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');";
+	src = "$('.gc-print-log').append('"+data.toLocaleDateString()+" "+myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds()+": "+msg+"<br>');"
+
+(['21786', '21829', '22560', '22726', '22789'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
+	msg.replace(/(\r\n|\n|\r)/gm,"")
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1100					msg = msg.replace(/(")/gm,'');
 	msg.replace(/(")/gm,'')
 $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22544', '22575', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22548', '22560', '22726', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -453,7 +456,21 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22575', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22726', '22789'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22586', '22726', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -470,7 +487,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22544', '22567', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22548', '22586', '22726', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -490,7 +507,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22567', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22560', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -507,21 +524,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22544', '22575', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22548', '22560', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -541,7 +544,21 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22575', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22586', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -558,7 +575,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22544', '22567', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22548', '22586', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -578,7 +595,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22567', '22743', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22560', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -595,21 +612,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22751', '22785'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22544', '22575', '22751', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22548', '22560', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -629,7 +632,21 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22575', '22751', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
+from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
+==========================
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1146				ScriptListCom(request.retorno);
+	request.retorno
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1100					msg = msg.replace(/(")/gm,'');
+	msg.replace(/(")/gm,'')
+$FilePath$demos/exec_code/opgen_generated_files/bg.js
+Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
+	
+
+(['21786', '21829', '22586', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -646,7 +663,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22544', '22567', '22751', '22785'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22548', '22586', '22757', '22789'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================
@@ -666,24 +683,7 @@ $FilePath$demos/exec_code/opgen_generated_files/bg.js
 Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
 	
 
-(['21849', '21892', '22567', '22751', '22785'], 'bg_chrome_runtime_MessageExternal')
-~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
-from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
-==========================
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1146				ScriptListCom(request.retorno);
-	request.retorno
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1092			msg = msg.replace(/(\r\n|\n|\r)/gm,"");
-	msg.replace(/(\r\n|\n|\r)/gm,"")
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1100					msg = msg.replace(/(")/gm,'');
-	msg.replace(/(")/gm,'')
-$FilePath$demos/exec_code/opgen_generated_files/bg.js
-Line 1101					chrome.tabs.executeScript( telaid, {code:'console.log("'+msg+'");'},function(results){} );
-	
-
-(['21849', '21892', '22833'], 'bg_chrome_runtime_MessageExternal')
+(['21786', '21829', '22823'], 'bg_chrome_runtime_MessageExternal')
 ~~~tainted detected!~~~in extension: demos/exec_code with chrome_tabs_executeScript_sink
 from bg_chrome_runtime_MessageExternal to chrome_tabs_executeScript_sink
 ==========================

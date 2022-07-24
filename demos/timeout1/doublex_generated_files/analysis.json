@@ -1,0 +1,42 @@
+{
+    "extension": "/media/data2/jianjia/extension_data/unzipped_extensions/alcgpfgkdjbabelklflpfkooadcfgoao/doublex_generated_files",
+    "benchmarks": {},
+    "cs": {
+        "direct_dangers": {},
+        "indirect_dangers": {},
+        "exfiltration_dangers": {}
+    },
+    "bp": {
+        "direct_dangers": {
+            "danger1": {
+                "danger": "XMLHttpRequest.open",
+                "value": "XMLHttpRequest().open(POST, {'message': {}, 'type': 'com.fabasoft.nm.recv', 'outdata': None}.outdata.domainhref/login/fork, True)",
+                "sink-param1": "POST",
+                "sink-param2": "{'message': {}, 'type': 'com.fabasoft.nm.recv', 'outdata': None}.outdata.domainhref/login/fork",
+                "sink-param3": true,
+                "line": "549 - 549",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/alcgpfgkdjbabelklflpfkooadcfgoao/doublex_generated_files/bg.js",
+                "dataflow": false,
+                "param_id0": {}
+            }
+        },
+        "indirect_dangers": {},
+        "exfiltration_dangers": {
+            "danger1": {
+                "danger": "cookies.getAll",
+                "value": "chrome.cookies.getAll(<pdg_js.node.ValueExpr object at 0x7fa5833d0a00>, <pdg_js.node.FunctionExpression object at 0x7fa5833d0a30>)",
+                "sink-param1": "{url:data.srcurl, storeId:storeid}",
+                "sink-param2": "function(cookies) {\n try {\n var cookievalues = {};\n if (cookies) {\n for (var i = 0;i < cookies.length; i++) {\n var cookie = cookies[i];\n cookievalues[cookie.name] = cookie.value;\n }\n }\n if (data.indata.cookies) {\n for (var c of data.indata.cookies.split(\";\")) {\n var cv = c.split(\"=\");\n cookievalues[cv[0]] = cv[1];\n }\n }\n var cookiestr = \"\";\n for (var c in cookievalues) {\n if (cookiestr) {\n cookiestr += \";\";\n }\n cookiestr += c + \"=\" + cookievalues[c];\n }\n data.indata.cookies = cookiestr;\n // console.log(\"Cookies from url [\" + data.srcurl + \"] and store [\" + storeid + \"] for message: \" + cookiestr);\n } catch(e) {\n handleError(e);\n }\n try {\n nativeports[typesuffix].port.postMessage(data);\n } catch(e) {\n handleError(e, true);\n }\n }",
+                "line": "438 - 470",
+                "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/alcgpfgkdjbabelklflpfkooadcfgoao/doublex_generated_files/bg.js",
+                "dataflow": true,
+                "sent_to_wa_1": {
+                    "wa": "{\n type: \"com.fabasoft.nm.back.connect\"\n }",
+                    "line": "58 - 58",
+                    "filename": "/media/data2/jianjia/extension_data/unzipped_extensions/alcgpfgkdjbabelklflpfkooadcfgoao/doublex_generated_files/cs_0.js",
+                    "where": "cookies"
+                }
+            }
+        }
+    }
+}

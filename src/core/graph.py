@@ -237,8 +237,8 @@ class Graph:
         self.attacked = False
         self.attacked_lock = Lock()
 
-        self.TimeoutError = False
-        self.TimeoutErrorLock = Lock()
+        # self.TimeoutError = False
+        # self.TimeoutErrorLock = Lock()
 
 
     # Basic graph operations

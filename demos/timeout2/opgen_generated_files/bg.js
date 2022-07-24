@@ -930,7 +930,7 @@ _ = chrome;
 chrome.experimental.cookies = chrome.cookies;
 browser = chrome;
 /////////
-// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/storage_from_external/extension/background.js
+// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/timeout2/extension/background.js
 
 String.prototype.hashCode = function(){
     var hash = 0;
@@ -1280,7 +1280,7 @@ function SetVideoIcon( tabid, fVideo)
     {
     });
 }*/
-// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/storage_from_external/extension/castPlayer.js
+// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/timeout2/extension/castPlayer.js
 
 var l64
 var l64 = l64 || {};
@@ -1434,7 +1434,7 @@ l64.castPlayer.playURI = function (item) {
 };
 
 chrome.tabs.onUpdated.addListener(l64.castPlayer.infoInject);
-// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/storage_from_external/video/video.js
+// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/timeout2/video/video.js
 
 ﻿
 
@@ -1888,7 +1888,7 @@ chrome.tabs.onUpdated.addListener(vdl.launchu);
 chrome.tabs.onCreated.addListener(vdl.launchc);
 chrome.windows.onCreated.addListener(vdl.launchcw);
  
-// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/storage_from_external/video/oembed.js
+// original file:/Users/jianjia/Documents/tmp/EOPG/run_JSCPG_merge/demos/timeout2/video/oembed.js
 
 ﻿
 var L64Oembed = {

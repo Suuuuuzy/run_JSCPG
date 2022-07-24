@@ -1,0 +1,9 @@
+(['21841', '22697'], 'bg_chrome_runtime_MessageExternal')
+~~~tainted detected!~~~in extension: demos/timeout2 with bg_localStorage_setItem_value_sink
+from bg_chrome_runtime_MessageExternal to bg_localStorage_setItem_value_sink
+==========================
+$FilePath$demos/timeout2/opgen_generated_files/bg.js
+Line 1204	                L64B.curlang = details.lang;
+	details.lang
+
+demos/timeout2 timeout after 20 seconds
