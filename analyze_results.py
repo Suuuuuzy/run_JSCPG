@@ -147,7 +147,7 @@ def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num 
             pass
         print("not_done")
         print(len(ids))
-        with open(os.path.join(resDir, 'not_done.txt'), 'w') as f:
+        with open(os.path.join(resDir, 'pq_not_done.txt'), 'w') as f:
             json.dump(ids, f)
 
 def main():
