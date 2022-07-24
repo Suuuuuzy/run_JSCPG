@@ -142,7 +142,7 @@ def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num 
         try:
             with open("crx_record.log") as f:
                 logContent = f.read()
-            ids = [i for i in ids if i+"/" not in logContent]
+            ids = [i for i in ids if i not in logContent]
         except:
             pass
         print("not_done")
