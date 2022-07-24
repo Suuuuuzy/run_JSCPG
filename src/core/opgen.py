@@ -109,11 +109,14 @@ class OPGen:
         """
         # preprocess of the files in chrome extension
         print('process chrome extension: ', extension_path)
+        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
+        with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
+            f.write(str(datetime.datetime.now())+"\n")
+            f.write(self.output_args_str())
         loggers.crx_record_logger.info('process chrome extension: '+ extension_path)
         if G is None:
             G = self.graph
         test_res = None
-        res_dir = os.path.join(G.package_name, 'opgen_generated_files')
         os.makedirs(res_dir, exist_ok=True)
         result_file_old = G.result_file_old
         result_file = G.result_file
@@ -149,8 +152,8 @@ class OPGen:
         if G.measure_code_cov_progress:
             G.record_code_cov(covered_stat_rate)
         with open(os.path.join(res_dir, 'used_time.txt'), 'a') as f:
-            f.write(str(datetime.datetime.now())+"\n")
-            f.write(self.output_args_str())
+            # f.write(str(datetime.datetime.now())+"\n")
+            # f.write(self.output_args_str())
             if G.detected:
                 f.write("~~taint detected\n")
             if "timeout" in Error_msg:
