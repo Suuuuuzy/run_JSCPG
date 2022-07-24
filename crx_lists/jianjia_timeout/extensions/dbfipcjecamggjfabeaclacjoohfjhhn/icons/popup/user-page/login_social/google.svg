@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 64 (93537) - https://sketch.com -->
+    <title>googleplus_mini</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="20" height="20" rx="4"></rect>
+    </defs>
+    <g id="Макеты" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="googleplus_mini">
+            <g id="Group-6-Copy-5">
+                <rect id="Rectangle" fill="#FFFFFF" x="0" y="0" width="20" height="20" rx="4"></rect>
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="Combined-Shape" fill="#DB5841" xlink:href="#path-1"></use>
+            </g>
+            <path d="M10.131404,16 C6.71532691,16 4,13.342814 4,10 C4,6.65718602 6.71532691,4 10.131404,4 C11.7956589,4 13.1971059,4.59998958 14.2481779,5.6285878 L12.583923,7.17143304 C12.1459807,6.74287649 11.3576635,6.22857738 10.1313507,6.22857738 C8.02920679,6.22857738 6.36495185,7.94285565 6.36495185,10 C6.36495185,12.0571443 8.02920679,13.7714226 10.1313507,13.7714226 C12.583923,13.7714226 13.4598074,12.0571443 13.6349949,11.1999792 L10.1313507,11.1999792 L10.1313507,9.14283482 L15.9123796,9.14283482 C16,9.48570089 16,9.7428244 16,10.171433 C16,13.5999896 13.6350482,16 10.131404,16 Z" id="Combined-Shape-Copy-9" fill="#FFFFFF"></path>
+        </g>
+    </g>
+</svg>
