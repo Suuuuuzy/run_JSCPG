@@ -143,7 +143,7 @@ def analyze_results(flag, resDir, extension_path, ids, res_name):
         json.dump(dic, f)
     print('Thread No.' + str(flag) + ' end.')
 
-def sum_all_files(pathDir, prefix):
+def sum_all_files(pathDir, prefix, idfile):
     # all_dic = {"detected": [], "not_done":[], "timeout":[], "benign":[]}
     thread_num = 200
     old_results_file = os.path.join(pathDir, prefix + '.txt')
@@ -155,7 +155,7 @@ def sum_all_files(pathDir, prefix):
                 all_dic['benign'] = []
     else:
         all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[], "pq_detected": [], "pq_timeout":[], "pq_benign":[], "pq_error":[], "pq_not_done":[]}
-    with open("/media/data2/jianjia/extension_data/filtered_file.txt") as f:
+    with open(idfile) as f:
         filtered_ids = json.load(f)
         filtered_ids = set(filtered_ids)
     with open(old_results_file, 'w') as f:
@@ -228,7 +228,7 @@ def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num 
     threads.append(t)
     for t in threads:
         t.join()
-    sum_all_files(resDir, prefix)
+    sum_all_files(resDir, prefix, idfile)
 
 def main():
     res_dir = ''
