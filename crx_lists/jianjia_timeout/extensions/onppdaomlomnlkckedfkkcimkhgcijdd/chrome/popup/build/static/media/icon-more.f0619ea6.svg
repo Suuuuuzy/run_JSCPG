@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="28px" height="28px" viewBox="0 0 28 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.4 (67378) - http://www.bohemiancoding.com/sketch -->
+    <title>画板</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <circle id="path-1" cx="14" cy="14" r="11"></circle>
+        <filter x="-29.5%" y="-25.0%" width="159.1%" height="159.1%" filterUnits="objectBoundingBox" id="filter-2">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.031372549   0 0 0 0 0.0549019608   0 0 0 0 0.329411765  0 0 0 0.3 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="钱包主页" transform="translate(-10.000000, -46.000000)">
+            <g id="分组-11-copy" transform="translate(10.000000, 46.000000)">
+                <g id="椭圆形" fill-rule="nonzero">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                    <use fill="#FFFFFF" xlink:href="#path-1"></use>
+                </g>
+                <g id="qianbao" transform="translate(7.000000, 8.000000)">
+                    <path d="M11.7810345,2.12066116 L11.0448276,2.12066116 C11.0448276,0.952066116 10.0568966,0.00495867769 8.83793103,0.00495867769 L2.21724138,0.00495867769 C0.998275862,0.00495867769 0.0103448276,0.952066116 0.0103448276,2.12066116 L0.0103448276,9.87768595 C0.0103448276,11.046281 0.998275862,11.9933884 2.21724138,11.9933884 L11.7810345,11.9933884 C13,11.9933884 13.987931,11.046281 13.987931,9.87768595 L13.987931,4.23636364 C13.987931,3.0677686 13,2.12066116 11.7810345,2.12066116 Z M2.21896552,1.41652893 L8.83965517,1.41652893 C9.24655172,1.41652893 9.57586207,1.7322314 9.57586207,2.12231405 L1.48275862,2.12231405 C1.48275862,1.7322314 1.81206897,1.41652893 2.21896552,1.41652893 Z M12.5172414,9.87933884 C12.5172414,10.2694215 12.187931,10.585124 11.7810345,10.585124 L2.21896552,10.585124 C1.81206897,10.585124 1.48275862,10.2694215 1.48275862,9.87933884 L1.48275862,3.5322314 L11.7810345,3.5322314 C12.187931,3.5322314 12.5172414,3.84793388 12.5172414,4.23801653 L12.5172414,9.87933884 Z" id="形状" fill="#171642" fill-rule="nonzero"></path>
+                    <path d="M10.3103448,4.94214876 C9.90344828,4.94214876 9.57413793,5.25785124 9.57413793,5.64793388 L9.57413793,8.46942149 C9.57413793,8.85950413 9.90344828,9.17520661 10.3103448,9.17520661 C10.7172414,9.17520661 11.0465517,8.85950413 11.0465517,8.46942149 L11.0465517,5.64793388 C11.0465517,5.25785124 10.7172414,4.94214876 10.3103448,4.94214876 Z" id="路径" fill="#0E0E2D"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

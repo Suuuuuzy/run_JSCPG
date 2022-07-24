@@ -1,0 +1,145 @@
+{
+   "appDesc": {
+      "description": "App description.",
+      "message": "Service helping to make smart online purchases"
+   },
+   "appName": {
+      "description": "App name.",
+      "message": "Cashback service Megabonus"
+   },
+   "span_error": {
+      "description": "span error",
+      "message": "Invalid email address or password"
+   },
+   "options_group_main": {
+      "description": "Общие настройки",
+      "message": "General settings"
+   },
+
+   "options_group_main_checkbox_4_text": {
+      "description": "Рекомендовать Megabonus на страницах AliExpress",
+      "message": "Recommend MegaBonus on AliExpress pages"
+   },
+
+   "options_group_main_checkbox_7_text": {
+      "description": "Show the notifications about cash back activation on the sites where cash back is available",
+      "message": "Show the notifications about cash back activation on the sites where cash back is available"
+   },
+   "options_group_notify": {
+      "description": "Настройки уведомлений",
+      "message": "Notification settings"
+   },
+   "options_group_notify_checkbox_1_text": {
+      "description": "Уведомления о кешбеке.",
+      "message": "Cash back notifications."
+   },
+   "options_group_language_setting": {
+      "description": "Language settings",
+      "message": "Language settings"
+   },
+   "options_ask_a_question": {
+      "description": "Ask a Question",
+      "message": "Ask a question"
+   },
+   "button_back": {
+      "description": "Back",
+      "message": "Back"
+   },
+   "google_and_yandex_show": {
+      "description": "Show the clues about cash back availability on Google and Yandex results pages",
+      "message": "Show the clues about cash back availability on Google and Yandex results pages"
+   },
+   "you_may_get_cashback": {
+      "description": "You can get cash back from this purchase. Do you want to buy with cash back?",
+      "message": "You can get cash back from this purchase. Do you want to buy with cash back?"
+   },
+   "yes_i_want": {
+      "description": "Yes, I do",
+      "message": "Yes, I do"
+   },
+   "not_now": {
+      "description": "Not now",
+      "message": "Not now"
+   },
+   "remind_in_15_minutes": {
+      "description": "Remind me in 15 minutes",
+      "message": "Remind me in 15 minutes"
+   },
+   "help_popup_title_1": {
+      "description": "What do I do to buy with cash back?",
+      "message": "What do I do to buy with cash back?"
+   },
+   "help_popup_instr_1": {
+      "description": "Press “Yes, I do” button",
+      "message": "Press “Yes, I do” button"
+   },
+   "help_popup_instr_2": {
+      "description": "Add item to the cart and make a purchase",
+      "message": "Add item to the cart and make a purchase"
+   },
+   "help_popup_instr_3": {
+      "description": "In one minute after purchase you’ll receive notification about cash back being added",
+      "message": "In one minute after purchase you’ll receive notification about cash back being added"
+   },
+   "help_popup_shop_link_info": {
+      "description": "More about purchasing with cash back in ",
+      "message": "More about purchasing with cash back in "
+   },
+   "help_popup_title_2": {
+      "description": "Is cash back activated?",
+      "message": "Is cash back activated?"
+   },
+   "help_popup_descr_2": {
+      "description": "Browser extension icon will always display the status of cash back.",
+      "message": "Browser extension icon will always display the status of cash back."
+   },
+
+   "check_affilate__wating": {
+      "description": "Just a moment, we are checking for cash back for this product",
+      "message": "Just a moment, we are checking for cash back for this product"
+   },
+   "check_affilate__disabled": {
+      "description": "Sorry, cash back is not available for this product",
+      "message": "Sorry, cash back is not available for this product"
+   },
+   "check_affilate__error": {
+      "description": "Sorry, the information about cash back for this product is not found",
+      "message": "Sorry, the information about cash back for this product is not found"
+   },
+   "check_affilate__error_again": {
+      "description": "Try again",
+      "message": "Try again"
+   },
+   "check_affilate__enabled": {
+      "description": "Cash back for this product is available up to ",
+      "message": "Cash back for this product is available up to "
+   },
+   "a_level_1": {
+      "description": "a level 1",
+      "message": "Newbie"
+   },
+   "a_level_2": {
+      "description": "a level 2",
+      "message": "Mathematician"
+   },
+   "a_level_3": {
+      "description": "a level 3",
+      "message": "Merchant"
+   },
+   "a_level_4": {
+      "description": "a level 4",
+      "message": "Economist"
+   },
+   "a_level_5": {
+      "description": "a level 5",
+      "message": "Shopaholic"
+   },
+   "a_level_6": {
+      "description": "a level 6",
+      "message": "Treasurer"
+   },
+   "a_level_7": {
+      "description": "a level 7",
+      "message": "Master of Coin"
+   }
+}

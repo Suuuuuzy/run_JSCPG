@@ -1,0 +1,39 @@
+(['17103', '17170'], 'storage_local_get_source')
+~~~tainted detected!~~~in extension: crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca with window_postMessage_sink
+from storage_local_get_source to window_postMessage_sink
+==========================
+$FilePath$crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca/opgen_generated_files/cs_0.js
+Line 437	    var storage_local_get_source = {'key':'value'};
+	
+$FilePath$crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca/opgen_generated_files/cs_0.js
+Line 500						return resolve(values[key]);
+	values[key]
+
+(['17106'], 'storage_local_get_source')
+~~~tainted detected!~~~in extension: crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca with window_postMessage_sink
+from storage_local_get_source to window_postMessage_sink
+==========================
+$FilePath$crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca/opgen_generated_files/cs_0.js
+Line 437	    var storage_local_get_source = {'key':'value'};
+	
+
+(['17103'], 'storage_local_get_source')
+~~~tainted detected!~~~in extension: crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca with window_postMessage_sink
+from storage_local_get_source to window_postMessage_sink
+==========================
+$FilePath$crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca/opgen_generated_files/cs_0.js
+Line 437	    var storage_local_get_source = {'key':'value'};
+	
+
+(['17103', '17170'], 'storage_local_get_source')
+~~~tainted detected!~~~in extension: crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca with window_postMessage_sink
+from storage_local_get_source to window_postMessage_sink
+==========================
+$FilePath$crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca/opgen_generated_files/cs_0.js
+Line 437	    var storage_local_get_source = {'key':'value'};
+	
+$FilePath$crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca/opgen_generated_files/cs_0.js
+Line 500						return resolve(values[key]);
+	values[key]
+
+crx_lists/jianjia_timeout/extensions/phapjhelokffmoifofmfggohcpiiakca timeout after 60 seconds

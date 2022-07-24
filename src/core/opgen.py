@@ -144,6 +144,7 @@ class OPGen:
             with open(os.path.join(res_dir, result_file), 'a') as f:
                 f.write(Error_msg+"\n")
         end_time = time.time()
+        # print(str(end_time - start_time))
         covered_stat_rate = self.graph.get_code_cov()
         if G.measure_code_cov_progress:
             G.record_code_cov(covered_stat_rate)
@@ -173,7 +174,7 @@ class OPGen:
         Returns:
             list: the test result pathes of the module
         """
-        # print("==============before _test_graph, see how many threads==============")
+        # print("==============before _test_graph, see how many threads==============", extension_path)
         # active_thread = [i for i in threading.enumerate() if not i.daemon]
         # print((active_thread))
         # print(G.thread_infos)
@@ -502,9 +503,16 @@ def admin_threads(G, function, args):
         while len(G.work_queue)<1 and len(G.pq)>0:
             fetch_new_thread(G)
         active_thread = [i for i in threading.enumerate() if not i.daemon]
-        # print(len(active_thread))
-        # for i in active_thread:
-        #     print(i)
+        """
+        live = False
+        with G.thread_info_lock:
+            infos = [i for i in G.thread_infos]
+        for i in infos:
+            if G.thread_infos[i].thread_self.is_alive():
+                live = True
+                break
+        if live and len(G.work_queue) == 0 and len(G.pq) == 0 and len(G.wait_queue) == 0:
+        """
         if len(active_thread)==1 and len(G.work_queue)==0 and len(G.pq)==0 and len(G.wait_queue)==0:
             if G.measure_thread:
                 new_time = time.time()
@@ -515,6 +523,8 @@ def admin_threads(G, function, args):
                     with open(thread_measure_file, "a") as f:
                         f.write(newline + "\n")
             print('finish')
+            # active_thread = [i for i in threading.enumerate() if not i.daemon]
+            # print(active_thread)
             return 1
 
 
