@@ -1,9 +1,0 @@
-(['63564'], 'Document_element_href')
-~~~tainted detected!~~~in extension: crx_lists/jianjia_timeout/extensions/lbapnbcemheenpjolcbdokfkcgljmdng with cs_localStorage_setItem_key_sink
-from Document_element_href to cs_localStorage_setItem_key_sink
-==========================
-$FilePath$crx_lists/jianjia_timeout/extensions/lbapnbcemheenpjolcbdokfkcgljmdng/opgen_generated_files/cs_0.js
-Line 21	    this.href = 'Document_element_href';
-	this.href = 'Document_element_href'
-
-crx_lists/jianjia_timeout/extensions/lbapnbcemheenpjolcbdokfkcgljmdng timeout after 70 seconds

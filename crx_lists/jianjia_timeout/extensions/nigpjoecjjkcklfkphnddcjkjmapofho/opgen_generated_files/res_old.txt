@@ -1,2 +1,0 @@
-crx_lists/jianjia_timeout/extensions/nigpjoecjjkcklfkphnddcjkjmapofho timeout after 60 seconds
-timeout

@@ -11,7 +11,7 @@ if __name__=='__main__':
 
     args = parser.parse_args()
     # cmd_add = ""
-    cur_cmd = './generate_opg.py -t chrome_ext -crx -no_merge -pq --timeout 60 /media/data2/jianjia/extension_data/unzipped_extensions'
+    cur_cmd = './generate_opg.py -t chrome_ext -crx -no_merge -pq --timeout 60 /media/data2/jianjia/extension_data/unzipped_extensions/'
 
     # thread_num =  20
     extension_id_file = args.extension_id_file

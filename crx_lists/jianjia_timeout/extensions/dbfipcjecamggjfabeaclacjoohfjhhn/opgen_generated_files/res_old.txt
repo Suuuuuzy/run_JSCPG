@@ -1,3 +1,0 @@
-crx_lists/jianjia_timeout/extensions/dbfipcjecamggjfabeaclacjoohfjhhn timeout after 60 seconds
-timeoutcrx_lists/jianjia_timeout/extensions/dbfipcjecamggjfabeaclacjoohfjhhn timeout after 20 seconds
-timeout
