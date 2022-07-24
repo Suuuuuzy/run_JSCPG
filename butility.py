@@ -3,6 +3,7 @@ import json
 import sys
 import argparse
 import time
+import subprocess
 
 if __name__=='__main__':
 
@@ -10,10 +11,28 @@ if __name__=='__main__':
     parser.add_argument('-id', '--extension_id_file', type=str, help='path to the file')
 
     args = parser.parse_args()
-    # cmd_add = ""
+    
+    extension_id_file = args.extension_id_file
+    with open(extension_id_file) as f:
+        ids = json.load(f)
+    cur_cmd_proc = ['./generate_opg.py', '-t', 'chrome_ext', '-crx -no_merge', '-pq', '--timeout', '60', '/media/data2/jianjia/extension_data/unzipped_extensions/']
+    # cur_cmd_proc = ['./generate_opg.py', '-t', 'chrome_ext', '-crx', '-no_merge', '-pq', '--timeout', '10', 'crx_lists/jianjia_timeout/extensions/']
+    for i in ids:
+        tmp = [i for i in cur_cmd_proc]
+        tmp[-1] = tmp[-1]+i
+        process = subprocess.Popen(tmp)
+        try:
+            print('Running in process', process.pid)
+            process.wait(timeout=60)
+        except subprocess.TimeoutExpired:
+            print('Timed out - killing', process.pid)
+            process.kill()
+        print("Done")
+
+
+    """
     cur_cmd = './generate_opg.py -t chrome_ext -crx -no_merge -pq --timeout 60 /media/data2/jianjia/extension_data/unzipped_extensions/'
 
-    # thread_num =  20
     extension_id_file = args.extension_id_file
     with open(extension_id_file) as f:
         ids = json.load(f)
@@ -24,25 +43,4 @@ if __name__=='__main__':
         # os_cmd = f"screen -S coco_{i} -dm {tmp_cmd}"
         print(tmp_cmd)
         os.system(tmp_cmd)
-
-        # time.sleep(5)
-    # step = len(ids) // thread_num
-    # flag = 0
-    # os.makedirs('tmp_split_list', exist_ok=True)
-    # files = os.listdir('tmp_split_list')
-    # for file in files:
-    #     os.remove(os.path.join('tmp_split_list', file))
-    # for i in range(thread_num-1):
-    #     with open('tmp_split_list/ids_' + str(i) + '.txt', 'w') as f:
-    #         json.dump(ids[flag:flag+step], f)
-    #     flag+=step
-    # with open('tmp_split_list/ids_' + str(thread_num-1) + '.txt', 'w') as f:
-    #     json.dump(ids[flag:], f)
-
-    # for i in range(thread_num):
-    #     # tmp_cmd = cur_cmd + ' -f '+ str(i) + ' -p ' + extension_path + ' -id ' + 'tmp_split_list/ids_' + str(i) + '.txt' 
-    #     tmp_cmd = cur_cmd + ' -id ' + 'tmp_split_list/ids_' + str(i) + '.txt' 
-    #     # tmp_cmd += cmd_add
-    #     os_cmd = f"screen -S coco_{i} -dm {tmp_cmd}"
-    #     print(os_cmd)
-        # os.system(os_cmd)
+    """
