@@ -154,7 +154,10 @@ def sum_all_files(pathDir, prefix):
             if "detected_by_doublex" in pathDir:
                 all_dic['benign'] = []
     else:
-        all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[], "pq_detected": [], "pq_timeout":[], "pq_benign":[], "pq_error":[]}
+        all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[], "pq_detected": [], "pq_timeout":[], "pq_benign":[], "pq_error":[], "pq_not_done":[]}
+    with open("/media/data2/jianjia/extension_data/filtered_file.txt") as f:
+        filtered_ids = json.load(f)
+        filtered_ids = set(filtered_ids)
     with open(old_results_file, 'w') as f:
         for i in range(0, thread_num):
             with open(os.path.join(pathDir, str(i) + prefix+'.txt')) as fr:
@@ -169,6 +172,7 @@ def sum_all_files(pathDir, prefix):
                 all_dic["pq_timeout"].extend(c["pq_timeout"])
                 all_dic["pq_benign"].extend(c["pq_benign"])
                 all_dic["pq_error"].extend(c["pq_error"])
+        all_dic["pq_not_done"] = list(filtered_ids - set(all_dic["pq_detected"]) - set(all_dic["pq_timeout"]) - set(all_dic["pq_benign"]) - set(all_dic["pq_error"]))
         json.dump(all_dic, f)
     cnt = 0
     for i in all_dic:
@@ -193,12 +197,8 @@ def sum_all_files(pathDir, prefix):
         json.dump(benign, f)
     for i in range(0, thread_num):
         os.remove(os.path.join(pathDir, str(i) + prefix+'.txt'))
-    with open("/media/data2/jianjia/extension_data/filtered_file.txt") as f:
-        filtered_ids = json.load(f)
-        filtered_ids = set(filtered_ids)
-    pq_not_done = filtered_ids-set(all_dic["pq_detected"]) -set(all_dic["pq_timeout"])-set(all_dic["pq_benign"])-set(all_dic["pq_error"])
     with open(os.path.join(pathDir, 'pq_not_done.txt'), 'w') as f:
-        json.dump(list(pq_not_done), f)
+        json.dump(all_dic["pq_not_done"], f)
 
 
 
@@ -212,7 +212,8 @@ def run_with_threads(resDir, extension_path, idfile, func, res_name, thread_num 
     if os.path.exists(old_results_file):
         with open(old_results_file) as f:
             c = json.load(f)
-            ids = c['not_done']
+            if "pq_not_done" in c:
+                ids = c['pq_not_done']
             if "detected_by_doublex" in resDir:
                 ids.extend(c['benign'])
     step = len(ids) // thread_num
