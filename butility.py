@@ -23,9 +23,11 @@ if __name__=='__main__':
         process = subprocess.Popen(tmp)
         try:
             print('Running in process', process.pid)
-            process.wait(timeout=70)
+            process.wait(timeout=60)
         except subprocess.TimeoutExpired:
             print('Timed out - killing', process.pid)
+            with open(tmp[-1]+"/opgen_generated_files/res.txt", "w") as f:
+                f.write("timeout")
             process.kill()
         print("Done")
 
