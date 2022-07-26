@@ -15,7 +15,7 @@ if __name__=='__main__':
     extension_id_file = args.extension_id_file
     with open(extension_id_file) as f:
         ids = json.load(f)
-    cur_cmd_proc = ['./generate_opg.py', '-t', 'chrome_ext', '-crx', '-no_merge', '-pq', '--timeout', '120', '/media/data2/jianjia/extension_data/unzipped_extensions/']
+    cur_cmd_proc = ['./generate_opg.py', '-t', 'chrome_ext', '-crx', '-no_merge', '-pq', '--timeout', '300', '/media/data2/jianjia/extension_data/unzipped_extensions/']
     # cur_cmd_proc = ['./generate_opg.py', '-t', 'chrome_ext', '-crx', '-no_merge', '-pq', '--timeout', '10', 'crx_lists/jianjia_timeout/extensions/']
     for i in ids:
         tmp = [i for i in cur_cmd_proc]
@@ -23,7 +23,7 @@ if __name__=='__main__':
         process = subprocess.Popen(tmp)
         try:
             print('Running in process', process.pid)
-            process.wait(timeout=120)
+            process.wait(timeout=300)
         except subprocess.TimeoutExpired:
             print('Timed out - killing', process.pid)
             with open(tmp[-1]+"/opgen_generated_files/res.txt", "w") as f:
