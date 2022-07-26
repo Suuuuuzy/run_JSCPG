@@ -26,8 +26,14 @@ if __name__=='__main__':
             process.wait(timeout=300)
         except subprocess.TimeoutExpired:
             print('Timed out - killing', process.pid)
-            with open(tmp[-1]+"/opgen_generated_files/res.txt", "w") as f:
-                f.write("timeout")
+            timeout = True
+            with open(tmp[-1] + "/opgen_generated_files/res.txt") as f:
+                c = f.read()
+                if "tainted detected"  in c:
+                    timeout = False
+            if timeout:
+                with open(tmp[-1]+"/opgen_generated_files/res.txt", "w") as f:
+                    f.write("timeout")
             process.kill()
         print("Done")
 
