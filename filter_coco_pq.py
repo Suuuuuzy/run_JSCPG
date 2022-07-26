@@ -180,6 +180,8 @@ def sum_all_files(pathDir, prefix, idfile):
         cnt += len(all_dic[i])
         print(len(all_dic[i]))
     print(cnt)
+    with open(os.path.join(pathDir, 'pq_detected.txt'), 'w') as f:
+        json.dump(all_dic['pq_detected'], f)
     with open(os.path.join(pathDir, 'not_done.txt'), 'w') as f:
         json.dump(all_dic['not_done'], f)
     with open(os.path.join(pathDir, 'benign.txt'), 'w') as f:
