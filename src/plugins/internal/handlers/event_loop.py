@@ -7,7 +7,6 @@ import threading
 def event_loop_threading(G: Graph, event, mydata):
     G.mydata.unpickle_up(mydata)
     cur_thread = threading.current_thread()
-    print('=========processing eventName: ' + event['eventName'] + ' in ' + cur_thread.name)
     if event['eventName'] in event_listener_dic:
         listener = event_listener_dic[event['eventName']][0]
         with G.eventRegisteredFuncs_lock:
@@ -15,6 +14,11 @@ def event_loop_threading(G: Graph, event, mydata):
         if listener_not_registered:
             print(event['eventName'] , ': event listener not registered')
             return
+        # print('=========processing eventName: ' + event['eventName'] + ' in ' + cur_thread.name)
+        # print('========SEE eventRegisteredFuncs:========')
+        # for i in G.eventRegisteredFuncs:
+        #     print(i, G.eventRegisteredFuncs[i])
+        #     print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
         func = event_listener_dic[event['eventName']][1]
         func(G, event)
 
