@@ -14,9 +14,15 @@ import sys
 import json
 from tqdm import tqdm
 import threading
+import re
 
-coco_api= [
-"eval_sink",
+bg_valid_execution_sources = ["bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal"]
+cs_valid_execution_sources = ["document_on_event"]
+cs_valid_execution_sources_starts = ["cs_window_", "document_"]
+
+type1_src=["bg_external_port_onMessage", "bg_chrome_runtime_MessageExternal", "document_on_event"]
+type1_src_head = ["cs_window_", "document_"]
+type1_sink = ["eval_sink",
 "setTimeout",
 "chrome_tabs_executeScript_sink",
 "XMLHttpRequest_url_sink",
@@ -27,6 +33,13 @@ coco_api= [
 "jQuery_post_url_sink",
 # "XMLHttpRequest_post_sink",
 "chrome_downloads_download_sink",
+"chrome_storage_sync_set_sink",
+"chrome_storage_local_set_sink",
+"management_setEnabled_enabled"
+]
+
+type2_src = [
+"management_getAll_source",
 # "cookie_source",
 "cookies_source",
 # "CookieStores_source",
@@ -35,71 +48,72 @@ coco_api= [
 "VisitItem_source",
 "topSites_source",
 "storage_sync_get_source",
-"storage_local_get_source",
-"chrome_storage_sync_set_sink",
-"chrome_storage_local_set_sink",
-"management_setEnabled_enabled",
-"management_getAll_source"
+"storage_local_get_source"
+]
+type2_sink = [
+    "window_postMessage_sink",
+    "bg_external_port_postMessage_sink",
+    "sendResponseExternal_sink"
+    # "document_write_sink",
+    # "JQ_obj_val_sink",
+    # "JQ_obj_html_sink",
+    # "localStorage_remove_sink",
+    # "localStorage_setItem_key",
+    # "localStorage_setItem_value",
+    # "document_execCommand_sink"
 ]
 
-def check_pq(timefile, old=False):
-    pq = False
-    if not os.path.exists(timefile):
-        return False
-    with open(timefile) as f:
-        c = f.read()
-    blocks = c.split("\n\n")
-    # find the corresponding block first
-    blocks = [i for i in blocks if i != '']
-    if old:
-        if len(blocks)>1:
-            lines = blocks[-2]
-        else:
-            return False
-    else:
-        lines = blocks[-1]
-    lines = lines.split("\n")
-    lines = [i for i in lines if i != '']
-    for i in lines:
-        if i.startswith("run_with_pq"):
-            if i == "run_with_pq: True":
-                pq = True
-            else:
-                pq = False
-    return pq
+
+def check_src_sink(content):
+    global type2_sink
+    global type2_src
+    global type1_sink
+    global type1_src
+    global type1_src_head
+    # "from fetch_source to chrome_storage_local_set_sink"
+    pattern = "from {src} to {sink}"
+    for src in type1_src:
+        for sink in type1_sink:
+            tmp_pattern = pattern.format(src=src, sink=sink)
+            if tmp_pattern in content:
+                return True
+    for src in type1_src_head:
+        for sink in type1_sink:
+            first = "from {src}".format(src=src)
+            second = " to {sink}".format(sink=sink)
+            tmp_pattern = re.compile(first+".*"+second)
+            matchobj = tmp_pattern.findall(content)[0]
+            if matchobj:
+                return True
+    for src in type2_src:
+        for sink in type2_sink:
+            tmp_pattern = pattern.format(src=src, sink=sink)
+            if tmp_pattern in content:
+                return True
+    return False
 
 def ana_opgen(extension_path, id, res_name):
     res = -1
-    pq = False
     gen_path = os.path.join(extension_path, id, "opgen_generated_files")
-    filename = os.path.join(gen_path, res_name)
-    if not os.path.exists(filename):
-        return res, pq
-    # check the used_time_file to see whether the result id from pq or no_pq
-    used_time_file = os.path.join(gen_path, "used_time.txt")
-    if res_name == "res_old.txt":
-        pq = check_pq(used_time_file, old=True)
-    else:
-        pq =  check_pq(used_time_file, old=False)
-    if os.path.exists(gen_path) :
-        with open(filename) as f:
-            c = f.read()
-            if "nothing detected" in c:
-                res = 0
-            elif "timeout" in c:
-                res = -2
-            elif "tainted detected" in c:
-                suc = 0
-                for i in coco_api:
-                    if i in c:
-                        res = 1
-                        suc = 1
-                        break
-                if suc==0:
+    for res_name in ["res_old.txt", "res.txt"]:
+        filename = os.path.join(gen_path, res_name)
+        if not os.path.exists(filename):
+            return res
+        if os.path.exists(gen_path) :
+            with open(filename) as f:
+                c = f.read()
+                if "nothing detected" in c:
                     res = 0
-            elif "Error:" in c:
-                res = 2
-    return res, pq
+                elif "timeout" in c:
+                    res = -2
+                elif "tainted detected" in c:
+                    if check_src_sink(c):
+                        res = 1
+                    else:
+                        res = 0
+                elif "Error:" in c:
+                    res = 2
+    return res
 
 def analyze_results(flag, resDir, extension_path, ids, res_name):
     detected = []
@@ -107,36 +121,19 @@ def analyze_results(flag, resDir, extension_path, ids, res_name):
     timeout = []
     benign = []
     error = []
-    pq_detected = []
-    # pq_not_done = []
-    pq_timeout = []
-    pq_benign = []
-    pq_error = []
     for id in tqdm(ids):
-        res, pq = ana_opgen(extension_path, id, res_name)
+        res = ana_opgen(extension_path, id, res_name)
         if res==1:
-            if pq:
-                pq_detected.append(id)
-            else:
-                detected.append(id)
+            detected.append(id)
         elif res==-1:
             not_done.append(id)
         elif res==-2:
-            if pq:
-                pq_timeout.append(id)
-            else:
-                timeout.append(id)
+            timeout.append(id)
         elif res==0:
-            if pq:
-                pq_benign.append(id)
-            else:
-                benign.append(id)
+            benign.append(id)
         elif res==2:
-            if pq:
-                pq_error.append(id)
-            else:
-                error.append(id)
-    dic = {"detected": detected, "not_done":not_done, "timeout":timeout, "benign":benign, "error":error, "pq_detected": pq_detected, "pq_timeout":pq_timeout, "pq_benign":pq_benign, "pq_error":pq_error}
+            error.append(id)
+    dic = {"detected": detected, "not_done":not_done, "timeout":timeout, "benign":benign, "error":error}
     os.makedirs(resDir, exist_ok=True)
     with open(os.path.join(resDir, str(flag) + 'opgen_results.txt'), 'w') as f:
         json.dump(dic, f)
@@ -153,7 +150,7 @@ def sum_all_files(pathDir, prefix, idfile):
             if "detected_by_doublex" in pathDir:
                 all_dic['benign'] = []
     else:
-        all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[], "pq_detected": [], "pq_timeout":[], "pq_benign":[], "pq_error":[], "pq_not_done":[]}
+        all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[]}
     with open(idfile) as f:
         filtered_ids = json.load(f)
         filtered_ids = set(filtered_ids)
@@ -166,12 +163,6 @@ def sum_all_files(pathDir, prefix, idfile):
                 all_dic["timeout"].extend(c["timeout"])
                 all_dic["benign"].extend(c["benign"])
                 all_dic["error"].extend(c["error"])
-                # for pq
-                all_dic["pq_detected"].extend(c["pq_detected"])
-                all_dic["pq_timeout"].extend(c["pq_timeout"])
-                all_dic["pq_benign"].extend(c["pq_benign"])
-                all_dic["pq_error"].extend(c["pq_error"])
-        all_dic["pq_not_done"] = list(filtered_ids - set(all_dic["pq_detected"]) - set(all_dic["pq_timeout"]) - set(all_dic["pq_benign"]) - set(all_dic["pq_error"]))
         json.dump(all_dic, f)
     cnt = 0
     for i in all_dic:
@@ -179,27 +170,15 @@ def sum_all_files(pathDir, prefix, idfile):
         cnt += len(all_dic[i])
         print(len(all_dic[i]))
     print(cnt)
-    with open(os.path.join(pathDir, 'pq_detected.txt'), 'w') as f:
-        json.dump(all_dic['pq_detected'], f)
     with open(os.path.join(pathDir, 'not_done.txt'), 'w') as f:
         json.dump(all_dic['not_done'], f)
     with open(os.path.join(pathDir, 'benign.txt'), 'w') as f:
         json.dump(all_dic['benign'], f)
     with open(os.path.join(pathDir, 'detected.txt'), 'w') as f:
         json.dump(all_dic['detected'], f)
-    benign = all_dic['pq_benign']
-    not_done = all_dic['not_done']
-    benign.extend(not_done)
-    with open(os.path.join(pathDir, 'not_done_benign.txt'), 'w') as f:
-        json.dump(benign, f)
-    benign.extend(all_dic['pq_error'])
-    benign.extend(all_dic['pq_timeout'])
-    with open(os.path.join(pathDir, 'not_detected.txt'), 'w') as f:
-        json.dump(benign, f)
     for i in range(0, thread_num):
         os.remove(os.path.join(pathDir, str(i) + prefix+'.txt'))
-    with open(os.path.join(pathDir, 'pq_not_done.txt'), 'w') as f:
-        json.dump(all_dic["pq_not_done"], f)
+
 
 
 
