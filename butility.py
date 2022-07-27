@@ -28,12 +28,14 @@ if __name__=='__main__':
             print('Timed out - killing', process.pid)
             process.kill()
             timeout = True
-            with open(tmp[-1] + "/opgen_generated_files/res.txt") as f:
-                c = f.read()
-                if "tainted detected"  in c:
-                    timeout = False
+            res_file = tmp[-1] + "/opgen_generated_files/res.txt"
+            if os.path.exists(res_file):
+                with open(res_file) as f:
+                    c = f.read()
+                    if "tainted detected"  in c:
+                        timeout = False
             if timeout:
-                with open(tmp[-1]+"/opgen_generated_files/res.txt", "w") as f:
+                with open(res_file, "w") as f:
                     f.write("timeout")
         print("Done")
 
