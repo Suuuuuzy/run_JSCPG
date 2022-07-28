@@ -15,7 +15,7 @@ if __name__=='__main__':
     extension_id_file = args.extension_id_file
     with open(extension_id_file) as f:
         ids = json.load(f)
-    cur_cmd_proc = ['./generate_opg.py', '-t', 'chrome_ext', '-crx', '-no_merge', '-pq', '--timeout', '120', '/media/data2/jianjia/extension_data/unzipped_extensions/']
+    cur_cmd_proc = ['./generate_opg.py', '-t', 'chrome_ext', '-crx', '-no_merge', '-pq', '--timeout', '60', '/media/data2/jianjia/extension_data/unzipped_extensions/']
     # cur_cmd_proc = ['./generate_opg.py', '-t', 'chrome_ext', '-s','-crx', '--timeout', '120', '/media/data2/jianjia/extension_data/unzipped_extensions/']
     # cur_cmd_proc = ['./generate_opg.py', '-t', 'chrome_ext', '-crx', '-no_merge', '-pq', '--timeout', '10', 'crx_lists/jianjia_timeout/extensions/']
     for i in ids:
