@@ -24,7 +24,7 @@ if __name__=='__main__':
         process = subprocess.Popen(tmp)
         try:
             print('Running in process', process.pid)
-            process.wait(timeout=120)
+            process.wait(timeout=60)
         except subprocess.TimeoutExpired:
             print('Timed out - killing', process.pid)
             process.kill()
