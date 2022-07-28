@@ -82,7 +82,7 @@ def check_src_sink(content):
             first = "from {src}".format(src=src)
             second = " to {sink}".format(sink=sink)
             tmp_pattern = re.compile(first+".*"+second)
-            matchobj = tmp_pattern.findall(content)[0]
+            matchobj = tmp_pattern.findall(content)
             if matchobj:
                 return True
     for src in type2_src:
