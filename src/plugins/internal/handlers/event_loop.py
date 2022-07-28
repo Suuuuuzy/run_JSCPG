@@ -14,11 +14,11 @@ def event_loop_threading(G: Graph, event, mydata):
         if listener_not_registered:
             print(event['eventName'] , ': event listener not registered')
             return
-        # print('=========processing eventName: ' + event['eventName'] + ' in ' + cur_thread.name)
-        # print('========SEE eventRegisteredFuncs:========')
-        # for i in G.eventRegisteredFuncs:
-        #     print(i, G.eventRegisteredFuncs[i])
-        #     print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
+        print('=========processing eventName: ' + event['eventName'] + ' in ' + cur_thread.name)
+        print('========SEE eventRegisteredFuncs:========')
+        for i in G.eventRegisteredFuncs:
+            print(i, G.eventRegisteredFuncs[i])
+            print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
         func = event_listener_dic[event['eventName']][1]
         func(G, event)
 
@@ -28,7 +28,6 @@ def event_loop_no_threading(G: Graph):
     for i in G.eventRegisteredFuncs:
         print(i, G.eventRegisteredFuncs[i])
         print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
-    print('========DO ATTACK:========')
     # run the original events before the attack
     originalEventQueue = G.eventQueue.copy()
     G.eventQueue = []
@@ -44,6 +43,7 @@ def event_loop_no_threading(G: Graph):
             func = event_listener_dic[event['eventName']][1]
             func(G, event)
     # run the attack
+    print('========DO ATTACK:========')
     while len(G.attackEntries)!=0:
         entry = G.attackEntries.pop()
         type = entry[0]
@@ -77,9 +77,12 @@ def bg_chrome_runtime_MessageExternal_attack(G, entry, mydata=None):
     G.set_node_attr(wildcard_msg_obj, ('tainted', True))
     G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
     G.set_node_attr(wildcard_msg_obj, ('taint_flow', [([wildcard_msg_obj], str(entry[0]))]))
-    func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
+    wildcard_sender_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
+    else None, value=wildcard)
+    G.set_node_attr(wildcard_sender_obj, ('fake_arg', True))
+    # func_objs = G.get_objs_by_name('MessageSenderExternal', scope=G.bg_scope, branches=[])
     sendResponseExternal = G.get_objs_by_name('sendResponseExternal', scope=G.bg_scope, branches=[])
-    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
+    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_sender_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
     func_objs = [entry[1]]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
@@ -117,8 +120,11 @@ def bg_external_port_onMessage_attack(G, entry, mydata=None):
     G.set_node_attr(wildcard_msg_obj, ('tainted', True))
     G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
     G.set_node_attr(wildcard_msg_obj, ('taint_flow', [([wildcard_msg_obj], str(entry[0]))]))
+    wildcard_sender_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
+    else None, value=wildcard)
+    G.set_node_attr(wildcard_sender_obj, ('fake_arg', True))
     sendResponseExternal = G.get_objs_by_name('sendResponseExternal', scope=G.bg_scope, branches=[])
-    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
+    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_sender_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
     func_objs = [entry[1]]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
@@ -134,8 +140,11 @@ def bg_externalNativePort_onMessage_attack(G, entry, mydata=None):
     wildcard_msg_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
                                        else None, value=wildcard)
     G.set_node_attr(wildcard_msg_obj, ('fake_arg', True))
+    wildcard_sender_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
+    else None, value=wildcard)
+    G.set_node_attr(wildcard_sender_obj, ('fake_arg', True))
     sendResponseExternal = G.get_objs_by_name('sendResponseExternalNative', scope=G.bg_scope, branches=[])
-    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
+    args = [NodeHandleResult(obj_nodes=[wildcard_msg_obj]), NodeHandleResult(obj_nodes=[wildcard_sender_obj]), NodeHandleResult(obj_nodes=sendResponseExternal)]
     func_objs = [entry[1]]
     returned_result, created_objs = call_function(G, func_objs, args=args, this=NodeHandleResult(), extra=None,
                                                           caller_ast=None, is_new=False, stmt_id='Unknown',
@@ -254,14 +263,17 @@ def cs_chrome_runtime_sendMessage(G, event):
     for tmp in messages:
         copied_messages.append(G.copy_obj((tmp), ast_node=None, deep=True))
     func_objs = G.get_objs_by_name('MessageSender', scope=G.bg_scope, branches=[])
-    MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
-                  extra=None,
-                  caller_ast=None, is_new=True, stmt_id='Unknown',
-                  func_name='MessageSender',
-                  mark_fake_args=False)
-    MessageSender.obj_nodes = created_objs
+    # MessageSender, created_objs = call_function(G, func_objs, args=[], this=NodeHandleResult(),
+    #               extra=None,
+    #               caller_ast=None, is_new=True, stmt_id='Unknown',
+    #               func_name='MessageSender',
+    #               mark_fake_args=False)
+    # MessageSender.obj_nodes = created_objs
+    wildcard_sender_obj = G.add_obj_node(js_type='object' if G.check_proto_pollution
+    else None, value=wildcard)
+    G.set_node_attr(wildcard_sender_obj, ('fake_arg', True))
     sendResponse = G.get_objs_by_name('sendResponse', scope=G.get_cur_window_scope(), branches=[])
-    args = [NodeHandleResult(obj_nodes=copied_messages), MessageSender, NodeHandleResult(obj_nodes=sendResponse)]
+    args = [NodeHandleResult(obj_nodes=copied_messages), NodeHandleResult(obj_nodes=[wildcard_sender_obj]), NodeHandleResult(obj_nodes=sendResponse)]
     with G.eventRegisteredFuncs_lock:
         func_objs = G.eventRegisteredFuncs['bg_chrome_runtime_onMessage']
     # switch cur scope

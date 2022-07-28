@@ -464,7 +464,28 @@ def get_df_callback(G, ast_node=None):
         cpg_node = G.cur_stmt if not G.thread_version else G.mydata.cur_stmt
     else:
         cpg_node = G.find_nearest_upper_CPG_node(ast_node)
-    return lambda result: build_df_by_def_use(G, cpg_node, result.used_objs)
+    return lambda result: build_taint_flow_on_obj(G, cpg_node, result.used_objs, result.obj_nodes)
+
+def build_taint_flow_on_obj(G, cur_stmt, used_objs, obj_nodes):
+    # add taint flow
+    taint_flow = []
+    taint_flow_flag = False
+    for used in used_objs:
+        attrs = G.get_node_attr(used)
+        if 'tainted' in attrs and attrs['tainted']:
+            if 'taint_flow' in attrs:
+                taint_flow.extend(attrs['taint_flow'])
+                taint_flow_flag = True
+
+    if taint_flow_flag:
+        for new_obj in obj_nodes:
+            copy_taint_flow = taint_flow.copy()
+            for flow in copy_taint_flow:
+                flow[0].append(new_obj)
+            G.set_node_attr(new_obj, ('tainted', True))
+            G.set_node_attr(new_obj, ('taint_flow', copy_taint_flow))
+    # the normal OBJ_REACHES edge
+    build_df_by_def_use(G, cur_stmt, used_objs)
 
 def build_df_by_def_use(G, cur_stmt, used_objs):
     """
