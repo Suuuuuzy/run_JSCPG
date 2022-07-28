@@ -96,6 +96,10 @@ def ana_opgen(extension_path, id, res_name):
     res = -1
     gen_path = os.path.join(extension_path, id, "opgen_generated_files")
     for res_name in ["res_old.txt", "res.txt"]:
+        # already detected
+        if res==1:
+            return res
+        # not detected yet
         filename = os.path.join(gen_path, res_name)
         if not os.path.exists(filename):
             return res
@@ -143,14 +147,14 @@ def sum_all_files(pathDir, prefix, idfile):
     # all_dic = {"detected": [], "not_done":[], "timeout":[], "benign":[]}
     thread_num = 200
     old_results_file = os.path.join(pathDir, prefix + '.txt')
-    if os.path.exists(old_results_file):
-        with open(old_results_file) as f:
-            all_dic = json.load(f)
-            all_dic['not_done'] = []
-            if "detected_by_doublex" in pathDir:
-                all_dic['benign'] = []
-    else:
-        all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[]}
+    # if os.path.exists(old_results_file):
+    #     with open(old_results_file) as f:
+    #         all_dic = json.load(f)
+    #         all_dic['not_done'] = []
+    #         if "detected_by_doublex" in pathDir:
+    #             all_dic['benign'] = []
+    # else:
+    all_dic = {"detected": [], "not_done": [], "timeout": [], "benign": [], "error":[]}
     with open(idfile) as f:
         filtered_ids = json.load(f)
         filtered_ids = set(filtered_ids)
