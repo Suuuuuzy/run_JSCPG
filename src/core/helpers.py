@@ -707,6 +707,7 @@ def add_contributes_to(G: Graph, sources, target, operation: str=None,
                 flow[0].append(target)
     if chain_tainted and tainted:
         G.set_node_attr(target, ('tainted', True))
+        G.set_node_attr(target, ('taint_flow', taint_flow))
 
 def analyze_json(G, json_str, start_node_id=0, extra=None):
     # This function is almost the same as analyze_string,

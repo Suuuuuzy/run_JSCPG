@@ -15,10 +15,10 @@ def event_loop_threading(G: Graph, event, mydata):
             print(event['eventName'] , ': event listener not registered')
             return
         print('=========processing eventName: ' + event['eventName'] + ' in ' + cur_thread.name)
-        print('========SEE eventRegisteredFuncs:========')
-        for i in G.eventRegisteredFuncs:
-            print(i, G.eventRegisteredFuncs[i])
-            print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
+        # print('========SEE eventRegisteredFuncs:========')
+        # for i in G.eventRegisteredFuncs:
+        #     print(i, G.eventRegisteredFuncs[i])
+        #     print(G.get_obj_def_ast_node(G.eventRegisteredFuncs[i]))
         func = event_listener_dic[event['eventName']][1]
         func(G, event)
 
