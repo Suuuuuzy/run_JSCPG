@@ -160,11 +160,11 @@ def MarkAttackEntry(G: Graph, caller_ast, extra, _, *args):
             if type=="bg_tabs_onupdated":
                 G.attackEntries.insert(0, entry)
             else:
-                # if type in attack_dic:
-                #     attack_dic[type](G, entry)
-                # else:
-                #     other_attack(G, entry)
-                G.attackEntries.insert(0, entry)
+                if type in attack_dic:
+                    attack_dic[type](G, entry)
+                else:
+                    other_attack(G, entry)
+                # G.attackEntries.insert(0, entry)
 
     return NodeHandleResult()
 
